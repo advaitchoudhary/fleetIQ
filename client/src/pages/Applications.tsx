@@ -43,8 +43,8 @@ const Applications: React.FC = () => {
     <div>
       <Navbar />
       <div style={styles.container}>
-        <h1>Applications Page</h1>
-        <p>View and manage trip details here.</p>
+        <h1>All Applications</h1>
+        <p>View and manage all uploaded applications here.</p>
         <div style={styles.tableWrapper}>
           <table style={styles.table}>
             <thead>

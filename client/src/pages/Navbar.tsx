@@ -57,6 +57,7 @@ const Navbar: React.FC = () => {
                     <FaClock size={20} /> My Timesheet
                 </Link>
                 </li>
+                
                 <li style={styles.navItem}>
                     <Link to="/contact-us" style={styles.navLink}>
                     <FaPhoneAlt size={20} /> Contact Us
@@ -68,8 +69,8 @@ const Navbar: React.FC = () => {
           {user?.role === "admin" && (
             <>
               <li style={styles.navItem}>
-                <Link to="/drivers" style={styles.navLink}>
-                  <FaUsers size={20} /> Drivers
+                <Link to="/users" style={styles.navLink}>
+                  <FaUsers size={20} /> Users
                 </Link>
               </li>
               <li style={styles.navItem}>

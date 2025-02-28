@@ -1,17 +1,15 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext"; // Import AuthContext
 
 const Logout: React.FC = () => {
+  const { logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Clear user authentication state (if using localStorage/sessionStorage)
-    localStorage.removeItem("isAuthenticated"); // If storing login state
-    sessionStorage.removeItem("isAuthenticated");
-
-    // Redirect to login page
+    logout(); // Call logout function to clear localStorage and auth state
     navigate("/");
-  }, [navigate]);
+  }, [logout, navigate]);
 
   return (
     <div style={styles.container}>

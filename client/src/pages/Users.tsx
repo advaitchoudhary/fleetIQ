@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   ColumnDef,
@@ -12,7 +13,9 @@ import Navbar from "./Navbar";
 const API_BASE_URL = "http://localhost:8000/api";
 
 
-const Drivers: React.FC = () => {
+const Users: React.FC = () => {
+  const navigate = useNavigate();
+
   const [data, setData] = useState<any[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -21,12 +24,12 @@ const Drivers: React.FC = () => {
   const [editedDriver, setEditedDriver] = useState<any>(null);
   const [isUpdateDisabled, setIsUpdateDisabled] = useState(true);
 
-  // Fetch drivers on component mount
+  // Fetch users on component mount
   useEffect(() => {
-    fetchDrivers();
+    fetchUsers();
   }, []);
 
-  const fetchDrivers = async () => {
+  const fetchUsers = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/drivers`);
       setData(response.data); // Set fetched data
@@ -38,7 +41,7 @@ const Drivers: React.FC = () => {
   const createDriver = async (newDriver: any) => {
     try {
       await axios.post(`${API_BASE_URL}/driver`, newDriver);
-      fetchDrivers(); // Refresh list
+      fetchUsers(); // Refresh list
       setIsAddModalOpen(false);
     } catch (error) {
       console.error("Error creating driver:", error);
@@ -48,7 +51,7 @@ const Drivers: React.FC = () => {
     const updateDriver = async (updatedDriver: any) => {
       try {
         await axios.put(`${API_BASE_URL}/update/driver/${updatedDriver._id}`, updatedDriver);
-        fetchDrivers(); // Refresh list
+        fetchUsers(); // Refresh list
         setIsEditModalOpen(false);
       } catch (error) {
         console.error("Error updating driver:", error);
@@ -58,7 +61,7 @@ const Drivers: React.FC = () => {
     const deleteDriver = async () => {
       try {
         await axios.delete(`${API_BASE_URL}/delete/driver/${selectedDriver._id}`);
-        fetchDrivers(); // Refresh list
+        fetchUsers(); // Refresh list
         setIsDeleteModalOpen(false);
       } catch (error) {
         console.error("Error deleting driver:", error);
@@ -68,9 +71,10 @@ const Drivers: React.FC = () => {
 
     const columns: ColumnDef<typeof data[0]>[] = [
       { accessorKey: "_id", header: "ID" },
-      { accessorKey: "name", header: "Driver Name" },
+      { accessorKey: "name", header: "Name" },
       { accessorKey: "email", header: "Email" },
       { accessorKey: "address", header: "Address" },
+      { accessorKey: "role", header: "Role" },
       {
         accessorKey: "actions",
         header: "Actions",
@@ -123,11 +127,11 @@ const Drivers: React.FC = () => {
     <div style={styles.container}>
       <Navbar />
       <div style={styles.headerWrapper}>
-        <h1 style={styles.title}>Drivers Page</h1>
-        <p>Manage and view driver information here.</p>
+        <h1 style={styles.title}>All Users</h1>
+        <p>Manage and view all users information here.</p>
 
         <button style={styles.addButton} onClick={() => setIsAddModalOpen(true)}>
-          + Add Driver
+          + Add User
         </button>
       </div>
 
@@ -149,7 +153,7 @@ const Drivers: React.FC = () => {
             {table.getRowModel().rows.map((row) => (
               <tr key={row.id} style={styles.row}>
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} style={styles.td}>
+                  <td key={cell.id} style={styles.td} onClick={() => navigate(`/profile`, { state: { driver: row.original } })}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
@@ -192,6 +196,16 @@ const Drivers: React.FC = () => {
                 placeholder="Enter address"
                 style={styles.input}
                 onChange={(e) => setSelectedDriver({ ...selectedDriver, address: e.target.value })}
+              />
+            </div>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Role:</label>
+              <input
+                type="number"
+                placeholder="Enter Role"
+                style={styles.input}
+                onChange={(e) => setSelectedDriver({ ...selectedDriver, role: e.target.value })}
               />
             </div>
 
@@ -457,4 +471,4 @@ const styles = {
   },
 };
 
-export default Drivers;
+export default Users;

@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose"
 import bodyParser from "body-parser"
 import dotenv from "dotenv"
+import authRoutes from "./routes/authRoute.js";
 import route from "./routes/driverRoute.js"
 
 const app = express();
@@ -27,4 +28,5 @@ mongoose
         })
         .catch((error) => console.log(error));
 
+app.use("/api/auth", authRoutes);
 app.use("/api", route);

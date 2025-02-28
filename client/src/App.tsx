@@ -2,7 +2,8 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import Drivers from "./pages/Drivers";
+import Users from "./pages/Users";
+import Profile from "./pages/Profile";
 import ContactUs from "./pages/ContactUs";
 import Invoice from "./pages/Invoice";
 import Applications from "./pages/Applications";
@@ -37,12 +38,21 @@ const App: React.FC = () => {
           }
         />
 
+        <Route
+          path="/contact-us"
+          element={
+            <ProtectedRoute requiredRole="driver">
+              <ContactUs />
+            </ProtectedRoute>
+          }
+        />
+
         {/* Admin Role Routes */}
         <Route
-          path="/drivers"
+          path="/users"
           element={
             <ProtectedRoute requiredRole="admin">
-              <Drivers />
+              <Users />
             </ProtectedRoute>
           }
         />
@@ -63,12 +73,11 @@ const App: React.FC = () => {
           }
         />
 
-        {/* Routes accessible to both */}
         <Route
-          path="/contact-us"
+          path="/profile"
           element={
-            <ProtectedRoute requiredRole="driver">
-              <ContactUs />
+            <ProtectedRoute requiredRole="admin">
+              <Profile />
             </ProtectedRoute>
           }
         />

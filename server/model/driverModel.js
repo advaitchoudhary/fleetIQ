@@ -12,7 +12,12 @@ const driverSchema = new mongoose.Schema({
     address:{
         type:String,
         required: true
+    },
+    role:{
+        type: String,
+        required: false
     }
+    
 })
 
 export default mongoose.model("Drivers", driverSchema)
