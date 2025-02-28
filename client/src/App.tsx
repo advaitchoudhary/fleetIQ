@@ -3,24 +3,87 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Drivers from "./pages/Drivers";
-import Trips from "./pages/Trips";
-import Accounts from "./pages/Accounts";
 import ContactUs from "./pages/ContactUs";
-import Reports from "./pages/Invoice";
+import Invoice from "./pages/Invoice";
+import Applications from "./pages/Applications";
+import MyTimesheet from "./pages/MyTimesheet";
 import Logout from "./pages/Logout";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App: React.FC = () => {
   return (
-    <Routes>
-      <Route path="/" element={<Login />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/drivers" element={<Drivers />} />
-      <Route path="/trips" element={<Trips />} />
-      <Route path="/accounts" element={<Accounts />} />
-      <Route path="/contact-us" element={<ContactUs />} />
-      <Route path="/reports" element={<Reports />} />
-      <Route path="/logout" element={<Logout />} />
-    </Routes>
+    <AuthProvider>
+      <Routes>
+        {/* Public Route */}
+        <Route path="/" element={<Login />} />
+
+        {/* Driver Role Routes */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute requiredRole="driver">
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/my-timesheet"
+          element={
+            <ProtectedRoute requiredRole="driver">
+              <MyTimesheet />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin Role Routes */}
+        <Route
+          path="/drivers"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Drivers />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/applications"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Applications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/invoice"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Invoice />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Routes accessible to both */}
+        <Route
+          path="/contact-us"
+          element={
+            <ProtectedRoute requiredRole="driver">
+              <ContactUs />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Logout Route */}
+        <Route
+          path="/logout"
+          element={
+            <ProtectedRoute>
+              <Logout />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </AuthProvider>
   );
 };
 

@@ -1,99 +1,96 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
-import { FaBars, FaTimes, FaSignOutAlt } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import Navbar from "./Navbar";
 
 const Dashboard: React.FC = () => {
-  const [isNavOpen, setIsNavOpen] = useState(false);
-  const navigate = useNavigate();
-
-  // Sample dynamic table data
-  const data = React.useMemo(
-    () => [
-      { id: 1, name: "John Doe", role: "Driver", status: "Active" },
-      { id: 2, name: "Jane Smith", role: "Dispatcher", status: "Inactive" },
-      { id: 3, name: "Michael Brown", role: "Supervisor", status: "Active" },
-      { id: 4, name: "Alice Johnson", role: "Driver", status: "Active" },
-      { id: 5, name: "Robert White", role: "Dispatcher", status: "Inactive" },
-    ],
-    []
-  );
-
-  // Define table columns
-  const columns = React.useMemo(
-    () => [
-      { accessorKey: "id", header: "ID" },
-      { accessorKey: "name", header: "Name" },
-      { accessorKey: "role", header: "Role" },
-      { accessorKey: "status", header: "Status" },
-    ],
-    []
-  );
-
-  // Use the new `useReactTable` API
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
+  const [timesheet, setTimesheet] = useState({
+    date: "",
+    startTime: "",
+    endTime: "",
+    comments: "",
+    image: null as File | null,
   });
 
-  const handleLogout = () => {
-    navigate("/logout"); // Redirect to Logout component
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setTimesheet((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setTimesheet((prev) => ({ ...prev, image: e.target.files![0] }));
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Timesheet Submitted:", timesheet);
+    alert("Timesheet submitted successfully!");
+    // You can send the timesheet data to an API or store it in a database
   };
 
   return (
     <div style={styles.container}>
-      {/* Header */}
-      <header style={styles.header}>
-        <button onClick={() => setIsNavOpen(!isNavOpen)} style={styles.menuButton}>
-          {isNavOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
-        </button>
-        <h1 style={styles.title}>Premier Choice</h1>
-        <button onClick={handleLogout} style={styles.logoutButton}>
-          <FaSignOutAlt size={20} /> Logout
-        </button>
-      </header>
+      <Navbar /> {/* Navbar Component */}
 
-      {/* Sidebar Navigation */}
-      <nav style={{ ...styles.sidebar, left: isNavOpen ? "0px" : "-250px" }}>
-        <ul style={styles.navList}>
-            <li style={styles.navItem}><Link to="/dashboard" style={styles.navLink}>Home</Link></li>
-            <li style={styles.navItem}><Link to="/drivers" style={styles.navLink}>Drivers</Link></li>
-            <li style={styles.navItem}><Link to="/trips" style={styles.navLink}>Trips</Link></li>
-            <li style={styles.navItem}><Link to="/accounts" style={styles.navLink}>Accounts</Link></li>
-            <li style={styles.navItem}><Link to="/contact-us" style={styles.navLink}>Contact Us</Link></li>
-            <li style={styles.navItem}><Link to="/reports" style={styles.navLink}>Reports</Link></li>
-        </ul>
-    </nav>
-
-      {/* Main Content */}
       <div style={styles.mainContent}>
-        <h2>User Details</h2>
-        <table style={styles.table}>
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th key={header.id} style={styles.th}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} style={styles.td}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <h2>Enter Your Timesheet</h2>
+        <form onSubmit={handleSubmit} style={styles.form}>
+          {/* Date Input */}
+          <label style={styles.label}>Date:</label>
+          <input
+            type="date"
+            name="date"
+            value={timesheet.date}
+            onChange={handleChange}
+            required
+            style={styles.input}
+          />
+
+          {/* Start Time Input */}
+          <label style={styles.label}>Start Time:</label>
+          <input
+            type="time"
+            name="startTime"
+            value={timesheet.startTime}
+            onChange={handleChange}
+            required
+            style={styles.input}
+          />
+
+          {/* End Time Input */}
+          <label style={styles.label}>End Time:</label>
+          <input
+            type="time"
+            name="endTime"
+            value={timesheet.endTime}
+            onChange={handleChange}
+            required
+            style={styles.input}
+          />
+
+          {/* Comments Input */}
+          <label style={styles.label}>Comments:</label>
+          <textarea
+            name="comments"
+            value={timesheet.comments}
+            onChange={handleChange}
+            required
+            style={styles.textarea}
+            placeholder="Describe your work..."
+          />
+
+          {/* File Upload Input */}
+          <label style={styles.label}>Upload Picture (Optional):</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            style={styles.fileInput}
+          />
+
+          {/* Submit Button */}
+          <button type="submit" style={styles.submitButton}>Submit Timesheet</button>
+        </form>
       </div>
     </div>
   );
@@ -107,80 +104,47 @@ const styles = {
     height: "100vh",
     backgroundColor: "#f4f4f4",
   },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "15px 20px",
-    background: "linear-gradient(90deg, #4B0082, #6A0DAD)", 
-    color: "#fff",
-    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)", // Soft shadow for depth
-  },
-  title: {
-    fontSize: "1.5rem",
-  },
-  menuButton: {
-    background: "none",
-    border: "none",
-    color: "#fff",
-    cursor: "pointer",
-  },
-  logoutButton: {
-    background: "none",
-    border: "none",
-    color: "#fff",
-    cursor: "pointer",
-    fontSize: "1rem",
-    display: "flex",
-    alignItems: "center",
-    gap: "5px",
-  },
-  sidebar: {
-    position: "fixed" as const,
-    top: "0",
-    left: "-250px",
-    width: "250px",
-    height: "100%",
-    backgroundColor: "#333",
-    color: "#fff",
-    paddingTop: "60px",
-    transition: "0.3s",
-  },
-  navList: {
-    listStyleType: "none",
-    padding: "0",
-  },
-  navItem: {
-    padding: "15px 20px",
-    borderBottom: "1px solid #555",
-    cursor: "pointer",
-  },
-  navLink: {
-    color: "#fff",
-    textDecoration: "none",
-    display: "block",
-    width: "100%",
-    padding: "15px 20px",
-  },
   mainContent: {
-    marginLeft: "20px",
-    marginTop: "20px",
+    margin: "20px auto",
+    padding: "20px",
+    width: "50%",
+    backgroundColor: "#fff",
+    borderRadius: "10px",
+    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
   },
-  table: {
-    width: "90%",
-    borderCollapse: "collapse" as const,
-    marginTop: "20px",
+  form: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "15px",
   },
-  th: {
+  label: {
+    fontWeight: "bold",
+    fontSize: "1rem",
+  },
+  input: {
+    padding: "10px",
+    fontSize: "1rem",
+    borderRadius: "5px",
+    border: "1px solid #ddd",
+  },
+  textarea: {
+    padding: "10px",
+    fontSize: "1rem",
+    borderRadius: "5px",
+    border: "1px solid #ddd",
+    height: "100px",
+  },
+  fileInput: {
+    padding: "5px",
+  },
+  submitButton: {
     backgroundColor: "#007bff",
     color: "white",
+    fontSize: "1rem",
     padding: "10px",
-    textAlign: "left" as const,
-  },
-  td: {
-    border: "1px solid #ddd",
-    padding: "10px",
-    textAlign: "left" as const,
+    borderRadius: "5px",
+    border: "none",
+    cursor: "pointer",
   },
 };
 

@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@tanstack/react-table": "^8.21.2",
+    "axios": "^1.7.9",
+    "cors": "^2.8.5",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.5.23",

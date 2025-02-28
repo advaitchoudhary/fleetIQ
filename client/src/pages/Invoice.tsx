@@ -1,6 +1,8 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import axios from "axios";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import Navbar from "./Navbar";
 
 // Define TypeScript interface for invoice items
 interface InvoiceItem {
@@ -12,8 +14,11 @@ interface InvoiceItem {
   amount: number;
 }
 
+const API_BASE_URL = "http://localhost:8000/api";
+
 const Invoice: React.FC = () => {
   // State for Invoice Details
+  const [data, setData] = useState<any[]>([]);
   const [invoiceDate, setInvoiceDate] = useState("2025-01-31");
   const [invoicePeriod, setInvoicePeriod] = useState("2025-01-05 - 2025-01-18");
 
@@ -43,33 +48,30 @@ const Invoice: React.FC = () => {
     { id: 4, name: "ADJUSTMENT", quantity: -204.5, rate: 1, tax: "H", amount: -204.5 },
   ]);
 
-  // Function to handle changes in input fields
-  const handleFieldChange = (section: string, field: string, value: string) => {
-    if (section === "from") {
-      setFromDetails((prev) => ({ ...prev, [field]: value }));
-    } else if (section === "to") {
-      setToDetails((prev) => ({ ...prev, [field]: value }));
-    } else if (section === "attention") {
-      setAttention(value);
-    }
-  };
 
   // Function to handle table updates
   const handleItemChange = (index: number, field: keyof InvoiceItem, value: string | number) => {
     setItems((prevItems) =>
-      prevItems.map((item, i) => {
-        if (i === index) {
-          const updatedItem = { ...item, [field]: value };
-
-          if (field === "quantity" || field === "rate") {
-            updatedItem.amount = Number(updatedItem.quantity) * Number(updatedItem.rate);
-          }
-
-          return updatedItem;
-        }
-        return item;
-      })
+      prevItems.map((item, i) =>
+        i === index
+          ? { ...item, [field]: value, amount: field === "quantity" || field === "rate" ? Number(item.quantity) * Number(item.rate) : item.amount }
+          : item
+      )
     );
+  };
+
+  useEffect(() => {
+    fetchDrivers();
+  }, []);
+
+  const fetchDrivers = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/drivers`);
+      console.log(response);
+      setData(response.data);
+    } catch (error) {
+      console.error("Error fetching drivers:", error);
+    }
   };
 
   // Calculate subtotal & total
@@ -157,160 +159,98 @@ const Invoice: React.FC = () => {
 
   return (
     <div style={styles.container}>
+      <Navbar />
       <h1 style={styles.title}>Invoice</h1>
-  
-      {/* Invoice Content */}
-      <div ref={invoiceRef} style={styles.invoiceContainer}>
+
+      {/* Invoice Form */}
+      <div style={styles.invoiceContainer}>
         {/* Invoice Date & Period */}
-        <label>Invoice Date:</label>
-        <input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} style={styles.input} />
-  
-        <label>Invoice Period:</label>
-        <input type="text" value={invoicePeriod} onChange={(e) => setInvoicePeriod(e.target.value)} style={styles.input} />
-  
-        {/* From & To Details (Editable) */}
-        <div style={styles.section}>
-          <div style={styles.halfWidth}>
-            <h3>From:</h3>
-            <input type="text" value={fromDetails.name} onChange={(e) => handleFieldChange("from", "name", e.target.value)} style={styles.input} />
-            <input type="text" value={fromDetails.contact} onChange={(e) => handleFieldChange("from", "contact", e.target.value)} style={styles.input} />
-            <input type="text" value={fromDetails.address} onChange={(e) => handleFieldChange("from", "address", e.target.value)} style={styles.input} />
-            <input type="text" value={fromDetails.gst} onChange={(e) => handleFieldChange("from", "gst", e.target.value)} style={styles.input} />
+        <div style={styles.flexRow}>
+          <div style={styles.flexColumn}>
+            <label>Invoice Date:</label>
+            <input type="date" value={invoiceDate} onChange={(e) => setInvoiceDate(e.target.value)} style={styles.input} />
           </div>
-  
-          <div style={styles.halfWidth}>
-            <h3>To:</h3>
-            <input type="text" value={toDetails.name} onChange={(e) => handleFieldChange("to", "name", e.target.value)} style={styles.input} />
-            <input type="text" value={toDetails.address} onChange={(e) => handleFieldChange("to", "address", e.target.value)} style={styles.input} />
-            <input type="text" value={toDetails.gst} onChange={(e) => handleFieldChange("to", "gst", e.target.value)} style={styles.input} />
-            <input type="text" value={toDetails.phone} onChange={(e) => handleFieldChange("to", "phone", e.target.value)} style={styles.input} />
+          <div style={styles.flexColumn}>
+            <label>Invoice Period:</label>
+            <input type="text" value={invoicePeriod} onChange={(e) => setInvoicePeriod(e.target.value)} style={styles.input} />
           </div>
         </div>
-  
-        {/* Attention Section */}
-        <label>Attention:</label>
-        <input type="text" value={attention} onChange={(e) => handleFieldChange("attention", "", e.target.value)} style={styles.input} />
-  
-        {/* Table Section */}
+
+        {/* From & To Details */}
+        <div>
+          <div style={styles.box}>
+            <h3>From:</h3>
+            <select style={styles.dropdown}>
+              {data.map((driver) => (
+                <option key={driver._id} value={driver.name}>{driver.name}</option>
+              ))}
+            </select>
+              {Object.keys(fromDetails).map((key) => (
+              <input key={key} type="text" value={fromDetails[key as keyof typeof fromDetails]} style={styles.input} />
+            ))}
+          </div>
+          <div style={styles.box}>
+            <h3>To:</h3>
+            {Object.keys(toDetails).map((key) => (
+              <input key={key} type="text" value={toDetails[key as keyof typeof toDetails]} style={styles.input} />
+            ))}
+          </div>
+        </div>
+
+        {/* Invoice Table */}
         <h3>Invoice Items</h3>
         <table style={styles.table}>
           <thead>
             <tr>
-              <th>Item</th>
-              <th>Quantity</th>
-              <th>Rate</th>
-              <th>Tax</th>
-              <th>Amount</th>
+              {["Item", "Quantity", "Rate", "Tax", "Amount"].map((heading) => (
+                <th key={heading} style={styles.th}>{heading}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {items.map((item, index) => (
               <tr key={index}>
-                <td>
-                  <input type="text" value={item.name} onChange={(e) => handleItemChange(index, "name", e.target.value)} style={styles.input} />
-                </td>
-                <td>
-                  <input type="number" value={item.quantity} onChange={(e) => handleItemChange(index, "quantity", e.target.value)} style={styles.input} />
-                </td>
-                <td>
-                  <input type="number" value={item.rate} onChange={(e) => handleItemChange(index, "rate", e.target.value)} style={styles.input} />
-                </td>
-                <td>
-                  <input type="text" value={item.tax} onChange={(e) => handleItemChange(index, "tax", e.target.value)} style={styles.input} />
-                </td>
-                <td>${item.amount.toFixed(2)}</td>
+                {["name", "quantity", "rate", "tax"].map((field) => (
+                  <td key={field} style={styles.td}>
+                    <input type="text" value={item[field as keyof InvoiceItem]} onChange={(e) => handleItemChange(index, field as keyof InvoiceItem, e.target.value)} style={styles.input} />
+                  </td>
+                ))}
+                <td style={styles.td}>${item.amount.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
         </table>
-  
+
         {/* Totals Section */}
         <div style={styles.totals}>
           <p>Subtotal: ${subtotal.toFixed(2)}</p>
           <p>HST (13%): ${hst.toFixed(2)}</p>
           <h2>Total: ${total.toFixed(2)}</h2>
         </div>
-  
+
         {/* Generate PDF Button */}
         <button onClick={generatePDF} style={styles.button}>Generate PDF</button>
       </div>
     </div>
   );
 };
+
+// **Enhanced Styles**
 const styles = {
-  container: {
-    padding: "20px",
-    textAlign: "center" as const,
-  },
-  invoiceContainer: {
-    backgroundColor: "#fff",
-    padding: "30px", // Increased padding
-    border: "1px solid #ddd",
-    textAlign: "left" as const,
-    maxWidth: "900px", // More width
-    margin: "20px auto", // Center the form better
-    borderRadius: "8px", // Rounded corners
-    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)", // Subtle shadow
-  },
-  input: {
-    display: "block",
-    margin: "10px 0", // More spacing between fields
-    padding: "8px", // Increased padding
-    width: "100%",
-    border: "1px solid #ccc",
-    borderRadius: "5px",
-    fontSize: "14px",
-  },
-  table: {
-    width: "100%",
-    marginTop: "20px",
-    borderCollapse: "collapse" as const,
-  },
-  th: {
-    backgroundColor: "#007bff",
-    color: "white",
-    padding: "12px", // More padding for better visibility
-    textAlign: "left" as const,
-    fontSize: "14px",
-    border: "1px solid #ddd",
-  },
-  td: {
-    border: "1px solid #ddd",
-    padding: "12px", // Increased padding inside table cells
-    textAlign: "left" as const,
-    fontSize: "14px",
-  },
-  totals: {
-    marginTop: "20px",
-    fontSize: "16px",
-    fontWeight: "bold",
-  },
-  button: {
-    padding: "12px 24px", // More padding for better button click area
-    backgroundColor: "#007bff",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-    fontSize: "16px",
-    marginTop: "20px",
-    transition: "background 0.3s ease",
-  },
-  buttonHover: {
-    backgroundColor: "#0056b3",
-  },
-  halfWidth: { width: "48%" },
-  section: { display: "flex", justifyContent: "space-between" },
-  title: {
-    fontSize: "28px",
-    fontWeight: "bold",
-    textTransform: "uppercase" as const, // Explicitly typed
-    letterSpacing: "1px", // This is fine as a string
-    textAlign: "center" as const,
-    marginBottom: "20px",
-    color: "#333",
-    borderBottom: "2px solid #007bff",
-    paddingBottom: "10px",
-  },
+  container: { backgroundColor: "#f8f9fa", paddingBottom: "50px" },
+  invoiceContainer: { backgroundColor: "#fff", padding: "40px", maxWidth: "900px", margin: "20px auto", borderRadius: "10px", boxShadow: "0 4px 10px rgba(0,0,0,0.1)" },
+  input: { display: "block", margin: "10px 0", padding: "10px", width: "100%", border: "1px solid #ccc", borderRadius: "5px" },
+  table: { width: "100%", marginTop: "20px", borderCollapse: "collapse" as const },
+  th: { backgroundColor: "#007bff", color: "#fff", padding: "12px", textAlign: "left" as const },
+  td: { border: "1px solid #ddd", padding: "12px", textAlign: "left" as const },
+  totals: { marginTop: "20px", fontSize: "18px", fontWeight: "bold" },
+  button: { backgroundColor: "#007bff", color: "#fff", fontSize: "16px", padding: "10px", border: "none", borderRadius: "5px", cursor: "pointer" },
+  title: { fontSize: "28px", fontWeight: "bold", textAlign: "center" as const, marginBottom: "20px" },
+  flexRow: { display: "flex", gap: "20px" },
+  flexColumn: { flex: 1 },
+  box: { backgroundColor: "#f8f9fa", padding: "15px", borderRadius: "5px", marginBottom: "20px" },
+  dropdown: { padding: "10px", fontSize: "16px", margin: "10px 0", borderRadius: "5px", border: "1px solid #ccc" },
+  
 };
+
 export default Invoice;

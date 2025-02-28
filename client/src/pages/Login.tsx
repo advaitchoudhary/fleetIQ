@@ -1,22 +1,14 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useAuth } from "../contexts/AuthContext";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const navigate = useNavigate(); // Hook for navigation
+  const { login } = useAuth();
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-
-    if (email === "abc@gmail.com" && password === "abc123") {
-      setErrorMessage("");
-      navigate("/dashboard"); // Redirect to Dashboard
-    } else {
-      setErrorMessage("Invalid email or password.");
-    }
+    login(email, password);
   };
 
   return (
@@ -26,8 +18,6 @@ const Login: React.FC = () => {
         <p style={styles.description}>
           Manage your trips, track your hours, and stay updated with important information.
         </p>
-
-        {/* Login Form */}
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
             type="email"
@@ -45,10 +35,6 @@ const Login: React.FC = () => {
             required
             style={styles.input}
           />
-
-          {/* Display error message */}
-          {errorMessage && <p style={styles.error}>{errorMessage}</p>}
-
           <button type="submit" style={styles.button}>Login</button>
         </form>
       </div>
@@ -56,7 +42,6 @@ const Login: React.FC = () => {
   );
 };
 
-// Define styles
 const styles = {
   container: {
     position: "relative" as const,
@@ -99,11 +84,6 @@ const styles = {
     border: "1px solid #ccc",
     borderRadius: "5px",
     fontSize: "16px",
-  },
-  error: {
-    color: "#ff4d4d",
-    fontSize: "14px",
-    marginTop: "-5px",
   },
   button: {
     padding: "12px",

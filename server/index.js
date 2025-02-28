@@ -1,10 +1,16 @@
 import express from "express"
+import cors from "cors";
 import mongoose from "mongoose"
 import bodyParser from "body-parser"
 import dotenv from "dotenv"
 import route from "./routes/driverRoute.js"
 
 const app = express();
+app.use(cors({
+    origin: "http://localhost:5173", // Update this with your frontend URL
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type"]
+  }));
 app.use(bodyParser.json());
 dotenv.config();
 
