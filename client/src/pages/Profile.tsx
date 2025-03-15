@@ -7,14 +7,12 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
   const driver = location.state?.driver;
 
-  const [showTripsModal, setShowTripsModal] = useState(false);
   const [showTrainingsModal, setShowTrainingsModal] = useState(false);
 
   if (!driver) {
     return <p style={styles.noData}>No driver data available.</p>;
   }
 
-  // Generate Initials from Name
   const getInitials = (name: string) => {
     return name
       ? name
@@ -43,69 +41,36 @@ const Profile: React.FC = () => {
               <p style={styles.driverLocation}>{driver.address}</p>
             </div>
           </div>
-
-          {/* Trainings Section */}
-          <div style={styles.rightSection}>
-            <h3 style={styles.sectionTitle}>📚 Trainings</h3>
-            <div style={styles.trainingsList}>
-              <p>✔ Defensive Driving</p>
-              <p>✔ Hazardous Materials Handling</p>
-              <p>✔ First Aid Certification</p>
-            </div>
-            <button style={styles.seeAllButton} onClick={() => setShowTrainingsModal(true)}>
-                See All
-            </button>
-          </div>
         </div>
 
-        {showTrainingsModal && (
-            <div style={styles.modalOverlay}>
-                <div style={styles.modal}>
-                <h2>All Trainings</h2>
-                <ul style={styles.modalList}>
-                    <li>✔ Defensive Driving</li>
-                    <li>✔ Hazardous Materials Handling</li>
-                    <li>✔ First Aid Certification</li>
-                    <li>✔ Vehicle Maintenance</li>
-                    <li>✔ Route Optimization</li>
-                </ul>
-                <button style={styles.modalCloseButton} onClick={() => setShowTrainingsModal(false)}>Close</button>
-                </div>
-            </div>
-        )}
-
-        {/* Contact & License Details */}
-        <div style={styles.contactSection}>
-          <div style={styles.contactDetails}>
-            <h3 style={styles.sectionTitle}>📞 Contact Information</h3>
-            <p><strong>Email:</strong> {driver.email}</p>
-            <p><strong>ID:</strong> {driver._id}</p>
-          </div>
-          <div style={styles.licenseDetails}>
-            <h3 style={styles.sectionTitle}>🚘 Driver's License</h3>
-            <p><strong>SIN No.:</strong> 123-456-789</p>
-            <p><strong>License No.:</strong> DL-123456789</p>
-            <p><strong>Expiry Date:</strong> 12/31/2025</p>
-          </div>
+        {/* Driver Details */}
+        <div style={styles.driverDetails}>
+          <h3 style={styles.sectionTitle}>🚗 Driver Details</h3>
+          <p><strong>Email:</strong> {driver.email}</p>
+          <p><strong>Contact:</strong> {driver.contact}</p>
+          <p><strong>HST/GST:</strong> {driver.hst_gst || "N/A"}</p>
+          <p><strong>Business Name:</strong> {driver.business_name || "N/A"}</p>
+          <p><strong>Rate:</strong> ${driver.rate || "N/A"}</p>
         </div>
 
-        {/* Incident Reports */}
-        <div style={styles.section}>
-          <h3 style={styles.sectionTitle}>🚨 Incident Reports</h3>
-          <div style={styles.incidentReports}>
-            <img src="https://via.placeholder.com/100" alt="Incident 1" />
-            <img src="https://via.placeholder.com/100" alt="Incident 2" />
-            <img src="https://via.placeholder.com/100" alt="Incident 3" />
-          </div>
+        {/* License Details */}
+        <div style={styles.licenseSection}>
+          <h3 style={styles.sectionTitle}>🚘 License Details</h3>
+          <p><strong>Licence No.:</strong> {driver.licence || "N/A"}</p>
+          <p><strong>Licence Expiry Date:</strong> {driver.licence_expiry_date || "N/A"}</p>
         </div>
 
-        {/* Trips Section with Modal */}
-        <div style={styles.section}>
-          <h3 style={styles.sectionTitle}>🚗 Trips</h3>
-          <p>✔ Trip to Warehouse A</p>
-          <p>✔ Trip to Depot B</p>
-          <p>✔ Trip to Customer C</p>
-          <button style={styles.seeAllButton} onClick={() => setShowTripsModal(true)}>
+        {/* Status */}
+        <div style={styles.statusSection}>
+          <h3 style={styles.sectionTitle}>📌 Status</h3>
+          <p><strong>Current Status:</strong> {driver.status || "N/A"}</p>
+        </div>
+
+        {/* Trainings Section */}
+        <div style={styles.trainingsSection}>
+          <h3 style={styles.sectionTitle}>📚 Trainings</h3>
+          <p>{driver.trainings ? driver.trainings : "No Trainings Available"}</p>
+          <button style={styles.seeAllButton} onClick={() => setShowTrainingsModal(true)}>
             See All
           </button>
         </div>
@@ -114,19 +79,15 @@ const Profile: React.FC = () => {
         <button style={styles.button} onClick={() => navigate(-1)}>⬅ Go Back</button>
       </div>
 
-      {/* Trips Modal */}
-      {showTripsModal && (
+      {/* Trainings Modal */}
+      {showTrainingsModal && (
         <div style={styles.modalOverlay}>
           <div style={styles.modal}>
-            <h2>All Trips</h2>
+            <h2>All Trainings</h2>
             <ul style={styles.modalList}>
-              <li>✔ Trip to Warehouse A</li>
-              <li>✔ Trip to Depot B</li>
-              <li>✔ Trip to Customer C</li>
-              <li>✔ Trip to Distribution Center</li>
-              <li>✔ Trip to Delivery Hub</li>
+              <li>{driver.trainings || "No Trainings Available"}</li>
             </ul>
-            <button style={styles.modalCloseButton} onClick={() => setShowTripsModal(false)}>Close</button>
+            <button style={styles.modalCloseButton} onClick={() => setShowTrainingsModal(false)}>Close</button>
           </div>
         </div>
       )}
@@ -134,7 +95,7 @@ const Profile: React.FC = () => {
   );
 };
 
-const styles = {
+const styles: { [key: string]: React.CSSProperties } = {
     container: {
       maxWidth: "900px",
       margin: "60px auto",
@@ -143,16 +104,6 @@ const styles = {
       borderRadius: "10px",
       boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
       fontFamily: "'Arial', sans-serif",
-    },
-    goBackButton: {
-      padding: "8px 16px",
-      backgroundColor: "#007bff",
-      color: "#fff",
-      border: "none",
-      borderRadius: "6px",
-      cursor: "pointer",
-      fontSize: "14px",
-      marginBottom: "10px",
     },
     profileHeader: {
       display: "flex",
@@ -184,7 +135,7 @@ const styles = {
       justifyContent: "center",
       fontWeight: "bold",
       marginRight: "20px",
-      backgroundColor: `hsl(${Math.random() * 360}, 70%, 50%)`, // Random Color
+      backgroundColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
     },
     driverInfo: {
       textAlign: "left" as const,
@@ -202,25 +153,27 @@ const styles = {
       fontSize: "14px",
       color: "#555",
     },
-    rightSection: {
-      textAlign: "left" as const, // Ensures left-aligned text in Trainings
-    },
-    contactSection: {
-      display: "flex",
-      justifyContent: "space-between",
-    },
-    contactDetails: {
-      flex: 1,
-      paddingRight: "20px",
-    },
-    licenseDetails: {
-      flex: 1,
-      textAlign: "right" as const,
-    },
-    section: {
+    driverDetails: {
       marginBottom: "20px",
       padding: "15px",
-      borderBottom: "2px solid #eee",
+      backgroundColor: "#f9f9f9",
+      borderRadius: "5px",
+    },
+    licenseSection: {
+      marginBottom: "20px",
+      padding: "15px",
+      backgroundColor: "#f9f9f9",
+      borderRadius: "5px",
+    },
+    statusSection: {
+      marginBottom: "20px",
+      padding: "15px",
+      backgroundColor: "#f9f9f9",
+      borderRadius: "5px",
+    },
+    trainingsSection: {
+      marginBottom: "20px",
+      padding: "15px",
       backgroundColor: "#f9f9f9",
       borderRadius: "5px",
     },
@@ -230,10 +183,6 @@ const styles = {
       marginBottom: "10px",
       color: "#333",
     },
-    trainingsList: {
-      textAlign: "left" as const,
-      fontSize: "14px",
-    },
     seeAllButton: {
       marginTop: "10px",
       padding: "6px 12px",
@@ -242,12 +191,6 @@ const styles = {
       border: "none",
       borderRadius: "5px",
       cursor: "pointer",
-    },
-    incidentReports: {
-      display: "flex",
-      justifyContent: "center",
-      gap: "15px",
-      marginTop: "10px",
     },
     button: {
       padding: "12px 20px",
@@ -260,7 +203,7 @@ const styles = {
       marginTop: "20px",
     },
     modalOverlay: {
-      position: "fixed" as const,
+      position: "fixed",
       top: 0,
       left: 0,
       width: "100%",
@@ -274,7 +217,7 @@ const styles = {
       backgroundColor: "white",
       padding: "20px",
       borderRadius: "10px",
-      textAlign: "center" as const,
+      textAlign: "center",
       boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
       width: "50%",
       maxWidth: "400px",
@@ -282,7 +225,7 @@ const styles = {
     modalList: {
       listStyleType: "none",
       padding: 0,
-      textAlign: "left" as const,
+      textAlign: "left",
       marginLeft: "20px",
     },
     modalCloseButton: {
@@ -295,7 +238,7 @@ const styles = {
       cursor: "pointer",
     },
     noData: {
-      textAlign: "center" as const,
+      textAlign: "center",
       fontSize: "18px",
       marginTop: "50px",
     },

@@ -4,7 +4,9 @@ import mongoose from "mongoose"
 import bodyParser from "body-parser"
 import dotenv from "dotenv"
 import authRoutes from "./routes/authRoute.js";
-import route from "./routes/driverRoute.js"
+import timesheetRoutes from "./routes/timesheetRoute.js";
+import uploadRoutes from "./routes/uploadRoute.js";
+import driverRoute from "./routes/driverRoute.js"
 
 const app = express();
 app.use(cors({
@@ -29,4 +31,6 @@ mongoose
         .catch((error) => console.log(error));
 
 app.use("/api/auth", authRoutes);
-app.use("/api", route);
+app.use("/api", driverRoute);
+app.use("/api", timesheetRoutes);
+app.use("/api", uploadRoutes);

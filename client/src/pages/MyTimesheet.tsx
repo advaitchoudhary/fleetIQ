@@ -1,24 +1,72 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
+import axios from "axios";
 import Navbar from "./Navbar";
 
+const API_BASE_URL = "http://localhost:8000/api";
+
 const MyTimesheet: React.FC = () => {
+  const [timesheets, setTimesheets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [userEmail, setUserEmail] = useState("");
+
+  useEffect(() => {
+    const fetchTimesheets = async () => {
+      try {
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          const user = JSON.parse(storedUser);
+          setUserEmail(user.email); // Store user email for filtering
+
+          const response = await axios.get(`${API_BASE_URL}/timesheets`);
+          const allTimesheets = response.data;
+
+          // Filter timesheets for the logged-in driver
+          const userTimesheets = allTimesheets.filter((timesheet: any) => timesheet.driver === user.email);
+          setTimesheets(userTimesheets);
+        } else {
+          setError("User not found in localStorage.");
+        }
+      } catch (error) {
+        console.error("❌ Error fetching timesheets:", error);
+        setError("Failed to load timesheets. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTimesheets();
+  }, []);
+
   const columns = [
     {
       accessorKey: "date",
       header: "Date",
     },
     {
-      accessorKey: "start_time",
+      accessorKey: "startTime",
       header: "Start Time",
     },
     {
-      accessorKey: "end_time",
+      accessorKey: "endTime",
       header: "End Time",
     },
     {
-      accessorKey: "total_hours",
+      accessorKey: "totalHours",
       header: "Total Hours",
+      cell: ({ row }: any) => {
+        // Convert time format and calculate total hours dynamically
+        const start = row.original.startTime;
+        const end = row.original.endTime;
+        if (start && end) {
+          const startTime = new Date(`1970-01-01T${start}`);
+          const endTime = new Date(`1970-01-01T${end}`);
+          const diff = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+          return diff.toFixed(2) + " hrs";
+        }
+        return "N/A";
+      },
     },
     {
       accessorKey: "location",
@@ -26,14 +74,8 @@ const MyTimesheet: React.FC = () => {
     },
   ];
 
-  const data = [
-    { date: "2025-02-26", start_time: "08:00 AM", end_time: "04:00 PM", total_hours: 8, location: "Toronto" },
-    { date: "2025-02-27", start_time: "09:00 AM", end_time: "05:30 PM", total_hours: 8.5, location: "Mississauga" },
-    { date: "2025-02-28", start_time: "07:30 AM", end_time: "03:45 PM", total_hours: 8.25, location: "Brampton" },
-  ];
-
   const table = useReactTable({
-    data,
+    data: timesheets,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -44,32 +86,40 @@ const MyTimesheet: React.FC = () => {
       <div style={styles.container}>
         <h1>My Timesheet</h1>
         <p>View and manage your timesheet here.</p>
-        <div style={styles.tableWrapper}>
-          <table style={styles.table}>
-            <thead>
-              {table.getHeaderGroups().map(headerGroup => (
-                <tr key={headerGroup.id} style={styles.headerRow}>
-                  {headerGroup.headers.map(header => (
-                    <th key={header.id} style={styles.headerCell}>
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.map(row => (
-                <tr key={row.id} style={styles.row}>
-                  {row.getVisibleCells().map(cell => (
-                    <td key={cell.id} style={styles.cell}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+
+        {loading && <p>Loading timesheets...</p>}
+        {error && <p style={styles.error}>{error}</p>}
+
+        {!loading && !error && timesheets.length === 0 && <p>No timesheets found for {userEmail}.</p>}
+
+        {!loading && !error && timesheets.length > 0 && (
+          <div style={styles.tableWrapper}>
+            <table style={styles.table}>
+              <thead>
+                {table.getHeaderGroups().map(headerGroup => (
+                  <tr key={headerGroup.id} style={styles.headerRow}>
+                    {headerGroup.headers.map(header => (
+                      <th key={header.id} style={styles.headerCell}>
+                        {flexRender(header.column.columnDef.header, header.getContext())}
+                      </th>
+                    ))}
+                  </tr>
+                ))}
+              </thead>
+              <tbody>
+                {table.getRowModel().rows.map(row => (
+                  <tr key={row.id} style={styles.row}>
+                    {row.getVisibleCells().map(cell => (
+                      <td key={cell.id} style={styles.cell}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -108,6 +158,11 @@ const styles = {
     padding: "12px",
     borderBottom: "1px solid #ddd",
     textAlign: "center" as const,
+  },
+  error: {
+    color: "red",
+    fontSize: "1rem",
+    fontWeight: "bold",
   },
 };
 

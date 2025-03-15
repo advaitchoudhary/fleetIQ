@@ -83,6 +83,11 @@ const Navbar: React.FC = () => {
                   <FaClipboardList size={20} /> Applications
                 </Link>
               </li>
+              <li style={styles.navItem}>
+                <Link to="/uploadDispatchDetails" style={styles.navLink}>
+                    <MdDashboard size={20} /> Upload Dispatch Details
+                </Link>
+              </li>
             </>
           )}
 

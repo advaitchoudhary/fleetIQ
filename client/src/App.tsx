@@ -2,12 +2,13 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import Users from "./pages/Users";
+import Users from "./pages/Drivers";
 import Profile from "./pages/Profile";
 import ContactUs from "./pages/ContactUs";
 import Invoice from "./pages/Invoice";
-import Applications from "./pages/Applications";
+import Applications from "./pages/AllTimesheets";
 import MyTimesheet from "./pages/MyTimesheet";
+import UploadDispatchSheet from "./pages/UploadDipatchSheet";
 import Logout from "./pages/Logout";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -78,6 +79,15 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute requiredRole="admin">
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/uploadDispatchDetails"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <UploadDispatchSheet />
             </ProtectedRoute>
           }
         />
