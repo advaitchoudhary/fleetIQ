@@ -10,10 +10,11 @@ import driverRoute from "./routes/driverRoute.js"
 
 const app = express();
 app.use(cors({
-    origin: "http://localhost:5173", // Update this with your frontend URL
+    origin: "http://localhost:5173", // Your frontend URL
     methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type"]
-  }));
+    allowedHeaders: ["Content-Type", "Authorization"], // Allow Authorization header
+    credentials: true // Allow cookies and authentication headers
+}));
 app.use(bodyParser.json());
 dotenv.config();
 

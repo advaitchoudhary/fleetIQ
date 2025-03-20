@@ -14,9 +14,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
     return <Navigate to="/" />;
   }
 
-  // If role is required and the user role does not match, redirect to dashboard
   if (requiredRole && user.role !== requiredRole) {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to={user.role === "admin" ? "/users" : "/dashboard"} />;
   }
 
   return children;

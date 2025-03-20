@@ -7,7 +7,7 @@ import {
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaClipboard } from "react-icons/fa";
 import Navbar from "./Navbar";
 
 const API_BASE_URL = "http://localhost:8000/api";
@@ -19,7 +19,7 @@ const Drivers: React.FC = () => {
   const generateUsername = () => {
     return "driver" + Math.floor(Math.random() * 10000); // Example: driver1234
   };
-  
+
   const generatePassword = () => {
     return Math.random().toString(36).slice(-8); // Example: "aB3dE9fG"
   };
@@ -66,9 +66,23 @@ const Drivers: React.FC = () => {
 
     const createDriver = async (newDriver: any) => {
       try {
-        await axios.post(`${API_BASE_URL}/driver`, newDriver); // Do NOT regenerate username/password here
-        fetchDrivers();
-        setIsAddModalOpen(false);
+        // Step 1: Create the driver in the drivers table
+        const response = await axios.post(`${API_BASE_URL}/driver`, newDriver);
+    
+        if (response.status === 201 || response.status === 200) {
+          const { name, email, password } = newDriver;
+    
+          // Step 2: Create a user entry in the users table
+          await axios.post(`${API_BASE_URL}/auth/register`, {
+            name,
+            email,
+            password,  // Ensure password is stored securely (hashed in backend)
+            role: "driver",  // Assign role as "driver"
+          });
+    
+          fetchDrivers();
+          setIsAddModalOpen(false);
+        }
       } catch (error) {
         console.error("Error creating driver:", error);
       }
@@ -146,6 +160,11 @@ const Drivers: React.FC = () => {
     setEditedDriver(driver); // Store the original driver data
     setIsEditModalOpen(true);
     setIsUpdateDisabled(true); // Disable update button initially
+  };
+
+  const handleCopyPassword = (password: string): void => {
+    navigator.clipboard.writeText(password);
+    alert("Password copied to clipboard!");
   };
 
   const handleDelete = (driver: any) => {
@@ -355,12 +374,20 @@ const Drivers: React.FC = () => {
             {/* Password */}
             <div style={styles.formGroup}>
               <label style={styles.label}>Password:</label>
-              <input
-                type="text"
-                value={selectedDriver.password}
-                readOnly
-                style={{ ...styles.input, backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
-              />
+              <div style={styles.passwordInputContainer}>
+                <input
+                  type="text"
+                  value={selectedDriver.password}
+                  readOnly
+                  style={styles.input}
+                />
+                <button 
+                  style={styles.clipboardButton} 
+                  onClick={() => handleCopyPassword(selectedDriver.password)}
+                >
+                  <FaClipboard />
+                </button>
+              </div>
             </div>
 
             {/* Buttons */}
@@ -620,14 +647,26 @@ const styles: { [key: string]: CSSProperties } = {
     cursor: "pointer",
     fontSize: "18px",
   },
-  input: {
-    width: "100%",
-    padding: "10px",
+  formGroup: { marginBottom: "15px" },
+  label: { display: "block", marginBottom: "5px", fontWeight: "bold" },
+  passwordInputContainer: { position: "relative", display: "flex", alignItems: "center" },
+
+  clipboardButton: {
+    position: "absolute",
+    right: "10px",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
     fontSize: "16px",
-    border: "1px solid #ccc",
-    borderRadius: "6px",
-    outline: "none",
-    marginBottom: "10px",
+    color: "#555",
+  },
+  input: { 
+    flex: 1, 
+    padding: "8px 35px 8px 10px", 
+    border: "1px solid #ccc", 
+    borderRadius: "5px", 
+    backgroundColor: "#f5f5f5", 
+    width: "100%",
   },
   headerWrapper: {
     display: "flex",

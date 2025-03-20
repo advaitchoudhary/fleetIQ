@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaBars, FaClock, FaTimes, FaSignOutAlt, FaUser, FaUsers, FaFileInvoice, FaClipboardList, FaPhoneAlt } from "react-icons/fa";
+import { FaBars, FaClock, FaTimes, FaSignOutAlt, FaUser, FaUsers, FaFileInvoice, FaClipboardList, FaPhoneAlt, FaKey } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md"; // Material Dashboard Icon
 import { useAuth } from "../contexts/AuthContext";
 
@@ -36,9 +36,14 @@ const Navbar: React.FC = () => {
           {isNavOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
         </button>
         <h1 style={styles.title}>Premier Choice</h1>
-        <button onClick={() => { logout(); navigate("/"); }} style={styles.logoutButton}>
-          <FaSignOutAlt size={20} /> Logout
-        </button>
+        <div style={styles.authButtons}>
+          <button onClick={() => navigate("/change-password")} style={styles.changePasswordButton}>
+            <FaKey size={20} /> Change Password
+          </button>
+          <button onClick={() => { logout(); navigate("/"); }} style={styles.logoutButton}>
+            <FaSignOutAlt size={20} /> Logout
+          </button>
+        </div>
       </header>
 
       {/* Sidebar Navigation */}
@@ -80,7 +85,7 @@ const Navbar: React.FC = () => {
               </li>
               <li style={styles.navItem}>
                 <Link to="/applications" style={styles.navLink}>
-                  <FaClipboardList size={20} /> Applications
+                  <FaClipboardList size={20} /> All Timesheets
                 </Link>
               </li>
               <li style={styles.navItem}>
@@ -118,7 +123,21 @@ const styles = {
     color: "#fff",
     cursor: "pointer",
   },
+  authButtons: {
+    display: "flex",
+    gap: "15px",
+  },
   logoutButton: {
+    background: "none",
+    border: "none",
+    color: "#fff",
+    cursor: "pointer",
+    fontSize: "1rem",
+    display: "flex",
+    alignItems: "center",
+    gap: "5px",
+  },
+  changePasswordButton: {
     background: "none",
     border: "none",
     color: "#fff",

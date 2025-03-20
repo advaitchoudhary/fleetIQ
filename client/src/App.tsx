@@ -10,6 +10,7 @@ import Applications from "./pages/AllTimesheets";
 import MyTimesheet from "./pages/MyTimesheet";
 import UploadDispatchSheet from "./pages/UploadDipatchSheet";
 import Logout from "./pages/Logout";
+import ChangePassword from "./pages/ChangePassword";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -98,6 +99,16 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute>
               <Logout />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Change Password Route */}
+        <Route
+          path="/change-password"
+          element={
+            <ProtectedRoute>
+              <ChangePassword />
             </ProtectedRoute>
           }
         />

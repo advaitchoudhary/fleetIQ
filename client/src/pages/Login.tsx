@@ -6,9 +6,9 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState("");
   const { login } = useAuth();
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    login(email, password);
+    await login(email, password);
   };
 
   return (
