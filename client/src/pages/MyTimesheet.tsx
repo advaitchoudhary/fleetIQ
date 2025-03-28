@@ -68,9 +68,39 @@ const MyTimesheet: React.FC = () => {
         return "N/A";
       },
     },
+{
+  accessorKey: "comments",
+  header: "Comments",
+  cell: ({ row }: any) => {
+    const comment = row.original.comments || "";
+
+    // Split into groups of 59 words
+    const words = comment.split(" ");
+    const lines: string[] = [];
+    for (let i = 0; i < words.length; i += 59) {
+      lines.push(words.slice(i, i + 59).join(" "));
+    }
+
+    return (
+      <div style={{ textAlign: "left", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+        {lines.map((line, idx) => (
+          <div key={idx}>{line}</div>
+        ))}
+      </div>
+    );
+  },
+},
     {
-      accessorKey: "location",
-      header: "Location",
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }: any) => {
+        const status = row.original.status;
+        return (
+          <span style={statusStyles[status] || styles.pending}>
+            {status === "approved" ? "✔️" : status === "rejected" ? "❌" : "⏳"}
+          </span>
+        );
+      },
     },
   ];
 
@@ -164,6 +194,16 @@ const styles = {
     fontSize: "1rem",
     fontWeight: "bold",
   },
+  pending: {
+    color: "orange",
+    fontSize: "20px",
+  },
+};
+
+const statusStyles: { [key: string]: { color: string; fontSize: string } } = {
+  approved: { color: "green", fontSize: "20px" }, // ✔️ Approved
+  rejected: { color: "red", fontSize: "20px" }, // ❌ Rejected
+  pending: { color: "orange", fontSize: "20px" }, // ⏳ Pending
 };
 
 export default MyTimesheet;

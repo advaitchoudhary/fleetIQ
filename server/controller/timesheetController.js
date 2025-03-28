@@ -3,7 +3,19 @@ import Timesheet from "../model/timesheetModel.js";
 // **1. Create a New Timesheet**
 export const createTimesheet = async (req, res) => {
   try {
-    const newTimesheet = new Timesheet(req.body);
+    // Safe parser for number fields
+    const parseNumber = (value) => {
+      const parsed = Number(value);
+      return isNaN(parsed) ? undefined : parsed;
+    };
+    console.log("Incoming Timesheet:", req.body);
+    const timesheetData = {
+      ...req.body,
+      startKM: parseNumber(req.body.startKM),
+      endKM: parseNumber(req.body.endKM),
+    };
+
+    const newTimesheet = new Timesheet(timesheetData);
     const savedTimesheet = await newTimesheet.save();
     res.status(201).json({ message: "Timesheet created successfully", savedTimesheet });
   } catch (error) {
@@ -72,6 +84,32 @@ export const deleteTimesheetById = async (req, res) => {
     }
 
     res.status(200).json({ message: "Timesheet deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ errorMessage: error.message });
+  }
+};
+
+// **Update Timesheet Status**
+export const updateTimesheetStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!["approved", "rejected"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status value" });
+    }
+
+    const updatedTimesheet = await Timesheet.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedTimesheet) {
+      return res.status(404).json({ message: "Timesheet not found" });
+    }
+
+    res.status(200).json({ message: `Timesheet ${status} successfully`, updatedTimesheet });
   } catch (error) {
     res.status(500).json({ errorMessage: error.message });
   }

@@ -186,7 +186,11 @@ const Timesheet: React.FC = () => {
   
         Object.entries(timesheet).forEach(([key, value]) => {
           if (key !== "attachments" && value) {
-            formData.append(key, value as string);
+            if (key === "startKM" || key === "endKM") {
+              formData.append(key, String(Number(value))); // Convert to number as string
+            } else {
+              formData.append(key, value as string);
+            }
           }
         });
   

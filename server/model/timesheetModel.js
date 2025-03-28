@@ -29,6 +29,7 @@ const timesheetSchema = new mongoose.Schema(
     endKM: { type: Number, required: true, min: 0 },
     comments: { type: String },
     attachments: { type: [String], default: [] }, // Array of file URLs
+    status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
   },
   { timestamps: true }
 );

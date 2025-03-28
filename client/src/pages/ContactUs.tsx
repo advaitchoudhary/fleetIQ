@@ -36,10 +36,10 @@ const ContactUs: React.FC = () => {
         
         {/* Company Information */}
         <div style={styles.companyInfo}>
-          <h3>Driver Fleet Management</h3>
-          <p><strong>Address:</strong> 4404 Lismer Ln, London, ON N6L 0E1</p>
-          <p><strong>Phone:</strong> +1 (416) 555-1234</p>
-          <p><strong>Email:</strong> support@driverfleet.com</p>
+          <h3> Premier Choice Employment</h3>
+          <p><strong>Address:</strong> UNIT-21 745 CHELTON RD, LONDON, ON N6M 0J1</p>
+          <p><strong>Phone:</strong> +1 (519) 280-1311</p>
+          <p><strong>Email:</strong> admin@premierchoicemployment.ca</p>
           <p><strong>Business Hours:</strong> Monday - Friday, 9 AM - 5 PM EST</p>
         </div>
 

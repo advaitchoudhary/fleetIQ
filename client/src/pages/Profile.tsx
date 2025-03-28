@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
+import { useEffect } from "react";
+import axios from "axios";
 
 const Profile: React.FC = () => {
   const location = useLocation();
@@ -8,6 +10,25 @@ const Profile: React.FC = () => {
   const driver = location.state?.driver;
 
   const [showTrainingsModal, setShowTrainingsModal] = useState(false);
+  const [timesheets, setTimesheets] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchDriverTimesheets = async () => {
+      if (!driver?.email) return;
+  
+      try {
+        const response = await axios.get("http://localhost:8000/api/timesheets");
+        const driverTimesheets = response.data.filter(
+          (t: any) => t.driver === driver.email
+        );
+        setTimesheets(driverTimesheets);
+      } catch (error) {
+        console.error("Error fetching driver timesheets:", error);
+      }
+    };
+  
+    fetchDriverTimesheets();
+  }, [driver]);
 
   if (!driver) {
     return <p style={styles.noData}>No driver data available.</p>;
@@ -75,6 +96,40 @@ const Profile: React.FC = () => {
           </button>
         </div>
 
+        <div style={styles.timesheetsSection}>
+          <h3 style={styles.sectionTitle}>📚 Timesheets</h3>
+          {timesheets.length === 0 ? (
+            <p>No timesheets available for this driver.</p>
+          ) : (
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Date</th>
+                  <th style={styles.th}>Start</th>
+                  <th style={styles.th}>End</th>
+                  <th style={styles.th}>Start KM</th>
+                  <th style={styles.th}>End KM</th>
+                  <th style={styles.th}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {timesheets.map((t) => (
+                  <tr key={t._id}>
+                    <td style={styles.td}>{t.date}</td>
+                    <td style={styles.td}>{t.startTime}</td>
+                    <td style={styles.td}>{t.endTime}</td>
+                    <td style={styles.td}>{t.startKM}</td>
+                    <td style={styles.td}>{t.endKM}</td>
+                    <td style={styles.td}>
+                      {t.status === "approved" ? "✔️" : t.status === "rejected" ? "❌" : "⏳"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
         {/* Go Back Button */}
         <button style={styles.button} onClick={() => navigate(-1)}>⬅ Go Back</button>
       </div>
@@ -97,7 +152,7 @@ const Profile: React.FC = () => {
 
 const styles: { [key: string]: React.CSSProperties } = {
     container: {
-      maxWidth: "900px",
+      maxWidth: "100%",
       margin: "60px auto",
       padding: "20px",
       backgroundColor: "#fff",
@@ -166,6 +221,12 @@ const styles: { [key: string]: React.CSSProperties } = {
       borderRadius: "5px",
     },
     statusSection: {
+      marginBottom: "20px",
+      padding: "15px",
+      backgroundColor: "#f9f9f9",
+      borderRadius: "5px",
+    },
+    timesheetsSection: {
       marginBottom: "20px",
       padding: "15px",
       backgroundColor: "#f9f9f9",
@@ -241,6 +302,17 @@ const styles: { [key: string]: React.CSSProperties } = {
       textAlign: "center",
       fontSize: "18px",
       marginTop: "50px",
+    },
+    th: {
+      backgroundColor: "#007bff",
+      color: "white",
+      padding: "10px",
+      textAlign: "left" as const,
+    },
+    td: {
+      padding: "10px",
+      borderBottom: "1px solid #ccc",
+      fontSize: "14px",
     },
 };
 
