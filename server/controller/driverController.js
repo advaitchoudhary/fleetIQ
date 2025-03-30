@@ -1,89 +1,55 @@
 import Driver from "../model/driverModel.js";
+import asyncHandler from 'express-async-handler'; // npm install express-async-handler
 
-export const create = async (req, res) => {
-  try {
-    const newDriver = new Driver(req.body);
-    const { email } = newDriver;
+export const create = asyncHandler(async (req, res) => {
+  const { email } = req.body;
 
-    const driverExist = await Driver.findOne({ email });
-    if (driverExist) {
-      return res.status(400).json({ message: "Driver already exists" });
-    }
-    const savedData = await newDriver.save();
-    res.status(200).json(savedData);
-  } catch (error) {
-    res.status(500).json({ errorMessage: error.message });
+  const driverExist = await Driver.findOne({ email });
+  if (driverExist) {
+    res.status(400).json({ message: "Driver already exists" });
+    return;
   }
-};
+  const newDriver = new Driver(req.body);
+  const savedData = await newDriver.save();
+  res.status(201).json(savedData);
+});
 
-export const getAllDrivers = async (req, res) => {
-  try {
-    const driverData = await Driver.find();
-    if (!driverData || driverData.length === 0) {
-      return res.status(404).json({ message: "Driver data not found" });
-    }
-    res.status(200).json(driverData);
-  } catch (error) {
-    res.status(500).json({ errorMessage: error.message });
+export const getAllDrivers = asyncHandler(async (req, res) => {
+  const drivers = await Driver.find();
+  if (!drivers.length) {
+    res.status(404).json({ message: "No drivers found" });
+    return;
   }
-};
+  res.json(drivers);
+});
 
-export const getDriverById = async (req, res) => {
-  try {
-    const id = req.params.id;
-    const driverExist = await Driver.findById(id);
-
-    if (!driverExist) {
-      return res.status(404).json({ message: "Driver data not found" });
-    }
-    res.status(200).json(driverExist);
-  } catch (error) {
-    res.status(500).json({ errorMessage: error.message });
+export const getDriverById = asyncHandler(async (req, res) => {
+  const driver = await Driver.findById(req.params.id);
+  if (!driver) {
+    res.status(404).json({ message: "Driver not found" });
+    return;
   }
-};
+  res.json(driver);
+});
 
-export const updateDriverById = async (req, res) => {
-    try {
-      const id = req.params.id;
-  
-      // Validate if req.body is not empty
-      if (!req.body || Object.keys(req.body).length === 0) {
-        return res.status(400).json({ message: "No data provided for update" });
-      }
-  
-      const driverExist = await Driver.findById(id);
-  
-      if (!driverExist) {
-        return res.status(404).json({ message: "Driver data not found" });
-      }
-  
-      // Update driver data
-      const updatedData = await Driver.findByIdAndUpdate(id, req.body, {
-        new: true,
-        runValidators: true, // Ensures the updated data follows the schema rules
-      });
-  
-      res.status(200).json(updatedData);
-    } catch (error) {
-      res.status(500).json({ errorMessage: error.message });
-    }
-  };
+export const updateDriverById = asyncHandler(async (req, res) => {
+  const updatedDriver = await Driver.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true
+  });
 
-  export const deleteDriverById = async (req, res) => {
-    try {
-      const id = req.params.id;
-  
-      // Check if driver exists
-      const driverExist = await Driver.findById(id);
-      if (!driverExist) {
-        return res.status(404).json({ message: "Driver not found" });
-      }
-  
-      // Delete the driver
-      await Driver.findByIdAndDelete(id);
-  
-      res.status(200).json({ message: "Driver deleted successfully" });
-    } catch (error) {
-      res.status(500).json({ errorMessage: error.message });
-    }
-  };
+  if (!updatedDriver) {
+    res.status(404).json({ message: "Driver not found" });
+    return;
+  }
+  res.json(updatedDriver);
+});
+
+export const deleteDriverById = asyncHandler(async (req, res) => {
+  const driver = await Driver.findByIdAndDelete(req.params.id);
+  if (!driver) {
+    res.status(404).json({ message: "Driver not found" });
+    return;
+  }
+  res.json({ message: "Driver deleted successfully" });
+});

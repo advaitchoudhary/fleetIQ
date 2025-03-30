@@ -17,6 +17,7 @@ const AllTimesheets: React.FC = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedTimesheet, setSelectedTimesheet] = useState<any | null>(null);
+  const [showExportOptions, setShowExportOptions] = useState(false);
 
   useEffect(() => {
     fetchTimesheets();
@@ -27,6 +28,65 @@ const AllTimesheets: React.FC = () => {
       setUserRole(user.role);
     }
   }, []);
+
+  const handleExport = () => {
+    if (data.length === 0) {
+      alert("No timesheets available to export.");
+      return;
+    }
+  
+    // Toggle visibility of export options
+    setShowExportOptions(!showExportOptions);
+  };
+  
+  const exportTimesheets = (days: number) => {
+    setShowExportOptions(false); // Hide options after choosing an option
+  
+    const now = new Date();
+    const pastDate = new Date(now.setDate(now.getDate() - days));
+    const filteredData = data.filter((timesheet) => {
+      const timesheetDate = new Date(timesheet.date);
+      return timesheetDate >= pastDate;
+    });
+  
+    if (filteredData.length === 0) {
+      alert("No timesheets available to export for the selected period.");
+      return;
+    }
+  
+    const csvRows = ["Date,Start Time,End Time,Total Hours,Comments,Status"];
+    filteredData.forEach((timesheet) => {
+      const start = timesheet.startTime;
+      const end = timesheet.endTime;
+      const startDate = new Date(`1970-01-01T${start}`);
+      const endDate = new Date(`1970-01-01T${end}`);
+      if (endDate < startDate) {
+        endDate.setDate(endDate.getDate() + 1); // Adjust for crossing midnight
+      }
+      const diff = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
+      const totalHours = isNaN(diff) ? "N/A" : `${diff.toFixed(2)} hrs`;
+  
+      const dateFormatted = new Date(timesheet.date).toISOString().split('T')[0]; // Format date as YYYY-MM-DD
+  
+      csvRows.push([
+        dateFormatted,
+        start,
+        end,
+        totalHours,
+        `"${(timesheet.comments || "").replace(/"/g, '""')}"`,
+        timesheet.status
+      ].join(","));
+    });
+  
+    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `timesheets_last_${days}_days.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const fetchTimesheets = async () => {
     try {
@@ -138,7 +198,19 @@ const AllTimesheets: React.FC = () => {
       <div style={styles.container}>
         <h1>All Timesheets</h1>
         <p>View and manage all uploaded timesheets here.</p>
+        <button onClick={handleExport} style={styles.exportButton}>
+          Export Timesheet
+        </button>
 
+        <div style={styles.exportOptions}>
+          {showExportOptions && (
+            <>
+              <button onClick={() => exportTimesheets(7)} style={styles.optionButton}>Last 7 Days</button>
+              <button onClick={() => exportTimesheets(15)} style={styles.optionButton}>Last 15 Days</button>
+              <button onClick={() => exportTimesheets(30)} style={styles.optionButton}>Last Month</button>
+            </>
+          )}
+        </div>
         {loading ? (
           <p>Loading timesheets...</p>
         ) : error ? (
@@ -271,6 +343,27 @@ const styles = {
     padding: "8px",
     borderRadius: "4px",
     border: "1px solid #ccc",
+  },
+  exportButton: { // New style for the export button
+    padding: '10px 20px',
+    backgroundColor: '#007BFF',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+  },
+  optionButton: {
+    margin: '5px',
+    padding: '10px 20px',
+    backgroundColor: '#4CAF50',
+    color: 'white',
+    border: 'none',
+    borderRadius: '5px',
+    cursor: 'pointer',
+  },
+  exportOptions: {
+    textAlign: "center" as const,
+    padding: "10px 0",
   },
 };
 

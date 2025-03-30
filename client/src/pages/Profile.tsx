@@ -66,12 +66,16 @@ const Profile: React.FC = () => {
 
         {/* Driver Details */}
         <div style={styles.driverDetails}>
-          <h3 style={styles.sectionTitle}>🚗 Driver Details</h3>
-          <p><strong>Email:</strong> {driver.email}</p>
-          <p><strong>Contact:</strong> {driver.contact}</p>
-          <p><strong>HST/GST:</strong> {driver.hst_gst || "N/A"}</p>
-          <p><strong>Business Name:</strong> {driver.business_name || "N/A"}</p>
-          <p><strong>Rate:</strong> ${driver.rate || "N/A"}</p>
+            <h3 style={styles.sectionTitle}>🚗 Driver Details</h3>
+            <p><strong>Email:</strong> {driver.email}</p>
+            <p><strong>Contact:</strong> {driver.contact}</p>
+            <p><strong>HST/GST:</strong> {driver.hst_gst || "N/A"}</p>
+            <p><strong>Business Name:</strong> {driver.business_name || "N/A"}</p>
+            <p><strong>Backhaul Rate:</strong> ${driver.backhaulRate || "N/A"}</p>
+            <p><strong>Combo Rate:</strong> ${driver.comboRate || "N/A"}</p>
+            <p><strong>Extra Sheet/E.W Rate:</strong> ${driver.extraSheetEWRate || "N/A"}</p>
+            <p><strong>Regular/Banner Rate:</strong> ${driver.regularBannerRate || "N/A"}</p>
+            <p><strong>Wholesale Rate:</strong> ${driver.wholesaleRate || "N/A"}</p>
         </div>
 
         {/* License Details */}
@@ -85,6 +89,7 @@ const Profile: React.FC = () => {
         <div style={styles.statusSection}>
           <h3 style={styles.sectionTitle}>📌 Status</h3>
           <p><strong>Current Status:</strong> {driver.status || "N/A"}</p>
+          <p><strong>Work Status:</strong> {driver.workStatus || "N/A"}</p>
         </div>
 
         {/* Trainings Section */}

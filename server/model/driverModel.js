@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+// Main schema for driver information including nested rate schema
 const driverSchema = new mongoose.Schema(
     {
         name: { type: String, required: true },
@@ -8,7 +9,11 @@ const driverSchema = new mongoose.Schema(
         address: { type: String, required: true },
         hst_gst: { type: String, required: false },
         business_name: { type: String, required: false },
-        rate: { type: Number, required: false },
+        backhaulRate: { type: Number, required: false },
+        comboRate: { type: Number, required: false }, 
+        extraSheetEWRate: { type: Number, required: false },
+        regularBannerRate: { type: Number, required: false },
+        wholesaleRate: { type: Number, required: false },
         licence: { type: String, required: true },
         licence_expiry_date: { type: Date, required: true },
         status: {
@@ -16,12 +21,12 @@ const driverSchema = new mongoose.Schema(
             enum: ["Active", "Inactive", "Suspended"],
             default: "Active"
         },
-        trainings: { type: [String], required: false },
-        role: { type: String, required: false },
+        trainings: [{ type: String, required: false }], // Array of training topics
         username: { type: String, unique: true, required: true },
-        password: { type: String, required: true }
+        password: { type: String, required: true },
+        workStatus: { type: String, required: false } // Adjusted to camelCase
     },
-    { timestamps: true }
+    { timestamps: true } // Adds createdAt and updatedAt timestamps
 );
 
-export default mongoose.model("Drivers", driverSchema);
+export default mongoose.model("Driver", driverSchema);

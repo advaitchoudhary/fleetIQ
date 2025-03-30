@@ -35,18 +35,20 @@ const Drivers: React.FC = () => {
     address: "",
     hst_gst: "",
     business_name: "",
-    rate: "",
+    backhaulRate: "",
+    comboRate: "",
+    extraSheetEWRate: "",
+    regularBannerRate: "",
+    wholesaleRate: "",
     licence: "",
     licence_expiry_date: "",
     status: "Active",
     trainings: "",
-    username: generateUsername(), // Auto-generated username
-    password: generatePassword(), // Auto-generated password
+    username: generateUsername(),
+    password: generatePassword(),
+    workStatus: ""
   });
 
-
-
-  
   const [editedDriver, setEditedDriver] = useState<any>(null);
   const [isUpdateDisabled, setIsUpdateDisabled] = useState(true);
 
@@ -58,6 +60,7 @@ const Drivers: React.FC = () => {
   const fetchDrivers = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/drivers`);
+      console.log(response.data);
       setData(response.data); // Set fetched data
     } catch (error) {
       console.error("Error fetching drivers:", error);
@@ -65,94 +68,93 @@ const Drivers: React.FC = () => {
   };
 
     const createDriver = async (newDriver: any) => {
-      try {
-        // Step 1: Create the driver in the drivers table
-        const response = await axios.post(`${API_BASE_URL}/driver`, newDriver);
+    try {
+      // Step 1: Create the driver in the drivers table
+      const response = await axios.post(`${API_BASE_URL}/driver`, newDriver);
     
-        if (response.status === 201 || response.status === 200) {
+      if (response.status === 201 || response.status === 200) {
           const { name, email, password } = newDriver;
     
           // Step 2: Create a user entry in the users table
-          await axios.post(`${API_BASE_URL}/auth/register`, {
+        await axios.post(`${API_BASE_URL}/auth/register`, {
             name,
             email,
             password,  // Ensure password is stored securely (hashed in backend)
             role: "driver",  // Assign role as "driver"
-          });
+        });
     
-          fetchDrivers();
-          setIsAddModalOpen(false);
-        }
-      } catch (error) {
-        console.error("Error creating driver:", error);
+        fetchDrivers();
+        setIsAddModalOpen(false);
       }
-    };
+    } catch (error) {
+      console.error("Error creating driver:", error);
+    }
+  };
 
     const updateDriver = async (updatedDriver: any) => {
-      try {
-        await axios.put(`${API_BASE_URL}/update/driver/${updatedDriver._id}`, updatedDriver);
+      console.log(updatedDriver);
+    try {
+      await axios.put(`${API_BASE_URL}/update/driver/${updatedDriver._id}`, updatedDriver);
         fetchDrivers(); // Refresh list
-        setIsEditModalOpen(false);
-      } catch (error) {
-        console.error("Error updating driver:", error);
-      }
-    };
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error("Error updating driver:", error);
+    }
+  };
 
-    const deleteDriver = async () => {
-      try {
-        await axios.delete(`${API_BASE_URL}/delete/driver/${selectedDriver._id}`);
+  const deleteDriver = async () => {
+    try {
+      await axios.delete(`${API_BASE_URL}/delete/driver/${selectedDriver._id}`);
         fetchDrivers(); // Refresh list
-        setIsDeleteModalOpen(false);
-      } catch (error) {
-        console.error("Error deleting driver:", error);
-      }
-    };
-  
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      console.error("Error deleting driver:", error);
+    }
+  };
+
     const columns: ColumnDef<typeof data[0]>[] = [
       {
         header: "S.No",
         cell: ({ row }) => row.index + 1,
       },
-      { accessorKey: "name", header: "Name" },
-      { accessorKey: "email", header: "Email" },
-      { accessorKey: "contact", header: "Contact" },
-      { accessorKey: "address", header: "Address" },
-      { accessorKey: "hst_gst", header: "HST/GST" },
-      { accessorKey: "business_name", header: "Business Name" },
-      { accessorKey: "rate", header: "Rate" },
-      { accessorKey: "licence", header: "Licence" },
-      { accessorKey: "licence_expiry_date", header: "Licence Expiry Date" },
-      { accessorKey: "status", header: "Status" },
-      { accessorKey: "trainings", header: "Trainings" },
-      {
-        accessorKey: "actions",
-        header: "Actions",
-        cell: ({ row }) => (
+    { accessorKey: "name", header: "Name" },
+    { accessorKey: "email", header: "Email" },
+    { accessorKey: "contact", header: "Contact" },
+    { accessorKey: "backhaulRate", header: "Backhaul Rate" },
+    { accessorKey: "comboRate", header: "Combo Rate" },
+    { accessorKey: "extraSheetEWRate", header: "Extra Sheet/E.W Rate" },
+    { accessorKey: "regularBannerRate", header: "Regular/Banner Rate" },
+    { accessorKey: "wholesaleRate", header: "Wholesale Rate" },
+    { accessorKey: "workStatus", header: "Work Status" },
+    {
+      accessorKey: "actions",
+      header: "Actions",
+      cell: ({ row }) => (
           <div style={styles.actionButtons}>
-            <FaEdit
+          <FaEdit
               style={styles.iconEdit}
-              onClick={(e) => {
+            onClick={(e) => {
                 e.stopPropagation(); // Prevents navigation from triggering
-                handleEdit(row.original);
-              }}
-            />
-            <FaTrashAlt
-              style={styles.iconDelete}
-              onClick={(e) => {
+              handleEdit(row.original);
+            }}
+          />
+          <FaTrashAlt
+            style={styles.iconDelete}
+            onClick={(e) => {
                 e.stopPropagation(); // Prevents navigation from triggering
-                handleDelete(row.original);
-              }}
-            />
-          </div>
-        ),
-      },
-    ];
+              handleDelete(row.original);
+            }}
+          />
+        </div>
+      ),
+    },
+  ];
 
-    const table = useReactTable({
-      data,
-      columns,
-      getCoreRowModel: getCoreRowModel(),
-    });
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   // Handlers for modals
   const handleEdit = (driver: any) => {
@@ -204,30 +206,30 @@ const Drivers: React.FC = () => {
 
       <div style={styles.tableWrapper}>
         <table style={styles.table}>
-          <thead>
-            {table.getHeaderGroups().map((headerGroup) => (
+        <thead>
+          {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} style={styles.headerRow}>
-                {headerGroup.headers.map((header) => (
+              {headerGroup.headers.map((header) => (
                   <th key={header.id} style={styles.th}>
                     {flexRender(header.column.columnDef.header, header.getContext())}
                   </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {table.getRowModel().rows.map((row) => (
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {table.getRowModel().rows.map((row) => (
               <tr key={row.id} style={styles.row}>
-                {row.getVisibleCells().map((cell) => (
+              {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} style={styles.td} onClick={() => navigate(`/profile`, { state: { driver: row.original } })}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
 
       {/* Add Driver Modal */}
       {isAddModalOpen && (
@@ -304,14 +306,68 @@ const Drivers: React.FC = () => {
               />
             </div>
 
-            {/* Rate */}
+            {/* Backhaul Rate */}
             <div style={styles.formGroup}>
-              <label style={styles.label}>Rate:</label>
+                <label style={styles.label}>Backhaul Rate:</label>
+                <input
+                    type="number"
+                    placeholder="Enter backhaul rate"
+                    style={styles.input}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, backhaulRate: e.target.value })}
+                />
+            </div>
+
+            {/* Combo Rate */}
+            <div style={styles.formGroup}>
+                <label style={styles.label}>Combo Rate:</label>
+                <input
+                    type="number"
+                    placeholder="Enter combo rate"
+                    style={styles.input}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, comboRate: e.target.value })}
+                />
+            </div>
+
+            {/* Extra Sheet/E.W Rate */}
+            <div style={styles.formGroup}>
+                <label style={styles.label}>Extra Sheet/E.W Rate:</label>
+                <input
+                    type="number"
+                    placeholder="Enter extra sheet/E.W rate"
+                    style={styles.input}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, extraSheetEWRate: e.target.value })}
+                />
+            </div>
+
+            {/* Regular/Banner Rate */}
+            <div style={styles.formGroup}>
+                <label style={styles.label}>Regular/Banner Rate:</label>
+                <input
+                    type="number"
+                    placeholder="Enter regular/banner rate"
+                    style={styles.input}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, regularBannerRate: e.target.value })}
+                />
+            </div>
+
+            {/* Wholesale Rate */}
+            <div style={styles.formGroup}>
+                <label style={styles.label}>Wholesale Rate:</label>
+                <input
+                    type="number"
+                    placeholder="Enter wholesale rate"
+                    style={styles.input}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, wholesaleRate: e.target.value })}
+                />
+            </div>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Work Status:</label>
               <input
-                type="number"
-                placeholder="Enter rate"
+                type="text"
+                placeholder="Enter work status"
                 style={styles.input}
-                onChange={(e) => setSelectedDriver({ ...selectedDriver, rate: e.target.value })}
+                onChange={(e) => setSelectedDriver({ ...selectedDriver, workStatus: e.target.value })}
               />
             </div>
 
@@ -477,13 +533,68 @@ const Drivers: React.FC = () => {
               />
             </div>
 
+            {/* Backhaul Rate */}
             <div style={styles.formGroup}>
-              <label style={styles.label}>Rate:</label>
+                <label style={styles.label}>Backhaul Rate:</label>
+                <input
+                    type="number"
+                    defaultValue={selectedDriver?.backhaulRate}
+                    style={styles.input}
+                    onChange={(e) => handleInputChange("backhaulRate", e.target.value)}
+                />
+            </div>
+
+            {/* Combo Rate */}
+            <div style={styles.formGroup}>
+                <label style={styles.label}>Combo Rate:</label>
+                <input
+                    type="number"
+                    defaultValue={selectedDriver?.comboRate}
+                    style={styles.input}
+                    onChange={(e) => handleInputChange("comboRate", e.target.value)}
+                />
+            </div>
+
+            {/* Extra Sheet/E.W Rate */}
+            <div style={styles.formGroup}>
+                <label style={styles.label}>Extra Sheet/E.W Rate:</label>
+                <input
+                    type="number"
+                    defaultValue={selectedDriver?.extraSheetEWRate}
+                    style={styles.input}
+                    onChange={(e) => handleInputChange("extraSheetEWRate", e.target.value)}
+                />
+            </div>
+
+            {/* Regular/Banner Rate */}
+            <div style={styles.formGroup}>
+                <label style={styles.label}>Regular/Banner Rate:</label>
+                <input
+                    type="number"
+                    defaultValue={selectedDriver?.regularBannerRate}
+                    style={styles.input}
+                    onChange={(e) => handleInputChange("regularBannerRate", e.target.value)}
+                />
+            </div>
+
+            {/* Wholesale Rate */}
+            <div style={styles.formGroup}>
+                <label style={styles.label}>Wholesale Rate:</label>
+                <input
+                    type="number"
+                    defaultValue={selectedDriver?.wholesaleRate}
+                    style={styles.input}
+                    onChange={(e) => handleInputChange("wholesaleRate", e.target.value)}
+                />
+            </div>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Work Status:</label>
               <input
-                type="number"
-                defaultValue={selectedDriver?.rate}
+                type="text"
+                defaultValue={selectedDriver?.workStatus}
                 style={styles.input}
-                onChange={(e) => handleInputChange("rate", e.target.value)}
+                onChange={(e) => handleInputChange("workStatus", e.target.value)}
               />
             </div>
 
