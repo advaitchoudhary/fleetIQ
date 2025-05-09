@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-table";
 import Navbar from "./Navbar";
 
-const API_BASE_URL = "http://localhost:8000/api";
+import { FILE_BASE_URL, API_BASE_URL } from "../utils/env";
 
 const AllTimesheets: React.FC = () => {
   const [data, setData] = useState<any[]>([]);
@@ -18,6 +18,9 @@ const AllTimesheets: React.FC = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedTimesheet, setSelectedTimesheet] = useState<any | null>(null);
   const [showExportOptions, setShowExportOptions] = useState(false);
+  const [categoryRates, setCategoryRates] = useState<Record<string, number>>(
+    {}
+  );
 
   useEffect(() => {
     fetchTimesheets();
@@ -34,26 +37,26 @@ const AllTimesheets: React.FC = () => {
       alert("No timesheets available to export.");
       return;
     }
-  
+
     // Toggle visibility of export options
     setShowExportOptions(!showExportOptions);
   };
-  
+
   const exportTimesheets = (days: number) => {
     setShowExportOptions(false); // Hide options after choosing an option
-  
+
     const now = new Date();
     const pastDate = new Date(now.setDate(now.getDate() - days));
     const filteredData = data.filter((timesheet) => {
       const timesheetDate = new Date(timesheet.date);
       return timesheetDate >= pastDate;
     });
-  
+
     if (filteredData.length === 0) {
       alert("No timesheets available to export for the selected period.");
       return;
     }
-  
+
     const csvRows = ["Date,Start Time,End Time,Total Hours,Comments,Status"];
     filteredData.forEach((timesheet) => {
       const start = timesheet.startTime;
@@ -65,19 +68,23 @@ const AllTimesheets: React.FC = () => {
       }
       const diff = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
       const totalHours = isNaN(diff) ? "N/A" : `${diff.toFixed(2)} hrs`;
-  
-      const dateFormatted = new Date(timesheet.date).toISOString().split('T')[0]; // Format date as YYYY-MM-DD
-  
-      csvRows.push([
-        dateFormatted,
-        start,
-        end,
-        totalHours,
-        `"${(timesheet.comments || "").replace(/"/g, '""')}"`,
-        timesheet.status
-      ].join(","));
+
+      const dateFormatted = new Date(timesheet.date)
+        .toISOString()
+        .split("T")[0]; // Format date as YYYY-MM-DD
+
+      csvRows.push(
+        [
+          dateFormatted,
+          start,
+          end,
+          totalHours,
+          `"${(timesheet.comments || "").replace(/"/g, '""')}"`,
+          timesheet.status,
+        ].join(",")
+      );
     });
-  
+
     const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -86,6 +93,38 @@ const AllTimesheets: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  useEffect(() => {
+    fetchTimesheets();
+    fetchCategoryRates();
+
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setUserRole(user.role);
+    }
+  }, []);
+
+  const fetchCategoryRates = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/drivers`);
+      const rates: Record<string, number> = {};
+
+      response.data.forEach((driver: any) => {
+        if (driver.backhaulRate) rates["Backhaul"] = driver.backhaulRate;
+        if (driver.comboRate) rates["Combo"] = driver.comboRate;
+        if (driver.extraSheetEWRate)
+          rates["Extra Sheet/E.W"] = driver.extraSheetEWRate;
+        if (driver.regularBannerRate)
+          rates["Regular/Banner"] = driver.regularBannerRate;
+        if (driver.wholesaleRate) rates["Wholesale"] = driver.wholesaleRate;
+      });
+
+      setCategoryRates(rates);
+    } catch (error) {
+      console.error("Failed to fetch category rates:", error);
+    }
   };
 
   const fetchTimesheets = async () => {
@@ -100,7 +139,10 @@ const AllTimesheets: React.FC = () => {
     }
   };
 
-  const updateTimesheetStatus = async (id: string, status: "approved" | "rejected") => {
+  const updateTimesheetStatus = async (
+    id: string,
+    status: "approved" | "rejected"
+  ) => {
     try {
       await axios.put(`${API_BASE_URL}/timesheet/${id}/status`, { status });
       setData((prevData) =>
@@ -115,9 +157,14 @@ const AllTimesheets: React.FC = () => {
 
   const handleUpdate = async () => {
     try {
-      await axios.put(`${API_BASE_URL}/update/timesheet/${selectedTimesheet._id}`, selectedTimesheet);
+      await axios.put(
+        `${API_BASE_URL}/update/timesheet/${selectedTimesheet._id}`,
+        selectedTimesheet
+      );
       setData((prev) =>
-        prev.map((t) => (t._id === selectedTimesheet._id ? selectedTimesheet : t))
+        prev.map((t) =>
+          t._id === selectedTimesheet._id ? selectedTimesheet : t
+        )
       );
       setEditModalOpen(false);
     } catch (error) {
@@ -139,7 +186,10 @@ const AllTimesheets: React.FC = () => {
       accessorKey: "edit",
       header: "Edit",
       cell: ({ row }: any) => (
-        <button onClick={() => openEditModal(row.original)} style={styles.editIcon}>
+        <button
+          onClick={() => openEditModal(row.original)}
+          style={styles.editIcon}
+        >
           ✏️
         </button>
       ),
@@ -151,8 +201,63 @@ const AllTimesheets: React.FC = () => {
     { accessorKey: "endTime", header: "End Time" },
     { accessorKey: "startKM", header: "Start KM" },
     { accessorKey: "endKM", header: "End KM" },
+    {
+      header: "Total KM",
+      cell: ({ row }: any) => {
+        const start = parseFloat(row.original.startKM);
+        const end = parseFloat(row.original.endKM);
+        const total = !isNaN(start) && !isNaN(end) ? end - start : "N/A";
+        return total;
+      },
+    },
+    {
+      header: "Attachments",
+      cell: ({ row }: any) => {
+        const attachments = row.original.attachments || [];
+        if (attachments.length === 0) {
+          return <span>No Attachments</span>;
+        }
+        return (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+            {attachments.map((path: string, index: number) => (
+              <a
+                key={index}
+                href={`${FILE_BASE_URL}/${path}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src={`${FILE_BASE_URL}/${path}`}
+                  alt={`attachment-${index}`}
+                  style={{
+                    width: "50px",
+                    height: "50px",
+                    objectFit: "cover",
+                    borderRadius: "4px",
+                  }}
+                />
+              </a>
+            ))}
+          </div>
+        );
+      },
+    },
+    { accessorKey: "category", header: "Category" },
     { accessorKey: "plannedKM", header: "Planned KM" },
-    { accessorKey: "totalStops", header: "Total Stops" },
+    {
+      header: "SubTotal",
+      cell: ({ row }: any) => {
+        const start = parseFloat(row.original.startKM);
+        const end = parseFloat(row.original.endKM);
+        const category = row.original.category;
+        const rate = categoryRates[category] || 0;
+
+        const totalKM = !isNaN(start) && !isNaN(end) ? end - start : 0;
+        const subtotal = totalKM * rate;
+
+        return !isNaN(subtotal) ? `$${subtotal.toFixed(2)}` : "N/A";
+      },
+    },
     {
       accessorKey: "status",
       header: "Status",
@@ -174,8 +279,18 @@ const AllTimesheets: React.FC = () => {
           <div style={styles.actions}>
             {status === "pending" && (
               <>
-                <button style={styles.approveButton} onClick={() => updateTimesheetStatus(_id, "approved")}>✔️ Approve</button>
-                <button style={styles.rejectButton} onClick={() => updateTimesheetStatus(_id, "rejected")}>❌ Reject</button>
+                <button
+                  style={styles.approveButton}
+                  onClick={() => updateTimesheetStatus(_id, "approved")}
+                >
+                  ✔️ Approve
+                </button>
+                <button
+                  style={styles.rejectButton}
+                  onClick={() => updateTimesheetStatus(_id, "rejected")}
+                >
+                  ❌ Reject
+                </button>
               </>
             )}
           </div>
@@ -205,9 +320,24 @@ const AllTimesheets: React.FC = () => {
         <div style={styles.exportOptions}>
           {showExportOptions && (
             <>
-              <button onClick={() => exportTimesheets(7)} style={styles.optionButton}>Last 7 Days</button>
-              <button onClick={() => exportTimesheets(15)} style={styles.optionButton}>Last 15 Days</button>
-              <button onClick={() => exportTimesheets(30)} style={styles.optionButton}>Last Month</button>
+              <button
+                onClick={() => exportTimesheets(7)}
+                style={styles.optionButton}
+              >
+                Last 7 Days
+              </button>
+              <button
+                onClick={() => exportTimesheets(15)}
+                style={styles.optionButton}
+              >
+                Last 15 Days
+              </button>
+              <button
+                onClick={() => exportTimesheets(30)}
+                style={styles.optionButton}
+              >
+                Last Month
+              </button>
             </>
           )}
         </div>
@@ -223,7 +353,10 @@ const AllTimesheets: React.FC = () => {
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
                       <th key={header.id} style={styles.th}>
-                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                       </th>
                     ))}
                   </tr>
@@ -234,7 +367,10 @@ const AllTimesheets: React.FC = () => {
                   <tr key={row.id}>
                     {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} style={styles.td}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </td>
                     ))}
                   </tr>
@@ -248,22 +384,33 @@ const AllTimesheets: React.FC = () => {
           <div style={styles.modalOverlay}>
             <div style={styles.modal}>
               <h2>Edit Timesheet</h2>
-              {Object.entries(selectedTimesheet).map(([key, value]) => (
-                key !== "_id" && (
-                  <div key={key} style={{ marginBottom: "10px", textAlign: "left" }}>
-                    <label style={{ fontWeight: "bold" }}>{key}:</label>
-                    <input
-                      type="text"
-                      value={value as string}
-                      onChange={(e) => handleChange(key, e.target.value)}
-                      style={styles.input}
-                    />
-                  </div>
-                )
-              ))}
+              {Object.entries(selectedTimesheet).map(
+                ([key, value]) =>
+                  key !== "_id" && (
+                    <div
+                      key={key}
+                      style={{ marginBottom: "10px", textAlign: "left" }}
+                    >
+                      <label style={{ fontWeight: "bold" }}>{key}:</label>
+                      <input
+                        type="text"
+                        value={value as string}
+                        onChange={(e) => handleChange(key, e.target.value)}
+                        style={styles.input}
+                      />
+                    </div>
+                  )
+              )}
               <div style={{ marginTop: "20px" }}>
-                <button style={styles.approveButton} onClick={handleUpdate}>Save Changes</button>
-                <button style={styles.rejectButton} onClick={() => setEditModalOpen(false)}>Cancel</button>
+                <button style={styles.approveButton} onClick={handleUpdate}>
+                  Save Changes
+                </button>
+                <button
+                  style={styles.rejectButton}
+                  onClick={() => setEditModalOpen(false)}
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           </div>
@@ -274,9 +421,17 @@ const AllTimesheets: React.FC = () => {
 };
 
 const styles = {
-  container: { textAlign: "center" as const, padding: "20px" },
-  tableWrapper: { display: "flex", justifyContent: "center", marginTop: "20px" },
-  table: { width: "90%", borderCollapse: "collapse" as const, boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)" },
+  container: { textAlign: "center" as const },
+  tableWrapper: {
+    display: "flex",
+    justifyContent: "center",
+    marginTop: "20px",
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse" as const,
+    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+  },
   th: {
     borderBottom: "2px solid black",
     padding: "12px",
@@ -333,8 +488,8 @@ const styles = {
     backgroundColor: "white",
     padding: "16px",
     borderRadius: "8px",
-    width: "600px",         // wider modal
-    maxHeight: "80vh",      // 80% of viewport height
+    width: "600px", // wider modal
+    maxHeight: "80vh", // 80% of viewport height
     overflowY: "auto" as const,
     boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
   },
@@ -344,22 +499,23 @@ const styles = {
     borderRadius: "4px",
     border: "1px solid #ccc",
   },
-  exportButton: { // New style for the export button
-    padding: '10px 20px',
-    backgroundColor: '#007BFF',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
+  exportButton: {
+    // New style for the export button
+    padding: "10px 20px",
+    backgroundColor: "#007BFF",
+    color: "#fff",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
   },
   optionButton: {
-    margin: '5px',
-    padding: '10px 20px',
-    backgroundColor: '#4CAF50',
-    color: 'white',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
+    margin: "5px",
+    padding: "10px 20px",
+    backgroundColor: "#4CAF50",
+    color: "white",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
   },
   exportOptions: {
     textAlign: "center" as const,

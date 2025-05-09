@@ -21,10 +21,11 @@ const driverSchema = new mongoose.Schema(
             enum: ["Active", "Inactive", "Suspended"],
             default: "Active"
         },
-        trainings: [{ type: String, required: false }], // Array of training topics
+        trainings: [{ type: String, required: false }],
         username: { type: String, unique: true, required: true },
         password: { type: String, required: true },
-        workStatus: { type: String, required: false } // Adjusted to camelCase
+        workStatus: { type: String, required: true },
+        sinNo: { type: String, required: true },
     },
     { timestamps: true } // Adds createdAt and updatedAt timestamps
 );

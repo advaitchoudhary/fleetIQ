@@ -73,7 +73,7 @@ export const changePassword = async (req, res) => {
 
         if (!token) return res.status(401).json({ error: "Unauthorized access - No token provided" });
 
-        const decoded = jwt.verify(token, "yourSecretKey");
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         console.log("Decoded Token:", decoded); // Debug: Log decoded token
 
         const user = await User.findById(decoded.id);
@@ -101,7 +101,7 @@ export const getUserProfile = async (req, res) => {
         const token = req.header("Authorization").split(" ")[1];
         if (!token) return res.status(401).json({ error: "Unauthorized access" });
 
-        const decoded = jwt.verify(token, "yourSecretKey");
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await User.findById(decoded.id).select("-password"); // Exclude password
 
         if (!user) return res.status(404).json({ error: "User not found" });

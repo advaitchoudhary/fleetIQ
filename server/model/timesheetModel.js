@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const timesheetSchema = new mongoose.Schema(
   {
     date: { type: String, required: true },
+    driver: { type: mongoose.Schema.Types.ObjectId, ref: "Driver", required: true },
     startTime: { type: String, required: true },
     endTime: { type: String, required: true },
     driver: { type: String, required: true },

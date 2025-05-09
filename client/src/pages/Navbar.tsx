@@ -37,9 +37,9 @@ const Navbar: React.FC = () => {
         </button>
         <h1 style={styles.title}>Premier Choice</h1>
         <div style={styles.authButtons}>
-          <button onClick={() => navigate("/change-password")} style={styles.changePasswordButton}>
+          {/* <button onClick={() => navigate("/change-password")} style={styles.changePasswordButton}>
             <FaKey size={20} /> Change Password
-          </button>
+          </button> */}
           <button onClick={() => { logout(); navigate("/"); }} style={styles.logoutButton}>
             <FaSignOutAlt size={20} /> Logout
           </button>
@@ -61,6 +61,12 @@ const Navbar: React.FC = () => {
                 <Link to="/my-timesheet" style={styles.navLink}>
                     <FaClock size={20} /> My Timesheet
                 </Link>
+                </li>
+
+                <li style={styles.navItem}>
+                  <Link to="/my-info" style={styles.navLink}>
+                    <FaUser size={20} /> My Info
+                  </Link>
                 </li>
                 
                 <li style={styles.navItem}>

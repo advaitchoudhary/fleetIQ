@@ -9,6 +9,8 @@ import uploadRoutes from "./routes/uploadRoute.js";
 import driverRoute from "./routes/driverRoute.js"
 
 const app = express();
+
+app.use("/uploads", express.static("uploads"));
 app.use(cors({
     origin: "http://localhost:5173", // Your frontend URL
     methods: ["GET", "POST", "PUT", "DELETE"],

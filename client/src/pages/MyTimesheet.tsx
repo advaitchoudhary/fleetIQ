@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+} from "@tanstack/react-table";
 import axios from "axios";
 import Navbar from "./Navbar";
-
-const API_BASE_URL = "http://localhost:8000/api";
+import { FILE_BASE_URL, API_BASE_URL } from "../utils/env";
 
 const MyTimesheet: React.FC = () => {
   const [timesheets, setTimesheets] = useState([]);
@@ -23,7 +26,9 @@ const MyTimesheet: React.FC = () => {
           const allTimesheets = response.data;
 
           // Filter timesheets for the logged-in driver
-          const userTimesheets = allTimesheets.filter((timesheet: any) => timesheet.driver === user.email);
+          const userTimesheets = allTimesheets.filter(
+            (timesheet: any) => timesheet.driver === user.email
+          );
           setTimesheets(userTimesheets);
         } else {
           setError("User not found in localStorage.");
@@ -62,34 +67,73 @@ const MyTimesheet: React.FC = () => {
         if (start && end) {
           const startTime = new Date(`1970-01-01T${start}`);
           const endTime = new Date(`1970-01-01T${end}`);
-          const diff = (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
+          const diff =
+            (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
           return diff.toFixed(2) + " hrs";
         }
         return "N/A";
       },
     },
-{
-  accessorKey: "comments",
-  header: "Comments",
-  cell: ({ row }: any) => {
-    const comment = row.original.comments || "";
+    {
+      accessorKey: "comments",
+      header: "Comments",
+      cell: ({ row }: any) => {
+        const comment = row.original.comments || "";
 
-    // Split into groups of 59 words
-    const words = comment.split(" ");
-    const lines: string[] = [];
-    for (let i = 0; i < words.length; i += 59) {
-      lines.push(words.slice(i, i + 59).join(" "));
-    }
+        // Split into groups of 59 words
+        const words = comment.split(" ");
+        const lines: string[] = [];
+        for (let i = 0; i < words.length; i += 59) {
+          lines.push(words.slice(i, i + 59).join(" "));
+        }
 
-    return (
-      <div style={{ textAlign: "left", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-        {lines.map((line, idx) => (
-          <div key={idx}>{line}</div>
-        ))}
-      </div>
-    );
-  },
-},
+        return (
+          <div
+            style={{
+              textAlign: "left",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
+          >
+            {lines.map((line, idx) => (
+              <div key={idx}>{line}</div>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      header: "Attachments",
+      cell: ({ row }: any) => {
+        const attachments = row.original.attachments || [];
+        if (attachments.length === 0) {
+          return <span>No Attachments</span>;
+        }
+        return (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+            {attachments.map((path: string, index: number) => (
+              <a
+                key={index}
+                href={`${FILE_BASE_URL}/${path}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  src={`${FILE_BASE_URL}/${path}`}
+                  alt={`attachment-${index}`}
+                  style={{
+                    width: "50px",
+                    height: "50px",
+                    objectFit: "cover",
+                    borderRadius: "4px",
+                  }}
+                />
+              </a>
+            ))}
+          </div>
+        );
+      },
+    },
     {
       accessorKey: "status",
       header: "Status",
@@ -115,33 +159,41 @@ const MyTimesheet: React.FC = () => {
       <Navbar />
       <div style={styles.container}>
         <h1>My Timesheet</h1>
-        <p>View and manage your timesheet here.</p>
+        <p>View your timesheets here.</p>
 
         {loading && <p>Loading timesheets...</p>}
         {error && <p style={styles.error}>{error}</p>}
 
-        {!loading && !error && timesheets.length === 0 && <p>No timesheets found for {userEmail}.</p>}
+        {!loading && !error && timesheets.length === 0 && (
+          <p>No timesheets found for {userEmail}.</p>
+        )}
 
         {!loading && !error && timesheets.length > 0 && (
           <div style={styles.tableWrapper}>
             <table style={styles.table}>
               <thead>
-                {table.getHeaderGroups().map(headerGroup => (
+                {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id} style={styles.headerRow}>
-                    {headerGroup.headers.map(header => (
+                    {headerGroup.headers.map((header) => (
                       <th key={header.id} style={styles.headerCell}>
-                        {flexRender(header.column.columnDef.header, header.getContext())}
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                       </th>
                     ))}
                   </tr>
                 ))}
               </thead>
               <tbody>
-                {table.getRowModel().rows.map(row => (
+                {table.getRowModel().rows.map((row) => (
                   <tr key={row.id} style={styles.row}>
-                    {row.getVisibleCells().map(cell => (
+                    {row.getVisibleCells().map((cell) => (
                       <td key={cell.id} style={styles.cell}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </td>
                     ))}
                   </tr>
@@ -157,7 +209,6 @@ const MyTimesheet: React.FC = () => {
 
 const styles = {
   container: {
-    padding: "20px",
     textAlign: "center" as const,
   },
   tableWrapper: {
@@ -166,7 +217,7 @@ const styles = {
     marginTop: "20px",
   },
   table: {
-    width: "80%",
+    width: "100%",
     borderCollapse: "collapse" as const,
     boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
     borderRadius: "8px",

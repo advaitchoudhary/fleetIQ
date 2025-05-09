@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
-
-const API_BASE_URL = "http://localhost:8000/api";
+import { API_BASE_URL } from "../utils/env";
 
 const UploadDispatchSheet: React.FC = () => {
     const [file, setFile] = useState<File | null>(null);

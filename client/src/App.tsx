@@ -7,6 +7,7 @@ import Profile from "./pages/Profile";
 import ContactUs from "./pages/ContactUs";
 import Invoice from "./pages/Invoice";
 import Applications from "./pages/AllTimesheets";
+import MyInfo from "./pages/MyInfo";
 import MyTimesheet from "./pages/MyTimesheet";
 import UploadDispatchSheet from "./pages/UploadDipatchSheet";
 import Logout from "./pages/Logout";
@@ -80,6 +81,15 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute requiredRole="admin">
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/my-info"
+          element={
+            <ProtectedRoute requiredRole="driver">
+              <MyInfo />
             </ProtectedRoute>
           }
         />

@@ -30,15 +30,15 @@ const ChangePassword: React.FC = () => {
 
     try {
       setLoading(true);
+      const token = localStorage.getItem("token");
       await axios.post(
         `${API_BASE_URL}/auth/change-password`,
         { oldPassword, newPassword },
         {
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          withCredentials: true // 🔥 Important for CORS
+            Authorization: `Bearer ${token}`,
+          }
         }
       );
 

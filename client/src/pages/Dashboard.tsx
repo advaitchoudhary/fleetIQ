@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000/api";
+import { API_BASE_URL } from "../utils/env";
 
 const Timesheet: React.FC = () => {
   type TimesheetType = {
@@ -35,11 +35,11 @@ const Timesheet: React.FC = () => {
     attachments: File[]; 
   };
   
-  const [timesheet, setTimesheet] = useState<TimesheetType>({
+  const getEmptyTimesheet = (driverEmail: string): TimesheetType => ({
+    driver: driverEmail,
     date: "",
     startTime: "",
     endTime: "",
-    driver: "",
     customer: "",
     startDate: "",
     category: "",
@@ -64,7 +64,8 @@ const Timesheet: React.FC = () => {
     comments: "",
     attachments: [],
   });
-  
+
+  const [timesheet, setTimesheet] = useState<TimesheetType>(() => getEmptyTimesheet(""));
   const [errors, setErrors] = useState<Partial<Record<keyof TimesheetType, string>>>({});
   const [loading, setLoading] = useState(false);
   const categoryOptions = ["Backhaul", "Combo", "Extra Sheet/E.W", "Regular/Banner", "Wholesale"];
@@ -75,7 +76,7 @@ const Timesheet: React.FC = () => {
     if (storedUser) {
       const user = JSON.parse(storedUser);
       if (user.role === "driver") {
-        setTimesheet((prev) => ({ ...prev, driver: user.email }));
+        setTimesheet(getEmptyTimesheet(user.email));
       }
     }
   }, []);
@@ -104,6 +105,7 @@ const Timesheet: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log("🔵 Submitting timesheet:", timesheet);
     e.preventDefault();
     setLoading(true);
   
@@ -128,7 +130,7 @@ const Timesheet: React.FC = () => {
       }
     });
   
-    // ✅ Validate Start KM and End KM
+    // Validate Start KM and End KM
     if (timesheet.startKM !== "" && Number(timesheet.startKM) < 0) {
       validationErrors["startKM"] = "Start KM cannot be negative.";
     }
@@ -139,7 +141,7 @@ const Timesheet: React.FC = () => {
       validationErrors["endKM"] = "End KM must be greater than Start KM.";
     }
   
-    // ✅ Validate Start Time < End Time
+    // Validate Start Time < End Time
     if (timesheet.startTime && timesheet.endTime) {
       const start = new Date(`1970-01-01T${timesheet.startTime}`);
       const end = new Date(`1970-01-01T${timesheet.endTime}`);
@@ -149,7 +151,7 @@ const Timesheet: React.FC = () => {
       }
     }
   
-    // ✅ Validate Start Date < End Date (if endDate exists)
+    // Validate Start Date < End Date
     if (timesheet.startDate && timesheet.endDate) {
       const start = new Date(timesheet.startDate);
       const end = new Date(timesheet.endDate);
@@ -160,16 +162,20 @@ const Timesheet: React.FC = () => {
     }
   
     if (Object.keys(validationErrors).length > 0) {
+      console.warn("🟠 Validation errors found:", validationErrors);
       setErrors(validationErrors);
       setLoading(false);
       return;
     }
   
+    console.log("✅ Validation passed. Preparing to submit...");
+  
     try {
       let response;
   
       if (timesheet.attachments.length === 0 || timesheet.attachments.every(file => !file)) {
-        // ✅ Send JSON if no attachments
+        console.log("📤 No attachments detected. Sending JSON payload...");
+  
         const payload = {
           ...timesheet,
           startKM: Number(timesheet.startKM),
@@ -177,75 +183,53 @@ const Timesheet: React.FC = () => {
           attachments: [], // No attachments
         };
   
+        console.log("📄 Payload to send:", payload);
+  
         response = await axios.post(`${API_BASE_URL}/timesheet`, payload, {
           headers: { "Content-Type": "application/json" },
         });
       } else {
-        // ✅ Use `FormData` if attachments exist
+        console.log("📤 Attachments detected. Sending FormData payload...");
+  
         const formData = new FormData();
   
         Object.entries(timesheet).forEach(([key, value]) => {
           if (key !== "attachments" && value) {
             if (key === "startKM" || key === "endKM") {
-              formData.append(key, String(Number(value))); // Convert to number as string
+              formData.append(key, String(Number(value)));
             } else {
               formData.append(key, value as string);
             }
           }
         });
   
-        timesheet.attachments.forEach((file) => {
-          if (file) formData.append("attachments", file);
+        timesheet.attachments.forEach((file, idx) => {
+          if (file) {
+            formData.append("attachments", file);
+            console.log(`📎 Attached file[${idx}]:`, file.name);
+          }
         });
+  
+        console.log("📄 FormData ready to submit.");
   
         response = await axios.post(`${API_BASE_URL}/timesheet`, formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
       }
   
+      console.log("🟢 Timesheet submitted successfully. Server response:", response.data);
       alert("Timesheet submitted successfully!");
-      console.log("Response:", response.data);
   
-      // ✅ Reset form (preserve `driver`)
-      setTimesheet((prev) => ({
-        ...prev,
-        date: "",
-        startTime: "",
-        endTime: "",
-        customer: "",
-        startDate: "",
-        category: "",
-        tripNumber: "",
-        loadID: "",
-        preStartTime: "",
-        gateOutTime: "",
-        ewStartTimeMorning: "",
-        ewEndTimeMorning: "",
-        ewReasonMorning: "",
-        gateInTime: "",
-        postEndTime: "",
-        endDate: "",
-        ewStartTimeEvening: "",
-        ewEndTimeEvening: "",
-        ewReasonEvening: "",
-        plannedHours: "",
-        totalStops: "",
-        plannedKM: "",
-        startKM: "",
-        endKM: "",
-        comments: "",
-        attachments: [],
-      }));
-  
+      setTimesheet(getEmptyTimesheet(timesheet.driver));
       setErrors({});
     } catch (error) {
-      console.error("Error submitting timesheet:", (error as any).response?.data || (error as any).message);
+      const err = (error as any).response?.data || (error as any).message;
+      console.error("🔴 Error submitting timesheet:", err);
       alert("Failed to submit timesheet. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <div style={styles.container}>
@@ -285,8 +269,10 @@ const Timesheet: React.FC = () => {
           <label style={styles.label}>Start Time:</label>
           <input type="time" name="startTime" value={timesheet.startTime} onChange={handleChange} style={styles.input} />
   
+          {/* End Time */}
           <label style={styles.label}>End Time:</label>
           <input type="time" name="endTime" value={timesheet.endTime} onChange={handleChange} style={styles.input} />
+          {errors.endTime && <span style={styles.error}>{errors.endTime}</span>}
   
           {/* Category */}
           <label style={styles.label}>Category:</label>
@@ -359,7 +345,13 @@ const Timesheet: React.FC = () => {
           {[...Array(4)].map((_, i) => (
             <div key={i}>
               <label style={styles.label}>Attachment {i + 1}:</label>
-              <input type="file" accept="image/png, image/jpeg, image/jpg" onChange={(e) => handleFileChange(i, e)} style={styles.fileInput} />
+              <input
+                type="file"
+                name="attachments"
+                accept="image/png, image/jpeg, image/jpg"
+                onChange={(e) => handleFileChange(i, e)}
+                style={styles.fileInput}
+              />
             </div>
           ))}
   

@@ -6,6 +6,7 @@ import Navbar from "./Navbar";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
+import { API_BASE_URL } from "../utils/env";
 
 // Define TypeScript interface for invoice items
 interface InvoiceItem {
@@ -17,21 +18,36 @@ interface InvoiceItem {
   amount: number;
 }
 
-const API_BASE_URL = "http://localhost:8000/api";
+interface Driver {
+  _id: string;
+  name: string;
+  email: string;
+  contact?: string;
+  address?: string;
+  business_name?: string;
+  hst_gst?: string;
+  backhaulRate?: number;
+  comboRate?: number;
+  extraSheetEWRate?: number;
+  regularBannerRate?: number;
+  wholesaleRate?: number;
+}
 
 const Invoice: React.FC = () => {
   // State for Invoice Details
-  const [data, setData] = useState<any[]>([]);
-  const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [data, setData] = useState<Driver[]>([]);
+  const [items, setItems] = useState<InvoiceItem[]>([]);  // Initialize as empty
+  const [invoiceDate, setInvoiceDate] = useState<Date>(new Date());
   const [customRange, setCustomRange] = useState<[Date | null, Date | null]>([null, null]);
   const [isCustomRange, setIsCustomRange] = useState(false);
-  const [selectedDriver, setSelectedDriver] = useState<string>("");
-
+  const [selectedDriver, setSelectedDriver] = useState<string>("__placeholder__");
+  const [timesheets, setTimesheets] = useState<any[]>([]);
+  const [categoryRates, setCategoryRates] = useState<Record<string, number>>({});
 
   const invoicePeriodOptions = [
-    { label: "Last 15 Days", value: "" },
-    { label: "Last 7 Days", value: "" },
-    { label: "Last 30 Days", value: "" },
+    { label: "Last 15 Days", value: "last15" },
+    { label: "Last 7 Days", value: "last7" },
+    { label: "Last 30 Days", value: "last30" },
     { label: "Custom Range", value: "custom" },
   ];
 
@@ -39,12 +55,18 @@ const Invoice: React.FC = () => {
     const selectedValue = e.target.value;
     setInvoicePeriod(selectedValue);
   
-    if (selectedValue === "custom") {
-      setIsCustomRange(true); // Show DatePicker
-      setCustomRange([null, null]); // Reset selection
-    } else {
-      setIsCustomRange(false); // Hide DatePicker
+    if (selectedValue === "last15") {
+      setInvoicePeriod(getLast15DaysRange());
+    } else if (selectedValue === "last7") {
+      // implement getLast7DaysRange()
+    } else if (selectedValue === "last30") {
+      // implement getLast30DaysRange()
+    } else if (selectedValue === "custom") {
+      setIsCustomRange(true);
+      setCustomRange([null, null]);
+      return;
     }
+    setIsCustomRange(false);
   };
 
   const handleCustomDateChange = (dates: [Date | null, Date | null] | null) => {
@@ -65,10 +87,11 @@ const Invoice: React.FC = () => {
 
   // From & To Details (Editable)
   const [fromDetails, setFromDetails] = useState({
-    name: "",
-    contact: "",
+    businessName: "",
     address: "",
     gst: "",
+    name: "",
+    contact: "",
   });
 
   const [toDetails, setToDetails] = useState({
@@ -86,161 +109,231 @@ const Invoice: React.FC = () => {
     return `${format(last15Days, "yyyy-MM-dd")} - ${format(today, "yyyy-MM-dd")}`;
   };
 
-  const [invoicePeriod, setInvoicePeriod] = useState(getLast15DaysRange()); // Dynamic "Last 7 Days"
+  const [invoicePeriod, setInvoicePeriod] = useState(getLast15DaysRange());
 
   const handleDriverChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const driverId = e.target.value;
     setSelectedDriver(driverId);
-    
+    console.log(data);
     const selectedDriver = data.find((driver) => driver._id === driverId);
     
     if (selectedDriver) {
       setFromDetails({
-        name: selectedDriver.name || "",
-        contact: selectedDriver.contact || "",
+        businessName: selectedDriver.business_name || "",
         address: selectedDriver.address || "",
         gst: selectedDriver.hst_gst || "",
+        name: selectedDriver.name || "",
+        contact: selectedDriver.contact || "",
       });
     }
+    // Fetch timesheets for the selected driver
+    const fetchDriverTimesheets = async () => {
+      if (!selectedDriver?.email) return;
+  
+      try {
+        const response = await axios.get(`${API_BASE_URL}/timesheets`);
+        const driverTimesheets = response.data.filter(
+          (t: any) => t.driver === selectedDriver.email
+        );
+        console.log("Driver Timesheets:", driverTimesheets);
+        setTimesheets(driverTimesheets);
+      } catch (error) {
+        console.error("Error fetching driver timesheets:", error);
+      }
+    };
+  
+    fetchDriverTimesheets();
   };
 
   // Attention Section (Editable)
   const [attention, setAttention] = useState("Ravneet Kaur");
 
-  // Items Table State (Editable)
-  const [items, setItems] = useState<InvoiceItem[]>([
-    { id: 1, name: "BANNER HOURS", quantity: 41, rate: 24, tax: "H", amount: 984 },
-    { id: 2, name: "WHOLESALE HOURS", quantity: 13.25, rate: 27.5, tax: "H", amount: 364.38 },
-    { id: 3, name: "COMBO HOURS", quantity: 26.5, rate: 26.5, tax: "H", amount: 702.25 },
-    { id: 4, name: "ADJUSTMENT", quantity: 204.5, rate: 1, tax: "H", amount: 204.5 },
-  ]);
-
-
-  // Function to handle table updates
-  const handleItemChange = (index: number, field: keyof InvoiceItem, value: string | number) => {
-    setItems((prevItems) =>
-      prevItems.map((item, i) => {
-        if (i === index) {
-          const updatedItem = { ...item, [field]: value };
-  
-          // Ensure 'name' is never undefined
-          if (!updatedItem.name) {
-            updatedItem.name = "";
-          }
-  
-          // Recalculate amount when quantity or rate changes
-          if (field === "quantity" || field === "rate") {
-            updatedItem.amount = Number(updatedItem.quantity) * Number(updatedItem.rate);
-  
-            // Prevent negative amounts
-            if (updatedItem.amount < 0) {
-              updatedItem.amount = 0;
-            }
-          }
-  
-          return updatedItem;
-        }
-        return item;
-      })
-    );
-  };
-
   useEffect(() => {
-    fetchDrivers();
+    fetchDrivers().then(drivers => {
+      setData(drivers);
+    });
+    fetchCategoryRates();
   }, []);
 
-  const fetchDrivers = async () => {
+  useEffect(() => {
+    if (timesheets.length > 0) {
+      const subtotals = timesheets.map(timesheet => {
+        const { startKM, endKM, category } = timesheet;
+        const rate = categoryRates[category] || 0; // Ensure there's a fallback rate
+        const distance = endKM - startKM;
+        const subtotal = distance * rate;
+        return {
+          ...timesheet,
+          subtotal: subtotal.toFixed(2) // Format subtotal for consistency
+        };
+      });
+  
+      console.log("Timesheets with calculated subtotals:", subtotals);
+    }
+  }, [timesheets, categoryRates]); // Recalculate whenever timesheets or rates change
+  
+  const fetchDrivers = async (): Promise<Driver[]> => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/drivers`);
-      console.log(response);
-      setData(response.data);
+      const response = await axios.get<Driver[]>(`${API_BASE_URL}/drivers`);
+      return response.data;
     } catch (error) {
       console.error("Error fetching drivers:", error);
+      return [];
     }
   };
 
-  // Calculate subtotal & total
-  const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
-  const hst = items.reduce((sum, item) => (item.tax === "H" ? sum + item.amount * 0.13 : sum), 0);
-  const total = subtotal + hst;
+  useEffect(() => {
+    const newTotal = timesheets.reduce((acc, t) => {
+      // Only include timesheets where the status is 'approved'
+      if (t.status === "approved") {
+        const rate = categoryRates[t.category] || 0;
+        const subtotal = (t.endKM - t.startKM) * rate;
+        return acc + subtotal;
+      }
+      return acc;
+    }, 0);
+  
+    const newHST = newTotal * 0.13;
+  
+    setSubtotal(newTotal);
+    setHst(newHST);
+    setTotal(newTotal + newHST);
+  }, [timesheets, categoryRates]);
 
-  // Reference for the invoice content
-  const invoiceRef = useRef<HTMLDivElement>(null);
+  // Calculate subtotal & total
+  const [subtotal, setSubtotal] = useState<number>(items.reduce((sum, item) => sum + item.amount, 0));
+  const [hst, setHst] = useState<number>(items.reduce((sum, item) => (item.tax === "H" ? sum + item.amount * 0.13 : sum), 0));
+  const [total, setTotal] = useState<number>(subtotal + hst);
+
   const isGenerateDisabled = !selectedDriver || Object.values(fromDetails).some((value) => value.trim() === "");
 
   // Generate PDF function
-  const generatePDF = () => {
+const generatePDF = () => {
+  const doc = new jsPDF();
+  doc.setFont("helvetica", "bold").setFontSize(24).text("INVOICE", 15, 20);
+  doc.setFontSize(12).text("Invoice Date:", 15, 30);
+  doc.setFont("helvetica", "normal").text(invoiceDate.toLocaleDateString(), 60, 30);
+  doc.setFont("helvetica", "bold").text("Invoice Period:", 15, 40);
+  doc.setFont("helvetica", "normal").text(invoicePeriod, 60, 40);
+  doc.text("From:", 15, 55).text("To:", 120, 55);
+  doc.setFont("helvetica", "normal");
+  doc.text(fromDetails.name, 15, 63).text(fromDetails.contact, 15, 71).text(fromDetails.address, 15, 79).text(fromDetails.gst, 15, 87);
+  doc.text(toDetails.name, 120, 63).text(toDetails.address, 120, 71).text(toDetails.gst, 120, 79).text(toDetails.phone, 120, 87);
+
+  doc.setFont("helvetica", "bold");
+  doc.text("Attention:", 15, 100);
+  doc.setFont("helvetica", "normal");
+  doc.text(attention, 60, 100);
+  
+  // Correctly formatting and calculating the timesheet entries
+  const formattedTimesheets = timesheets.map(t => {
+    const rate = categoryRates[t.category] || 0;
+    const quantity = t.endKM - t.startKM || 0;  // Ensuring quantity is defined
+    const subtotal = (quantity * rate).toFixed(2);
+    return [
+      t.date, 
+      t.category, 
+      `${quantity}`, // Correctly formatted
+      `$${rate.toFixed(2)}`, 
+      `$${subtotal}`
+    ];
+  });
+
+  (doc as any).autoTable({
+    startY: 115,
+    head: [["Date", "Category", "Total KMs", "Rate", "Subtotal"]],
+    body: formattedTimesheets,
+    theme: "grid"
+  });
+
+  let finalY = (doc as any).lastAutoTable.finalY + 10;
+  doc.setFontSize(16).setFont("helvetica", "bold").text(`Total: $${total.toFixed(2)}`, 140, finalY + 25);
+  doc.save("invoice.pdf");
+};
+
+  const generateAndSendPDF = async () => {
     const doc = new jsPDF();
-
+    
     // Title: INVOICE
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(24);
-    doc.text("INVOICE", 15, 20);
-
-    // Invoice Date & Period
-    doc.setFontSize(12);
-    doc.text("Invoice Date:", 15, 30);
+    doc.setFont("helvetica", "bold").setFontSize(24).text("INVOICE", 15, 20);
+    doc.setFontSize(12).text("Invoice Date:", 15, 30);
+    doc.setFont("helvetica", "normal").text(invoiceDate.toLocaleDateString(), 60, 30);
+    doc.setFont("helvetica", "bold").text("Invoice Period:", 15, 40);
+    doc.setFont("helvetica", "normal").text(invoicePeriod, 60, 40);
+    doc.text("From:", 15, 55).text("To:", 120, 55);
     doc.setFont("helvetica", "normal");
-    doc.text(invoiceDate, 60, 30);
-
-    doc.setFont("helvetica", "bold");
-    doc.text("Invoice Period:", 15, 40);
-    doc.setFont("helvetica", "normal");
-    doc.text(invoicePeriod, 60, 40);
-
-    // FROM & TO Details
-    doc.setFont("helvetica", "bold");
-    doc.text("From:", 15, 55);
-    doc.text("To:", 120, 55);
-
-    doc.setFont("helvetica", "normal");
-    doc.text(fromDetails.name, 15, 63);
-    doc.text(fromDetails.contact, 15, 71);
-    doc.text(fromDetails.address, 15, 79);
-    doc.text(fromDetails.gst, 15, 87);
-
-    doc.text(toDetails.name, 120, 63);
-    doc.text(toDetails.address, 120, 71);
-    doc.text(toDetails.gst, 120, 79);
-    doc.text(toDetails.phone, 120, 87);
-
+    doc.text(fromDetails.name, 15, 63).text(fromDetails.contact, 15, 71).text(fromDetails.address, 15, 79).text(fromDetails.gst, 15, 87);
+    doc.text(toDetails.name, 120, 63).text(toDetails.address, 120, 71).text(toDetails.gst, 120, 79).text(toDetails.phone, 120, 87);
+  
     // Attention
     doc.setFont("helvetica", "bold");
     doc.text("Attention:", 15, 100);
     doc.setFont("helvetica", "normal");
     doc.text(attention, 60, 100);
-
-    // Table of Invoice Items
+  
+    // Correctly formatting and calculating the timesheet entries
+    const formattedTimesheets = timesheets.map(t => {
+      const rate = categoryRates[t.category] || 0;
+      const quantity = t.endKM - t.startKM || 0;  // Ensuring quantity is defined
+      const subtotal = (quantity * rate).toFixed(2);
+      return [
+        t.date, 
+        t.category, 
+        `${quantity}`, // Correctly formatted
+        `$${rate.toFixed(2)}`, 
+        `$${subtotal}`
+      ];
+    });
+  
     (doc as any).autoTable({
       startY: 115,
-      head: [["Item", "Quantity", "Rate", "Tax", "Amount"]],
-      body: items.map((item) => [
-        item.name,
-        item.quantity,
-        `$${item.rate.toFixed(2)}`,
-        item.tax,
-        `$${item.amount.toFixed(2)}`,
-      ]),
-      theme: "grid",
-      styles: { halign: "center" },
-      headStyles: { fillColor: [0, 0, 0], textColor: [255, 255, 255] },
+      head: [["Date", "Category", "Total KMs", "Rate", "Subtotal"]],
+      body: formattedTimesheets,
+      theme: "grid"
     });
+  
+    let finalY = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFontSize(16).setFont("helvetica", "bold").text(`Total: $${total.toFixed(2)}`, 140, finalY + 25);
+  
+    // Convert PDF to Base64
+    const pdfBase64 = doc.output('datauristring');
+    const base64Only = pdfBase64.split(';base64,')[1];
+  
+    // Send the Base64 string to the backend
+    await sendInvoiceAsEmail(base64Only);
+  };
+  
+  async function sendInvoiceAsEmail(pdfBase64: string) {
+    try {
+      await axios.post(`${API_BASE_URL}/send-invoice-email`, {
+        driverId: selectedDriver,
+        invoicePdf: pdfBase64
+      });
+      alert('Invoice sent successfully!');
+    } catch (error) {
+      console.error('Failed to send invoice:', error);
+      alert('Failed to send invoice');
+    }
+  }
 
-    // Calculate Y Position after Table
-    let finalY = (doc as any).autoTable.previous.finalY + 10;
 
-    // Subtotal & HST
-    doc.setFont("helvetica", "bold");
-    doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 140, finalY);
-    doc.text(`HST (13%): $${hst.toFixed(2)}`, 140, finalY + 10);
-
-    // Total
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.text(`Total: $${total.toFixed(2)}`, 140, finalY + 25);
-
-    // Save the PDF
-    doc.save("invoice.pdf");
+  const fetchCategoryRates = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/drivers`);
+      const rates: Record<string, number> = {};
+  
+      response.data.forEach((driver: any) => {
+        if (driver.backhaulRate) rates["Backhaul"] = driver.backhaulRate;
+        if (driver.comboRate) rates["Combo"] = driver.comboRate;
+        if (driver.extraSheetEWRate) rates["Extra Sheet/E.W"] = driver.extraSheetEWRate;
+        if (driver.regularBannerRate) rates["Regular/Banner"] = driver.regularBannerRate;
+        if (driver.wholesaleRate) rates["Wholesale"] = driver.wholesaleRate;
+      });
+  
+      setCategoryRates(rates);
+    } catch (error) {
+      console.error("Failed to fetch category rates:", error);
+    }
   };
 
   return (
@@ -255,15 +348,19 @@ const Invoice: React.FC = () => {
           <div style={styles.flexColumn}>
             <label>Invoice Date:</label>
               <input
-              type="date"
-              value={invoiceDate}
-              onChange={(e) => setInvoiceDate(e.target.value)}
-              style={styles.input}
-            />
+                type="date"
+                value={invoiceDate.toISOString().split('T')[0]}
+                onChange={(e) => setInvoiceDate(new Date(e.target.value))}
+                style={styles.input}
+              />
           </div>
           <div style={styles.flexColumn}>
             <label>Invoice Period:</label>
-            <select value={isCustomRange ? "custom" : invoicePeriod} onChange={handlePeriodChange} style={styles.input}>
+            <select
+              value={isCustomRange ? "custom" : invoicePeriod}
+              onChange={handlePeriodChange}
+              style={styles.input}
+            >
               {invoicePeriodOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -288,10 +385,15 @@ const Invoice: React.FC = () => {
           <div style={styles.box}>
             <h3>From:</h3>
             <select value={selectedDriver} onChange={handleDriverChange} style={styles.dropdown}>
-              <option value="" disabled>Select a Driver</option>
-              {data.map((driver) => (
-                <option key={driver._id} value={driver._id}>{driver.name}</option>
-              ))}
+              <option value="__placeholder__" disabled>Select a Driver</option>
+              {data.map((driver, index) => {
+                const driverId = driver._id || `missing-id-${index}`;
+                return (
+                  <option key={driverId} value={driverId}>
+                    {driver.name || `Unnamed Driver ${index + 1}`}
+                  </option>
+                );
+              })}
             </select>
             
             {selectedDriver && (
@@ -313,61 +415,59 @@ const Invoice: React.FC = () => {
           <div style={styles.box}>
             <h3>To:</h3>
             {Object.keys(toDetails).map((key) => (
-              <input key={key} type="text" value={toDetails[key as keyof typeof toDetails]} style={styles.input} />
+              <input
+                key={key}
+                type="text"
+                value={toDetails[key as keyof typeof toDetails]}
+                style={styles.input}
+                readOnly
+              />
             ))}
           </div>
         </div>
 
-        {/* Invoice Table */}
-        <h3>Invoice Items</h3>
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              {["Item", "Quantity", "Rate", "Tax", "Amount"].map((heading) => (
-                <th key={heading} style={styles.th}>{heading}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-  {items.map((item, index) => (
-    <tr key={index}>
-      <td style={styles.td}>
-        <input
-          type="text"
-          value={item.name} // Ensure 'name' is properly assigned
-          onChange={(e) => handleItemChange(index, "name", e.target.value)}
-          style={styles.input}
-        />
-      </td>
-      <td style={styles.td}>
-        <input
-          type="number"
-          value={item.quantity}
-          onChange={(e) => handleItemChange(index, "quantity", Number(e.target.value))}
-          style={styles.input}
-        />
-      </td>
-      <td style={styles.td}>
-        <input
-          type="number"
-          value={item.rate}
-          onChange={(e) => handleItemChange(index, "rate", Number(e.target.value))}
-          style={styles.input}
-        />
-      </td>
-      <td style={styles.td}>
-        <input
-          type="text"
-          value={item.tax}
-          onChange={(e) => handleItemChange(index, "tax", e.target.value)}
-          style={styles.input}
-        />
-      </td>
-      <td style={styles.td}>${item.amount.toFixed(2)}</td>
-    </tr>
-  ))}
-</tbody>
-        </table>
+      {/* Timesheets Table */}
+      <div style={styles.timesheetsSection}>
+        <h3 style={styles.sectionTitle}>📚 Timesheets</h3>
+        {timesheets.length === 0 ? (
+          <p>No timesheets available for this driver.</p>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <th style={styles.th}>Date</th>
+                <th style={styles.th}>Start</th>
+                <th style={styles.th}>End</th>
+                <th style={styles.th}>Start KM</th>
+                <th style={styles.th}>End KM</th>
+                <th style={styles.th}>Category</th>
+                <th style={styles.th}>Subtotal</th>
+                <th style={styles.th}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {timesheets.map((t) => {
+                const rate = categoryRates[t.category] || 0;
+                const subtotal = ((t.endKM - t.startKM) * rate).toFixed(2);
+                return (
+                  <tr key={t._id}>
+                    <td style={styles.td}>{t.date}</td>
+                    <td style={styles.td}>{t.startTime}</td>
+                    <td style={styles.td}>{t.endTime}</td>
+                    <td style={styles.td}>{t.startKM}</td>
+                    <td style={styles.td}>{t.endKM}</td>
+                    <td style={styles.td}>{t.category}</td>
+                    <td style={styles.td}>${subtotal}</td>
+                    <td style={styles.td}>
+                      {t.status === "approved" ? "✔️" : t.status === "rejected" ? "❌" : "⏳"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
 
         {/* Totals Section */}
         <div style={styles.totalsContainer}>
@@ -383,17 +483,29 @@ const Invoice: React.FC = () => {
         </div>
 
         {/* Generate PDF Button */}
-        <button
-          onClick={generatePDF}
-          style={{
-            ...styles.button,
-            backgroundColor: isGenerateDisabled ? "#ccc" : "#007bff",
-            cursor: isGenerateDisabled ? "not-allowed" : "pointer",
-          }}
-          disabled={isGenerateDisabled}
-        >
-          Generate PDF
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', float: 'right' }}>
+          <button
+            onClick={generatePDF}
+            style={{
+              ...styles.button,
+              backgroundColor: isGenerateDisabled ? "#ccc" : "#007bff",
+              cursor: isGenerateDisabled ? "not-allowed" : "pointer",
+            }}
+            disabled={isGenerateDisabled}
+          >
+            Generate PDF
+          </button>
+          <button
+            onClick={generateAndSendPDF}
+            style={{
+              ...styles.button,
+              backgroundColor: isGenerateDisabled ? "#ccc" : "#007bff",
+              cursor: isGenerateDisabled ? "not-allowed" : "pointer",
+            }}
+          >
+            Send Invoice as Email
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -411,39 +523,44 @@ const styles = {
     marginTop: "30px",
     marginBottom: "30px",
     padding: "20px",
-    backgroundColor: "#fff",
-    borderRadius: "8px",
-    border: "2px solid #ddd",
-    width: "fit-content",
-    minWidth: "280px",
-    textAlign: "right",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+    backgroundColor: "#ffffff", // More standard color code
+    borderRadius: "12px", // Slightly larger radius for a softer look
+    border: "1px solid #cccccc", // Lighter border for less visual weight
+    width: "100%", // Full width for better responsiveness
+    maxWidth: "600px", // Maximum width to maintain readability
+    textAlign: "right" as const,
+    boxShadow: "0 2px 15px rgba(0,0,0,0.1)", // Softer shadow for subtle depth
+    marginLeft: "auto", // Center align the container
+    marginRight: "auto"
   },
   subtotal: {
     fontSize: "18px",
     fontWeight: "bold",
-    color: "#333",
-    marginBottom: "8px",
+    color: "#333333", // Standard color for better cross-browser consistency
+    marginBottom: "10px", // Slightly increased spacing
     display: "flex",
     justifyContent: "space-between",
+    padding: "0 10px" // Padding for better alignment of the content within
   },
   hst: {
     fontSize: "18px",
     fontWeight: "bold",
-    color: "#0073e6",
-    marginBottom: "8px",
+    color: "#0056b3", // Slightly darker blue for better readability
+    marginBottom: "10px",
     display: "flex",
     justifyContent: "space-between",
+    padding: "0 10px"
   },
   total: {
-    fontSize: "22px",
+    fontSize: "20px", // Increased size for emphasis
     fontWeight: "bold",
-    color: "#d9534f",
-    marginTop: "12px",
+    color: "#c9302c", // A more consistent branding color that's easier on the eyes
+    marginTop: "10px",
     paddingTop: "12px",
-    borderTop: "2px solid #ddd",
+    borderTop: "1px solid #eeeeee", // Lighter border for a subtler separation
     display: "flex",
     justifyContent: "space-between",
+    padding: "0 10px"
   },
   button: {
     backgroundColor: "#007bff",
@@ -455,6 +572,7 @@ const styles = {
     cursor: "pointer",
     display: "block", // Ensure it behaves as a block element
     marginLeft: "auto", // Moves it to the right inside a flex container
+    marginRight: "4px", // Ensures no margin on the right
   },
   title: { fontSize: "28px", fontWeight: "bold", textAlign: "center" as const, marginBottom: "20px" },
   flexRow: { display: "flex", gap: "20px" },
@@ -462,7 +580,18 @@ const styles = {
   box: { backgroundColor: "#f8f9fa", padding: "15px", borderRadius: "5px", marginBottom: "20px" },
   detailsContainer: { marginTop: "10px", borderTop: "1px solid #ddd", paddingTop: "10px" }, // Added spacing
   dropdown: { padding: "10px", fontSize: "16px", margin: "10px 0", borderRadius: "5px", border: "1px solid #ccc" },
-  
+  timesheetsSection: {
+    marginBottom: "20px",
+    padding: "15px",
+    backgroundColor: "#f9f9f9",
+    borderRadius: "5px",
+  },
+  sectionTitle: {
+    fontSize: "18px",
+    fontWeight: "bold",
+    marginBottom: "10px",
+    color: "#333",
+  },
 };
 
 export default Invoice;

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000/api"; // Update as per your backend URL
+import { API_BASE_URL } from "../utils/env";// Update as per your backend URL
 
 interface User {
   email: string;
