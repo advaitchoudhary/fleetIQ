@@ -1,9 +1,9 @@
-import fs from "fs";
-import { promisify } from "util";
-import multer from "multer";
+const fs = require("fs");
+const { promisify } = require("util");
+const multer = require("multer");
 // import path from "path";
-import Dispatch from "../model/uploadModel.js"; // Import model
-import pdf2json from "pdf2json";
+const Dispatch = require("../model/uploadModel.js"); // Import model
+const pdf2json = require("pdf2json");
 
 const UPLOADS_DIR = "uploads/";
 if (!fs.existsSync(UPLOADS_DIR)) {
@@ -19,7 +19,7 @@ const storage = multer.diskStorage({
   },
 });
 
-export const upload = multer({
+const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
     if (file.mimetype !== "application/pdf") {
@@ -31,7 +31,7 @@ export const upload = multer({
 
 const unlinkAsync = promisify(fs.unlink);
 
-export const processFile = async (req, res) => {
+const processFile = async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ message: "No file uploaded" });
@@ -110,7 +110,7 @@ export const processFile = async (req, res) => {
     return extractedData;
 };
 
-export const getDispatches = async (req, res) => {
+const getDispatches = async (req, res) => {
     try {
         const dispatches = await Dispatch.find();
         console.log("Fetched Dispatches from MongoDB:", dispatches); // ✅ Debugging MongoDB retrieval
@@ -119,4 +119,10 @@ export const getDispatches = async (req, res) => {
         console.error("Error fetching dispatch data:", error);
         res.status(500).json({ message: "Failed to fetch data", error: error.message });
     }
+};
+
+module.exports = {
+  upload,
+  processFile,
+  getDispatches
 };

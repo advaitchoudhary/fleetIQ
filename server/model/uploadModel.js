@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 // Define schema for Dispatch Sheet
 const dispatchSchema = new mongoose.Schema(
@@ -21,4 +21,4 @@ const dispatchSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Dispatch", dispatchSchema);
+module.exports = mongoose.model("Dispatch", dispatchSchema);

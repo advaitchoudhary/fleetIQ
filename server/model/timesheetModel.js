@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const timesheetSchema = new mongoose.Schema(
   {
@@ -35,4 +35,4 @@ const timesheetSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-export default mongoose.model("Timesheet", timesheetSchema);
+module.exports = mongoose.model("Timesheet", timesheetSchema);

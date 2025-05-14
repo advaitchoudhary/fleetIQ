@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 // Main schema for driver information including nested rate schema
 const driverSchema = new mongoose.Schema(
@@ -36,4 +36,4 @@ const driverSchema = new mongoose.Schema(
     { timestamps: true } // Adds createdAt and updatedAt timestamps
 );
 
-export default mongoose.model("Driver", driverSchema);
+module.exports = mongoose.model("Driver", driverSchema);

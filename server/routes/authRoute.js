@@ -1,22 +1,22 @@
-import express from "express";
-import { register, login, getUserProfile, changePassword } from "../controller/authController.js";
-import { protect, authorizeRoles } from "../middleware/authMiddleware.js";
+const express = require("express");
+const { register, login, getUserProfile, changePassword } = require("../controller/authController.js");
+const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
 
 const router = express.Router();
 
 router.post("/register", register);
 router.post("/login", login);
 router.get("/profile", protect, getUserProfile);
-// router.post(
-//     "/change-password",
-//     protect,
-//     authorizeRoles("driver", "admin"), // ← include roles that are allowed
-//     changePasswordController
-//   );
 
-// Example of restricting access to admin only
+// router.post(
+//   "/change-password",
+//   protect,
+//   authorizeRoles("driver", "admin"),
+//   changePassword
+// );
+
 router.get("/admin", protect, authorizeRoles("admin"), (req, res) => {
-    res.json({ message: "Welcome Admin!" });
+  res.json({ message: "Welcome Admin!" });
 });
 
-export default router;
+module.exports = router;

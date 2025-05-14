@@ -1,6 +1,6 @@
-import Contact from "../model/contactModel.js";
+const Contact = require("../model/contactModel.js");
 
-export const submitContactForm = async (req, res) => {
+const submitContactForm = async (req, res) => {
   try {
     const { name, email, message } = req.body;
 
@@ -15,7 +15,7 @@ export const submitContactForm = async (req, res) => {
   }
 };
 
-export const getAllContacts = async (req, res) => {
+const getAllContacts = async (req, res) => {
   try {
     const contacts = await Contact.find().sort({ createdAt: -1 });
     console.log("Fetched contacts from MongoDB:", contacts); // Debugging MongoDB retrieval
@@ -24,4 +24,9 @@ export const getAllContacts = async (req, res) => {
     console.error("Error fetching contacts:", error);
     res.status(500).json({ message: "Error fetching contacts" });
   }
+};
+
+module.exports = {
+  submitContactForm,
+  getAllContacts
 };

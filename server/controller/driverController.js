@@ -1,7 +1,7 @@
-import Driver from "../model/driverModel.js";
-import asyncHandler from 'express-async-handler'; // npm install express-async-handler
+const Driver = require("../model/driverModel.js");
+const asyncHandler = require("express-async-handler");
 
-export const create = asyncHandler(async (req, res) => {
+const create = asyncHandler(async (req, res) => {
   const { email } = req.body;
 
   const driverExist = await Driver.findOne({ email });
@@ -14,7 +14,7 @@ export const create = asyncHandler(async (req, res) => {
   res.status(201).json(savedData);
 });
 
-export const getAllDrivers = asyncHandler(async (req, res) => {
+const getAllDrivers = asyncHandler(async (req, res) => {
   const drivers = await Driver.find();
   if (!drivers.length) {
     res.status(404).json({ message: "No drivers found" });
@@ -23,7 +23,7 @@ export const getAllDrivers = asyncHandler(async (req, res) => {
   res.json(drivers);
 });
 
-export const getDriverById = asyncHandler(async (req, res) => {
+const getDriverById = asyncHandler(async (req, res) => {
   const driver = await Driver.findById(req.params.id);
   if (!driver) {
     res.status(404).json({ message: "Driver not found" });
@@ -32,7 +32,7 @@ export const getDriverById = asyncHandler(async (req, res) => {
   res.json(driver);
 });
 
-export const updateDriverById = asyncHandler(async (req, res) => {
+const updateDriverById = asyncHandler(async (req, res) => {
   const updatedDriver = await Driver.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true
@@ -45,7 +45,7 @@ export const updateDriverById = asyncHandler(async (req, res) => {
   res.json(updatedDriver);
 });
 
-export const deleteDriverById = asyncHandler(async (req, res) => {
+const deleteDriverById = asyncHandler(async (req, res) => {
   const driver = await Driver.findByIdAndDelete(req.params.id);
   if (!driver) {
     res.status(404).json({ message: "Driver not found" });
@@ -53,3 +53,11 @@ export const deleteDriverById = asyncHandler(async (req, res) => {
   }
   res.json({ message: "Driver deleted successfully" });
 });
+
+module.exports = {
+  create,
+  getAllDrivers,
+  getDriverById,
+  updateDriverById,
+  deleteDriverById
+};

@@ -3,11 +3,16 @@ import cors from "cors";
 import mongoose from "mongoose"
 import bodyParser from "body-parser"
 import dotenv from "dotenv"
-import authRoutes from "./routes/authRoute.js";
-import timesheetRoutes from "./routes/timesheetRoute.js";
-import uploadRoutes from "./routes/uploadRoute.js";
-import driverRoute from "./routes/driverRoute.js"
-import contactRoutes from "./routes/contactRoute.js";
+// @ts-ignore
+import authRoutes from "../routes/authRoute";
+// @ts-ignore
+import timesheetRoutes from "../routes/timesheetRoute";
+// @ts-ignore
+import uploadRoutes from "../routes/uploadRoute";
+// @ts-ignore
+import driverRoute from "../routes/driverRoute";
+// @ts-ignore
+import contactRoutes from "../routes/contactRoute";
 
 
 const app = express();
@@ -23,7 +28,7 @@ app.use(bodyParser.json());
 dotenv.config();
 
 const PORT = process.env.PORT || 7000;
-const MONGOURL = process.env.MONGO_URL;
+const MONGOURL = process.env.MONGO_URL as string;
 
 mongoose    
         .connect(MONGOURL)
@@ -36,7 +41,7 @@ mongoose
         .catch((error) => console.log(error));
 
 app.use("/api/auth", authRoutes);
-app.use("/api", driverRoute);
-app.use("/api", timesheetRoutes);
-app.use("/api", uploadRoutes);
-app.use("/api", contactRoutes);
+app.use("/api/drivers", driverRoute);
+app.use("/api/timesheets", timesheetRoutes);
+app.use("/api/uploads", uploadRoutes);
+app.use("/api/contacts", contactRoutes);

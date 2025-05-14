@@ -1,15 +1,9 @@
-import Timesheet from "../model/timesheetModel.js";
-import Driver from "../model/driverModel.js";
-import nodemailer from "nodemailer";
-import fs from "fs";
-import path from "path";
-import PDFDocument from "pdfkit";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-
-// Setup for ES modules to use __dirname
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const Timesheet = require("../model/timesheetModel.js");
+const Driver = require("../model/driverModel.js");
+const nodemailer = require("nodemailer");
+const fs = require("fs");
+const path = require("path");
+const PDFDocument = require("pdfkit");
 
 // Safe number parser
 const parseNumber = (value) => {
@@ -18,7 +12,7 @@ const parseNumber = (value) => {
 };
 
 // **1. Create a New Timesheet**
-export const createTimesheet = async (req, res) => {
+const createTimesheet = async (req, res) => {
   try {
     console.log("Incoming Timesheet Body:", req.body);
     console.log("Incoming Timesheet Files:", req.files);
@@ -68,7 +62,7 @@ export const createTimesheet = async (req, res) => {
 };
 
 // **2. Get All Timesheets**
-export const getAllTimesheets = async (req, res) => {
+const getAllTimesheets = async (req, res) => {
   try {
     const timesheets = await Timesheet.find();
     if (!timesheets || timesheets.length === 0) {
@@ -81,7 +75,7 @@ export const getAllTimesheets = async (req, res) => {
 };
 
 // **3. Get Timesheet by ID**
-export const getTimesheetById = async (req, res) => {
+const getTimesheetById = async (req, res) => {
   try {
     const id = req.params.id;
     const timesheet = await Timesheet.findById(id);
@@ -95,7 +89,7 @@ export const getTimesheetById = async (req, res) => {
 };
 
 // **4. Update Timesheet by ID**
-export const updateTimesheetById = async (req, res) => {
+const updateTimesheetById = async (req, res) => {
   try {
     const id = req.params.id;
     if (!req.body || Object.keys(req.body).length === 0) {
@@ -118,7 +112,7 @@ export const updateTimesheetById = async (req, res) => {
 };
 
 // **5. Delete Timesheet by ID**
-export const deleteTimesheetById = async (req, res) => {
+const deleteTimesheetById = async (req, res) => {
   try {
     const id = req.params.id;
     const deletedTimesheet = await Timesheet.findByIdAndDelete(id);
@@ -134,7 +128,7 @@ export const deleteTimesheetById = async (req, res) => {
 };
 
 // **6. Update Timesheet Status**
-export const updateTimesheetStatus = async (req, res) => {
+const updateTimesheetStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
@@ -219,7 +213,7 @@ function createInvoicePDF(data) {
 }
 
 // **9. Send Invoice Email**
-export const sendInvoiceEmail = async (req, res) => {
+const sendInvoiceEmail = async (req, res) => {
   try {
     const { driverId } = req.body;
     const driver = await Driver.findById(driverId);
@@ -227,11 +221,15 @@ export const sendInvoiceEmail = async (req, res) => {
       return res.status(404).json({ message: "Driver email not found." });
     }
 
-  // Decode and write the already-generated PDF from frontend
-  const pdfBuffer = Buffer.from(req.body.invoicePdf, 'base64');
-  const fileName = `invoice_${Date.now()}.pdf`;
-  const filePath = path.join(__dirname, fileName);
-  fs.writeFileSync(filePath, pdfBuffer);
+    // Decode and write the already-generated PDF from frontend
+    const pdfBuffer = Buffer.from(req.body.invoicePdf, 'base64');
+    const fileName = `invoice_${Date.now()}.pdf`;
+    const filePath = path.join(__dirname, fileName);
+    fs.writeFileSync(filePath, pdfBuffer);
+
+    // Assign filePath and dummy invoiceDetails to match placeholders
+    const invoiceDetails = { amount: req.body.amount || "N/A" };
+    const invoiceFilePath = filePath;
 
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
@@ -264,4 +262,13 @@ export const sendInvoiceEmail = async (req, res) => {
     console.error("Failed to send invoice email:", error);
     res.status(500).json({ errorMessage: error.message });
   }
+};
+module.exports = {
+  createTimesheet,
+  getAllTimesheets,
+  getTimesheetById,
+  updateTimesheetById,
+  deleteTimesheetById,
+  updateTimesheetStatus,
+  sendInvoiceEmail
 };

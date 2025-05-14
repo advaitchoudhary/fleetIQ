@@ -6,7 +6,7 @@ import { FaUserCircle } from "react-icons/fa";
 
 const MyInfo: React.FC = () => {
   const [driver, setDriver] = useState<any>(null);
-  const [timesheets, setTimesheets] = useState<any[]>([]);
+  const [setTimesheets] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<any>(null);
   const [showBankForm, setShowBankForm] = useState(false);

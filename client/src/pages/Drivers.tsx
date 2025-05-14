@@ -51,9 +51,9 @@ const Drivers: React.FC = () => {
   });
 
   const [editedDriver, setEditedDriver] = useState<any>(null);
-  const [isUpdateDisabled, setIsUpdateDisabled] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [, setIsUpdateDisabled] = useState(true);
+  const [, setLoading] = useState(false);
+  const [, setError] = useState("");
   
   // Fetch users on component mount
   useEffect(() => {

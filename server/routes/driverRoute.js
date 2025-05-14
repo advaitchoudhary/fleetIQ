@@ -1,6 +1,6 @@
-import express from "express"
+const express = require("express");
 
-import { create, getAllDrivers, getDriverById, updateDriverById, deleteDriverById } from "../controller/driverController.js"
+const { create, getAllDrivers, getDriverById, updateDriverById, deleteDriverById } = require("../controller/driverController.js");
 
 const route = express.Router();
 
@@ -11,4 +11,4 @@ route.put("/update/driver/:id", updateDriverById)
 route.delete("/delete/driver/:id", deleteDriverById)
 
 
-export default route;
+module.exports = route;

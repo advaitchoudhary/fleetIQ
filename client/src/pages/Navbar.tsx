@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaBars, FaClock, FaTimes, FaSignOutAlt, FaUser, FaUsers, FaFileInvoice, FaClipboardList, FaPhoneAlt, FaKey } from "react-icons/fa";
+import { FaBars, FaClock, FaTimes, FaSignOutAlt, FaUser, FaUsers, FaFileInvoice, FaClipboardList, FaPhoneAlt } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md"; // Material Dashboard Icon
 import { useAuth } from "../contexts/AuthContext";
 

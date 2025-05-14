@@ -1,9 +1,9 @@
-import User from "../model/userModel.js";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+const User = require("../model/userModel.js");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 // Register a new user
-export const register = async (req, res) => {
+const register = async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
         if (!name || !email || !password) {
@@ -33,7 +33,7 @@ export const register = async (req, res) => {
 };
 
 // Login user
-export const login = async (req, res) => {
+const login = async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
@@ -60,12 +60,12 @@ export const login = async (req, res) => {
 };
 
 // Logout user
-export const logout = (req, res) => {
+const logout = (req, res) => {
     res.json({ message: "Logout successful" });
 };
 
 // Change Password
-export const changePassword = async (req, res) => {
+const changePassword = async (req, res) => {
     try {
         console.log("Received Headers:", req.headers); // Debug: Log all headers
         const token = req.header("Authorization").split(" ")[1]; 
@@ -95,7 +95,7 @@ export const changePassword = async (req, res) => {
 };
 
 // Get User Profile (Protected)
-export const getUserProfile = async (req, res) => {
+const getUserProfile = async (req, res) => {
     try {
         // Extract user ID from JWT
         const token = req.header("Authorization").split(" ")[1];
@@ -111,3 +111,10 @@ export const getUserProfile = async (req, res) => {
         res.status(500).json({ error: "Server error" });
     }
 };
+
+module.exports = {
+    register,
+    login,
+    getUserProfile,
+    changePassword
+  };

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -36,7 +36,7 @@ interface Driver {
 const Invoice: React.FC = () => {
   // State for Invoice Details
   const [data, setData] = useState<Driver[]>([]);
-  const [items, setItems] = useState<InvoiceItem[]>([]);  // Initialize as empty
+  const [items] = useState<InvoiceItem[]>([]);  // Initialize as empty
   const [invoiceDate, setInvoiceDate] = useState<Date>(new Date());
   const [customRange, setCustomRange] = useState<[Date | null, Date | null]>([null, null]);
   const [isCustomRange, setIsCustomRange] = useState(false);
@@ -94,7 +94,7 @@ const Invoice: React.FC = () => {
     contact: "",
   });
 
-  const [toDetails, setToDetails] = useState({
+  const [toDetails] = useState({
     name: "Premier Choice Employment",
     address: "745 Chelton Rd unit-21, London, ON N6M 0J1, Canada",
     gst: "GST/HST: 806154175RT0001",
@@ -146,7 +146,7 @@ const Invoice: React.FC = () => {
   };
 
   // Attention Section (Editable)
-  const [attention, setAttention] = useState("Ravneet Kaur");
+  const [attention] = useState("Ravneet Kaur");
 
   useEffect(() => {
     fetchDrivers().then(drivers => {
@@ -251,70 +251,70 @@ const generatePDF = () => {
   doc.save("invoice.pdf");
 };
 
-  const generateAndSendPDF = async () => {
-    const doc = new jsPDF();
+  // const generateAndSendPDF = async () => {
+  //   const doc = new jsPDF();
     
-    // Title: INVOICE
-    doc.setFont("helvetica", "bold").setFontSize(24).text("INVOICE", 15, 20);
-    doc.setFontSize(12).text("Invoice Date:", 15, 30);
-    doc.setFont("helvetica", "normal").text(invoiceDate.toLocaleDateString(), 60, 30);
-    doc.setFont("helvetica", "bold").text("Invoice Period:", 15, 40);
-    doc.setFont("helvetica", "normal").text(invoicePeriod, 60, 40);
-    doc.text("From:", 15, 55).text("To:", 120, 55);
-    doc.setFont("helvetica", "normal");
-    doc.text(fromDetails.name, 15, 63).text(fromDetails.contact, 15, 71).text(fromDetails.address, 15, 79).text(fromDetails.gst, 15, 87);
-    doc.text(toDetails.name, 120, 63).text(toDetails.address, 120, 71).text(toDetails.gst, 120, 79).text(toDetails.phone, 120, 87);
+  //   // Title: INVOICE
+  //   doc.setFont("helvetica", "bold").setFontSize(24).text("INVOICE", 15, 20);
+  //   doc.setFontSize(12).text("Invoice Date:", 15, 30);
+  //   doc.setFont("helvetica", "normal").text(invoiceDate.toLocaleDateString(), 60, 30);
+  //   doc.setFont("helvetica", "bold").text("Invoice Period:", 15, 40);
+  //   doc.setFont("helvetica", "normal").text(invoicePeriod, 60, 40);
+  //   doc.text("From:", 15, 55).text("To:", 120, 55);
+  //   doc.setFont("helvetica", "normal");
+  //   doc.text(fromDetails.name, 15, 63).text(fromDetails.contact, 15, 71).text(fromDetails.address, 15, 79).text(fromDetails.gst, 15, 87);
+  //   doc.text(toDetails.name, 120, 63).text(toDetails.address, 120, 71).text(toDetails.gst, 120, 79).text(toDetails.phone, 120, 87);
   
-    // Attention
-    doc.setFont("helvetica", "bold");
-    doc.text("Attention:", 15, 100);
-    doc.setFont("helvetica", "normal");
-    doc.text(attention, 60, 100);
+  //   // Attention
+  //   doc.setFont("helvetica", "bold");
+  //   doc.text("Attention:", 15, 100);
+  //   doc.setFont("helvetica", "normal");
+  //   doc.text(attention, 60, 100);
   
-    // Correctly formatting and calculating the timesheet entries
-    const formattedTimesheets = timesheets.map(t => {
-      const rate = categoryRates[t.category] || 0;
-      const quantity = t.endKM - t.startKM || 0;  // Ensuring quantity is defined
-      const subtotal = (quantity * rate).toFixed(2);
-      return [
-        t.date, 
-        t.category, 
-        `${quantity}`, // Correctly formatted
-        `$${rate.toFixed(2)}`, 
-        `$${subtotal}`
-      ];
-    });
+  //   // Correctly formatting and calculating the timesheet entries
+  //   const formattedTimesheets = timesheets.map(t => {
+  //     const rate = categoryRates[t.category] || 0;
+  //     const quantity = t.endKM - t.startKM || 0;  // Ensuring quantity is defined
+  //     const subtotal = (quantity * rate).toFixed(2);
+  //     return [
+  //       t.date, 
+  //       t.category, 
+  //       `${quantity}`, // Correctly formatted
+  //       `$${rate.toFixed(2)}`, 
+  //       `$${subtotal}`
+  //     ];
+  //   });
   
-    (doc as any).autoTable({
-      startY: 115,
-      head: [["Date", "Category", "Total KMs", "Rate", "Subtotal"]],
-      body: formattedTimesheets,
-      theme: "grid"
-    });
+  //   (doc as any).autoTable({
+  //     startY: 115,
+  //     head: [["Date", "Category", "Total KMs", "Rate", "Subtotal"]],
+  //     body: formattedTimesheets,
+  //     theme: "grid"
+  //   });
   
-    let finalY = (doc as any).lastAutoTable.finalY + 10;
-    doc.setFontSize(16).setFont("helvetica", "bold").text(`Total: $${total.toFixed(2)}`, 140, finalY + 25);
+  //   let finalY = (doc as any).lastAutoTable.finalY + 10;
+  //   doc.setFontSize(16).setFont("helvetica", "bold").text(`Total: $${total.toFixed(2)}`, 140, finalY + 25);
   
-    // Convert PDF to Base64
-    const pdfBase64 = doc.output('datauristring');
-    const base64Only = pdfBase64.split(';base64,')[1];
+  //   // Convert PDF to Base64
+  //   const pdfBase64 = doc.output('datauristring');
+  //   const base64Only = pdfBase64.split(';base64,')[1];
   
-    // Send the Base64 string to the backend
-    await sendInvoiceAsEmail(base64Only);
-  };
+  //   // Send the Base64 string to the backend
+  //   await sendInvoiceAsEmail(base64Only);
+  // };
   
-  async function sendInvoiceAsEmail(pdfBase64: string) {
-    try {
-      await axios.post(`${API_BASE_URL}/send-invoice-email`, {
-        driverId: selectedDriver,
-        invoicePdf: pdfBase64
-      });
-      alert('Invoice sent successfully!');
-    } catch (error) {
-      console.error('Failed to send invoice:', error);
-      alert('Failed to send invoice');
-    }
-  }
+  // async function sendInvoiceAsEmail(pdfBase64: string) {
+  //   try {
+  //     await axios.post(`${API_BASE_URL}/send-invoice-email`, {
+  //       driverId: selectedDriver,
+  //       invoicePdf: pdfBase64
+  //     });
+  //     alert('Invoice sent successfully!');
+  //   } catch (error) {
+  //     console.error('Failed to send invoice:', error);
+  //     alert('Failed to send invoice');
+  //   }
+  // }
 
 
   const fetchCategoryRates = async () => {

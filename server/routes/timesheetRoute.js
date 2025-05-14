@@ -1,5 +1,5 @@
-import express from "express";
-import {
+const express = require("express");
+const {
   createTimesheet,
   getAllTimesheets,
   getTimesheetById,
@@ -7,8 +7,8 @@ import {
   deleteTimesheetById,
   updateTimesheetStatus,
   sendInvoiceEmail
-} from "../controller/timesheetController.js";
-import upload from "../middleware/upload.js";
+} = require("../controller/timesheetController.js");
+const upload = require("../middleware/upload.js");
 
 const router = express.Router();
 
@@ -20,4 +20,4 @@ router.put("/timesheet/:id/status", updateTimesheetStatus);
 router.delete("/delete/timesheet/:id", deleteTimesheetById);
 router.post('/send-invoice-email', sendInvoiceEmail);
 
-export default router;
+module.exports = router;
