@@ -104,6 +104,21 @@ const Profile: React.FC = () => {
           </p>
         </div>
 
+        {/* Direct Deposit Details */}
+        <div style={styles.statusSection}>
+          <h3 style={styles.sectionTitle}>💳 Direct Deposit Details</h3>
+          {driver.bankDetails ? (
+            <>
+              <p><strong>Bank Name:</strong> {driver.bankDetails.bankName || "N/A"}</p>
+              <p><strong>Account Number:</strong> {driver.bankDetails.accountNumber || "N/A"}</p>
+              <p><strong>Transit Number:</strong> {driver.bankDetails.transitNumber || "N/A"}</p>
+              <p><strong>Institution Number:</strong> {driver.bankDetails.institutionNumber || "N/A"}</p>
+            </>
+          ) : (
+            <p>No Direct Deposit details available.</p>
+          )}
+        </div>
+
         {/* License Details */}
         <div style={styles.licenseSection}>
           <h3 style={styles.sectionTitle}>🚘 License Details</h3>
@@ -343,10 +358,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: "5px",
   },
   statusSection: {
+    backgroundColor: "#f9fafb",
+    padding: "20px",
+    borderRadius: "10px",
     marginBottom: "20px",
-    padding: "15px",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "5px",
+    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
   },
   timesheetsSection: {
     marginBottom: "20px",
@@ -361,10 +377,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: "5px",
   },
   sectionTitle: {
-    fontSize: "18px",
+    fontSize: "20px",
     fontWeight: "bold",
     marginBottom: "10px",
-    color: "#333",
+    color: "#2d3748",
   },
   seeAllButton: {
     marginTop: "10px",

@@ -1,7 +1,7 @@
 import fs from "fs";
 import { promisify } from "util";
 import multer from "multer";
-import path from "path";
+// import path from "path";
 import Dispatch from "../model/uploadModel.js"; // Import model
 import pdf2json from "pdf2json";
 

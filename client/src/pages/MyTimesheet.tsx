@@ -158,7 +158,7 @@ const MyTimesheet: React.FC = () => {
     <div>
       <Navbar />
       <div style={styles.container}>
-        <h1>My Timesheet</h1>
+        <h1>My Timesheets</h1>
         <p>View your timesheets here.</p>
 
         {loading && <p>Loading timesheets...</p>}
@@ -210,40 +210,49 @@ const MyTimesheet: React.FC = () => {
 const styles = {
   container: {
     textAlign: "center" as const,
+    padding: "40px 20px",
+    backgroundColor: "#f5f7fa",
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
   },
   tableWrapper: {
     display: "flex",
     justifyContent: "center",
-    marginTop: "20px",
+    marginTop: "30px",
   },
   table: {
     width: "100%",
+    maxWidth: "1200px",
     borderCollapse: "collapse" as const,
-    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-    borderRadius: "8px",
+    boxShadow: "0px 6px 16px rgba(0, 0, 0, 0.08)",
+    borderRadius: "10px",
     overflow: "hidden",
+    backgroundColor: "#ffffff",
   },
   headerRow: {
     backgroundColor: "#007bff",
-    color: "white",
   },
   headerCell: {
-    padding: "12px",
+    padding: "14px",
     fontSize: "16px",
     fontWeight: "bold",
-  },
-  row: {
-    backgroundColor: "#f9f9f9",
-  },
-  cell: {
-    padding: "12px",
-    borderBottom: "1px solid #ddd",
+    color: "white",
     textAlign: "center" as const,
   },
+  row: {
+    backgroundColor: "#ffffff",
+  },
+  cell: {
+    padding: "14px",
+    borderBottom: "1px solid #e5e7eb",
+    textAlign: "center" as const,
+    fontSize: "14px",
+    color: "#2d3748",
+  },
   error: {
-    color: "red",
+    color: "#e53e3e",
     fontSize: "1rem",
     fontWeight: "bold",
+    marginTop: "10px",
   },
   pending: {
     color: "orange",

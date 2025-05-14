@@ -10,6 +10,12 @@ const driverSchema = new mongoose.Schema(
         hst_gst: { type: String, required: false },
         business_name: { type: String, required: false },
         backhaulRate: { type: Number, required: false },
+        bankDetails: {
+            bankName: { type: String },
+            accountNumber: { type: String },
+            transitNumber: { type: String },
+            institutionNumber: { type: String }
+        },
         comboRate: { type: Number, required: false }, 
         extraSheetEWRate: { type: Number, required: false },
         regularBannerRate: { type: Number, required: false },

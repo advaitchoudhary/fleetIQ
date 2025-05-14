@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import Navbar from "./Navbar";
+import { API_BASE_URL } from "../utils/env";
 
 const ContactUs: React.FC = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    message: "",
-    image: null as File | null,
+    message: ""
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -20,11 +20,28 @@ const ContactUs: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Contact Form Submitted:", formData);
-    alert("Your message has been sent successfully!");
-    // Here you can integrate with an API or backend to store/send the message
+  
+    try {
+      const response = await fetch(`${API_BASE_URL}/contact`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formData)
+      });
+  
+      if (response.ok) {
+        alert("Your message has been sent successfully!");
+        setFormData({ name: "", email: "", message: "" });
+      } else {
+        alert("There was an error sending your message.");
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert("There was an error submitting the form.");
+    }
   };
 
   return (
@@ -80,15 +97,6 @@ const ContactUs: React.FC = () => {
             style={styles.textarea}
           />
 
-          {/* File Upload Input */}
-          <label style={styles.label}>Upload an Image (Optional):</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            style={styles.fileInput}
-          />
-
           {/* Submit Button */}
           <button type="submit" style={styles.submitButton}>Send Message</button>
         </form>
@@ -97,61 +105,71 @@ const ContactUs: React.FC = () => {
   );
 };
 
-// Define Styles
 const styles = {
   container: {
     display: "flex",
     flexDirection: "column" as const,
-    height: "100vh",
-    backgroundColor: "#f4f4f4",
+    minHeight: "100vh",
+    backgroundColor: "#f5f7fa",
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
   },
   mainContent: {
-    margin: "20px auto",
-    padding: "20px",
-    width: "50%",
-    backgroundColor: "#fff",
-    borderRadius: "10px",
-    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+    margin: "40px auto",
+    padding: "40px",
+    width: "90%",
+    maxWidth: "640px",
+    backgroundColor: "#ffffff",
+    borderRadius: "14px",
+    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.08)",
   },
   companyInfo: {
-    padding: "10px",
-    backgroundColor: "#eef3f8",
-    borderRadius: "5px",
-    marginBottom: "20px",
+    padding: "20px",
+    backgroundColor: "#e2ecf9",
+    borderRadius: "10px",
+    marginBottom: "30px",
+    border: "1px solid #c9daf4",
   },
   form: {
     display: "flex",
     flexDirection: "column" as const,
-    gap: "15px",
+    gap: "18px",
   },
   label: {
-    fontWeight: "bold",
+    fontWeight: 600,
     fontSize: "1rem",
+    marginBottom: "4px",
+    color: "#2d3748",
   },
   input: {
-    padding: "10px",
+    padding: "14px",
     fontSize: "1rem",
-    borderRadius: "5px",
-    border: "1px solid #ddd",
+    borderRadius: "8px",
+    border: "1px solid #cbd5e0",
+    transition: "border-color 0.3s ease",
+    outline: "none",
   },
   textarea: {
-    padding: "10px",
+    padding: "14px",
     fontSize: "1rem",
-    borderRadius: "5px",
-    border: "1px solid #ddd",
-    height: "100px",
+    borderRadius: "8px",
+    border: "1px solid #cbd5e0",
+    height: "140px",
+    transition: "border-color 0.3s ease",
+    outline: "none",
   },
   fileInput: {
-    padding: "5px",
+    padding: "6px",
   },
   submitButton: {
-    backgroundColor: "#007bff",
-    color: "white",
+    backgroundColor: "#2563eb",
+    color: "#fff",
     fontSize: "1rem",
-    padding: "10px",
-    borderRadius: "5px",
+    padding: "14px",
+    borderRadius: "8px",
     border: "none",
     cursor: "pointer",
+    transition: "background-color 0.3s ease",
+    fontWeight: 600,
   },
 };
 

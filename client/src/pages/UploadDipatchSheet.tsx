@@ -62,62 +62,12 @@ const UploadDispatchSheet: React.FC = () => {
     }, []);
 
     return (
-        <div>
-            <Navbar />
-            <div style={{ padding: "20px", maxWidth: "900px", margin: "auto" }}>
-                <h2>Upload Dispatch Sheet</h2>
-                <input type="file" onChange={handleFileChange} accept=".pdf" />
-                <button onClick={handleUpload} style={{ marginLeft: "10px" }}>
-                    {loading ? "Uploading..." : "Upload & Extract"}
-                </button>
-
-                <h3>Extracted Data</h3>
-                {dispatchData.length === 0 ? (
-                    <p>No extracted data available.</p>
-                ) : (
-                    <table border={1} width="100%">
-                        <thead>
-                            <tr>
-                                <th>Route</th>
-                                <th>Load ID</th>
-                                <th>Trailer Type</th>
-                                <th>Trip Date</th>
-                                <th>Store #</th>
-                                <th>Store Name</th>
-                                <th>ETA</th>
-                                <th>City</th>
-                                <th>Stop #</th>
-                                <th>Window In</th>
-                                <th>Window Out</th>
-                                <th>Commodity</th>
-                                <th>Total PCS</th>
-                                <th>Total Cube</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {dispatchData.map((row, index) => (
-                                <tr key={index}>
-                                    <td>{row.route}</td>
-                                    <td>{row.loadId}</td>
-                                    <td>{row.trailerType}</td>
-                                    <td>{row.tripDate}</td>
-                                    <td>{row.storeNumber}</td>
-                                    <td>{row.storeName}</td>
-                                    <td>{row.eta}</td>
-                                    <td>{row.city}</td>
-                                    <td>{row.stopNumber}</td>
-                                    <td>{row.windowIn}</td>
-                                    <td>{row.windowOut}</td>
-                                    <td>{row.commodity}</td>
-                                    <td>{row.totalPCS}</td>
-                                    <td>{row.totalCube}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                )}
-            </div>
+      <div>
+        <Navbar />
+        <div style={{ padding: "60px", textAlign: "center", fontSize: "24px", fontWeight: "bold", color: "#555" }}>
+          🚧 Coming Soon
         </div>
+      </div>
     );
 };
 

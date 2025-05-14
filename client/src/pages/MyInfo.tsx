@@ -9,6 +9,13 @@ const MyInfo: React.FC = () => {
   const [timesheets, setTimesheets] = useState<any[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<any>(null);
+  const [showBankForm, setShowBankForm] = useState(false);
+  const [bankDetails, setBankDetails] = useState({
+    bankName: '',
+    accountNumber: '',
+    transitNumber: '',
+    institutionNumber: ''
+  });
 
 
 
@@ -35,6 +42,9 @@ const MyInfo: React.FC = () => {
           const fullDriverRes = await axios.get(`${API_BASE_URL}/driver/${matchedDriver._id}`);
           setDriver(fullDriverRes.data);
           setFormData(fullDriverRes.data);
+          if (!fullDriverRes.data.bankDetails) {
+            setShowBankForm(true);
+          }
         }
       } catch (error) {
         console.error("Error fetching driver details:", error);
@@ -52,12 +62,12 @@ const MyInfo: React.FC = () => {
         <div style={styles.profileCard}>
           <FaUserCircle size={80} color="#333" />
           <h2 style={styles.profileTitle}>Welcome, {driver.name}</h2>
-          <button onClick={() => setIsEditing(!isEditing)} style={{ marginBottom: "20px" }}>
+          <button onClick={() => setIsEditing(!isEditing)} style={{ ...styles.button, marginBottom: "20px" }}>
             {isEditing ? "Cancel" : "Edit My Info"}
-          </button>
+            </button>
           <div style={styles.profileInfo}>
             {/* Email is not editable */}
-            <div><strong>Email:</strong> {driver.email}</div>
+            <p><strong>Email:</strong> {driver.email}</p>
             {isEditing ? (
               <label style={styles.formField}>
                 <span style={styles.labelText}>Contact:</span>
@@ -120,7 +130,7 @@ const MyInfo: React.FC = () => {
                 <input
                   type="number"
                   value={formData.backhaulRate}
-                  onChange={(e) => setFormData({ ...formData, backhaulRate: e.target.value })}
+                  readOnly
                   placeholder="Backhaul Rate"
                   style={styles.inputField}
                 />
@@ -134,7 +144,7 @@ const MyInfo: React.FC = () => {
                 <input
                   type="number"
                   value={formData.comboRate}
-                  onChange={(e) => setFormData({ ...formData, comboRate: e.target.value })}
+                  readOnly
                   placeholder="Combo Rate"
                   style={styles.inputField}
                 />
@@ -148,7 +158,7 @@ const MyInfo: React.FC = () => {
                 <input
                   type="number"
                   value={formData.extraSheetEWRate}
-                  onChange={(e) => setFormData({ ...formData, extraSheetEWRate: e.target.value })}
+                  readOnly
                   placeholder="Extra Sheet/E.W Rate"
                   style={styles.inputField}
                 />
@@ -162,7 +172,7 @@ const MyInfo: React.FC = () => {
                 <input
                   type="number"
                   value={formData.regularBannerRate}
-                  onChange={(e) => setFormData({ ...formData, regularBannerRate: e.target.value })}
+                  readOnly
                   placeholder="Regular/Banner Rate"
                   style={styles.inputField}
                 />
@@ -177,7 +187,7 @@ const MyInfo: React.FC = () => {
                   type="number"
                   value={formData.wholesaleRate}
                   onChange={(e) => setFormData({ ...formData, wholesaleRate: e.target.value })}
-                  placeholder="Wholesale Rate"
+                  readOnly
                   style={styles.inputField}
                 />
               </label>
@@ -200,17 +210,16 @@ const MyInfo: React.FC = () => {
             )}
             {isEditing ? (
               <label style={styles.formField}>
-                <span style={styles.labelText}>Licence Expiry:</span>
+                <span style={styles.labelText}>Licence Expiry Date:</span>
                 <input
-                  type="text"
-                  value={formData.licence_expiry_date}
-                  onChange={(e) => setFormData({ ...formData, licence_expiry_date: e.target.value })}
-                  placeholder="Licence Expiry"
-                  style={styles.inputField}
+                    type="date"
+                    value={formData?.licence_expiry_date?.substring(0, 10) || ''}
+                    onChange={(e) => setFormData({ ...formData, licence_expiry_date: e.target.value })}
+                    style={styles.inputField}
                 />
-              </label>
+                </label>
             ) : (
-              <p><strong>Licence Expiry:</strong> {driver.licence_expiry_date}</p>
+              <p><strong>Licence Expiry:</strong> {driver.licence_expiry_date?.substring(0, 10) || ''}</p>
             )}
             {isEditing ? (
               <label style={styles.formField}>
@@ -266,10 +275,72 @@ const MyInfo: React.FC = () => {
                   console.error("Error updating driver:", err);
                 }
               }}
-              style={{ marginTop: "20px" }}
+              style={{ ...styles.button, marginTop: "20px" }}
             >
               Submit
             </button>
+          )}
+          {showBankForm && (
+            <div style={styles.section}>
+              <h3 style={styles.sectionTitle}>Add Direct Deposit Details</h3>
+              <label style={styles.formField}>
+                <span style={styles.labelText}>Bank Name:</span>
+                <input
+                  type="text"
+                  value={bankDetails.bankName}
+                  onChange={(e) => setBankDetails({ ...bankDetails, bankName: e.target.value })}
+                  placeholder="Bank Name"
+                  style={styles.inputField}
+                />
+              </label>
+              <label style={styles.formField}>
+                <span style={styles.labelText}>Account Number:</span>
+                <input
+                  type="text"
+                  value={bankDetails.accountNumber}
+                  onChange={(e) => setBankDetails({ ...bankDetails, accountNumber: e.target.value })}
+                  placeholder="Account Number"
+                  style={styles.inputField}
+                />
+              </label>
+              <label style={styles.formField}>
+                <span style={styles.labelText}>Transit Number:</span>
+                <input
+                  type="text"
+                  value={bankDetails.transitNumber}
+                  onChange={(e) => setBankDetails({ ...bankDetails, transitNumber: e.target.value })}
+                  placeholder="Transit Number"
+                  style={styles.inputField}
+                />
+              </label>
+              <label style={styles.formField}>
+                <span style={styles.labelText}>Institution Number:</span>
+                <input
+                  type="text"
+                  value={bankDetails.institutionNumber}
+                  onChange={(e) => setBankDetails({ ...bankDetails, institutionNumber: e.target.value })}
+                  placeholder="Institution Number"
+                  style={styles.inputField}
+                />
+              </label>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await axios.put(`${API_BASE_URL}/update/driver/${driver._id}`, {
+                      ...driver,
+                      bankDetails
+                    });
+                    setDriver(res.data);
+                    setShowBankForm(false);
+                  } catch (err) {
+                    console.error("Error saving bank details:", err);
+                  }
+                }}
+                style={{ ...styles.button, marginTop: "20px" }}
+              >
+                Save Bank Details
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -279,76 +350,95 @@ const MyInfo: React.FC = () => {
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    padding: "30px 20px",
-    maxWidth: "900px",
+    padding: "50px 20px",
+    maxWidth: "1000px",
     margin: "0 auto",
-    fontFamily: "'Segoe UI', sans-serif",
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
   },
   loading: {
     textAlign: "center",
-    padding: "50px",
-    fontSize: "18px",
+    padding: "100px 20px",
+    fontSize: "22px",
+    fontWeight: "500",
+    color: "#4a5568",
+  },
+  button: {
+    backgroundColor: "#2563eb",
+    color: "#ffffff",
+    padding: "12px 24px",
+    borderRadius: "8px",
+    border: "none",
+    fontSize: "16px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "background-color 0.3s ease",
   },
   profileCard: {
-    backgroundColor: "#fefefe",
-    padding: "30px",
+    backgroundColor: "#ffffff",
+    padding: "40px",
     borderRadius: "16px",
-    boxShadow: "0 6px 18px rgba(0, 0, 0, 0.1)",
+    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.05)",
     textAlign: "center",
-    marginBottom: "50px",
-    border: "1px solid #e0e0e0",
+    marginBottom: "40px",
+    border: "1px solid #e2e8f0",
   },
   profileTitle: {
-    margin: "15px 0",
-    fontSize: "28px",
-    color: "#2c3e50",
+    margin: "20px 0",
+    fontSize: "32px",
+    color: "#2d3748",
     fontWeight: "bold",
   },
   profileInfo: {
-    marginTop: "20px",
+    marginTop: "30px",
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-    gap: "15px 25px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+    gap: "24px 32px",
     fontSize: "16px",
-    color: "#444",
+    color: "#2a2a2a",
     textAlign: "left",
-    padding: "0 10px",
-    rowGap: "10px",
+    padding: "0 12px",
   },
   formField: {
     display: "flex",
     flexDirection: "column",
-    gap: "5px",
+    gap: "6px",
   },
   inputField: {
-    padding: "8px",
-    border: "1px solid #ccc",
-    borderRadius: "6px",
+    padding: "12px 14px",
+    border: "1px solid #cbd5e0",
+    borderRadius: "8px",
     fontSize: "15px",
+    transition: "border-color 0.2s ease",
+    outline: "none",
   },
   labelText: {
-    fontWeight: "bold",
-    marginBottom: "3px",
+    fontWeight: 600,
+    marginBottom: "4px",
+    fontSize: "14px",
+    color: "#374151",
   },
   section: {
-    marginTop: "20px",
+    marginTop: "40px",
+    textAlign: "left",
+    padding: "0 12px",
   },
   sectionTitle: {
-    fontSize: "20px",
-    marginBottom: "15px",
-    borderBottom: "2px solid #444",
-    paddingBottom: "5px",
-    color: "#222",
+    fontSize: "24px",
+    marginBottom: "20px",
+    borderBottom: "2px solid #4a5568",
+    paddingBottom: "8px",
+    color: "#2d3748",
+    fontWeight: "bold",
   },
   timesheetList: {
     listStyle: "none",
     padding: 0,
   },
   timesheetItem: {
-    backgroundColor: "#f8f8f8",
-    marginBottom: "10px",
-    padding: "12px 16px",
-    borderRadius: "8px",
+    backgroundColor: "#f1f5f9",
+    marginBottom: "16px",
+    padding: "16px 20px",
+    borderRadius: "10px",
     boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
     display: "flex",
     flexDirection: "column",
@@ -357,8 +447,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: "15px",
   },
   timesheetLabel: {
-    fontWeight: "bold",
-    marginRight: "5px",
+    fontWeight: 600,
+    marginRight: "6px",
   },
 };
 

@@ -7,6 +7,8 @@ import authRoutes from "./routes/authRoute.js";
 import timesheetRoutes from "./routes/timesheetRoute.js";
 import uploadRoutes from "./routes/uploadRoute.js";
 import driverRoute from "./routes/driverRoute.js"
+import contactRoutes from "./routes/contactRoute.js";
+
 
 const app = express();
 
@@ -37,3 +39,4 @@ app.use("/api/auth", authRoutes);
 app.use("/api", driverRoute);
 app.use("/api", timesheetRoutes);
 app.use("/api", uploadRoutes);
+app.use("/api", contactRoutes);

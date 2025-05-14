@@ -4,6 +4,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Drivers";
 import Profile from "./pages/Profile";
+import Enquiries from "./pages/Enquiries";
 import ContactUs from "./pages/ContactUs";
 import Invoice from "./pages/Invoice";
 import Applications from "./pages/AllTimesheets";
@@ -81,6 +82,15 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute requiredRole="admin">
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/enquiries"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Enquiries />
             </ProtectedRoute>
           }
         />

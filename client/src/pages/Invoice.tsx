@@ -337,8 +337,10 @@ const generatePDF = () => {
   };
 
   return (
-    <div style={styles.container}>
+    <div>
       <Navbar />
+
+    <div style={styles.container}>
       <h1 style={styles.title}>Invoice</h1>
 
       {/* Invoice Form */}
@@ -396,7 +398,7 @@ const generatePDF = () => {
               })}
             </select>
             
-            {selectedDriver && (
+            {selectedDriver !== "__placeholder__" && (
             <div style={styles.detailsContainer}>
               {Object.keys(fromDetails).map((key) => (
                 <input
@@ -410,7 +412,7 @@ const generatePDF = () => {
                 />
               ))}
             </div>
-          )}
+            )}
           </div>
           <div style={styles.box}>
             <h3>To:</h3>
@@ -495,7 +497,7 @@ const generatePDF = () => {
           >
             Generate PDF
           </button>
-          <button
+          {/* <button
             onClick={generateAndSendPDF}
             style={{
               ...styles.button,
@@ -504,93 +506,154 @@ const generatePDF = () => {
             }}
           >
             Send Invoice as Email
-          </button>
+          </button> */}
         </div>
       </div>
+    </div>
     </div>
   );
 };
 
-// **Enhanced Styles**
 const styles = {
-  container: { backgroundColor: "#f8f9fa", paddingBottom: "50px" },
-  invoiceContainer: { backgroundColor: "#fff", padding: "40px", maxWidth: "900px", margin: "20px auto", borderRadius: "10px", boxShadow: "0 4px 10px rgba(0,0,0,0.1)" },
-  input: { display: "block", margin: "10px 0", padding: "10px", width: "80%", border: "1px solid #ccc", borderRadius: "5px" },
-  table: { width: "100%", marginTop: "20px", borderCollapse: "collapse" as const },
-  th: { backgroundColor: "#007bff", color: "#fff", padding: "12px", textAlign: "left" as const },
-  td: { border: "1px solid #ddd", padding: "12px", textAlign: "left" as const },
+  container: {
+    backgroundColor: "#f2f4f8",
+    padding: "30px 20px",
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+  },
+  invoiceContainer: {
+    backgroundColor: "#ffffff",
+    padding: "40px",
+    maxWidth: "960px",
+    margin: "20px auto",
+    borderRadius: "12px",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+  },
+  input: {
+    display: "block",
+    margin: "10px 0",
+    padding: "10px",
+    width: "100%",
+    maxWidth: "500px",
+    border: "1px solid #ccc",
+    borderRadius: "6px",
+  },
+  table: {
+    width: "100%",
+    marginTop: "20px",
+    borderCollapse: "collapse" as const,
+  },
+  th: {
+    backgroundColor: "#007bff",
+    color: "#ffffff",
+    padding: "12px",
+    textAlign: "left" as const,
+    fontWeight: 600,
+  },
+  td: {
+    border: "1px solid #dee2e6",
+    padding: "12px",
+    textAlign: "left" as const,
+    backgroundColor: "#ffffff",
+  },
   totalsContainer: {
     marginTop: "30px",
-    marginBottom: "30px",
     padding: "20px",
-    backgroundColor: "#ffffff", // More standard color code
-    borderRadius: "12px", // Slightly larger radius for a softer look
-    border: "1px solid #cccccc", // Lighter border for less visual weight
-    width: "100%", // Full width for better responsiveness
-    maxWidth: "600px", // Maximum width to maintain readability
+    backgroundColor: "#fefefe",
+    borderRadius: "12px",
+    border: "1px solid #dee2e6",
+    width: "100%",
+    maxWidth: "600px",
     textAlign: "right" as const,
-    boxShadow: "0 2px 15px rgba(0,0,0,0.1)", // Softer shadow for subtle depth
-    marginLeft: "auto", // Center align the container
-    marginRight: "auto"
+    marginLeft: "auto",
+    marginRight: "auto",
   },
   subtotal: {
     fontSize: "18px",
     fontWeight: "bold",
-    color: "#333333", // Standard color for better cross-browser consistency
-    marginBottom: "10px", // Slightly increased spacing
+    color: "#343a40",
+    marginBottom: "10px",
     display: "flex",
     justifyContent: "space-between",
-    padding: "0 10px" // Padding for better alignment of the content within
+    padding: "0 10px",
   },
   hst: {
     fontSize: "18px",
     fontWeight: "bold",
-    color: "#0056b3", // Slightly darker blue for better readability
+    color: "#1d4ed8",
     marginBottom: "10px",
     display: "flex",
     justifyContent: "space-between",
-    padding: "0 10px"
+    padding: "0 10px",
   },
   total: {
-    fontSize: "20px", // Increased size for emphasis
+    fontSize: "20px",
     fontWeight: "bold",
-    color: "#c9302c", // A more consistent branding color that's easier on the eyes
+    color: "#c53030",
     marginTop: "10px",
     paddingTop: "12px",
-    borderTop: "1px solid #eeeeee", // Lighter border for a subtler separation
+    borderTop: "1px solid #dee2e6",
     display: "flex",
     justifyContent: "space-between",
-    padding: "0 10px"
+    padding: "0 10px",
   },
   button: {
     backgroundColor: "#007bff",
-    color: "#fff",
+    color: "#ffffff",
     fontSize: "16px",
     padding: "10px 20px",
     border: "none",
-    borderRadius: "5px",
+    borderRadius: "6px",
     cursor: "pointer",
-    display: "block", // Ensure it behaves as a block element
-    marginLeft: "auto", // Moves it to the right inside a flex container
-    marginRight: "4px", // Ensures no margin on the right
+    marginLeft: "8px",
+    transition: "background-color 0.3s ease",
   },
-  title: { fontSize: "28px", fontWeight: "bold", textAlign: "center" as const, marginBottom: "20px" },
-  flexRow: { display: "flex", gap: "20px" },
-  flexColumn: { flex: 1 },
-  box: { backgroundColor: "#f8f9fa", padding: "15px", borderRadius: "5px", marginBottom: "20px" },
-  detailsContainer: { marginTop: "10px", borderTop: "1px solid #ddd", paddingTop: "10px" }, // Added spacing
-  dropdown: { padding: "10px", fontSize: "16px", margin: "10px 0", borderRadius: "5px", border: "1px solid #ccc" },
-  timesheetsSection: {
-    marginBottom: "20px",
+  title: {
+    fontSize: "30px",
+    fontWeight: "bold",
+    textAlign: "center" as const,
+    marginBottom: "30px",
+    color: "#2d3748",
+  },
+  flexRow: {
+    display: "flex",
+    flexWrap: "wrap" as const,
+    gap: "20px",
+  },
+  flexColumn: {
+    flex: 1,
+    minWidth: "280px",
+  },
+  box: {
+    backgroundColor: "#f1f5f9",
     padding: "15px",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "5px",
+    borderRadius: "8px",
+    marginBottom: "20px",
+  },
+  detailsContainer: {
+    marginTop: "10px",
+    borderTop: "1px solid #ccc",
+    paddingTop: "10px",
+  },
+  dropdown: {
+    padding: "10px",
+    fontSize: "16px",
+    margin: "10px 0",
+    borderRadius: "6px",
+    border: "1px solid #ccc",
+    width: "100%",
+    maxWidth: "500px",
+  },
+  timesheetsSection: {
+    marginBottom: "30px",
+    padding: "15px",
+    backgroundColor: "#f8fafc",
+    borderRadius: "8px",
   },
   sectionTitle: {
-    fontSize: "18px",
+    fontSize: "20px",
     fontWeight: "bold",
-    marginBottom: "10px",
-    color: "#333",
+    marginBottom: "15px",
+    color: "#1a202c",
   },
 };
 

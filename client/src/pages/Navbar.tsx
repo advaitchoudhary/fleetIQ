@@ -95,14 +95,17 @@ const Navbar: React.FC = () => {
                 </Link>
               </li>
               <li style={styles.navItem}>
+                <Link to="/enquiries" style={styles.navLink}>
+                  <FaPhoneAlt size={20} /> Enquiries
+                </Link>
+              </li>
+              <li style={styles.navItem}>
                 <Link to="/uploadDispatchDetails" style={styles.navLink}>
                     <MdDashboard size={20} /> Upload Dispatch Details
                 </Link>
               </li>
             </>
           )}
-
-         
         </ul>
       </nav>
     </>
