@@ -9,9 +9,7 @@ import {
 } from "@tanstack/react-table";
 import { FaEdit, FaTrashAlt, FaClipboard } from "react-icons/fa";
 import Navbar from "./Navbar";
-
-const API_BASE_URL = "http://localhost:8000/api";
-
+import { API_BASE_URL } from "../utils/env";
 
 const Drivers: React.FC = () => {
   const navigate = useNavigate();
