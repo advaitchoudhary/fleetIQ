@@ -4,7 +4,7 @@ const { create, getAllDrivers, getDriverById, updateDriverById, deleteDriverById
 
 const route = express.Router();
 
-route.post("/driver", create)
+route.post("/", create)
 route.get("/drivers", getAllDrivers)
 route.get("/driver/:id", getDriverById)
 route.put("/update/driver/:id", updateDriverById)
