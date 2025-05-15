@@ -88,7 +88,7 @@ const Drivers: React.FC = () => {
     const createDriver = async (newDriver: any) => {
     try {
       // Step 1: Create the driver in the drivers table
-      const response = await axios.post(`${API_BASE_URL}/driver`, newDriver);
+      const response = await axios.post(`${API_BASE_URL}/drivers`, newDriver);
     
       if (response.status === 201 || response.status === 200) {
           const { name, email, password } = newDriver;
