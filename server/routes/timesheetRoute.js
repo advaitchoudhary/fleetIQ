@@ -12,8 +12,8 @@ const upload = require("../middleware/upload.js");
 
 const router = express.Router();
 
-router.post("/timesheet", upload.array("attachments", 4), createTimesheet);
-router.get("/timesheets", getAllTimesheets);
+router.post("/", upload.array("attachments", 4), createTimesheet);
+router.get("/", getAllTimesheets);
 router.get("/timesheet/:id", getTimesheetById);
 router.put("/update/timesheet/:id", updateTimesheetById);
 router.put("/timesheet/:id/status", updateTimesheetStatus);
