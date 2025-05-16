@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8000/api";
+import { API_BASE_URL } from "../utils/env"; //
+
 
 const ChangePassword: React.FC = () => {
   const navigate = useNavigate();
