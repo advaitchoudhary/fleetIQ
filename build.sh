@@ -1,4 +1,5 @@
   #!/bin/bash
+pkill -f "npm start"
 
 echo "🔄 Resetting and building FRONTEND..."
 cd /var/www/fleet-management/client || exit
@@ -15,5 +16,5 @@ cd /var/www/fleet-management/server || exit
 rm -rf node_modules package-lock.json
 npm install
 npm run build
-pm2 restat all 
+npm start &
 echo "✅ Backend build complete."

@@ -9,7 +9,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const dotenv_1 = __importDefault(require("dotenv"));
 // @ts-ignore
-const authRoute_1 = __importDefault(require("../routes/authRoute"));
+const authRoute_1 = __importDefault(require("../routes/authRoute.js"));
 // @ts-ignore
 const timesheetRoute_1 = __importDefault(require("../routes/timesheetRoute"));
 // @ts-ignore
