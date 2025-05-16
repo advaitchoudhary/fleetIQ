@@ -4,7 +4,7 @@ import mongoose from "mongoose"
 import bodyParser from "body-parser"
 import dotenv from "dotenv"
 // @ts-ignore
-import authRoutes from "../routes/authRoute";
+import authRoutes from "../routes/authRoute.js";
 // @ts-ignore
 import timesheetRoutes from "../routes/timesheetRoute";
 // @ts-ignore
