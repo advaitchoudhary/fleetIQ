@@ -14,10 +14,10 @@ const router = express.Router();
 
 router.post("/", upload.array("attachments", 4), createTimesheet);
 router.get("/", getAllTimesheets);
-router.get("/timesheet/:id", getTimesheetById);
-router.put("/update/timesheet/:id", updateTimesheetById);
-router.put("/timesheet/:id/status", updateTimesheetStatus);
-router.delete("/delete/timesheet/:id", deleteTimesheetById);
-router.post('/send-invoice-email', sendInvoiceEmail);
+router.get("/:id", getTimesheetById);
+router.put("/:id", updateTimesheetById);
+router.put("/:id/status", updateTimesheetStatus);
+router.delete("/:id", deleteTimesheetById);
+router.post("/send-invoice-email", sendInvoiceEmail);
 
 module.exports = router;
