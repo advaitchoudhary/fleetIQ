@@ -27,3 +27,5 @@ npm install --save-dev typescript
 npm run build
 
 pm2 restart fleet-api
+
+cd /var/www/fleet-management
