@@ -1,20 +1,29 @@
-  #!/bin/bash
-pkill -f "npm start"
+#!/bin/bash
+cd /var/www/fleet-management
 
-echo "🔄 Resetting and building FRONTEND..."
-cd /var/www/fleet-management/client || exit
-rm -rf node_modules package-lock.json
+git reset --hard
+
+git pull
+
+cd /var/www/fleet-management/client
+
 npm install
+
 npm run build
+
+sudo rm -rf /var/www/html/*
+
 sudo cp -r dist/* /var/www/html/
+
+sudo nginx -t
+
 sudo systemctl reload nginx
 
-echo "✅ Frontend build complete."
 
-echo "🔄 Resetting and building BACKEND..."
-cd /var/www/fleet-management/server || exit
-rm -rf node_modules package-lock.json
-npm install
+cd /var/www/fleet-management/server
+
+npm install --save-dev typescript
+
 npm run build
-npm start &
-echo "✅ Backend build complete."
+
+pm2 restart fleet-api
