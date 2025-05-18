@@ -13,10 +13,10 @@ import uploadRoutes from "../routes/uploadRoute";
 import driverRoute from "../routes/driverRoute";
 // @ts-ignore
 import contactRoutes from "../routes/contactRoute";
+const path = require('path');
 
 
 const app = express();
-const path = require('path');
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cors({
