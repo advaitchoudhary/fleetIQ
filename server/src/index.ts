@@ -13,12 +13,11 @@ import uploadRoutes from "../routes/uploadRoute";
 import driverRoute from "../routes/driverRoute";
 // @ts-ignore
 import contactRoutes from "../routes/contactRoute";
-const path = require('path');
 
 
 const app = express();
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use("/uploads", express.static("uploads"));
 app.use(cors({
   origin: ['http://192.168.4.202', 'http://localhost:5173'],
     methods: ["GET", "POST", "PUT", "DELETE"],
@@ -31,7 +30,7 @@ dotenv.config();
 const PORT = process.env.PORT || 7000;
 const MONGOURL = process.env.MONGO_URL as string;
 
-mongoose
+mongoose    
         .connect(MONGOURL)
         .then(() => {
             console.log("DB connected successfully");
