@@ -112,7 +112,9 @@ const Drivers: React.FC = () => {
     const updateDriver = async (updatedDriver: any) => {
       console.log(updatedDriver);
     try {
-      await axios.put(`${API_BASE_URL}/update/driver/${updatedDriver._id}`, updatedDriver);
+      // await axios.put(`${API_BASE_URL}/update/driver/${updatedDriver._id}`, updatedDriver);
+      await axios.put(`${API_BASE_URL}/drivers/${updatedDriver._id}`, updatedDriver);
+
         fetchDrivers(); // Refresh list
       setIsEditModalOpen(false);
     } catch (error) {
