@@ -268,7 +268,9 @@ const MyInfo: React.FC = () => {
             <button
               onClick={async () => {
                 try {
-                  const res = await axios.put(`${API_BASE_URL}/update/driver/${driver._id}`, formData);
+                  // const res = await axios.put(`${API_BASE_URL}/update/driver/${driver._id}`, formData);
+                  const res = await axios.put(`${API_BASE_URL}/drivers/${driver._id}`, formData);
+
                   setDriver(res.data);
                   setIsEditing(false);
                 } catch (err) {
@@ -326,7 +328,9 @@ const MyInfo: React.FC = () => {
               <button
                 onClick={async () => {
                   try {
-                    const res = await axios.put(`${API_BASE_URL}/update/driver/${driver._id}`, {
+                    // const res = await axios.put(`${API_BASE_URL}/update/driver/${driver._id}`, {
+                      const res = await axios.put(`${API_BASE_URL}/drivers/${driver._id}`, {
+
                       ...driver,
                       bankDetails
                     });
