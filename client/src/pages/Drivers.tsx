@@ -123,7 +123,9 @@ const Drivers: React.FC = () => {
 
   const deleteDriver = async () => {
     try {
-      await axios.delete(`${API_BASE_URL}/delete/driver/${selectedDriver._id}`);
+      // await axios.delete(`${API_BASE_URL}/delete/drivers/${selectedDriver._id}`);
+      await axios.delete(`${API_BASE_URL}/drivers/${selectedDriver._id}`);
+
         fetchDrivers(); // Refresh list
       setIsDeleteModalOpen(false);
     } catch (error) {
