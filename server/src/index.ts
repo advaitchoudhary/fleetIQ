@@ -16,8 +16,9 @@ import contactRoutes from "../routes/contactRoute";
 
 
 const app = express();
+const path = require('path');
 
-app.use("/uploads", express.static("uploads"));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cors({
   origin: ['http://192.168.4.202', 'http://localhost:5173'],
     methods: ["GET", "POST", "PUT", "DELETE"],
