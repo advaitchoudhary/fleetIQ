@@ -39,7 +39,7 @@ const MyInfo: React.FC = () => {
           (drv: any) => drv.email === parsedUser.email
         );
         if (matchedDriver) {
-          const fullDriverRes = await axios.get(`${API_BASE_URL}/driver/${matchedDriver._id}`);
+          const fullDriverRes = await axios.get(`${API_BASE_URL}/drivers/${matchedDriver._id}`);
           setDriver(fullDriverRes.data);
           setFormData(fullDriverRes.data);
           if (!fullDriverRes.data.bankDetails) {
