@@ -42,6 +42,6 @@ mongoose
 
 app.use("/api/auth", authRoutes);
 app.use("/api/drivers", driverRoute);
-app.use("/api/timesheets", timesheetRoutes);
+app.use("/timesheets", timesheetRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/contacts", contactRoutes);
