@@ -513,24 +513,12 @@ const Drivers: React.FC = () => {
                   }
                   createDriver(selectedDriver);
                 }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = styles.addButtonHover.backgroundColor || "#c82333"; // Default fallback
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.backgroundColor = styles.addButton.backgroundColor || "#dc3545"; // Default fallback
-                }}
               >
                 Add Driver
               </button>
               <button
                 style={styles.closeButton}
                 onClick={() => setIsAddModalOpen(false)}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = styles.closeButtonHover.backgroundColor || "#c82333"; // Default fallback
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.backgroundColor = styles.closeButton.backgroundColor || "#dc3545"; // Default fallback
-                }}
               >
                 Cancel
               </button>
@@ -747,12 +735,6 @@ const Drivers: React.FC = () => {
             <div style={styles.buttonGroup}>
               <button
                 style={styles.deleteButton}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = styles.deleteButtonHover.backgroundColor || "#c82333"; // Default fallback
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.backgroundColor = styles.deleteButton.backgroundColor || "#dc3545"; // Default fallback
-                }}
                 onClick={deleteDriver}
               >
                 Yes, Delete
@@ -760,12 +742,6 @@ const Drivers: React.FC = () => {
               
               <button
                 style={styles.closeButton}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = styles.closeButtonHover.backgroundColor || "#c82333"; // Default fallback
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.backgroundColor = styles.closeButton.backgroundColor || "#dc3545"; // Default fallback
-                }}
                 onClick={() => setIsDeleteModalOpen(false)}
               >
                 Cancel
