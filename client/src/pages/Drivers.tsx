@@ -183,8 +183,33 @@ const Drivers: React.FC = () => {
   };
 
   const handleCopyPassword = (password: string): void => {
-    navigator.clipboard.writeText(password);
-    alert("Password copied to clipboard!");
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(password)
+        .then(() => alert("Password copied to clipboard!"))
+        .catch((err) => {
+          console.error("Clipboard write failed:", err);
+          fallbackCopy(password);
+        });
+    } else {
+      fallbackCopy(password);
+    }
+  };
+  
+  const fallbackCopy = (text: string) => {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";  // Avoid scrolling to bottom
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+      const successful = document.execCommand("copy");
+      alert(successful ? "Password copied to clipboard!" : "Failed to copy password.");
+    } catch (err) {
+      console.error("Fallback copy failed:", err);
+      alert("Copy not supported.");
+    }
+    document.body.removeChild(textarea);
   };
 
   const handleDelete = (driver: any) => {
