@@ -899,6 +899,7 @@ const styles: { [key: string]: CSSProperties } = {
   },
   deleteButton: {
     backgroundColor: "#dc3545",
+    marginTop: "10px",
     color: "#fff",
     padding: "10px 16px",
     border: "none",
