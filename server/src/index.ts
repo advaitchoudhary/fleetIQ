@@ -19,7 +19,7 @@ const app = express();
 
 app.use("/uploads", express.static("uploads"));
 app.use(cors({
-  origin: ['http://192.168.4.202', 'http://localhost:5173'],
+  origin: ['http://3.145.147.181', 'http://localhost:5173'],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"], // Allow Authorization header
     credentials: true // Allow cookies and authentication headers

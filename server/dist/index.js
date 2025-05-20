@@ -21,7 +21,7 @@ const contactRoute_1 = __importDefault(require("../routes/contactRoute"));
 const app = (0, express_1.default)();
 app.use("/uploads", express_1.default.static("uploads"));
 app.use((0, cors_1.default)({
-   origin: ['http://192.168.4.202', 'http://localhost:5173'],
+   origin: ['http://3.145.147.181', 'http://localhost:5173'],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"], // Allow Authorization header
     credentials: true // Allow cookies and authentication headers
