@@ -158,7 +158,7 @@ const AllTimesheets: React.FC = () => {
   const handleUpdate = async () => {
     try {
       await axios.put(
-        `${API_BASE_URL}/update/timesheet/${selectedTimesheet._id}`,
+        `${API_BASE_URL}/timesheet/${selectedTimesheet._id}`,
         selectedTimesheet
       );
       setData((prev) =>
