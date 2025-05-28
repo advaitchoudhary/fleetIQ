@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -50,8 +50,10 @@ const Drivers: React.FC = () => {
 
   const [editedDriver, setEditedDriver] = useState<any>(null);
   const [, setIsUpdateDisabled] = useState(true);
-  const [, setLoading] = useState(false);
-  const [, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [searchText, setSearchText] = useState<string>("");
+  const [sortOrder, setSortOrder] = useState<"highest" | "lowest" | "none">("none");
   
   // Fetch users on component mount
   useEffect(() => {
@@ -59,6 +61,7 @@ const Drivers: React.FC = () => {
   }, []);
     const fetchDrivers = async () => {
       try {
+        setLoading(true);
         const response = await axios.get(`${API_BASE_URL}/drivers`);
         const timesheetRes = await axios.get(`${API_BASE_URL}/timesheets`);
         const allTimesheets = timesheetRes.data;
@@ -71,7 +74,6 @@ const Drivers: React.FC = () => {
             const hours = parseFloat(ts.hours || "0");
             return sum + (isNaN(hours) ? 0 : hours);
           }, 0);
-
           return { ...driver, hoursThisWeek: totalHours.toFixed(2) };
         });
 
@@ -168,8 +170,27 @@ const Drivers: React.FC = () => {
       },
     ];
 
+  // Filtering and sorting logic for search and hours sort
+  const filteredData = useMemo(() => {
+    let result = data.filter((driver) =>
+      driver.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      driver.email.toLowerCase().includes(searchText.toLowerCase()) ||
+      driver.contact.toLowerCase().includes(searchText.toLowerCase())
+    );
+
+    if (sortOrder !== "none") {
+      result = [...result].sort((a, b) => {
+        const hoursA = parseFloat(a.hoursThisWeek || "0");
+        const hoursB = parseFloat(b.hoursThisWeek || "0");
+        return sortOrder === "highest" ? hoursB - hoursA : hoursA - hoursB;
+      });
+    }
+
+    return result;
+  }, [data, searchText, sortOrder]);
+
   const table = useReactTable({
-    data,
+    data: filteredData,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -237,44 +258,76 @@ const Drivers: React.FC = () => {
   return (
     <div>
       <Navbar />
+      <div style={styles.container}>
+        {/* Modern Header/Filter Bar */}
+        <div style={styles.headerWrapper}>
+          <div style={styles.filterBar}>
+            <div style={styles.searchWrapper}>
+              <span style={styles.searchIcon}>🔍</span>
+              <input
+                type="text"
+                placeholder="Search drivers..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                style={styles.searchInput}
+              />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as "highest" | "lowest" | "none")}
+                style={styles.filterDropdown ?? styles.searchInput}
+              >
+                <option value="none">Sort by Hours</option>
+                <option value="highest">Highest Hours</option>
+                <option value="lowest">Lowest Hours</option>
+              </select>
+              <button style={styles.addDriverButton} onClick={() => setIsAddModalOpen(true)}>
+                + Add Driver
+              </button>
+            </div>
+          </div>
+        </div>
 
-    <div style={styles.container}>
-      <div style={styles.headerWrapper}>
-        <h1 style={styles.title}>All Drivers</h1>
-        <p>Manage and view all drivers information here.</p>
-
-        <button style={styles.addButton} onClick={() => setIsAddModalOpen(true)}>
-          + Add Driver
-        </button>
-      </div>
-
-
-      <div style={styles.tableWrapper}>
-        <table style={styles.table}>
-        <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} style={styles.headerRow}>
-              {headerGroup.headers.map((header) => (
-                  <th key={header.id} style={styles.th}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </th>
+        {/* Modern Table Layout */}
+        <div style={styles.tableWrapper}>
+          <table style={styles.table}>
+            <thead>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <th key={header.id} style={styles.th}>
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                    </th>
+                  ))}
+                </tr>
               ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} style={styles.row}>
-              {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} style={styles.td} onClick={() => navigate(`/profile`, { state: { driver: row.original } })}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length} style={{ textAlign: "center", padding: "20px", color: "#888" }}>
+                    No matching drivers found.
                   </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+                </tr>
+              ) : (
+                table.getRowModel().rows.map((row) => (
+                  <tr key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <td
+                        key={cell.id}
+                        style={styles.td}
+                        onClick={() => navigate(`/profile`, { state: { driver: row.original } })}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
       {/* Add Driver Modal */}
       {isAddModalOpen && (
@@ -766,8 +819,8 @@ const styles: { [key: string]: CSSProperties } = {
     padding: "20px",
   },
   headerWrapper: {
-    textAlign: "center",
     marginBottom: "20px",
+    // Remove textAlign: "center" for new layout
   },
   title: {
     fontSize: "28px",
@@ -776,27 +829,42 @@ const styles: { [key: string]: CSSProperties } = {
     marginBottom: "10px",
   },
   tableWrapper: {
-    overflowX: "auto",
+    display: "flex",
+    justifyContent: "center",
+    marginTop: "20px",
     borderRadius: "8px",
     boxShadow: "0 2px 12px rgba(0, 0, 0, 0.05)",
     backgroundColor: "#fff",
     padding: "10px",
+    overflowX: "auto",
   },
   table: {
     width: "100%",
+    maxWidth: "1400px",
     borderCollapse: "collapse",
+    boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
+    borderRadius: "8px",
+    overflow: "hidden",
+    tableLayout: "auto",
   },
   th: {
-    backgroundColor: "#007bff",
-    color: "#fff",
-    padding: "12px",
-    fontWeight: "600",
+    borderBottom: "1px solid #e2e8f0",
+    padding: "14px 16px",
+    fontSize: "13px",
+    fontWeight: 600,
     textAlign: "left",
+    backgroundColor: "#f3f4f6",
+    color: "#1f2937",
+    wordBreak: "break-word",
+    whiteSpace: "wrap",
   },
   td: {
-    borderBottom: "1px solid #eaeaea",
-    padding: "12px",
+    borderBottom: "1px solid #e2e8f0",
+    padding: "8px 8px",
     fontSize: "14px",
+    textAlign: "left",
+    backgroundColor: "#ffffff",
+    wordBreak: "break-word",
   },
   row: {
     backgroundColor: "#fff",
@@ -819,13 +887,24 @@ const styles: { [key: string]: CSSProperties } = {
   },
   addButton: {
     marginTop: "10px",
-    backgroundColor: "#28a745",
+    backgroundColor: "#4F46E5",
     color: "#fff",
     border: "none",
     padding: "10px 20px",
     fontSize: "16px",
-    borderRadius: "5px",
+    borderRadius: "8px",
     cursor: "pointer",
+    fontWeight: 600,
+  },
+  addDriverButton: {
+    backgroundColor: "#4F46E5",
+    color: "#fff",
+    border: "none",
+    padding: "10px 20px",
+    fontSize: "16px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: 600,
   },
   modalOverlay: {
     position: "fixed",
@@ -880,17 +959,19 @@ const styles: { [key: string]: CSSProperties } = {
     marginTop: "20px",
   },
   closeButton: {
-    marginTop: "10px",
     backgroundColor: "#6c757d",
     color: "#fff",
-    padding: "10px 16px",
     border: "none",
-    borderRadius: "4px",
     cursor: "pointer",
+    marginTop: "10px",
+    padding: "10px 20px",
+    fontSize: "16px",
+    borderRadius: "8px",
+    fontWeight: 600,
   },
   editButton: {
     marginTop: "10px",
-    backgroundColor: "#007bff",
+    backgroundColor: "#4F46E5",
     color: "#fff",
     padding: "10px 16px",
     border: "none",
@@ -927,7 +1008,41 @@ const styles: { [key: string]: CSSProperties } = {
     border: "none",
     borderRadius: "4px",
     cursor: "pointer",
-  }
+  },
+  // --- New styles for modern filter/search bar ---
+  searchWrapper: {
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+  },
+  searchIcon: {
+    position: "absolute",
+    left: "12px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    fontSize: "16px",
+    color: "#888",
+  },
+  searchInput: {
+    padding: "8px 14px 8px 32px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    backgroundColor: "#fff",
+    fontSize: "14px",
+    width: "250px",
+  },
+  filterBar: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "16px 24px",
+    backgroundColor: "#ffffff",
+    border: "1px solid #e0e0e0",
+    borderRadius: "10px",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
+    gap: "16px",
+    marginBottom: "16px",
+  },
 };
 
 export default Drivers;

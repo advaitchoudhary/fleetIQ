@@ -1,5 +1,6 @@
 const Timesheet = require("../model/timesheetModel.js");
 const Driver = require("../model/driverModel.js");
+const User = require("../model/userModel.js");
 const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
@@ -52,7 +53,14 @@ const createTimesheet = async (req, res) => {
 
     console.log("✅ Timesheet Data ready for saving:", timesheetData);
 
-    const newTimesheet = new Timesheet(timesheetData);
+    // Example in your controller
+    const user = await User.findOne({ email: req.body.driver });
+    const driverName = user ? `${user.firstName} ${user.lastName}` : "";
+    
+    const newTimesheet = new Timesheet({
+      ...timesheetData,
+      driverName
+    });
     const savedTimesheet = await newTimesheet.save();
     res.status(201).json({ message: "Timesheet created successfully", savedTimesheet });
   } catch (error) {
@@ -64,11 +72,22 @@ const createTimesheet = async (req, res) => {
 // **2. Get All Timesheets**
 const getAllTimesheets = async (req, res) => {
   try {
-    const timesheets = await Timesheet.find();
+    const timesheets = await Timesheet.find().lean();
+    const drivers = await User.find({}, 'email firstName lastName').lean();
+    const emailToNameMap = new Map(
+      drivers.map(driver => [driver.email, `${driver.firstName} ${driver.lastName}`])
+    );
+    
+    const timesheetsWithNames = timesheets.map(t => ({
+      ...t,
+      driverName: emailToNameMap.get(t.driver) || "Unknown"
+    }));
+
     if (!timesheets || timesheets.length === 0) {
       return res.status(404).json({ message: "No timesheets found" });
     }
-    res.status(200).json(timesheets);
+
+    res.status(200).json(timesheetsWithNames);
   } catch (error) {
     res.status(500).json({ errorMessage: error.message });
   }

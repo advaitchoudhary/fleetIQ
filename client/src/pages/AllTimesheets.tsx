@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import {
   ColumnDef,
@@ -17,10 +17,14 @@ const AllTimesheets: React.FC = () => {
   const [userRole, setUserRole] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedTimesheet, setSelectedTimesheet] = useState<any | null>(null);
-  const [showExportOptions, setShowExportOptions] = useState(false);
+  const [, setShowExportOptions] = useState(false);
   const [categoryRates, setCategoryRates] = useState<Record<string, number>>(
     {}
   );
+  const [selectedFilter, setSelectedFilter] = useState<string>("All");
+  const [rangeStart, setRangeStart] = useState<string>("");
+  const [rangeEnd, setRangeEnd] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     fetchTimesheets();
@@ -33,63 +37,169 @@ const AllTimesheets: React.FC = () => {
   }, []);
 
   const handleExport = () => {
-    if (data.length === 0) {
+    if (filteredData.length === 0) {
       alert("No timesheets available to export.");
       return;
     }
-
-    // Toggle visibility of export options
-    setShowExportOptions(!showExportOptions);
+    exportTimesheets();
   };
 
-  const exportTimesheets = (days: number) => {
-    setShowExportOptions(false); // Hide options after choosing an option
+  const normalizeDate = (date: Date) =>
+    new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  const filteredData = useMemo(() => {
+    let result;
+    if (selectedFilter === "All") {
+      result = data;
+      // filtering by searchQuery
+      if (searchQuery.trim()) {
+        result = result.filter(ts =>
+          Object.values(ts).some(val =>
+            String(val).toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        );
+      }
+      return result;
+    }
 
     const now = new Date();
-    const pastDate = new Date(now.setDate(now.getDate() - days));
-    const filteredData = data.filter((timesheet) => {
-      const timesheetDate = new Date(timesheet.date);
-      return timesheetDate >= pastDate;
-    });
+
+    if (selectedFilter === "Today") {
+      result = data.filter(ts => {
+        const tsDate = normalizeDate(new Date(ts.date));
+        return tsDate.getTime() === normalizeDate(now).getTime();
+      });
+      if (searchQuery.trim()) {
+        result = result.filter(ts =>
+          Object.values(ts).some(val =>
+            String(val).toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        );
+      }
+      return result;
+    }
+
+    if (selectedFilter === "This Week") {
+      const startOfWeek = normalizeDate(new Date(now));
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+      result = data.filter(ts => {
+        const tsDate = normalizeDate(new Date(ts.date));
+        return tsDate >= startOfWeek && tsDate <= endOfWeek;
+      });
+      if (searchQuery.trim()) {
+        result = result.filter(ts =>
+          Object.values(ts).some(val =>
+            String(val).toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        );
+      }
+      return result;
+    }
+
+    if (selectedFilter === "This Month") {
+      result = data.filter(ts => {
+        const tsDate = new Date(ts.date);
+        return (
+          tsDate.getMonth() === now.getMonth() &&
+          tsDate.getFullYear() === now.getFullYear()
+        );
+      });
+      if (searchQuery.trim()) {
+        result = result.filter(ts =>
+          Object.values(ts).some(val =>
+            String(val).toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        );
+      }
+      return result;
+    }
+
+    if (selectedFilter === "Custom" && rangeStart && rangeEnd) {
+      const start = new Date(rangeStart);
+      const end = new Date(rangeEnd);
+      end.setHours(23, 59, 59, 999); // include full end date
+      result = data.filter(ts => {
+        const tsDate = new Date(ts.date);
+        return tsDate >= start && tsDate <= end;
+      });
+      if (searchQuery.trim()) {
+        result = result.filter(ts =>
+          Object.values(ts).some(val =>
+            String(val).toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        );
+      }
+      return result;
+    }
+
+    result = data;
+    if (searchQuery.trim()) {
+      result = result.filter(ts =>
+        Object.values(ts).some(val =>
+          String(val).toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      );
+    }
+    return result;
+  }, [data, selectedFilter, rangeStart, rangeEnd, searchQuery]);
+  
+  const exportTimesheets = () => {
+    setShowExportOptions(false);
 
     if (filteredData.length === 0) {
-      alert("No timesheets available to export for the selected period.");
+      alert("No timesheets available to export for the selected filter.");
       return;
     }
 
-    const csvRows = ["Date,Start Time,End Time,Total Hours,Comments,Status"];
-    filteredData.forEach((timesheet) => {
-      const start = timesheet.startTime;
-      const end = timesheet.endTime;
+    // Export all visible columns as shown in the table UI
+    const csvRows = [
+      "Driver,Customer,Date,Start Time,End Time,Start KM,End KM,Total KM,Category,Planned KM,SubTotal,Comments,Status"
+    ];
+
+    filteredData.forEach((ts) => {
+      const start = ts.startTime;
+      const end = ts.endTime;
       const startDate = new Date(`1970-01-01T${start}`);
       const endDate = new Date(`1970-01-01T${end}`);
       if (endDate < startDate) {
-        endDate.setDate(endDate.getDate() + 1); // Adjust for crossing midnight
+        endDate.setDate(endDate.getDate() + 1);
       }
-      const diff = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60);
-      const totalHours = isNaN(diff) ? "N/A" : `${diff.toFixed(2)} hrs`;
+      const totalHours = isNaN(endDate.getTime() - startDate.getTime())
+        ? "N/A"
+        : `${((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)).toFixed(2)} hrs`;
 
-      const dateFormatted = new Date(timesheet.date)
-        .toISOString()
-        .split("T")[0]; // Format date as YYYY-MM-DD
+      const totalKM = ts.endKM - ts.startKM;
+      const rate = categoryRates[ts.category] || 0;
+      const subtotal = totalKM * rate;
 
-      csvRows.push(
-        [
-          dateFormatted,
-          start,
-          end,
-          totalHours,
-          `"${(timesheet.comments || "").replace(/"/g, '""')}"`,
-          timesheet.status,
-        ].join(",")
-      );
+      // Use createdAt timestamp for Date column in export
+      const timestamp = new Date(ts.createdAt).toLocaleString();
+
+      csvRows.push([
+        ts.driver,
+        ts.customer,
+        timestamp,
+        ts.startTime,
+        ts.endTime,
+        ts.startKM,
+        ts.endKM,
+        totalKM,
+        ts.category,
+        ts.plannedKM,
+        `$${subtotal.toFixed(2)}`,
+        `"${(ts.comments || "").replace(/"/g, '""')}"`,
+        ts.status,
+      ].join(","));
     });
 
     const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `timesheets_last_${days}_days.csv`);
+    link.setAttribute("download", `filtered_timesheets_export.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -130,6 +240,7 @@ const AllTimesheets: React.FC = () => {
   const fetchTimesheets = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/timesheets`);
+      console.log("Fetched timesheets:", response.data);
       setData(response.data);
     } catch (error) {
       console.error("Error fetching timesheets:", error);
@@ -177,14 +288,14 @@ const AllTimesheets: React.FC = () => {
     setEditModalOpen(true);
   };
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string | number) => {
     setSelectedTimesheet((prev: any) => ({ ...prev, [field]: value }));
   };
 
   const columns: ColumnDef<(typeof data)[0]>[] = [
     {
       accessorKey: "edit",
-      header: "Edit",
+      header: "",
       cell: ({ row }: any) => (
         <button
           onClick={() => openEditModal(row.original)}
@@ -196,7 +307,14 @@ const AllTimesheets: React.FC = () => {
     },
     { accessorKey: "driver", header: "Driver" },
     { accessorKey: "customer", header: "Customer" },
-    { accessorKey: "date", header: "Date" },
+    {
+      accessorKey: "date",
+      header: "Date/Time",
+      cell: ({ row }: any) => {
+        const tsCreatedAt = new Date(row.original.createdAt);
+        return tsCreatedAt.toLocaleString();
+      },
+    },
     { accessorKey: "startTime", header: "Start Time" },
     { accessorKey: "endTime", header: "End Time" },
     { accessorKey: "startKM", header: "Start KM" },
@@ -245,7 +363,7 @@ const AllTimesheets: React.FC = () => {
     { accessorKey: "category", header: "Category" },
     { accessorKey: "plannedKM", header: "Planned KM" },
     {
-      header: "SubTotal",
+      header: "Total",
       cell: ({ row }: any) => {
         const start = parseFloat(row.original.startKM);
         const end = parseFloat(row.original.endKM);
@@ -263,9 +381,16 @@ const AllTimesheets: React.FC = () => {
       header: "Status",
       cell: ({ row }: any) => {
         const status = row.original.status;
+        const label =
+          status === "approved"
+            ? "Approved"
+            : status === "rejected"
+            ? "Rejected"
+            : "Pending";
+
         return (
           <span style={statusStyles[status as keyof typeof statusStyles]}>
-            {status === "approved" ? "✔️" : status === "rejected" ? "❌" : ""}
+            {label}
           </span>
         );
       },
@@ -283,13 +408,13 @@ const AllTimesheets: React.FC = () => {
                   style={styles.approveButton}
                   onClick={() => updateTimesheetStatus(_id, "approved")}
                 >
-                  ✔️ Approve
+                  Approve
                 </button>
                 <button
                   style={styles.rejectButton}
                   onClick={() => updateTimesheetStatus(_id, "rejected")}
                 >
-                  ❌ Reject
+                  Reject
                 </button>
               </>
             )}
@@ -301,8 +426,8 @@ const AllTimesheets: React.FC = () => {
     },
   ];
 
-  const table = useReactTable({
-    data,
+  const filteredTable = useReactTable({
+    data: filteredData,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -313,95 +438,175 @@ const AllTimesheets: React.FC = () => {
       <div style={styles.container}>
         <h1>All Timesheets</h1>
         <p>View and manage all uploaded timesheets here.</p>
-        <button onClick={handleExport} style={styles.exportButton}>
-          Export Timesheet
-        </button>
-
-        <div style={styles.exportOptions}>
-          {showExportOptions && (
-            <>
-              <button
-                onClick={() => exportTimesheets(7)}
-                style={styles.optionButton}
-              >
-                Last 7 Days
-              </button>
-              <button
-                onClick={() => exportTimesheets(15)}
-                style={styles.optionButton}
-              >
-                Last 15 Days
-              </button>
-              <button
-                onClick={() => exportTimesheets(30)}
-                style={styles.optionButton}
-              >
-                Last Month
-              </button>
-            </>
-          )}
+        <div style={{ ...styles.filterBar, flexWrap: "wrap", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center" }}>
+            <div style={{ ...styles.searchWrapper, position: "relative" }}>
+              <span style={{ ...styles.searchIcon }}>🔍</span>
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={styles.searchInput}
+              />
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
+            <div style={styles.filterGroup}>
+              <label>Filter:</label>
+              <select value={selectedFilter} onChange={e => setSelectedFilter(e.target.value)} style={styles.selectInput}>
+                <option value="All">All</option>
+                <option value="Today">Today</option>
+                <option value="This Week">This Week</option>
+                <option value="This Month">This Month</option>
+                <option value="Custom">Custom Range</option>
+              </select>
+              {selectedFilter === "Custom" && (
+                <>
+                  <label>From:</label>
+                  <input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)} style={styles.dateInput} />
+                  <label>To:</label>
+                  <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} style={styles.dateInput} />
+                </>
+              )}
+            </div>
+            <button onClick={handleExport} style={styles.exportButton}>
+              Export Timesheet 📤
+            </button>
+          </div>
         </div>
+
+        {/* Removed extra export button and exportOptions container */}
         {loading ? (
           <p>Loading timesheets...</p>
         ) : error ? (
           <p style={styles.error}>{error}</p>
         ) : (
-          <div style={styles.tableWrapper}>
-            <table style={styles.table}>
-              <thead>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <th key={header.id} style={styles.th}>
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-              <tbody>
-                {table.getRowModel().rows.map((row) => (
-                  <tr key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} style={styles.td}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
+          <>
+            <div style={styles.tableWrapper}>
+              <table style={styles.table}>
+                <thead>
+                  {filteredTable.getHeaderGroups().map((headerGroup) => (
+                    <tr key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <th key={header.id} style={styles.th}>
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                        </th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+                <tbody>
+                  {filteredTable.getRowModel().rows.length === 0 ? (
+                    <tr>
+                      <td colSpan={columns.length} style={{ textAlign: "center", padding: "20px", color: "#888" }}>
+                        No data available for the selected filter.
                       </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </tr>
+                  ) : (
+                    filteredTable.getRowModel().rows.map((row) => (
+                      <tr key={row.id}>
+                        {row.getVisibleCells().map((cell) => (
+                          <td key={cell.id} style={styles.td}>
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <style>
+              {`
+                table tr:hover td {
+                  background-color: #f0f4ff;
+                  transition: background-color 0.2s ease;
+                  cursor: pointer;
+                }
+              `}
+            </style>
+          </>
         )}
 
         {editModalOpen && selectedTimesheet && (
           <div style={styles.modalOverlay}>
             <div style={styles.modal}>
               <h2>Edit Timesheet</h2>
-              {Object.entries(selectedTimesheet).map(
-                ([key, value]) =>
-                  key !== "_id" && (
-                    <div
-                      key={key}
-                      style={{ marginBottom: "10px", textAlign: "left" }}
-                    >
-                      <label style={{ fontWeight: "bold" }}>{key}:</label>
-                      <input
-                        type="text"
-                        value={value as string}
-                        onChange={(e) => handleChange(key, e.target.value)}
-                        style={styles.input}
-                      />
-                    </div>
-                  )
-              )}
-              <div style={{ marginTop: "20px" }}>
+              <div style={{ display: "grid", gap: "12px" }}>
+                <div>
+                  <label style={{ fontWeight: "bold" }}>Start Time:</label>
+                  <input
+                    type="time"
+                    value={selectedTimesheet.startTime}
+                    onChange={(e) => handleChange("startTime", e.target.value)}
+                    style={styles.input}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontWeight: "bold" }}>End Time:</label>
+                  <input
+                    type="time"
+                    value={selectedTimesheet.endTime}
+                    onChange={(e) => handleChange("endTime", e.target.value)}
+                    style={styles.input}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontWeight: "bold" }}>Start KM:</label>
+                  <input
+                    type="number"
+                    value={selectedTimesheet.startKM}
+                    onChange={(e) => handleChange("startKM", Number(e.target.value))}
+                    style={styles.input}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontWeight: "bold" }}>End KM:</label>
+                  <input
+                    type="number"
+                    value={selectedTimesheet.endKM}
+                    onChange={(e) => handleChange("endKM", Number(e.target.value))}
+                    style={styles.input}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontWeight: "bold" }}>Planned KM:</label>
+                  <input
+                    type="number"
+                    value={selectedTimesheet.plannedKM}
+                    onChange={(e) => handleChange("plannedKM", Number(e.target.value))}
+                    style={styles.input}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontWeight: "bold" }}>Comments:</label>
+                  <textarea
+                    value={selectedTimesheet.comments || ""}
+                    onChange={(e) => handleChange("comments", e.target.value)}
+                    style={{ ...styles.input, minHeight: "80px" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontWeight: "bold" }}>Status:</label>
+                  <select
+                    value={selectedTimesheet.status}
+                    onChange={(e) => handleChange("status", e.target.value)}
+                    style={styles.input}
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ marginTop: "20px", display: "flex", gap: "12px" }}>
                 <button style={styles.approveButton} onClick={handleUpdate}>
                   Save Changes
                 </button>
@@ -425,7 +630,7 @@ const styles = {
     textAlign: "center" as const,
     padding: "40px 20px",
     backgroundColor: "#f4f6f8",
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   tableWrapper: {
     display: "flex",
@@ -434,46 +639,60 @@ const styles = {
   },
   table: {
     width: "100%",
-    maxWidth: "1200px",
+    maxWidth: "1400px",
     borderCollapse: "collapse" as const,
     boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
     borderRadius: "8px",
     overflow: "hidden",
+    tableLayout: "auto" as const,
   },
   th: {
-    borderBottom: "2px solid #dee2e6",
-    padding: "14px",
-    fontSize: "16px",
+    borderBottom: "1px solid #e2e8f0",
+    padding: "14px 16px",
+    fontSize: "13px",
+    fontWeight: 600,
     textAlign: "left" as const,
-    backgroundColor: "#007bff",
-    color: "white",
+    backgroundColor: "#f3f4f6",
+    color: "#1f2937",
+    wordBreak: "break-word" as const,
+    whiteSpace: "wrap" as const,
   },
   td: {
     borderBottom: "1px solid #e2e8f0",
-    padding: "12px",
+    padding: "8px 8px",
     fontSize: "14px",
     textAlign: "left" as const,
     backgroundColor: "#ffffff",
+    wordBreak: "break-word" as const,
   },
   actions: {
-    display: "flex",
+    display: "flex" as const,
+    flexDirection: "column" as const,
+    alignItems: "center" as const,
     gap: "8px",
+    minWidth: "150px",
   },
   approveButton: {
-    backgroundColor: "#28a745",
-    color: "white",
-    padding: "6px 12px",
+    backgroundColor: "#ecfdf5",
+    color: "#047857",
+    padding: "6px 14px",
     border: "none",
-    borderRadius: "4px",
+    borderRadius: "8px",
+    fontWeight: 600,
+    fontSize: "14px",
     cursor: "pointer",
+    boxShadow: "0 0 0 1px #a7f3d0",
   },
   rejectButton: {
-    backgroundColor: "#dc3545",
-    color: "white",
-    padding: "6px 12px",
+    backgroundColor: "#fef2f2",
+    color: "#b91c1c",
+    padding: "6px 14px",
     border: "none",
-    borderRadius: "4px",
+    borderRadius: "8px",
+    fontWeight: 600,
+    fontSize: "14px",
     cursor: "pointer",
+    boxShadow: "0 0 0 1px #fecaca",
   },
   readOnly: {
     color: "gray",
@@ -519,12 +738,16 @@ const styles = {
   },
   exportButton: {
     padding: "10px 20px",
-    backgroundColor: "#007BFF",
+    backgroundColor: "#4F46E5",
     color: "#fff",
     border: "none",
-    borderRadius: "6px",
+    borderRadius: "8px",
+    fontSize: "14px",
+    fontWeight: 500,
     cursor: "pointer",
-    marginBottom: "10px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
   },
   optionButton: {
     margin: "5px",
@@ -539,11 +762,89 @@ const styles = {
     textAlign: "center" as const,
     padding: "10px 0",
   },
+  filterBar: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "16px 24px",
+    backgroundColor: "#ffffff",
+    border: "1px solid #e0e0e0",
+    borderRadius: "10px",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
+    gap: "16px",
+  },
+  filterGroup: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    flexWrap: "wrap" as const,
+  },
+  dateInput: {
+    padding: "6px",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+  },
+  selectInput: {
+    padding: "8px 14px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    backgroundColor: "#f9f9f9",
+    fontSize: "14px",
+  },
+  searchWrapper: {
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+  },
+  searchIcon: {
+    position: "absolute" as const,
+    left: "12px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    fontSize: "16px",
+    color: "#888",
+  },
+  searchInput: {
+    padding: "8px 14px 8px 32px",
+    borderRadius: "8px",
+    border: "1px solid #ccc",
+    backgroundColor: "#fff",
+    fontSize: "14px",
+    width: "250px",
+  },
 };
 
 const statusStyles = {
-  approved: { color: "green", fontSize: "20px" },
-  rejected: { color: "red", fontSize: "20px" },
+  approved: {
+    backgroundColor: "#ecfdf5",
+    color: "#047857",
+    padding: "4px 12px",
+    borderRadius: "9px",
+    fontWeight: 600,
+    display: "inline-block",
+    minWidth: "80px",
+    textAlign: "center" as const,
+  },
+  rejected: {
+    backgroundColor: "#fef2f2",
+    color: "#b91c1c",
+    padding: "4px 12px",
+    borderRadius: "9px",
+    fontWeight: 600,
+    display: "inline-block",
+    minWidth: "80px",
+    textAlign: "center" as const,
+  },
+  pending: {
+    backgroundColor: "#fff7ed",
+    color: "#b45309",
+    padding: "4px 12px",
+    borderRadius: "9px",
+    fontWeight: 600,
+    display: "inline-block",
+    minWidth: "80px",
+    textAlign: "center" as const,
+  },
 };
 
 export default AllTimesheets;
