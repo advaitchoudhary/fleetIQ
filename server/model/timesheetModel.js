@@ -3,10 +3,10 @@ const mongoose = require("mongoose");
 const timesheetSchema = new mongoose.Schema(
   {
     date: { type: String, required: true },
-    driver: { type: mongoose.Schema.Types.ObjectId, ref: "Driver", required: true },
+    driver: { type: String },
+    driverName: { type: String },
     startTime: { type: String, required: true },
     endTime: { type: String, required: true },
-    driver: { type: String, required: true },
     customer: { type: String, required: true },
     startDate: { type: String, required: true },
     category: { type: String, required: true },

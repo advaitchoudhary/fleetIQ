@@ -17,13 +17,34 @@ import contactRoutes from "../routes/contactRoute";
 
 const app = express();
 
+app.options("*", cors({
+    origin: (origin, callback) => {
+      const allowedOrigins = ['http://3.145.147.181', 'http://localhost:5173'];
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+}));
+
 app.use("/uploads", express.static("uploads"));
 app.use(cors({
-  origin: ['http://3.145.147.181', 'http://localhost:5173'],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"], // Allow Authorization header
-    credentials: true // Allow cookies and authentication headers
-}));
+    origin: (origin, callback) => {
+      const allowedOrigins = ['http://3.145.147.181', 'http://localhost:5173'];
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+  }));
 app.use(bodyParser.json());
 dotenv.config();
 
