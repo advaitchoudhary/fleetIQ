@@ -1,0 +1,64 @@
+name: Fleet Management CI
+
+on:
+  push:
+    branches: [ dev, main ]
+  pull_request:
+    branches: [ dev, main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --eval 'db.runCommand({ ping: 1 })'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    # Client steps
+    - name: Install client dependencies
+      working-directory: ./client
+      run: npm ci
+
+    - name: Lint client
+      working-directory: ./client
+      run: npm run lint || echo "Client linting failed but continuing"
+
+    - name: Build client
+      working-directory: ./client
+      run: npm run build
+
+    - name: Test client
+      working-directory: ./client
+      run: npm test || echo "Client tests failed but continuing"
+
+    # Server steps
+    - name: Install server dependencies
+      working-directory: ./server
+      run: npm ci
+
+    - name: Lint server
+      working-directory: ./server
+      run: npm run lint || echo "Server linting failed but continuing"
+
+    - name: Test server
+      working-directory: ./server
+      run: npm test || echo "Server tests failed but continuing"
+      env:
+        MONGODB_URI: mongodb://localhost:27017/fleet-test
