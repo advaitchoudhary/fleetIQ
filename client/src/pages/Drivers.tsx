@@ -50,8 +50,8 @@ const Drivers: React.FC = () => {
 
   const [editedDriver, setEditedDriver] = useState<any>(null);
   const [, setIsUpdateDisabled] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [, setLoading] = useState(false);
+  const [, setError] = useState("");
   const [searchText, setSearchText] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"highest" | "lowest" | "none">("none");
   
@@ -259,6 +259,7 @@ const Drivers: React.FC = () => {
     <div>
       <Navbar />
       <div style={styles.container}>
+      <h1>All Drivers</h1>
         {/* Modern Header/Filter Bar */}
         <div style={styles.headerWrapper}>
           <div style={styles.filterBar}>
@@ -813,10 +814,10 @@ import { CSSProperties } from "react";
 
 const styles: { [key: string]: CSSProperties } = {
   container: {
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    backgroundColor: "#f8f9fa",
-    minHeight: "100vh",
-    padding: "20px",
+    fontFamily: "Inter, system-ui, sans-serif",
+    padding: "40px 20px",
+    backgroundColor: "#f4f6f8",
+    textAlign: "center" as const,
   },
   headerWrapper: {
     marginBottom: "20px",
@@ -951,6 +952,7 @@ const styles: { [key: string]: CSSProperties } = {
     fontSize: "14px",
     borderRadius: "4px",
     border: "1px solid #ccc",
+    marginRight: "66px",
   },
   buttonGroup: {
     display: "flex",
@@ -973,19 +975,23 @@ const styles: { [key: string]: CSSProperties } = {
     marginTop: "10px",
     backgroundColor: "#4F46E5",
     color: "#fff",
-    padding: "10px 16px",
     border: "none",
-    borderRadius: "4px",
     cursor: "pointer",
+    padding: "10px 20px",
+    fontSize: "16px",
+    borderRadius: "8px",
+    fontWeight: 600,
   },
   deleteButton: {
     backgroundColor: "#dc3545",
     marginTop: "10px",
     color: "#fff",
-    padding: "10px 16px",
     border: "none",
-    borderRadius: "4px",
+    borderRadius: "8px",
     cursor: "pointer",
+    padding: "10px 20px",
+    fontSize: "16px",
+    fontWeight: 600,
   },
   passwordInputContainer: {
     position: "relative",

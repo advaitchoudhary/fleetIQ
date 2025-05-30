@@ -1,4 +1,5 @@
 const Driver = require("../model/driverModel.js");
+const Notification = require("../model/notificationModel.js");
 const asyncHandler = require("express-async-handler");
 
 const create = asyncHandler(async (req, res) => {
@@ -33,10 +34,14 @@ const getDriverById = asyncHandler(async (req, res) => {
 });
 
 const updateDriverById = asyncHandler(async (req, res) => {
-  const updatedDriver = await Driver.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true
-  });
+  const updatedDriver = await Driver.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
 
   if (!updatedDriver) {
     res.status(404).json({ message: "Driver not found" });
@@ -54,10 +59,31 @@ const deleteDriverById = asyncHandler(async (req, res) => {
   res.json({ message: "Driver deleted successfully" });
 });
 
+const createNotification = asyncHandler(async (req, res) => {
+  const { message, email, type } = req.body;
+
+  if (!message || !email || !type) {
+    res.status(400).json({ message: "Missing required fields" });
+    return;
+  }
+
+  const notification = new Notification({
+    message,
+    email,
+    type,
+    read: false,
+    createdAt: new Date(),
+  });
+
+  const savedNotification = await notification.save();
+  res.status(201).json(savedNotification);
+});
+
 module.exports = {
   create,
   getAllDrivers,
   getDriverById,
   updateDriverById,
-  deleteDriverById
+  deleteDriverById,
+  createNotification,
 };
