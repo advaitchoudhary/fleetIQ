@@ -29,9 +29,15 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: '20'
-        cache: 'npm'
 
     # Client steps
+    - name: Cache client npm dependencies
+      uses: actions/cache@v3
+      with:
+        path: client/node_modules
+        key: client-npm-${{ hashFiles('client/package-lock.json') }}
+        restore-keys: client-npm-
+
     - name: Install client dependencies
       working-directory: ./client
       run: npm ci
@@ -49,6 +55,13 @@ jobs:
       run: npm test || echo "Client tests failed but continuing"
 
     # Server steps
+    - name: Cache server npm dependencies
+      uses: actions/cache@v3
+      with:
+        path: server/node_modules
+        key: server-npm-${{ hashFiles('server/package-lock.json') }}
+        restore-keys: server-npm-
+
     - name: Install server dependencies
       working-directory: ./server
       run: npm ci
