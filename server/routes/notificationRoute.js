@@ -14,6 +14,6 @@ route.post("/", createNotification);
 route.get("/", getNotifications);
 route.post("/markAllRead", markAllNotificationsAsRead);
 route.post("/:id/markRead", markNotificationAsRead);
-route.post("/:id", deleteNotification);
+route.delete("/:id", deleteNotification);
 
 module.exports = route;
