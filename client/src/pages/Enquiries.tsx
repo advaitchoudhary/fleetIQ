@@ -32,28 +32,28 @@ const Enquiries: React.FC = () => {
       {loading ? (
         <p>Loading enquiries...</p>
       ) : (
-        <table style={styles.table}>
-          <thead>
-            <tr>
-              <th style={styles.tableHeader}>Name</th>
-              <th style={styles.tableHeader}>Email</th>
-              <th style={styles.tableHeader}>Message</th>
-              <th style={styles.tableHeader}>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {enquiries.map((entry, index) => (
-              <tr key={index} style={index % 2 === 0 ? undefined : styles.rowHover}>
-                <td style={styles.tableCell}>{entry.name}</td>
-                <td style={styles.tableCell}>{entry.email}</td>
-                <td style={styles.tableCell}>{entry.message}</td>
-                <td style={styles.tableCell}>
-                  {new Date(entry.createdAt).toLocaleString()}
-                </td>
+        <div style={styles.tableWrapper}>
+          <table style={styles.table}>
+            <thead>
+              <tr>
+                <th style={styles.th}>Name</th>
+                <th style={styles.th}>Email</th>
+                <th style={styles.th}>Message</th>
+                <th style={styles.th}>Date</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {enquiries.map((entry, index) => (
+                <tr key={index} style={index % 2 === 0 ? undefined : styles.row}>
+                  <td style={styles.td}>{entry.name}</td>
+                  <td style={styles.td}>{entry.email}</td>
+                  <td style={styles.td}>{entry.message}</td>
+                  <td style={styles.td}>{new Date(entry.createdAt).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
     </div>
@@ -62,10 +62,11 @@ const Enquiries: React.FC = () => {
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    padding: "30px",
-    backgroundColor: "#f7f9fc",
+    fontFamily: "Inter, system-ui, sans-serif",
+    padding: "40px 20px",
+    backgroundColor: "#f4f6f8",
+    textAlign: "center",
     minHeight: "100vh",
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
   },
   title: {
     fontSize: "26px",
@@ -74,32 +75,47 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: "#2d3748",
     textAlign: "center",
   },
+  tableWrapper: {
+    display: "flex",
+    justifyContent: "center",
+    marginTop: "20px",
+    borderRadius: "8px",
+    boxShadow: "0 2px 12px rgba(0, 0, 0, 0.05)",
+    backgroundColor: "#fff",
+    padding: "10px",
+    overflowX: "auto",
+  },
   table: {
     width: "100%",
+    maxWidth: "1400px",
     borderCollapse: "collapse",
-    backgroundColor: "#fff",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
+    boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
     borderRadius: "8px",
     overflow: "hidden",
+    tableLayout: "auto",
   },
-  tableHeader: {
-    backgroundColor: "#edf2f7",
-    fontWeight: "bold",
-    padding: "12px 15px",
+  th: {
+    borderBottom: "1px solid #e2e8f0",
+    padding: "14px 16px",
+    fontSize: "13px",
+    fontWeight: 600,
     textAlign: "left",
-    borderBottom: "2px solid #ccc",
-    fontSize: "15px",
-    color: "#4a5568",
+    backgroundColor: "#f3f4f6",
+    color: "#1f2937",
+    wordBreak: "break-word",
+    whiteSpace: "wrap",
   },
-  tableCell: {
-    padding: "12px 15px",
-    borderBottom: "1px solid #eee",
+  td: {
+    borderBottom: "1px solid #e2e8f0",
+    padding: "8px 8px",
     fontSize: "14px",
-    color: "#2d3748",
+    textAlign: "left",
+    backgroundColor: "#ffffff",
+    wordBreak: "break-word",
   },
-  rowHover: {
+  row: {
     backgroundColor: "#f7fafc",
-  }
+  },
 };
 
 export default Enquiries;

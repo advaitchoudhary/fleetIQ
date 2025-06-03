@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FaBars,
@@ -34,10 +34,25 @@ const Navbar: React.FC = () => {
       }
     };
 
-    if (showNotification) {
-      fetchNotifications();
+    fetchNotifications(); // Always fetch on mount
+
+  }, []); // Only run on component mount
+
+  const handleMarkAllRead = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/notifications/markAllRead`, {
+        method: "POST",
+      });
+
+      if (!response.ok) throw new Error("Failed to mark all as read");
+
+      const updated = notifications.map((n) => ({ ...n, read: true }));
+      setNotifications(updated);
+      setUnreadCount(0);
+    } catch (error) {
+      console.error("Error marking notifications as read", error);
     }
-  }, [showNotification]);
+  }, [notifications]);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -93,62 +108,72 @@ const Navbar: React.FC = () => {
               {showNotification && (
                 <div style={styles.notificationDropdown} ref={notificationRef}>
                   <div style={styles.notificationHeader}>
-                    <span>Notification</span>
+                    <span style={{ fontWeight: "600", fontSize: "15px" }}>Notification</span>
                     <button
                       style={styles.markAllRead}
-                      onClick={async () => {
-                        try {
-                          await fetch(
-                            `${API_BASE_URL}/notifications/markAllRead`,
-                            { method: "POST" }
-                          );
-                          const updated = notifications.map((n) => ({
-                            ...n,
-                            read: true,
-                          }));
-                          setNotifications(updated);
-                          setUnreadCount(0);
-                        } catch (error) {
-                          console.error(
-                            "Error marking notifications as read",
-                            error
-                          );
-                        }
-                      }}
+                      onClick={handleMarkAllRead}
                     >
-                      Mark all as read
-                    </button>
-                  </div>
-                  <div style={styles.notificationTabs}>
-                    <button style={styles.tabButton}>
-                      Unread ({unreadCount})
+                      Mark as read ✓
                     </button>
                   </div>
                   <table style={styles.notificationTable}>
                     <thead>
                       <tr>
                         <th style={styles.notificationTableHeader}>Message</th>
-                        <th style={styles.notificationTableHeader}>Type</th>
-                        <th style={styles.notificationTableHeader}>Date</th>
                       </tr>
                     </thead>
                     <tbody>
                       {notifications
                         .filter((n) => !n.read)
                         .map((notification, index) => (
-                          <tr key={index}>
-                            <td style={styles.notificationTableCell}>
-                              {`${notification.message} on ${new Date(
-                                notification.createdAt
-                              ).toLocaleString()}`}
-                            </td>
-                            <td style={styles.notificationTableCell}>
-                              {notification.type}
-                            </td>
-                            <td style={styles.notificationTableCell}>
-                              {new Date(
-                                notification.createdAt
-                              ).toLocaleString()}
+                          <tr
+                            key={index}
+                            onClick={async () => {
+                              try {
+                                await fetch(`${API_BASE_URL}/notifications/${notification._id}/markRead`, {
+                                  method: "POST",
+                                });
+                                const updatedNotifications = notifications.map((n, i) =>
+                                  i === index ? { ...n, read: true } : n
+                                );
+                                setNotifications(updatedNotifications);
+                                setUnreadCount(unreadCount - 1);
+                              } catch (err) {
+                                console.error("Failed to mark notification as read", err);
+                              }
+                            }}
+                            style={{ cursor: "pointer" }}
+                          >
+                            <td style={{ ...styles.notificationTableCell, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                              <span>
+                                {!notification.read && (
+                                  <span style={{ color: "green", marginRight: "6px" }}>●</span>
+                                )}
+                                {`${notification.message} on ${new Date(
+                                  notification.createdAt
+                                ).toLocaleString()}`}
+                              </span>
+                              <span
+                                style={{ marginLeft: "12px", color: "#888", cursor: "pointer" }}
+                                onClick={async (e) => {
+                                  e.stopPropagation(); // Prevent row click from firing
+                                  try {
+                                    await fetch(`${API_BASE_URL}/notifications/${notification._id}/markRead`, {
+                                      method: "POST",
+                                    });
+                                    await fetch(`${API_BASE_URL}/notifications/${notification._id}`, {
+                                      method: "DELETE",
+                                    });
+                                    const filtered = notifications.filter((_, i) => i !== index);
+                                    setNotifications(filtered);
+                                    setUnreadCount((prev) => prev - (notification.read ? 0 : 1));
+                                  } catch (err) {
+                                    console.error("Failed to delete notification", err);
+                                  }
+                                }}
+                              >
+                                ✕
+                              </span>
                             </td>
                           </tr>
                         ))}
@@ -296,16 +321,17 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   notificationHeader: {
     display: "flex",
+    alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: "10px",
-    float: "right" as const,
+    paddingBottom: "8px",
   },
   markAllRead: {
     background: "none",
     border: "none",
-    color: "#007bff",
+    color: "#5b21b6",
     cursor: "pointer",
-    fontSize: "12px",
+    fontSize: "14px",
+    fontWeight: "500",
   },
   notificationTabs: {
     display: "flex",

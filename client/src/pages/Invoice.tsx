@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, CSSProperties } from "react";
 import axios from "axios";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -41,6 +41,9 @@ const Invoice: React.FC = () => {
   const [customRange, setCustomRange] = useState<[Date | null, Date | null]>([null, null]);
   const [isCustomRange, setIsCustomRange] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState<string>("__placeholder__");
+  // Raw timesheets fetched for the selected driver (unfiltered)
+  const [timesheetsRaw, setTimesheetsRaw] = useState<any[]>([]);
+  // Filtered timesheets shown in the table
   const [timesheets, setTimesheets] = useState<any[]>([]);
   const [categoryRates, setCategoryRates] = useState<Record<string, number>>({});
 
@@ -51,22 +54,39 @@ const Invoice: React.FC = () => {
     { label: "Custom Range", value: "custom" },
   ];
 
+  // Helper to get last 7 days range
+  const getLast7DaysRange = () => {
+    const today = new Date();
+    const last7 = new Date();
+    last7.setDate(today.getDate() - 6);
+    return `${format(last7, "yyyy-MM-dd")} - ${format(today, "yyyy-MM-dd")}`;
+  };
+
+  // Helper to get last 30 days range
+  const getLast30DaysRange = () => {
+    const today = new Date();
+    const last30 = new Date();
+    last30.setDate(today.getDate() - 29);
+    return `${format(last30, "yyyy-MM-dd")} - ${format(today, "yyyy-MM-dd")}`;
+  };
+
   const handlePeriodChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = e.target.value;
-    setInvoicePeriod(selectedValue);
-  
+    setSelectedPeriodKey(selectedValue); // <-- Add this line
     if (selectedValue === "last15") {
       setInvoicePeriod(getLast15DaysRange());
+      setIsCustomRange(false);
     } else if (selectedValue === "last7") {
-      // implement getLast7DaysRange()
+      setInvoicePeriod(getLast7DaysRange());
+      setIsCustomRange(false);
     } else if (selectedValue === "last30") {
-      // implement getLast30DaysRange()
+      setInvoicePeriod(getLast30DaysRange());
+      setIsCustomRange(false);
     } else if (selectedValue === "custom") {
+      setInvoicePeriod("");
       setIsCustomRange(true);
       setCustomRange([null, null]);
-      return;
     }
-    setIsCustomRange(false);
   };
 
   const handleCustomDateChange = (dates: [Date | null, Date | null] | null) => {
@@ -110,13 +130,28 @@ const Invoice: React.FC = () => {
   };
 
   const [invoicePeriod, setInvoicePeriod] = useState(getLast15DaysRange());
+  const [selectedPeriodKey, setSelectedPeriodKey] = useState("last15");
+
+  // Helper to check if a date is in range
+  const isDateInRange = (dateStr: string): boolean => {
+    const date = new Date(dateStr);
+    if (isCustomRange && customRange[0] && customRange[1]) {
+      return date >= customRange[0] && date <= customRange[1];
+    }
+    if (typeof invoicePeriod === "string" && invoicePeriod.includes(" - ")) {
+      const [startStr, endStr] = invoicePeriod.split(" - ");
+      const start = new Date(startStr);
+      const end = new Date(endStr);
+      return date >= start && date <= end;
+    }
+    return true;
+  };
 
   const handleDriverChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const driverId = e.target.value;
     setSelectedDriver(driverId);
-    console.log(data);
     const selectedDriver = data.find((driver) => driver._id === driverId);
-    
+
     if (selectedDriver) {
       setFromDetails({
         businessName: selectedDriver.business_name || "",
@@ -126,22 +161,20 @@ const Invoice: React.FC = () => {
         contact: selectedDriver.contact || "",
       });
     }
-    // Fetch timesheets for the selected driver
+    // Fetch timesheets for the selected driver, store unfiltered, let useEffect handle filtering
     const fetchDriverTimesheets = async () => {
       if (!selectedDriver?.email) return;
-  
       try {
         const response = await axios.get(`${API_BASE_URL}/timesheets`);
         const driverTimesheets = response.data.filter(
           (t: any) => t.driver === selectedDriver.email
         );
-        console.log("Driver Timesheets:", driverTimesheets);
-        setTimesheets(driverTimesheets);
+        // Store the raw list, then let useEffect re-filter
+        setTimesheetsRaw(driverTimesheets);
       } catch (error) {
         console.error("Error fetching driver timesheets:", error);
       }
     };
-  
     fetchDriverTimesheets();
   };
 
@@ -168,7 +201,6 @@ const Invoice: React.FC = () => {
         };
       });
   
-      console.log("Timesheets with calculated subtotals:", subtotals);
     }
   }, [timesheets, categoryRates]); // Recalculate whenever timesheets or rates change
   
@@ -204,6 +236,19 @@ const Invoice: React.FC = () => {
   const [subtotal, setSubtotal] = useState<number>(items.reduce((sum, item) => sum + item.amount, 0));
   const [hst, setHst] = useState<number>(items.reduce((sum, item) => (item.tax === "H" ? sum + item.amount * 0.13 : sum), 0));
   const [total, setTotal] = useState<number>(subtotal + hst);
+
+  // Whenever raw timesheets, invoicePeriod, or custom range change, re-filter the list
+  useEffect(() => {
+    if (timesheetsRaw.length === 0) {
+      setTimesheets([]);
+      return;
+    }
+    const filtered = timesheetsRaw.filter((t: any) => {
+      const inRange = isDateInRange(t.date);
+      return inRange;
+    });
+    setTimesheets(filtered);
+  }, [timesheetsRaw, invoicePeriod, customRange]);
 
   const isGenerateDisabled = !selectedDriver || Object.values(fromDetails).some((value) => value.trim() === "");
 
@@ -359,7 +404,7 @@ const generatePDF = () => {
           <div style={styles.flexColumn}>
             <label>Invoice Period:</label>
             <select
-              value={isCustomRange ? "custom" : invoicePeriod}
+              value={selectedPeriodKey}
               onChange={handlePeriodChange}
               style={styles.input}
             >
@@ -435,7 +480,7 @@ const generatePDF = () => {
           <p>No timesheets available for this driver.</p>
         ) : (
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
+            <thead style={{ color: ""}}>
               <tr>
                 <th style={styles.th}>Date</th>
                 <th style={styles.th}>Start</th>
@@ -490,7 +535,7 @@ const generatePDF = () => {
             onClick={generatePDF}
             style={{
               ...styles.button,
-              backgroundColor: isGenerateDisabled ? "#ccc" : "#007bff",
+              backgroundColor: isGenerateDisabled ? "#ccc" : "#4F46E5",
               cursor: isGenerateDisabled ? "not-allowed" : "pointer",
             }}
             disabled={isGenerateDisabled}
@@ -514,46 +559,66 @@ const generatePDF = () => {
   );
 };
 
-const styles = {
+const styles: { [key: string]: CSSProperties } = {
   container: {
-    backgroundColor: "#f2f4f8",
-    padding: "30px 20px",
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    backgroundColor: "#f4f6f8",
+    padding: "40px 20px",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   invoiceContainer: {
     backgroundColor: "#ffffff",
-    padding: "40px",
-    maxWidth: "960px",
-    margin: "20px auto",
-    borderRadius: "12px",
-    boxShadow: "0 8px 20px rgba(0,0,0,0.05)",
+    padding: "54px",
+    maxWidth: "1000px",
+    margin: "0 auto",
+    borderRadius: "10px",
+    boxShadow: "0 2px 12px rgba(0, 0, 0, 0.05)",
   },
   input: {
     display: "block",
     margin: "10px 0",
     padding: "10px",
-    width: "100%",
+    width: "80%",
     maxWidth: "500px",
     border: "1px solid #ccc",
     borderRadius: "6px",
   },
+  tableWrapper: {
+    display: "flex",
+    justifyContent: "center",
+    marginTop: "20px",
+    borderRadius: "8px",
+    boxShadow: "0 2px 12px rgba(0, 0, 0, 0.05)",
+    backgroundColor: "#fff",
+    padding: "10px",
+    overflowX: "auto",
+  },
   table: {
     width: "100%",
-    marginTop: "20px",
-    borderCollapse: "collapse" as const,
+    maxWidth: "1400px",
+    borderCollapse: "collapse",
+    boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
+    borderRadius: "8px",
+    overflow: "hidden",
+    tableLayout: "auto",
   },
   th: {
-    backgroundColor: "#007bff",
-    color: "#ffffff",
-    padding: "12px",
-    textAlign: "left" as const,
+    borderBottom: "1px solid #e2e8f0",
+    padding: "14px 16px",
+    fontSize: "13px",
     fontWeight: 600,
+    textAlign: "left" as const,
+    backgroundColor: "#f3f4f6",
+    color: "#1f2937",
+    wordBreak: "break-word",
+    whiteSpace: "wrap",
   },
   td: {
-    border: "1px solid #dee2e6",
-    padding: "12px",
+    borderBottom: "1px solid #e2e8f0",
+    padding: "8px 8px",
+    fontSize: "14px",
     textAlign: "left" as const,
     backgroundColor: "#ffffff",
+    wordBreak: "break-word",
   },
   totalsContainer: {
     marginTop: "30px",
@@ -599,20 +664,20 @@ const styles = {
   button: {
     backgroundColor: "#007bff",
     color: "#ffffff",
-    fontSize: "16px",
-    padding: "10px 20px",
+    fontSize: "15px",
+    padding: "8px 18px",
     border: "none",
-    borderRadius: "6px",
+    borderRadius: "5px",
     cursor: "pointer",
     marginLeft: "8px",
-    transition: "background-color 0.3s ease",
+    transition: "all 0.3s ease",
   },
   title: {
-    fontSize: "30px",
-    fontWeight: "bold",
+    fontSize: "28px",
+    fontWeight: "600",
     textAlign: "center" as const,
-    marginBottom: "30px",
-    color: "#2d3748",
+    marginBottom: "25px",
+    color: "#1f2937",
   },
   flexRow: {
     display: "flex",
@@ -644,16 +709,17 @@ const styles = {
     maxWidth: "500px",
   },
   timesheetsSection: {
-    marginBottom: "30px",
-    padding: "15px",
-    backgroundColor: "#f8fafc",
-    borderRadius: "8px",
+    marginBottom: "25px",
+    padding: "20px",
+    backgroundColor: "#ffffff",
+    borderRadius: "10px",
+    boxShadow: "0 1px 6px rgba(0, 0, 0, 0.05)",
   },
   sectionTitle: {
-    fontSize: "20px",
-    fontWeight: "bold",
-    marginBottom: "15px",
-    color: "#1a202c",
+    fontSize: "18px",
+    fontWeight: "600",
+    marginBottom: "10px",
+    color: "#111827",
   },
 };
 

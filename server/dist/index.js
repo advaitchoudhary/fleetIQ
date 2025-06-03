@@ -17,6 +17,8 @@ const uploadRoute_1 = __importDefault(require("../routes/uploadRoute"));
 // @ts-ignore
 const driverRoute_1 = __importDefault(require("../routes/driverRoute"));
 // @ts-ignore
+const notificationRoute_1 = __importDefault(require("../routes/notificationRoute"));
+// @ts-ignore
 const contactRoute_1 = __importDefault(require("../routes/contactRoute"));
 const app = (0, express_1.default)();
 app.options("*", (0, cors_1.default)({
@@ -67,3 +69,4 @@ app.use("/api/timesheets", timesheetRoute_1.default);
 app.use("/api/timesheet", timesheetRoute_1.default);
 app.use("/api/uploads", uploadRoute_1.default);
 app.use("/api/contacts", contactRoute_1.default);
+app.use("/api/notifications", notificationRoute_1.default);

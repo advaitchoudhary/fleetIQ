@@ -70,90 +70,93 @@ const Profile: React.FC = () => {
           </div>
         </div>
 
-        {/* Driver Details */}
-        <div style={styles.driverDetails}>
-          <h3 style={styles.sectionTitle}>🚗 Driver Details</h3>
-          <p>
-            <strong>Email:</strong> {driver.email}
-          </p>
-          <p>
-            <strong>Contact:</strong> {driver.contact}
-          </p>
-          <p>
-            <strong>HST/GST:</strong> {driver.hst_gst || "N/A"}
-          </p>
-          <p>
-            <strong>Business Name:</strong> {driver.business_name || "N/A"}
-          </p>
-          <p>
-            <strong>Backhaul Rate:</strong> ${driver.backhaulRate || "N/A"}
-          </p>
-          <p>
-            <strong>Combo Rate:</strong> ${driver.comboRate || "N/A"}
-          </p>
-          <p>
-            <strong>Extra Sheet/E.W Rate:</strong> $
-            {driver.extraSheetEWRate || "N/A"}
-          </p>
-          <p>
-            <strong>Regular/Banner Rate:</strong> $
-            {driver.regularBannerRate || "N/A"}
-          </p>
-          <p>
-            <strong>Wholesale Rate:</strong> ${driver.wholesaleRate || "N/A"}
-          </p>
-        </div>
-
-        {/* Direct Deposit Details */}
-        <div style={styles.statusSection}>
-          <h3 style={styles.sectionTitle}>💳 Direct Deposit Details</h3>
-          {driver.bankDetails ? (
-            <>
-              <p><strong>Bank Name:</strong> {driver.bankDetails.bankName || "N/A"}</p>
-              <p><strong>Account Number:</strong> {driver.bankDetails.accountNumber || "N/A"}</p>
-              <p><strong>Transit Number:</strong> {driver.bankDetails.transitNumber || "N/A"}</p>
-              <p><strong>Institution Number:</strong> {driver.bankDetails.institutionNumber || "N/A"}</p>
-            </>
-          ) : (
-            <p>No Direct Deposit details available.</p>
-          )}
-        </div>
-
-        {/* License Details */}
-        <div style={styles.licenseSection}>
-          <h3 style={styles.sectionTitle}>🚘 License Details</h3>
-          <p>
-            <strong>Licence No.:</strong> {driver.licence || "N/A"}
-          </p>
-          <p>
-            <strong>Licence Expiry Date:</strong>{" "}
-            {driver.licence_expiry_date || "N/A"}
-          </p>
-        </div>
-
-        {/* Status */}
-        <div style={styles.statusSection}>
-          <h3 style={styles.sectionTitle}>📌 Status</h3>
-          <p>
-            <strong>Current Status:</strong> {driver.status || "N/A"}
-          </p>
-          <p>
-            <strong>Work Status:</strong> {driver.workStatus || "N/A"}
-          </p>
-        </div>
-
-        {/* Trainings Section */}
-        <div style={styles.trainingsSection}>
-          <h3 style={styles.sectionTitle}>📚 Trainings</h3>
-          <p>
-            {driver.trainings ? driver.trainings : "No Trainings Available"}
-          </p>
-          <button
-            style={styles.seeAllButton}
-            onClick={() => setShowTrainingsModal(true)}
-          >
-            See All
-          </button>
+        {/* Grouped Sections in Flex Layout */}
+        <div style={styles.sectionsWrapper}>
+          <div style={styles.leftColumn}>
+            {/* Driver Details */}
+            <div style={styles.driverDetails}>
+              <h3 style={styles.sectionTitle}>🚗 Driver Details</h3>
+              <p>
+                <strong>Email:</strong> {driver.email}
+              </p>
+              <p>
+                <strong>Contact:</strong> {driver.contact}
+              </p>
+              <p>
+                <strong>HST/GST:</strong> {driver.hst_gst || "N/A"}
+              </p>
+              <p>
+                <strong>Business Name:</strong> {driver.business_name || "N/A"}
+              </p>
+              <p>
+                <strong>Backhaul Rate:</strong> ${driver.backhaulRate || "N/A"}
+              </p>
+              <p>
+                <strong>Combo Rate:</strong> ${driver.comboRate || "N/A"}
+              </p>
+              <p>
+                <strong>Extra Sheet/E.W Rate:</strong> $
+                {driver.extraSheetEWRate || "N/A"}
+              </p>
+              <p>
+                <strong>Regular/Banner Rate:</strong> $
+                {driver.regularBannerRate || "N/A"}
+              </p>
+              <p>
+                <strong>Wholesale Rate:</strong> ${driver.wholesaleRate || "N/A"}
+              </p>
+            </div>
+            {/* Status */}
+            <div style={styles.statusSection}>
+              <h3 style={styles.sectionTitle}>📌 Status</h3>
+              <p>
+                <strong>Current Status:</strong> {driver.status || "N/A"}
+              </p>
+              <p>
+                <strong>Work Status:</strong> {driver.workStatus || "N/A"}
+              </p>
+            </div>
+          </div>
+          <div style={styles.rightColumn}>
+            {/* License Details */}
+            <div style={styles.licenseSection}>
+              <h3 style={styles.sectionTitle}>🚘 License Details</h3>
+              <p>
+                <strong>Licence No.:</strong> {driver.licence || "N/A"}
+              </p>
+              <p>
+                <strong>Licence Expiry Date:</strong>{" "}
+                {driver.licence_expiry_date || "N/A"}
+              </p>
+            </div>
+            {/* Trainings Section */}
+            <div style={styles.trainingsSection}>
+              <h3 style={styles.sectionTitle}>📚 Trainings</h3>
+              <p>
+                {driver.trainings ? driver.trainings : "No Trainings Available"}
+              </p>
+              <button
+                style={styles.seeAllButton}
+                onClick={() => setShowTrainingsModal(true)}
+              >
+                See All
+              </button>
+            </div>
+            {/* Direct Deposit Details */}
+            <div style={styles.statusSection}>
+              <h3 style={styles.sectionTitle}>💳 Direct Deposit Details</h3>
+              {driver.bankDetails ? (
+                <>
+                  <p><strong>Bank Name:</strong> {driver.bankDetails.bankName || "N/A"}</p>
+                  <p><strong>Account Number:</strong> {driver.bankDetails.accountNumber || "N/A"}</p>
+                  <p><strong>Transit Number:</strong> {driver.bankDetails.transitNumber || "N/A"}</p>
+                  <p><strong>Institution Number:</strong> {driver.bankDetails.institutionNumber || "N/A"}</p>
+                </>
+              ) : (
+                <p>No Direct Deposit details available.</p>
+              )}
+            </div>
+          </div>
         </div>
 
         <div style={styles.timesheetsSection}>
@@ -296,6 +299,26 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: "10px",
     boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
     fontFamily: "'Arial', sans-serif",
+  },
+  sectionsWrapper: {
+    display: "flex",
+    gap: "20px",
+    marginBottom: "20px",
+    flexWrap: "wrap",
+  },
+  leftColumn: {
+    flex: 1,
+    minWidth: "300px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "20px",
+  },
+  rightColumn: {
+    flex: 1,
+    minWidth: "300px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "20px",
   },
   profileHeader: {
     display: "flex",
@@ -442,15 +465,23 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: "50px",
   },
   th: {
-    backgroundColor: "#007bff",
-    color: "white",
-    padding: "10px",
-    textAlign: "left" as const,
+    borderBottom: "1px solid #e2e8f0",
+    padding: "14px 16px",
+    fontSize: "13px",
+    fontWeight: 600,
+    textAlign: "left",
+    backgroundColor: "#f3f4f6",
+    color: "#1f2937",
+    wordBreak: "break-word",
+    whiteSpace: "wrap",
   },
   td: {
-    padding: "10px",
-    borderBottom: "1px solid #ccc",
+    borderBottom: "1px solid #e2e8f0",
+    padding: "8px 8px",
     fontSize: "14px",
+    textAlign: "left",
+    backgroundColor: "#ffffff",
+    wordBreak: "break-word",
   },
 };
 

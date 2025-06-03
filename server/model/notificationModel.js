@@ -9,9 +9,8 @@ const notificationSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  type: {
+  field: {
     type: String,
-    enum: ["info", "bank", "system"], // Add more types as needed
     required: true,
   },
   read: {

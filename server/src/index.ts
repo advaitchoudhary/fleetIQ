@@ -13,6 +13,8 @@ import uploadRoutes from "../routes/uploadRoute";
 import driverRoute from "../routes/driverRoute";
 // @ts-ignore
 import contactRoutes from "../routes/contactRoute";
+// @ts-ignore
+import notificationRoutes from "../routes/notificationRoute.js";
 
 
 const app = express();
@@ -67,3 +69,4 @@ app.use("/api/timesheets", timesheetRoutes);
 app.use("/api/timesheet", timesheetRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/contacts", contactRoutes);
+app.use("/api/notifications", notificationRoutes);

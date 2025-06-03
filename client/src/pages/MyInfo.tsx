@@ -250,10 +250,19 @@ const MyInfo: React.FC = () => {
                     formData
                   );
                   setDriver(res.data);
+
+                  // Detect changed fields, excluding auto-updated fields
+                  const excludedKeys = ["updatedAt", "bankDetails", "trainings", "__v", "_id"];
+                  const changedFields = Object.keys(formData).filter(
+                    (key) =>
+                      !excludedKeys.includes(key) &&
+                      formData[key] !== driver[key]
+                  );
+
                   await axios.post(`${API_BASE_URL}/notifications`, {
-                    message: `${driver.name} updated personal details.`,
+                    message: `${driver.name} updated ${changedFields.join(", ")} details`,
                     email: driver.email,
-                    type: "info",
+                    field: changedFields.join(", ") || "Unknown",
                   });
                   setIsEditing(false);
                 } catch (err) {
@@ -336,11 +345,17 @@ const MyInfo: React.FC = () => {
                       }
                     );
                     setDriver(res.data);
-                    await axios.post(`${API_BASE_URL}/notifications`, {
-                      message: `${driver.name} added direct deposit details.`,
-                      email: driver.email,
-                      type: "bank",
-                    });
+                    const changedBankFields = (Object.keys(bankDetails) as (keyof typeof bankDetails)[]).filter(
+                      (key) => bankDetails[key] !== driver.bankDetails?.[key]
+                    );
+                    
+                    if (changedBankFields.length > 0) {
+                      await axios.post(`${API_BASE_URL}/notifications`, {
+                        message: `${driver.name} updated ${changedBankFields.join(", ")} in direct deposit details.`,
+                        email: driver.email,
+                        field: changedBankFields.join(", "),
+                      });
+                    }
                     setShowBankForm(false);
                   } catch (err) {
                     console.error("Error saving bank details:", err);
