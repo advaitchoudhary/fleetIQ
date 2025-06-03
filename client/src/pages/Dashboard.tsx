@@ -68,7 +68,7 @@ const Timesheet: React.FC = () => {
   const [timesheet, setTimesheet] = useState<TimesheetType>(() => getEmptyTimesheet(""));
   const [errors, setErrors] = useState<Partial<Record<keyof TimesheetType, string>>>({});
   const [loading, setLoading] = useState(false);
-  const categoryOptions = ["Backhaul", "Combo", "Extra Sheet/E.W", "Regular/Banner", "Wholesale"];
+  const categoryOptions = ["Backhaul", "Combo", "Extra Sheet/E.W", "Regular/Banner", "Wholesale", "Wholesale DZ"];
   const customerOptions = ["Sobeys Capital Inc."];
 
   useEffect(() => {

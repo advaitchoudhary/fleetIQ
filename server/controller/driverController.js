@@ -33,10 +33,14 @@ const getDriverById = asyncHandler(async (req, res) => {
 });
 
 const updateDriverById = asyncHandler(async (req, res) => {
-  const updatedDriver = await Driver.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true
-  });
+  const updatedDriver = await Driver.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
 
   if (!updatedDriver) {
     res.status(404).json({ message: "Driver not found" });
@@ -54,10 +58,11 @@ const deleteDriverById = asyncHandler(async (req, res) => {
   res.json({ message: "Driver deleted successfully" });
 });
 
+
 module.exports = {
   create,
   getAllDrivers,
   getDriverById,
   updateDriverById,
-  deleteDriverById
+  deleteDriverById,
 };

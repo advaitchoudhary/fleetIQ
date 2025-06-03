@@ -27,6 +27,11 @@ npm install --save-dev typescript
 
 npm run build
 
+ pm2 start dist/index.js --name fleet-api
+ pm2 save
+ pm2 startup
+ pm2 ls
+
 pm2 restart fleet-api
 
 cd /var/www/fleet-management
