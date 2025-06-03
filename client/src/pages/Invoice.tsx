@@ -190,17 +190,7 @@ const Invoice: React.FC = () => {
 
   useEffect(() => {
     if (timesheets.length > 0) {
-      const subtotals = timesheets.map(timesheet => {
-        const { startKM, endKM, category } = timesheet;
-        const rate = categoryRates[category] || 0; // Ensure there's a fallback rate
-        const distance = endKM - startKM;
-        const subtotal = distance * rate;
-        return {
-          ...timesheet,
-          subtotal: subtotal.toFixed(2) // Format subtotal for consistency
-        };
-      });
-  
+      // Placeholder: Timesheets are present
     }
   }, [timesheets, categoryRates]); // Recalculate whenever timesheets or rates change
   
