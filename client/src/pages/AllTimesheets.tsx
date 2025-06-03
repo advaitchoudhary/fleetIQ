@@ -167,7 +167,7 @@ const AllTimesheets: React.FC = () => {
       if (endDate < startDate) {
         endDate.setDate(endDate.getDate() + 1);
       }
-      const totalHours = isNaN(endDate.getTime() - startDate.getTime())
+      isNaN(endDate.getTime() - startDate.getTime())
         ? "N/A"
         : `${((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)).toFixed(2)} hrs`;
 
@@ -437,7 +437,6 @@ const AllTimesheets: React.FC = () => {
       <Navbar />
       <div style={styles.container}>
         <h1>All Timesheets</h1>
-        <p>View and manage all uploaded timesheets here.</p>
         <div style={{ ...styles.filterBar, flexWrap: "wrap", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center" }}>
             <div style={{ ...styles.searchWrapper, position: "relative" }}>
@@ -636,7 +635,12 @@ const styles = {
     display: "flex",
     justifyContent: "center",
     marginTop: "20px",
-  },
+    borderRadius: "8px",
+    boxShadow: "0 2px 12px rgba(0, 0, 0, 0.05)",
+    backgroundColor: "#fff",
+    padding: "10px",
+    overflowX: "auto",
+  } as React.CSSProperties,
   table: {
     width: "100%",
     maxWidth: "1400px",
