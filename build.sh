@@ -1,4 +1,5 @@
 #!/bin/bash
+
 cd /var/www/fleet-management
 
 git reset --hard
