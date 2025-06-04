@@ -19,36 +19,27 @@ import notificationRoutes from "../routes/notificationRoute.js";
 
 const app = express();
 
-app.options("*", cors({
-    origin: (origin, callback) => {
-      const allowedOrigins = ['http://3.145.147.181', 'http://localhost:5173'];
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true
-}));
+const allowedOrigins = ['http://3.145.161.98', 'http://localhost:5173'];
 
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+};
+
+app.options("*", cors(corsOptions));
 app.use("/uploads", express.static("uploads"));
-app.use(cors({
-    origin: (origin, callback) => {
-      const allowedOrigins = ['http://3.145.147.181', 'http://localhost:5173'];
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true
-  }));
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 dotenv.config();
+
 
 const PORT = process.env.PORT || 7000;
 const MONGOURL = process.env.MONGO_URL as string;
