@@ -10,7 +10,7 @@ const Enquiries: React.FC = () => {
   useEffect(() => {
     const fetchEnquiries = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/contact`);
+        const response = await axios.get(`${API_BASE_URL}/contacts`);
         setEnquiries(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
         console.error("Error fetching enquiries:", error);

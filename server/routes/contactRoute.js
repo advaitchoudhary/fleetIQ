@@ -3,7 +3,7 @@ const { submitContactForm, getAllContacts } = require("../controller/contactCont
 
 const router = express.Router();
 
-router.post("/contact", submitContactForm);
-router.get("/contact", getAllContacts);
+router.get("/", getAllContacts);
+router.post("/", submitContactForm);
 
 module.exports = router;
