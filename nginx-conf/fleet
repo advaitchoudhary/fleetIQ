@@ -1,6 +1,6 @@
 server {
     listen 80;
-server_name 3.13.233.198 premierchoiceemployment.com www.premierchoiceemployment.com;
+server_name 3.13.233.198 premierchoicemployment.com www.premierchoicemployment.com;
     location /api/ {
         proxy_pass http://localhost:8000;
         proxy_set_header Host $host;
