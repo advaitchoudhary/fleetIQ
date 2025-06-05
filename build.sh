@@ -27,7 +27,9 @@ npm install --save-dev typescript
 
 npm run build
 
+ pm2 delete fleet-api
  pm2 start dist/index.js --name fleet-api
+
  pm2 save
  pm2 startup
  pm2 ls
