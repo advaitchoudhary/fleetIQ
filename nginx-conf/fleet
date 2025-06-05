@@ -1,7 +1,6 @@
 server {
     listen 80;
-    server_name 3.13.233.198;
-
+server_name 3.13.233.198 premierchoiceemployment.com www.premierchoiceemployment.com;
     location /api/ {
         proxy_pass http://localhost:8000;
         proxy_set_header Host $host;
@@ -16,7 +15,7 @@ server {
         add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range';
     }
 
-    # ✅ ADD THIS BLOCK
+
     location /uploads/ {
         proxy_pass http://localhost:8000/uploads/;
         proxy_set_header Host $host;

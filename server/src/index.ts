@@ -21,7 +21,13 @@ const app = express();
 
 app.options("*", cors({
     origin: (origin, callback) => {
-      const allowedOrigins = ['http://3.13.233.198', 'http://localhost:5173'];
+       const allowedOrigins = [
+          'http://3.13.233.198',
+          'http://localhost:5173',
+          'http://premierchoicemployment.com',
+          'https://premierchoicemployment.com',
+          'https://www.premierchoicemployment.com'
+    ];
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -36,7 +42,13 @@ app.options("*", cors({
 app.use("/uploads", express.static("uploads"));
 app.use(cors({
     origin: (origin, callback) => {
-      const allowedOrigins = ['http://3.13.233.198', 'http://localhost:5173'];
+       const allowedOrigins = [
+          'http://3.13.233.198',
+          'http://localhost:5173',
+          'http://premierchoicemployment.com',
+          'https://premierchoicemployment.com',
+          'https://www.premierchoicemployment.com'
+    ];
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
