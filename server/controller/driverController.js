@@ -58,6 +58,15 @@ const deleteDriverById = asyncHandler(async (req, res) => {
   res.json({ message: "Driver deleted successfully" });
 });
 
+const checkUsername = asyncHandler(async (req, res) => {
+  const { username } = req.query;
+  if (!username) {
+    return res.status(400).json({ message: "Username query parameter is required" });
+  }
+  const userExists = await Driver.exists({ username: username.trim() });
+  res.json({ exists: !!userExists });
+});
+
 
 module.exports = {
   create,
@@ -65,4 +74,5 @@ module.exports = {
   getDriverById,
   updateDriverById,
   deleteDriverById,
+  checkUsername
 };

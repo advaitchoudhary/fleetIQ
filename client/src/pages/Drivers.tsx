@@ -14,15 +14,25 @@ import { API_BASE_URL } from "../utils/env";
 const Drivers: React.FC = () => {
   const navigate = useNavigate();
 
-  const generateUsername = () => {
-    return "driver" + Math.floor(Math.random() * 10000); // Example: driver1234
-  };
 
   const generatePassword = () => {
     return Math.random().toString(36).slice(-8); // Example: "aB3dE9fG"
   };
 
   const [data, setData] = useState<any[]>([]);
+  const [usernameError, setUsernameError] = useState("");
+  const checkUsernameExists = async (username: string) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/drivers/check?username=${username}`);
+      if (response.data.exists) {
+        setUsernameError("Username already exists.");
+      } else {
+        setUsernameError("");
+      }
+    } catch (err) {
+      console.error("Failed to check username:", err);
+    }
+  };
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -42,7 +52,7 @@ const Drivers: React.FC = () => {
     licence_expiry_date: "",
     status: "Active",
     trainings: "",
-    username: generateUsername(),
+    username: "",
     password: generatePassword(),
     sinNo: "",
     workStatus: ""
@@ -531,10 +541,20 @@ const Drivers: React.FC = () => {
               <label style={styles.label}>Username:</label>
               <input
                 type="text"
+                placeholder="Enter username"
                 value={selectedDriver.username}
-                readOnly
-                style={{ ...styles.input, backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
+                style={styles.input}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setSelectedDriver({ ...selectedDriver, username: value });
+                  checkUsernameExists(value.trim());
+                }}
               />
+              {usernameError && (
+                <div style={{ color: "red", fontSize: "0.85rem", marginTop: "4px" }}>
+                  {usernameError}
+                </div>
+              )}
             </div>
 
             {/* Password */}
@@ -561,6 +581,10 @@ const Drivers: React.FC = () => {
               <button
                 style={styles.addButton}
                 onClick={() => {
+                  if (usernameError) {
+                    alert("Please resolve username error before submitting.");
+                    return;
+                  }
                   if (!selectedDriver.sinNo?.trim()) {
                     alert("Sin No. is required.");
                     return;
