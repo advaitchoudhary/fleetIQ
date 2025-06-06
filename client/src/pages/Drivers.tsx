@@ -564,8 +564,9 @@ const Drivers: React.FC = () => {
                 <input
                   type="text"
                   value={selectedDriver.password}
-                  readOnly
+                  placeholder="Enter password"
                   style={styles.input}
+                  onChange={(e) => setSelectedDriver({ ...selectedDriver, password: e.target.value })}
                 />
                 <button 
                   style={styles.clipboardButton} 
