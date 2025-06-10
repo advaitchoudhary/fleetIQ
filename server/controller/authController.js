@@ -40,7 +40,26 @@ const login = async (req, res) => {
         if (!user) {
             return res.status(400).json({ error: "Invalid email or password" });
         }
-        const isMatch = await bcrypt.compare(password, user.password);
+
+        let isMatch = false;
+        try {
+            // First try bcrypt compare
+            isMatch = await bcrypt.compare(password, user.password);
+        } catch (err) {
+            console.error("Error comparing password:", err);
+        }
+
+        // Fallback for plain text passwords
+        if (!isMatch && user.password === password) {
+            console.warn("Fallback matched plain text password for user:", user.email);
+
+            // Re-hash password and save
+            user.password = await bcrypt.hash(password, 10);
+            await user.save();
+
+            isMatch = true;
+        }
+
         if (!isMatch) {
             return res.status(400).json({ error: "Invalid email or password" });
         }
