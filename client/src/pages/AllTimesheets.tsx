@@ -25,6 +25,8 @@ const AllTimesheets: React.FC = () => {
   const [rangeStart, setRangeStart] = useState<string>("");
   const [rangeEnd, setRangeEnd] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [selectedUser, setSelectedUser] = useState<string>("All");
+  const [users, setUsers] = useState<any[]>([]);
 
   useEffect(() => {
     fetchTimesheets();
@@ -44,6 +46,28 @@ const AllTimesheets: React.FC = () => {
     exportTimesheets();
   };
 
+  const handleDeleteFilteredTimesheets = async () => {
+    if (filteredData.length === 0) {
+      alert("No timesheets available to delete.");
+      return;
+    }
+
+    if (!window.confirm(`Are you sure you want to delete ${filteredData.length} timesheets? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      for (const ts of filteredData) {
+        await axios.delete(`${API_BASE_URL}/timesheet/${ts._id}`);
+      }
+      fetchTimesheets();
+      alert("Selected timesheets deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting timesheets:", error);
+      alert("Failed to delete selected timesheets.");
+    }
+  };
+
   const normalizeDate = (date: Date) =>
     new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
@@ -51,6 +75,10 @@ const AllTimesheets: React.FC = () => {
     let result;
     if (selectedFilter === "All") {
       result = data;
+      // Filter by selectedUser before searchQuery
+      if (selectedUser !== "All") {
+        result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
+      }
       // filtering by searchQuery
       if (searchQuery.trim()) {
         result = result.filter(ts =>
@@ -69,6 +97,9 @@ const AllTimesheets: React.FC = () => {
         const tsDate = normalizeDate(new Date(ts.date));
         return tsDate.getTime() === normalizeDate(now).getTime();
       });
+      if (selectedUser !== "All") {
+        result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
+      }
       if (searchQuery.trim()) {
         result = result.filter(ts =>
           Object.values(ts).some(val =>
@@ -89,6 +120,9 @@ const AllTimesheets: React.FC = () => {
         const tsDate = normalizeDate(new Date(ts.date));
         return tsDate >= startOfWeek && tsDate <= endOfWeek;
       });
+      if (selectedUser !== "All") {
+        result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
+      }
       if (searchQuery.trim()) {
         result = result.filter(ts =>
           Object.values(ts).some(val =>
@@ -107,6 +141,9 @@ const AllTimesheets: React.FC = () => {
           tsDate.getFullYear() === now.getFullYear()
         );
       });
+      if (selectedUser !== "All") {
+        result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
+      }
       if (searchQuery.trim()) {
         result = result.filter(ts =>
           Object.values(ts).some(val =>
@@ -125,6 +162,9 @@ const AllTimesheets: React.FC = () => {
         const tsDate = new Date(ts.date);
         return tsDate >= start && tsDate <= end;
       });
+      if (selectedUser !== "All") {
+        result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
+      }
       if (searchQuery.trim()) {
         result = result.filter(ts =>
           Object.values(ts).some(val =>
@@ -136,6 +176,9 @@ const AllTimesheets: React.FC = () => {
     }
 
     result = data;
+    if (selectedUser !== "All") {
+      result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
+    }
     if (searchQuery.trim()) {
       result = result.filter(ts =>
         Object.values(ts).some(val =>
@@ -144,7 +187,7 @@ const AllTimesheets: React.FC = () => {
       );
     }
     return result;
-  }, [data, selectedFilter, rangeStart, rangeEnd, searchQuery]);
+  }, [data, selectedFilter, rangeStart, rangeEnd, searchQuery, selectedUser]);
   
   const exportTimesheets = () => {
     setShowExportOptions(false);
@@ -208,6 +251,7 @@ const AllTimesheets: React.FC = () => {
   useEffect(() => {
     fetchTimesheets();
     fetchCategoryRates();
+    fetchUsers();
 
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -215,6 +259,15 @@ const AllTimesheets: React.FC = () => {
       setUserRole(user.role);
     }
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/drivers`);
+      setUsers(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch users", error);
+    }
+  };
 
   const fetchCategoryRates = async () => {
     try {
@@ -240,7 +293,6 @@ const AllTimesheets: React.FC = () => {
   const fetchTimesheets = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/timesheets`);
-      console.log("Fetched timesheets:", response.data);
       setData(response.data);
     } catch (error) {
       console.error("Error fetching timesheets:", error);
@@ -306,7 +358,9 @@ const AllTimesheets: React.FC = () => {
       ),
     },
     { accessorKey: "driver", header: "Driver" },
-    { accessorKey: "customer", header: "Customer" },
+    // { accessorKey: "customer", header: "Customer" },
+    { accessorKey: "loadID", header: "Load ID" },
+    { accessorKey: "tripNumber", header: "Route No." },
     {
       accessorKey: "date",
       header: "Date/Time",
@@ -452,6 +506,15 @@ const AllTimesheets: React.FC = () => {
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
             <div style={styles.filterGroup}>
+              <label>User:</label>
+              <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)} style={styles.selectInput}>
+                <option value="All">All Users</option>
+                {users.map((driver: any) => (
+                  <option key={driver._id} value={driver.email}>{driver.name} ({driver.username})</option>
+                ))}
+              </select>
+            </div>
+            <div style={styles.filterGroup}>
               <label>Filter:</label>
               <select value={selectedFilter} onChange={e => setSelectedFilter(e.target.value)} style={styles.selectInput}>
                 <option value="All">All</option>
@@ -471,6 +534,9 @@ const AllTimesheets: React.FC = () => {
             </div>
             <button onClick={handleExport} style={styles.exportButton}>
               Export Timesheet 📤
+            </button>
+            <button onClick={handleDeleteFilteredTimesheets} style={styles.rejectButton}>
+              Delete Timesheet 🗑️
             </button>
           </div>
         </div>

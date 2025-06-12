@@ -1,8 +1,7 @@
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
 const protect = (req, res, next) => {
+  const JWT_SECRET = process.env.JWT_SECRET;
   const token = req.header("Authorization")?.split(" ")[1];
 
   if (!token) {
@@ -14,6 +13,7 @@ const protect = (req, res, next) => {
     req.user = decoded;
     next();
   } catch (error) {
+    console.error("JWT verification failed in protect:", error);
     res.status(401).json({ message: "Invalid token" });
   }
 };

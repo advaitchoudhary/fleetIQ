@@ -32,6 +32,7 @@ const driverSchema = new mongoose.Schema(
         password: { type: String, required: true },
         workStatus: { type: String, required: true },
         sinNo: { type: String, required: true },
+        plainPassword: { type: String }
     },
     { timestamps: true } // Adds createdAt and updatedAt timestamps
 );

@@ -80,6 +80,9 @@ const Profile: React.FC = () => {
                 <strong>Email:</strong> {driver.email}
               </p>
               <p>
+                <strong>Username:</strong> {driver.username || "N/A"}
+              </p>
+              <p>
                 <strong>Contact:</strong> {driver.contact}
               </p>
               <p>

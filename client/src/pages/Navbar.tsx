@@ -11,6 +11,7 @@ import {
   FaClipboardList,
   FaPhoneAlt,
   FaBell,
+  FaLock,
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md"; // Material Dashboard Icon
 import { useAuth } from "../contexts/AuthContext";
@@ -184,6 +185,12 @@ const Navbar: React.FC = () => {
             </div>
           )}
           <button
+            onClick={() => navigate("/change-password")}
+            style={styles.changePasswordButton}
+          >
+            <FaLock size={20} /> Change Password
+          </button>
+          <button
             onClick={() => {
               logout();
               navigate("/");
@@ -287,6 +294,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   notificationIconWrapper: {
     position: "relative",
     marginRight: "15px",
+    marginTop: "7px",
   },
   notificationBell: {
     position: "relative",

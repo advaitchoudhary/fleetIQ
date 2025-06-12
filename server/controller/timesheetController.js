@@ -15,10 +15,6 @@ const parseNumber = (value) => {
 // **1. Create a New Timesheet**
 const createTimesheet = async (req, res) => {
   try {
-    console.log("Incoming Timesheet Body:", req.body);
-    console.log("Incoming Timesheet Files:", req.files);
-    console.log("✅ req.files is:", req.files);
-    
     const attachmentPaths = req.files?.map?.(file => file.path) || [];
 
     const timesheetData = {
@@ -51,12 +47,10 @@ const createTimesheet = async (req, res) => {
       attachments: attachmentPaths,
     };
 
-    console.log("✅ Timesheet Data ready for saving:", timesheetData);
-
     // Example in your controller
     const user = await User.findOne({ email: req.body.driver });
     const driverName = user ? `${user.firstName} ${user.lastName}` : "";
-    
+
     const newTimesheet = new Timesheet({
       ...timesheetData,
       driverName
@@ -77,7 +71,7 @@ const getAllTimesheets = async (req, res) => {
     const emailToNameMap = new Map(
       drivers.map(driver => [driver.email, `${driver.firstName} ${driver.lastName}`])
     );
-    
+
     const timesheetsWithNames = timesheets.map(t => ({
       ...t,
       driverName: emailToNameMap.get(t.driver) || "Unknown"
@@ -138,6 +132,16 @@ const deleteTimesheetById = async (req, res) => {
 
     if (!deletedTimesheet) {
       return res.status(404).json({ message: "Timesheet not found" });
+    }
+
+    if (deletedTimesheet.attachments && deletedTimesheet.attachments.length > 0) {
+      deletedTimesheet.attachments.forEach(filePath => {
+        try {
+          fs.unlinkSync(filePath);
+        } catch (err) {
+          console.error(`Failed to delete attachment at ${filePath}:`, err.message);
+        }
+      });
     }
 
     res.status(200).json({ message: "Timesheet deleted successfully" });

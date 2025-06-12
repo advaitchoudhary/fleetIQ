@@ -370,8 +370,8 @@ const styles = {
     display: "flex",
     flexDirection: "column" as const,
     minHeight: "100vh",
-    backgroundColor: "#f7f9fc",
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    backgroundColor: "#f4f6f8",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   mainContent: {
     margin: "30px auto",
@@ -411,7 +411,7 @@ const styles = {
     padding: "6px 0",
   },
   submitButton: {
-    backgroundColor: "#3182ce",
+    backgroundColor: "#4F46E5",
     color: "#fff",
     fontSize: "1rem",
     padding: "12px",

@@ -49,17 +49,6 @@ const login = async (req, res) => {
             console.error("Error comparing password:", err);
         }
 
-        // Fallback for plain text passwords
-        if (!isMatch && user.password === password) {
-            console.warn("Fallback matched plain text password for user:", user.email);
-
-            // Re-hash password and save
-            user.password = await bcrypt.hash(password, 10);
-            await user.save();
-
-            isMatch = true;
-        }
-
         if (!isMatch) {
             return res.status(400).json({ error: "Invalid email or password" });
         }
@@ -87,7 +76,7 @@ const logout = (req, res) => {
 const changePassword = async (req, res) => {
     try {
         console.log("Received Headers:", req.headers); // Debug: Log all headers
-        const token = req.header("Authorization").split(" ")[1]; 
+        const token = req.header("Authorization").split(" ")[1];
         console.log("Extracted Token:", token); // Debug: Log extracted token
 
         if (!token) return res.status(401).json({ error: "Unauthorized access - No token provided" });
@@ -100,10 +89,7 @@ const changePassword = async (req, res) => {
 
         const { oldPassword, newPassword } = req.body;
 
-        const isMatch = await bcrypt.compare(oldPassword, user.password);
-        if (!isMatch) return res.status(400).json({ error: "Old password is incorrect" });
-
-        user.password = await bcrypt.hash(newPassword, 10);
+        user.password = newPassword;
         await user.save();
 
         res.json({ message: "Password changed successfully" });
@@ -136,4 +122,4 @@ module.exports = {
     login,
     getUserProfile,
     changePassword
-  };
+};
