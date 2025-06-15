@@ -70,6 +70,8 @@ const Timesheet: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const categoryOptions = ["Backhaul", "Combo", "Extra Sheet/E.W", "Regular/Banner", "Wholesale", "Wholesale DZ"];
   const customerOptions = ["Sobeys Capital Inc."];
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessagesList, setErrorMessagesList] = useState<string[]>([]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -164,6 +166,8 @@ const Timesheet: React.FC = () => {
     if (Object.keys(validationErrors).length > 0) {
       console.warn("🟠 Validation errors found:", validationErrors);
       setErrors(validationErrors);
+      setErrorMessagesList(Object.values(validationErrors));
+      setShowErrorModal(true);
       setLoading(false);
       return;
     }
@@ -361,6 +365,21 @@ const Timesheet: React.FC = () => {
           </button>
         </form>
       </div>
+      {showErrorModal && (
+        <div style={{ ...styles.modalBackdrop, position: 'fixed' }}>
+          <div style={styles.modalContent}>
+            <h3>Validation Errors</h3>
+            <ul>
+              {errorMessagesList.map((msg, index) => (
+                <li key={index} style={{ color: "red" }}>{msg}</li>
+              ))}
+            </ul>
+            <button onClick={() => setShowErrorModal(false)} style={styles.modalCloseBtn}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -425,6 +444,35 @@ const styles = {
     fontSize: "0.875rem",
     marginTop: "5px",
     display: "block",
+  },
+  modalBackdrop: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    padding: "20px",
+    borderRadius: "8px",
+    width: "80%",
+    maxWidth: "500px",
+    boxShadow: "0 0 10px rgba(0,0,0,0.3)",
+  },
+  modalCloseBtn: {
+    marginTop: "15px",
+    padding: "10px 20px",
+    backgroundColor: "#4F46E5",
+    color: "#fff",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
   },
 };
 

@@ -1,3 +1,4 @@
+const Driver = require("../model/driverModel.js");
 const User = require("../model/userModel.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -34,37 +35,50 @@ const register = async (req, res) => {
 
 // Login user
 const login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(400).json({ error: "Invalid email or password" });
-        }
+  try {
+    const { email, password } = req.body;
+    console.log("🟡 Incoming login request with email:", email);
 
-        let isMatch = false;
-        try {
-            // First try bcrypt compare
-            isMatch = await bcrypt.compare(password, user.password);
-        } catch (err) {
-            console.error("Error comparing password:", err);
-        }
-
-        if (!isMatch) {
-            return res.status(400).json({ error: "Invalid email or password" });
-        }
-        const token = jwt.sign(
-            { id: user._id, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: "1h" }
-        );
-        res.json({
-            message: "Login successful",
-            token,
-            user: { name: user.name, email: user.email, role: user.role }
-        });
-    } catch (error) {
-        res.status(500).json({ error: "Server error" });
+    // ❌ Prevent drivers from logging in here
+    const driverExists = await Driver.findOne({ email });
+    if (driverExists) {
+      console.log("❌ Driver found with this email, access denied.");
+      return res.status(403).json({ error: "Access denied. Driver account detected." });
     }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log("❌ No user found with this email.");
+      return res.status(400).json({ error: "Invalid email or password" });
+    }
+
+    console.log("✅ User found:", user.email, "with role:", user.role);
+
+    if (user.role !== "admin") {
+      return res.status(403).json({ error: "Access denied. Not an admin user." });
+    }
+    console.log("🔐 Checking password for user:", user.email);
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Invalid email or password" });
+    }
+    console.log("✅ Password matched. Signing token...");
+
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.json({
+      message: "Login successful",
+      token,
+      user: { name: user.name, email: user.email, role: user.role }
+    });
+  } catch (error) {
+    console.error("🔥 Login Error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
 };
 
 // Logout user

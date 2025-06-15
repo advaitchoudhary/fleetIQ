@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import axios from "axios";
 import {
   ColumnDef,
@@ -27,6 +27,8 @@ const AllTimesheets: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedUser, setSelectedUser] = useState<string>("All");
   const [users, setUsers] = useState<any[]>([]);
+  // const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
   useEffect(() => {
     fetchTimesheets();
@@ -389,26 +391,32 @@ const AllTimesheets: React.FC = () => {
         if (attachments.length === 0) {
           return <span>No Attachments</span>;
         }
+        // Compute the global index of this attachment in all attachments of filteredData
+        // For swiping, we need a flat list of all attachments
+        // Use filteredData.flatMap(ts => ts.attachments || [])
+        // The index in the flat array is the cumulative count up to this row and this index
+        // Find the starting index of this row's first attachment in the flat array
+        let rowStartIndex = 0;
+        for (let i = 0; i < filteredData.length; i++) {
+          if (filteredData[i] === row.original) break;
+          rowStartIndex += (filteredData[i].attachments || []).length;
+        }
         return (
           <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
             {attachments.map((path: string, index: number) => (
-              <a
+              <img
                 key={index}
-                href={`${FILE_BASE_URL}/${path}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <img
-                  src={`${FILE_BASE_URL}/${path}`}
-                  alt={`attachment-${index}`}
-                  style={{
-                    width: "50px",
-                    height: "50px",
-                    objectFit: "cover",
-                    borderRadius: "4px",
-                  }}
-                />
-              </a>
+                src={`${FILE_BASE_URL}/${path}`}
+                alt={`attachment-${index}`}
+                style={{
+                  width: "50px",
+                  height: "50px",
+                  objectFit: "cover",
+                  borderRadius: "4px",
+                  cursor: "pointer"
+                }}
+                onClick={() => setSelectedImageIndex(rowStartIndex + index)}
+              />
             ))}
           </div>
         );
@@ -686,6 +694,14 @@ const AllTimesheets: React.FC = () => {
           </div>
         )}
       </div>
+      {/* Enhanced Image/PDF preview modal */}
+      {selectedImageIndex !== null && (
+        <ImagePreviewModal
+          selectedImageIndex={selectedImageIndex}
+          setSelectedImageIndex={setSelectedImageIndex}
+          filteredData={filteredData}
+        />
+      )}
     </div>
   );
 };
@@ -918,3 +934,256 @@ const statusStyles = {
 };
 
 export default AllTimesheets;
+
+// Image preview modal
+// Place after the main return block
+
+// eslint-disable-next-line
+
+// The modal should be rendered after the main return block, but in React,
+// it should be inside the component's return.
+// So, append it just after the closing </div> of the main return block.
+
+// To achieve this, move the modal JSX outside and after the main <div> in the return.
+// Since this is a single file, we can inject the modal just after the main return's </div>:
+
+// -- PATCHED: Modal JSX for selectedImage preview --
+
+// To ensure this is rendered, add after the main </div> of the return:
+
+// (copy-paste below into the file, after the main </div> in the return)
+
+// But in React, you must return a single element. So, instead, add the modal JSX
+// inside the main return, after everything else, before the final closing </div> of the outermost.
+
+// So, search for the end of the main return, and add:
+
+// {selectedImage && (
+//   <div ...>...</div>
+// )}
+
+// Enhanced Image/PDF Preview Modal Component
+type ImagePreviewModalProps = {
+  selectedImageIndex: number;
+  setSelectedImageIndex: React.Dispatch<React.SetStateAction<number | null>>;
+  filteredData: any[];
+};
+
+const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
+  selectedImageIndex,
+  setSelectedImageIndex,
+  filteredData,
+}) => {
+  // Flat list of all attachments in filteredData
+  const allAttachments: string[] = filteredData.flatMap(ts => ts.attachments || []);
+  const fileUrl = allAttachments[selectedImageIndex]
+    ? `${FILE_BASE_URL}/${allAttachments[selectedImageIndex]}`
+    : "";
+  const isPDF = fileUrl.toLowerCase().endsWith(".pdf");
+  const [zoom, setZoom] = useState(1);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const startX = useRef<number | null>(null);
+  const startY = useRef<number | null>(null);
+  const lastZoom = useRef<number>(1);
+  const lastDistance = useRef<number | null>(null);
+
+  // Reset zoom when file changes
+  React.useEffect(() => {
+    setZoom(1);
+    lastZoom.current = 1;
+  }, [selectedImageIndex]);
+
+  // Handle wheel zoom for images
+  function handleWheel(e: React.WheelEvent<HTMLImageElement>) {
+    e.preventDefault();
+    let newZoom = zoom + (e.deltaY < 0 ? 0.1 : -0.1);
+    newZoom = Math.max(0.3, Math.min(3, newZoom));
+    setZoom(newZoom);
+    lastZoom.current = newZoom;
+  }
+
+  // Handle pinch zoom for images
+  function handleTouchStart(e: React.TouchEvent<HTMLImageElement>) {
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      lastDistance.current = dist;
+    }
+    if (e.touches.length === 1) {
+      startX.current = e.touches[0].clientX;
+      startY.current = e.touches[0].clientY;
+    }
+  }
+  function handleTouchMove(e: React.TouchEvent<HTMLImageElement>) {
+    if (e.touches.length === 2 && lastDistance.current !== null) {
+      const newDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      let scale = newDist / lastDistance.current;
+      let newZoom = lastZoom.current * scale;
+      newZoom = Math.max(0.3, Math.min(3, newZoom));
+      setZoom(newZoom);
+    }
+  }
+  function handleTouchEnd(e: React.TouchEvent<HTMLImageElement>) {
+    if (e.touches.length < 2 && lastDistance.current !== null) {
+      lastZoom.current = zoom;
+      lastDistance.current = null;
+    }
+    // Swipe left/right for navigation
+    if (e.changedTouches.length === 1 && startX.current !== null && startY.current !== null) {
+      const dx = e.changedTouches[0].clientX - startX.current;
+      const dy = e.changedTouches[0].clientY - startY.current;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+        // Horizontal swipe
+        if (dx < 0 && selectedImageIndex < allAttachments.length - 1) {
+          setSelectedImageIndex(selectedImageIndex + 1);
+        }
+        if (dx > 0 && selectedImageIndex > 0) {
+          setSelectedImageIndex(selectedImageIndex - 1);
+        }
+      }
+      startX.current = null;
+      startY.current = null;
+    }
+  }
+
+  // Keyboard navigation
+  React.useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "ArrowLeft" && selectedImageIndex > 0) {
+        setSelectedImageIndex(selectedImageIndex - 1);
+      }
+      if (e.key === "ArrowRight" && selectedImageIndex < allAttachments.length - 1) {
+        setSelectedImageIndex(selectedImageIndex + 1);
+      }
+      if (e.key === "Escape") {
+        setSelectedImageIndex(null);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedImageIndex, allAttachments.length, setSelectedImageIndex]);
+
+  if (!fileUrl) return null;
+
+  return (
+    <div style={{
+      position: "fixed",
+      top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: "rgba(0,0,0,0.8)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 2000
+    }}>
+      <div style={{ position: "relative" }}>
+        <button
+          onClick={() => setSelectedImageIndex(null)}
+          style={{
+            position: "absolute",
+            top: "-10px",
+            right: "-10px",
+            background: "#fff",
+            border: "none",
+            borderRadius: "50%",
+            padding: "8px 12px",
+            fontSize: "16px",
+            cursor: "pointer",
+          }}
+        >
+          ✖
+        </button>
+        {isPDF ? (
+          <iframe
+            src={fileUrl}
+            title="PDF Preview"
+            style={{
+              width: "80vw",
+              height: "90vh",
+              backgroundColor: "white",
+              borderRadius: "8px"
+            }}
+          />
+        ) : (
+          <img
+            ref={imgRef}
+            src={fileUrl}
+            alt="Preview"
+            style={{
+              maxHeight: "90vh",
+              maxWidth: "90vw",
+              borderRadius: "8px",
+              transform: `scale(${zoom})`,
+              transition: "transform 0.2s ease",
+              cursor: zoom > 1 ? "move" : "zoom-in",
+              background: "#fff"
+            }}
+            onWheel={handleWheel}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          />
+        )}
+        {/* Navigation Buttons */}
+        <button
+          onClick={() => setSelectedImageIndex(prev => (prev! > 0 ? prev! - 1 : prev))}
+          disabled={selectedImageIndex === 0}
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: "-40px",
+            background: "#fff",
+            border: "none",
+            borderRadius: "50%",
+            padding: "8px 12px",
+            fontSize: "18px",
+            cursor: selectedImageIndex === 0 ? "not-allowed" : "pointer",
+            transform: "translateY(-50%)",
+            opacity: selectedImageIndex === 0 ? 0.5 : 1
+          }}
+        >
+          ◀
+        </button>
+        <button
+          onClick={() => setSelectedImageIndex(prev => (prev! < allAttachments.length - 1 ? prev! + 1 : prev))}
+          disabled={selectedImageIndex === allAttachments.length - 1}
+          style={{
+            position: "absolute",
+            top: "50%",
+            right: "-40px",
+            background: "#fff",
+            border: "none",
+            borderRadius: "50%",
+            padding: "8px 12px",
+            fontSize: "18px",
+            cursor: selectedImageIndex === allAttachments.length - 1 ? "not-allowed" : "pointer",
+            transform: "translateY(-50%)",
+            opacity: selectedImageIndex === allAttachments.length - 1 ? 0.5 : 1
+          }}
+        >
+          ▶
+        </button>
+        {/* Indicator */}
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            bottom: "-32px",
+            transform: "translateX(-50%)",
+            color: "#fff",
+            background: "rgba(0,0,0,0.5)",
+            padding: "4px 12px",
+            borderRadius: "12px",
+            fontSize: "14px"
+          }}
+        >
+          {selectedImageIndex + 1} / {allAttachments.length}
+        </div>
+      </div>
+    </div>
+  );
+};
