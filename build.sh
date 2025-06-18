@@ -6,6 +6,8 @@ git reset --hard
 
 git pull
 
+npm install browser-image-compression
+
 cd /var/www/fleet-management/client
 
 npm install
