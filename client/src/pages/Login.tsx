@@ -42,9 +42,14 @@ const Login: React.FC = () => {
         };
         localStorage.setItem("user", JSON.stringify(driverUser));
         console.log("Driver login successful. Token and user stored.");
-
-        // Auto-redirect driver to dashboard
-        window.location.href = "/dashboard";
+        if(role === "driver") {
+          // Auto-redirect driver to dashboard
+          window.location.href = "/dashboard";
+        }
+        else {
+          // Redirect admin to admin dashboard
+          window.location.href = "/users";
+        }
       }
     } catch (error) {
       console.error("Login error:", error);

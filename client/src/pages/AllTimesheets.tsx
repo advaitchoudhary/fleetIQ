@@ -359,22 +359,25 @@ const AllTimesheets: React.FC = () => {
         </button>
       ),
     },
-    { accessorKey: "driver", header: "Driver" },
-    // { accessorKey: "customer", header: "Customer" },
-    { accessorKey: "loadID", header: "Load ID" },
-    { accessorKey: "tripNumber", header: "Route No." },
     {
-      accessorKey: "date",
+      accessorKey: "driverName",
+      header: "Driver",
+      cell: (info) => info.getValue(), // or format it if needed
+    },
+    { header: "Load ID", accessorKey: "loadID" },
+    { header: "Route No.", accessorKey: "tripNumber" },
+    {
       header: "Date/Time",
+      accessorKey: "date",
       cell: ({ row }: any) => {
         const tsCreatedAt = new Date(row.original.createdAt);
         return tsCreatedAt.toLocaleString();
       },
     },
-    { accessorKey: "startTime", header: "Start Time" },
-    { accessorKey: "endTime", header: "End Time" },
-    { accessorKey: "startKM", header: "Start KM" },
-    { accessorKey: "endKM", header: "End KM" },
+    { header: "Start Time", accessorKey: "startTime" },
+    { header: "End Time", accessorKey: "endTime" },
+    { header: "Start KM", accessorKey: "startKM" },
+    { header: "End KM", accessorKey: "endKM" },
     {
       header: "Total KM",
       cell: ({ row }: any) => {
@@ -391,11 +394,6 @@ const AllTimesheets: React.FC = () => {
         if (attachments.length === 0) {
           return <span>No Attachments</span>;
         }
-        // Compute the global index of this attachment in all attachments of filteredData
-        // For swiping, we need a flat list of all attachments
-        // Use filteredData.flatMap(ts => ts.attachments || [])
-        // The index in the flat array is the cumulative count up to this row and this index
-        // Find the starting index of this row's first attachment in the flat array
         let rowStartIndex = 0;
         for (let i = 0; i < filteredData.length; i++) {
           if (filteredData[i] === row.original) break;
@@ -422,8 +420,8 @@ const AllTimesheets: React.FC = () => {
         );
       },
     },
-    { accessorKey: "category", header: "Category" },
-    { accessorKey: "plannedKM", header: "Planned KM" },
+    { header: "Category", accessorKey: "category" },
+    { header: "Planned KM", accessorKey: "plannedKM" },
     {
       header: "Total",
       cell: ({ row }: any) => {
@@ -439,8 +437,8 @@ const AllTimesheets: React.FC = () => {
       },
     },
     {
-      accessorKey: "status",
       header: "Status",
+      accessorKey: "status",
       cell: ({ row }: any) => {
         const status = row.original.status;
         const label =
@@ -458,8 +456,8 @@ const AllTimesheets: React.FC = () => {
       },
     },
     {
-      accessorKey: "actions",
       header: "Actions",
+      accessorKey: "actions",
       cell: ({ row }: any) => {
         const { _id, status } = row.original;
         return userRole === "admin" || userRole === "manager" ? (
@@ -725,7 +723,6 @@ const styles = {
   } as React.CSSProperties,
   table: {
     width: "100%",
-    maxWidth: "1400px",
     borderCollapse: "collapse" as const,
     boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
     borderRadius: "8px",
@@ -993,9 +990,20 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
     lastZoom.current = 1;
   }, [selectedImageIndex]);
 
+    // Lock body scroll when modal is open
+    React.useEffect(() => {
+      const originalStyle = window.getComputedStyle(document.body).overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalStyle;
+      };
+    }, []);
+
+
   // Handle wheel zoom for images
   function handleWheel(e: React.WheelEvent<HTMLImageElement>) {
     e.preventDefault();
+    e.stopPropagation();
     let newZoom = zoom + (e.deltaY < 0 ? 0.1 : -0.1);
     newZoom = Math.max(0.3, Math.min(3, newZoom));
     setZoom(newZoom);

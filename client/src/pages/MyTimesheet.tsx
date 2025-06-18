@@ -309,7 +309,6 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   table: {
     width: "100%",
-    maxWidth: "1400px",
     borderCollapse: "collapse" as const,
     boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
     borderRadius: "8px",

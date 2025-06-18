@@ -66,25 +66,50 @@ const createTimesheet = async (req, res) => {
 // **2. Get All Timesheets**
 const getAllTimesheets = async (req, res) => {
   try {
-    const timesheets = await Timesheet.find().lean();
-    const drivers = await User.find({}, 'email firstName lastName').lean();
-    const emailToNameMap = new Map(
-      drivers.map(driver => [driver.email, `${driver.firstName} ${driver.lastName}`])
-    );
-
-    const timesheetsWithNames = timesheets.map(t => ({
-      ...t,
-      driverName: emailToNameMap.get(t.driver) || "Unknown"
-    }));
-
-    if (!timesheets || timesheets.length === 0) {
-      return res.status(404).json({ message: "No timesheets found" });
-    }
-
-    res.status(200).json(timesheetsWithNames);
+    const timesheets = await Timesheet.find({}).lean();
+    const emailToNameMap = await buildEmailToNameUsernameMap();
+    const enrichedTimesheets = timesheets.map((t) => {
+      const driverEmail = t.driver;
+      const driverInfo = emailToNameMap[driverEmail] || {};
+      const fullName = driverInfo.name || driverEmail;
+      const username = driverInfo.username ? `(@${driverInfo.username})` : "";
+      return {
+        ...t,
+        driverName: `${fullName} ${username}`.trim(),
+      };
+    });
+    res.status(200).json(enrichedTimesheets);
   } catch (error) {
-    res.status(500).json({ errorMessage: error.message });
+    res.status(500).json({ error: "Failed to fetch timesheets" });
   }
+};
+
+const buildEmailToNameUsernameMap = async () => {
+  const [users, drivers] = await Promise.all([
+    User.find({}, "email name"),
+    Driver.find({}, "email name username")
+  ]);
+
+  const emailMap = {};
+
+  users.forEach((user) => {
+    emailMap[user.email] = { name: user.name, username: null };
+  });
+
+  drivers.forEach((driver) => {
+    if (emailMap[driver.email]) {
+      // If already exists from users, just update username
+      emailMap[driver.email].username = driver.username || null;
+    } else {
+      // If only in drivers
+      emailMap[driver.email] = {
+        name: driver.name || null,
+        username: driver.username || null
+      };
+    }
+  });
+
+  return emailMap;
 };
 
 // **3. Get Timesheet by ID**

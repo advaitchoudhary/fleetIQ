@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import axios from "axios";
+import imageCompression from "browser-image-compression";
 
 import { API_BASE_URL } from "../utils/env";
 
@@ -98,11 +99,24 @@ const Timesheet: React.FC = () => {
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleFileChange = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const newAttachments = [...timesheet.attachments];
-      newAttachments[index] = e.target.files[0];
-      setTimesheet((prev) => ({ ...prev, attachments: newAttachments }));
+      const file = e.target.files[0];
+
+      try {
+        const options = {
+          maxSizeMB: 0.5,
+          maxWidthOrHeight: 1024,
+          useWebWorker: true,
+        };
+
+        const compressedFile = await imageCompression(file, options);
+        const newAttachments = [...timesheet.attachments];
+        newAttachments[index] = compressedFile;
+        setTimesheet((prev) => ({ ...prev, attachments: newAttachments }));
+      } catch (err) {
+        console.error("❌ Compression failed:", err);
+      }
     }
   };
 
@@ -142,16 +156,7 @@ const Timesheet: React.FC = () => {
     if (timesheet.startKM !== "" && timesheet.endKM !== "" && Number(timesheet.endKM) < Number(timesheet.startKM)) {
       validationErrors["endKM"] = "End KM must be greater than Start KM.";
     }
-  
-    // Validate Start Time < End Time
-    if (timesheet.startTime && timesheet.endTime) {
-      const start = new Date(`1970-01-01T${timesheet.startTime}`);
-      const end = new Date(`1970-01-01T${timesheet.endTime}`);
-  
-      if (start >= end) {
-        validationErrors["endTime"] = "End time must be later than Start time.";
-      }
-    }
+
   
     // Validate Start Date < End Date
     if (timesheet.startDate && timesheet.endDate) {
@@ -276,7 +281,6 @@ const Timesheet: React.FC = () => {
           {/* End Time */}
           <label style={styles.label}>End Time:</label>
           <input type="time" name="endTime" value={timesheet.endTime} onChange={handleChange} style={styles.input} />
-          {errors.endTime && <span style={styles.error}>{errors.endTime}</span>}
   
           {/* Category */}
           <label style={styles.label}>Category:</label>
@@ -325,26 +329,26 @@ const Timesheet: React.FC = () => {
           {/* Planned Work */}
           <label style={styles.label}>Planned Hours:</label>
           <input type="text" name="plannedHours" value={timesheet.plannedHours} onChange={handleChange} style={styles.input} />
-  
+
+          {/* Comments */}
+          <label style={styles.label}>Comments:</label>
+          <textarea name="comments" value={timesheet.comments} onChange={handleChange} style={styles.textarea} placeholder="Enter comments..."></textarea>
+
           <label style={styles.label}>Total Stops:</label>
           <input type="text" name="totalStops" value={timesheet.totalStops} onChange={handleChange} style={styles.input} />
-  
+
           <label style={styles.label}>Planned KM:</label>
           <input type="text" name="plannedKM" value={timesheet.plannedKM} onChange={handleChange} style={styles.input} />
-  
+
           {/* Start & End KM */}
           <label style={styles.label}>Start KM:</label>
           <input type="number" name="startKM" value={timesheet.startKM} onChange={handleChange} style={styles.input} />
           {errors.startKM && <span style={styles.error}>{errors.startKM}</span>}
-  
+
           <label style={styles.label}>End KM:</label>
           <input type="number" name="endKM" value={timesheet.endKM} onChange={handleChange} style={styles.input} />
           {errors.endKM && <span style={styles.error}>{errors.endKM}</span>}
-  
-          {/* Comments */}
-          <label style={styles.label}>Comments:</label>
-          <textarea name="comments" value={timesheet.comments} onChange={handleChange} style={styles.textarea} placeholder="Enter comments..."></textarea>
-  
+
           {/* Attachments */}
           {[...Array(4)].map((_, i) => (
             <div key={i}>
