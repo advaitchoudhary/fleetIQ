@@ -25,6 +25,7 @@ const timesheetSchema = new mongoose.Schema(
     extraDuration: { type: String },
     durationFrom: { type: String },
     durationTo: { type: String },
+    extraWorkSheetComments: { type: String, default: "" },
 
     // Delay logging fields
     extraDelay: { type: String, enum: ["yes", "no"], default: "no" },
