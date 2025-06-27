@@ -30,6 +30,31 @@ const AllTimesheets: React.FC = () => {
   // const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
+  // Modal state for delete confirmation
+  const [showModal, setShowModal] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Handler for delete button click (opens modal)
+  const handleDeleteClick = (id: string) => {
+    setSelectedId(id);
+    setShowModal(true);
+  };
+
+  // Handler for confirming delete in modal
+  const handleConfirmDelete = async () => {
+    if (!selectedId) return;
+    try {
+      await axios.delete(`${API_BASE_URL}/timesheet/${selectedId}`);
+      setData(prev => prev.filter(t => t._id !== selectedId));
+    } catch (error: any) {
+      console.error("Delete error:", error);
+      alert(error?.response?.data?.message || "Something went wrong");
+    } finally {
+      setShowModal(false);
+      setSelectedId(null);
+    }
+  };
+
   useEffect(() => {
     fetchTimesheets();
 
@@ -198,47 +223,70 @@ const AllTimesheets: React.FC = () => {
       alert("No timesheets available to export for the selected filter.");
       return;
     }
+    // Build CSV data with updated mapping to ensure all values are mapped properly
+    const csvData = filteredData.map((item) => ({
+      "Full Name": item.driverName?.split(" (@")[0] || "",
+      "Trip Date": item.date || "",
+      "Driver Id": item.driverName?.match(/\(@(.*?)\)/)?.[1] || "",
+      "Trip Number": item.tripNumber || "",
+      "Load Type": item.category || "",
+      "Load ID": item.loadID || "",
+      "Start Time": item.startTime || "",
+      "Finish Time": item.endTime || "",
+      "Total Hours": item.totalHours || "",
+      "Gate Out Time": item.gateOutTime || "",
+      "Gate In Time": item.gateInTime || "",
+      "Start KMS": item.startKM ?? "",
+      "Finish KMS": item.endKM ?? "",
+      "Total KMS": item.endKM && item.startKM ? (item.endKM - item.startKM).toFixed(2) : "N/A",
+      "Extra Work": item.extraWorkSheetDetails?.duration || "",
+      "Store Delays": item.storeDelay?.duration || "",
+      "Planned Hours": item.plannedHours || "",
+      "Driver Comments": item.comments || "",
+    }));
 
-    // Export all visible columns as shown in the table UI
-    const csvRows = [
-      "Driver,Customer,Date,Start Time,End Time,Start KM,End KM,Total KM,Category,Planned KM,SubTotal,Comments,Status"
+    // Get headers
+    const headers = [
+      "Full Name",
+      "Trip Date",
+      "Driver Id",
+      "Trip Number",
+      "Load Type",
+      "Load ID",
+      "Start Time",
+      "Finish Time",
+      "Total Hours",
+      "Gate Out Time",
+      "Gate In Time",
+      "Start KMS",
+      "Finish KMS",
+      "Total KMS",
+      "Extra Work",
+      "Store Delays",
+      "Planned Hours",
+      "Driver Comments"
     ];
 
-    filteredData.forEach((ts) => {
-      const start = ts.startTime;
-      const end = ts.endTime;
-      const startDate = new Date(`1970-01-01T${start}`);
-      const endDate = new Date(`1970-01-01T${end}`);
-      if (endDate < startDate) {
-        endDate.setDate(endDate.getDate() + 1);
+    // Helper to escape CSV values
+    function escapeCSV(val: any) {
+      if (val == null) return "";
+      const str = String(val);
+      if (str.includes('"') || str.includes(",") || str.includes("\n")) {
+        return `"${str.replace(/"/g, '""')}"`;
       }
-      isNaN(endDate.getTime() - startDate.getTime())
-        ? "N/A"
-        : `${((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60)).toFixed(2)} hrs`;
+      return str;
+    }
 
-      const totalKM = ts.endKM - ts.startKM;
-      const rate = categoryRates[ts.category] || 0;
-      const subtotal = totalKM * rate;
+    type CsvRow = {
+      [key: string]: any; // Allow indexing with a string
+    };
 
-      // Use createdAt timestamp for Date column in export
-      const timestamp = new Date(ts.createdAt).toLocaleString();
-
-      csvRows.push([
-        ts.driver,
-        ts.customer,
-        timestamp,
-        ts.startTime,
-        ts.endTime,
-        ts.startKM,
-        ts.endKM,
-        totalKM,
-        ts.category,
-        ts.plannedKM,
-        `$${subtotal.toFixed(2)}`,
-        `"${(ts.comments || "").replace(/"/g, '""')}"`,
-        ts.status,
-      ].join(","));
-    });
+    const csvRows = [
+      headers.join(","),
+      ...csvData.map((row: CsvRow) =>
+        headers.map(h => escapeCSV(row[h])).join(",")
+      )
+    ];
 
     const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
     const encodedUri = encodeURI(csvContent);
@@ -295,6 +343,7 @@ const AllTimesheets: React.FC = () => {
   const fetchTimesheets = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/timesheets`);
+      console.log("Fetched timesheets:", response.data);
       setData(response.data);
     } catch (error) {
       console.error("Error fetching timesheets:", error);
@@ -351,12 +400,21 @@ const AllTimesheets: React.FC = () => {
       accessorKey: "edit",
       header: "",
       cell: ({ row }: any) => (
-        <button
-          onClick={() => openEditModal(row.original)}
-          style={styles.editIcon}
-        >
-          ✏️
-        </button>
+        <span>
+          <button
+            onClick={() => openEditModal(row.original)}
+            style={styles.editIcon}
+          >
+            ✏️
+          </button>
+          <button
+            className="delete-button"
+            onClick={() => handleDeleteClick(row.original._id)}
+            style={styles.editIcon}
+          >
+            🗑️
+          </button>
+        </span>
       ),
     },
     {
@@ -392,7 +450,7 @@ const AllTimesheets: React.FC = () => {
       cell: ({ row }: any) => {
         const attachments = row.original.attachments || [];
         if (attachments.length === 0) {
-          return <span>No Attachments</span>;
+          return <span></span>;
         }
         let rowStartIndex = 0;
         for (let i = 0; i < filteredData.length; i++) {
@@ -491,6 +549,26 @@ const AllTimesheets: React.FC = () => {
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm }: {
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+  }) => {
+    if (!isOpen) return null;
+    return (
+      <div className="modal-overlay">
+        <div className="modal-content">
+          <h2>Confirm Delete</h2>
+          <p>Are you sure you want to delete this timesheet?</p>
+          <div className="modal-actions">
+            <button className="cancel-btn" onClick={onClose}>Cancel</button>
+            <button className="delete-btn" onClick={onConfirm}>Delete</button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -700,6 +778,12 @@ const AllTimesheets: React.FC = () => {
           filteredData={filteredData}
         />
       )}
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };
@@ -1195,3 +1279,53 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
     </div>
   );
 };
+
+// Modal CSS (can be moved to CSS file or use styled-jsx)
+// For simplicity, inject as global style here:
+// This can be moved elsewhere as needed.
+const modalCss = `
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+.modal-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+}
+.cancel-btn {
+  background-color: #ccc;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.delete-btn {
+  background-color: #e53935;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+`;
+
+if (typeof document !== "undefined" && !document.getElementById("delete-modal-style")) {
+  const style = document.createElement("style");
+  style.id = "delete-modal-style";
+  style.innerHTML = modalCss;
+  document.head.appendChild(style);
+}

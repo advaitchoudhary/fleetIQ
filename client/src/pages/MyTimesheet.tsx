@@ -66,18 +66,63 @@ const MyTimesheet: React.FC = () => {
       accessorKey: "totalHours",
       header: "Total Hours",
       cell: ({ row }: any) => {
-        // Convert time format and calculate total hours dynamically
         const start = row.original.startTime;
         const end = row.original.endTime;
         if (start && end) {
-          const startTime = new Date(`1970-01-01T${start}`);
-          const endTime = new Date(`1970-01-01T${end}`);
-          const diff =
-            (endTime.getTime() - startTime.getTime()) / (1000 * 60 * 60);
-          return diff.toFixed(2) + " hrs";
+          const [startH, startM] = start.split(":").map(Number);
+          const [endH, endM] = end.split(":").map(Number);
+
+          const startDate = new Date();
+          startDate.setHours(startH, startM, 0, 0);
+
+          const endDate = new Date();
+          endDate.setHours(endH, endM, 0, 0);
+
+          if (endDate < startDate) {
+            endDate.setDate(endDate.getDate() + 1); // handle overnight
+          }
+
+          const diffMs = endDate.getTime() - startDate.getTime();
+          const totalMinutes = Math.floor(diffMs / (1000 * 60));
+          const hr = Math.floor(totalMinutes / 60);
+          const min = totalMinutes % 60;
+
+          return `${hr} hr ${min} min`;
         }
         return "N/A";
       },
+    },
+    {
+      accessorKey: "customer",
+      header: "Customer",
+    },
+    {
+      accessorKey: "category",
+      header: "Category",
+    },
+    {
+      accessorKey: "tripNumber",
+      header: "Trip #",
+    },
+    {
+      accessorKey: "loadID",
+      header: "Load ID",
+    },
+    {
+      accessorKey: "plannedHours",
+      header: "Planned Hours",
+    },
+    {
+      accessorKey: "plannedKM",
+      header: "Planned KM",
+    },
+    {
+      accessorKey: "startKM",
+      header: "Start KM",
+    },
+    {
+      accessorKey: "endKM",
+      header: "End KM",
     },
     {
       accessorKey: "comments",
@@ -146,7 +191,11 @@ const MyTimesheet: React.FC = () => {
         const status = row.original.status;
         return (
           <span style={statusStyles[status] || styles.pending}>
-            {status === "approved" ? "✔️" : status === "rejected" ? "❌" : "⏳"}
+            {status === "approved"
+              ? <span style={{ color: "green" }}>✔️</span>
+              : status === "rejected"
+              ? "❌"
+              : "⏳"}
           </span>
         );
       },
@@ -306,6 +355,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: "#fff",
     padding: "10px",
     overflowX: "auto",
+    maxWidth: "100vw",
   },
   table: {
     width: "100%",
@@ -313,7 +363,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
     borderRadius: "8px",
     overflow: "hidden",
-    tableLayout: "auto" as const,
+    tableLayout: "fixed" as const,
+    minWidth: "1200px",
   },
   headerRow: {
     backgroundColor: "#f3f4f6",
