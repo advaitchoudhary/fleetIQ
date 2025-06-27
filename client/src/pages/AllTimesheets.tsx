@@ -223,7 +223,6 @@ const AllTimesheets: React.FC = () => {
       alert("No timesheets available to export for the selected filter.");
       return;
     }
-    console.log("Exporting timesheets:", filteredData);
     // Build CSV data with updated mapping to ensure all values are mapped properly
     const csvData = filteredData.map((item) => ({
       "Full Name": item.driverName?.split(" (@")[0] || "",
