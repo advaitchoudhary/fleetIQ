@@ -39,6 +39,8 @@ const createTimesheet = async (req, res) => {
       extraDuration: req.body.extraWorkSheetDetails?.duration,
       durationFrom: req.body.extraWorkSheetDetails?.from,
       durationTo: req.body.extraWorkSheetDetails?.to,
+      extraWorkComments: req.body.extraWorkSheetDetails?.comments || "",
+      extraWorkSheetComments: req.body.extraWorkSheetComments,
 
       // Delay sections from frontend
       extraDelay: req.body.extraDelay,
@@ -84,7 +86,8 @@ const createTimesheet = async (req, res) => {
           from: savedTimesheet.delayStoreFrom || "",
           to: savedTimesheet.delayStoreTo || "",
           reason: savedTimesheet.delayStoreReason || ""
-        }
+        },
+        extraWorkSheetComments: savedTimesheet.extraWorkSheetComments || ""
       }
     });
   } catch (error) {
@@ -109,7 +112,8 @@ const getAllTimesheets = async (req, res) => {
         extraWorkSheetDetails: {
           duration: t.extraDuration || "",
           from: t.durationFrom || "",
-          to: t.durationTo || ""
+          to: t.durationTo || "",
+          comments: t.extraWorkComments || ""
         },
         storeDelay: {
           duration: t.delayStoreDuration || "",

@@ -239,8 +239,8 @@ const AllTimesheets: React.FC = () => {
       "Start KMS": item.startKM ?? "",
       "Finish KMS": item.endKM ?? "",
       "Total KMS": item.endKM && item.startKM ? (item.endKM - item.startKM).toFixed(2) : "N/A",
-      "Extra Work": item.extraWorkSheetDetails?.duration || "",
-      "Store Delays": item.storeDelay?.duration || "",
+      "Extra Work": item.extraWorkSheetDetails?.duration ? `"Yes/${item.extraWorkSheetComments}"` : "N/A",
+      "Store Delays": item.storeDelay?.duration ? `"Yes"/${item.delayStoreReason}` : "N/A",
       "Planned Hours": item.plannedHours || "",
       "Driver Comments": item.comments || "",
     }));
