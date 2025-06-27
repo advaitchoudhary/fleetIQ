@@ -23,40 +23,70 @@ const createTimesheet = async (req, res) => {
       startTime: req.body.startTime,
       endTime: req.body.endTime,
       customer: req.body.customer,
-      startDate: req.body.startDate,
       category: req.body.category,
       tripNumber: req.body.tripNumber,
       loadID: req.body.loadID,
-      preStartTime: req.body.preStartTime,
       gateOutTime: req.body.gateOutTime,
-      ewStartTimeMorning: req.body.ewStartTimeMorning,
-      ewEndTimeMorning: req.body.ewEndTimeMorning,
-      ewReasonMorning: req.body.ewReasonMorning,
       gateInTime: req.body.gateInTime,
-      postEndTime: req.body.postEndTime,
-      endDate: req.body.endDate,
-      ewStartTimeEvening: req.body.ewStartTimeEvening,
-      ewEndTimeEvening: req.body.ewEndTimeEvening,
-      ewReasonEvening: req.body.ewReasonEvening,
       plannedHours: req.body.plannedHours,
-      totalStops: req.body.totalStops,
       plannedKM: req.body.plannedKM,
       startKM: parseNumber(req.body.startKM),
       endKM: parseNumber(req.body.endKM),
+      totalHours: req.body.totalHours,
       comments: req.body.comments,
       attachments: attachmentPaths,
+      extraWorkSheet: req.body.extraWorkSheet,
+      extraDuration: req.body.extraWorkSheetDetails?.duration,
+      durationFrom: req.body.extraWorkSheetDetails?.from,
+      durationTo: req.body.extraWorkSheetDetails?.to,
+
+      // Delay sections from frontend
+      extraDelay: req.body.extraDelay,
+      delayStoreDuration: req.body.storeDelay?.duration,
+      delayStoreFrom: req.body.storeDelay?.from,
+      delayStoreTo: req.body.storeDelay?.to,
+      delayStoreReason: req.body.storeDelay?.reason,
+      delayRoadDuration: req.body.delayRoadDuration,
+      delayRoadFrom: req.body.delayRoadFrom,
+      delayRoadTo: req.body.delayRoadTo,
+      delayRoadReason: req.body.delayRoadReason,
+      delayOtherDuration: req.body.delayOtherDuration,
+      delayOtherFrom: req.body.delayOtherFrom,
+      delayOtherTo: req.body.delayOtherTo,
+      delayOtherReason: req.body.delayOtherReason,
     };
 
-    // Example in your controller
-    const user = await User.findOne({ email: req.body.driver });
-    const driverName = user ? `${user.firstName} ${user.lastName}` : "";
-
+    // Create new timesheet (leave driverName blank initially)
     const newTimesheet = new Timesheet({
-      ...timesheetData,
-      driverName
+      ...timesheetData
     });
     const savedTimesheet = await newTimesheet.save();
-    res.status(201).json({ message: "Timesheet created successfully", savedTimesheet });
+
+    // Find the user by email and set driverName as "name (username)"
+    const driver = await User.findOne({ email: req.body.driver });
+    const driverName =
+      driver?.name && driver?.username
+        ? `${driver.name} (${driver.username})`
+        : driver?.name || "Unknown";
+
+    res.status(201).json({
+      message: "Timesheet created successfully",
+      savedTimesheet: {
+        ...savedTimesheet.toObject(),
+        driverName,
+        extraWorkSheetDetails: {
+          duration: savedTimesheet.extraDuration || "",
+          from: savedTimesheet.durationFrom || "",
+          to: savedTimesheet.durationTo || ""
+        },
+        storeDelay: {
+          duration: savedTimesheet.delayStoreDuration || "",
+          from: savedTimesheet.delayStoreFrom || "",
+          to: savedTimesheet.delayStoreTo || "",
+          reason: savedTimesheet.delayStoreReason || ""
+        }
+      }
+    });
   } catch (error) {
     console.error("❌ Error saving Timesheet:", error.message);
     res.status(500).json({ errorMessage: error.message });
@@ -76,6 +106,17 @@ const getAllTimesheets = async (req, res) => {
       return {
         ...t,
         driverName: `${fullName} ${username}`.trim(),
+        extraWorkSheetDetails: {
+          duration: t.extraDuration || "",
+          from: t.durationFrom || "",
+          to: t.durationTo || ""
+        },
+        storeDelay: {
+          duration: t.delayStoreDuration || "",
+          from: t.delayStoreFrom || "",
+          to: t.delayStoreTo || "",
+          reason: t.delayStoreReason || ""
+        }
       };
     });
     res.status(200).json(enrichedTimesheets);

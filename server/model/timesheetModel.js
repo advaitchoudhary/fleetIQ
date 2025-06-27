@@ -8,29 +8,43 @@ const timesheetSchema = new mongoose.Schema(
     startTime: { type: String, required: true },
     endTime: { type: String, required: true },
     customer: { type: String, required: true },
-    startDate: { type: String, required: true },
+    totalHours: { type: String },
     category: { type: String, required: true },
     tripNumber: { type: String, required: true },
     loadID: { type: String, required: true },
-    preStartTime: { type: String, required: true },
     gateOutTime: { type: String, required: true },
-    ewStartTimeMorning: { type: String },
-    ewEndTimeMorning: { type: String },
-    ewReasonMorning: { type: String },
     gateInTime: { type: String, required: true },
-    postEndTime: { type: String },
-    endDate: { type: String },
-    ewStartTimeEvening: { type: String },
-    ewEndTimeEvening: { type: String },
-    ewReasonEvening: { type: String },
     plannedHours: { type: String },
-    totalStops: { type: String },
     plannedKM: { type: String },
     startKM: { type: Number, required: true, min: 0 },
     endKM: { type: Number, required: true, min: 0 },
     comments: { type: String },
-    attachments: { type: [String], default: [] }, // Array of file URLs
+    attachments: { type: [String], default: [] },
     status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
+    extraWorkSheet: { type: String, enum: ["yes", "no"], default: "no" },
+    extraDuration: { type: String },
+    durationFrom: { type: String },
+    durationTo: { type: String },
+
+    // Delay logging fields
+    extraDelay: { type: String, enum: ["yes", "no"], default: "no" },
+
+    delayStoreDuration: { type: String },
+    delayStoreFrom: { type: String },
+    delayStoreTo: { type: String },
+    delayStoreReason: { type: String },
+
+    delayRoadDuration: { type: String },
+    delayRoadFrom: { type: String },
+    delayRoadTo: { type: String },
+    delayRoadReason: { type: String },
+
+    delayOtherDuration: { type: String },
+    delayOtherFrom: { type: String },
+    delayOtherTo: { type: String },
+    delayOtherReason: { type: String },
+
+    
   },
   { timestamps: true }
 );
