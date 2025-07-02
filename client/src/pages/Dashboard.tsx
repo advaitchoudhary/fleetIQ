@@ -59,6 +59,7 @@ const Timesheet: React.FC = () => {
   // Extra Work Sheet state
   const [extraWorkSheet, setExtraWorkSheet] = useState("");
   const [extraWorkSheetDuration, setExtraWorkSheetDuration] = useState({ duration: "", from: "", to: "" });
+  const [extraWorkSheetComments, setExtraWorkSheetComments] = useState({ comments: "" });
   const [extraDelayYesNo, setExtraDelayYesNo] = useState(""); // "yes" | "no"
 
   const [hasDelay, setHasDelay] = useState<string[]>([]);
@@ -254,6 +255,7 @@ const Timesheet: React.FC = () => {
         if (extraWorkSheet === 'yes') {
           payload.extraWorkSheet = extraWorkSheet;
           payload.extraWorkSheetDetails = extraWorkSheetDuration;
+          payload.extraWorkSheetComments = extraWorkSheetComments.comments;
         }
 
         console.log("📄 Payload to send:", payload);
@@ -293,6 +295,7 @@ const Timesheet: React.FC = () => {
         if (extraWorkSheet === 'yes') {
           formData.append("extraWorkSheet", extraWorkSheet);
           formData.append("extraWorkSheetDetails", JSON.stringify(extraWorkSheetDuration));
+          formData.append("extraWorkSheetComments", extraWorkSheetComments.comments);
         }
 
         timesheet.attachments.forEach((file, idx) => {
@@ -482,6 +485,16 @@ const Timesheet: React.FC = () => {
                     style={styles.input}
                     value={extraWorkSheetDuration.duration}
                     onChange={e => setExtraWorkSheetDuration((prev) => ({ ...prev, duration: e.target.value }))}
+                  />
+                </div>
+                <div style={styles.durationTotal}>
+                  <label style={styles.label}>Comments:</label>
+                  <input
+                    type="text"
+                    name="extraWorkSheetComments"
+                    style={styles.input}
+                    value={extraWorkSheetComments.comments}
+                    onChange={e => setExtraWorkSheetComments({ comments: e.target.value })}
                   />
                 </div>
               </>
