@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  FaBars,
   FaClock,
-  FaTimes,
   FaSignOutAlt,
   FaUser,
   FaUsers,
@@ -16,6 +14,7 @@ import {
 import { MdDashboard } from "react-icons/md"; // Material Dashboard Icon
 import { useAuth } from "../contexts/AuthContext";
 import { API_BASE_URL } from "../utils/env";
+import MenuImage from "../assets/logo.png";
 
 const Navbar: React.FC = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -89,7 +88,17 @@ const Navbar: React.FC = () => {
           onClick={() => setIsNavOpen(!isNavOpen)}
           style={styles.menuButton}
         >
-          {isNavOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+         <img
+            src={MenuImage}
+            alt="Menu"
+            style={{
+              height: "40px",           // or 48px, depending on design
+              width: "auto",            // preserve aspect ratio
+              objectFit: "contain",     // scale without cropping
+              borderRadius: "0",
+              display: "block"
+            }}
+          />
         </button>
         <h1 style={styles.title}>Premier Choice</h1>
         <div style={styles.authButtons}>
@@ -188,7 +197,7 @@ const Navbar: React.FC = () => {
             onClick={() => navigate("/change-password")}
             style={styles.changePasswordButton}
           >
-            <FaLock size={20} /> Change Password
+            <FaLock size={20} /><span className="hide-on-mobile"> Change Password</span>
           </button>
           <button
             onClick={() => {
@@ -197,7 +206,7 @@ const Navbar: React.FC = () => {
             }}
             style={styles.logoutButton}
           >
-            <FaSignOutAlt size={20} /> Logout
+            <FaSignOutAlt size={20} /><span className="hide-on-mobile"> Logout</span>
           </button>
         </div>
       </header>
@@ -284,12 +293,22 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   title: {
     fontSize: "1.5rem",
+    margin: 0,
+    padding: 0,
+    lineHeight: "1.2",
+    transform: "translateY(2px)",  // try 2-4px depending on image height
   },
   menuButton: {
     background: "none",
     border: "none",
-    color: "#fff",
+    padding: "4px",
     cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: "6px",
+    transition: "background 0.2s ease-in-out",
+    marginRight: "10px",
   },
   notificationIconWrapper: {
     position: "relative",
@@ -455,3 +474,25 @@ const styles: { [key: string]: React.CSSProperties } = {
 };
 
 export default Navbar;
+
+// Responsive CSS for hiding labels on mobile
+const style = document.createElement("style");
+style.innerHTML = `
+@media (max-width: 768px) {
+  .hide-on-mobile {
+    display: none;
+  }
+}
+
+nav ul li:hover {
+  background-color: #444;
+}
+
+nav ul li a:hover {
+  text-decoration: underline;
+}
+`;
+if (typeof document !== "undefined" && !document.getElementById("hide-on-mobile-style")) {
+  style.id = "hide-on-mobile-style";
+  document.head.appendChild(style);
+}

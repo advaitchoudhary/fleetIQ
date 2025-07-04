@@ -96,10 +96,26 @@ const createTimesheet = async (req, res) => {
   }
 };
 
-// **2. Get All Timesheets**
+// **2. Get All Timesheets (with Pagination)**
 const getAllTimesheets = async (req, res) => {
   try {
-    const timesheets = await Timesheet.find({}).lean();
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+    const noPagination = req.query.noPagination === "true";
+
+    let timesheets;
+    let total = 0;
+
+    if (noPagination || isNaN(page) || isNaN(limit)) {
+      timesheets = await Timesheet.find({}).lean();
+    } else {
+      const skip = (page - 1) * limit;
+      [timesheets, total] = await Promise.all([
+        Timesheet.find({}).skip(skip).limit(limit).lean(),
+        Timesheet.countDocuments()
+      ]);
+    }
+
     const emailToNameMap = await buildEmailToNameUsernameMap();
     const enrichedTimesheets = timesheets.map((t) => {
       const driverEmail = t.driver;
@@ -123,12 +139,21 @@ const getAllTimesheets = async (req, res) => {
         }
       };
     });
-    res.status(200).json(enrichedTimesheets);
+
+    if (noPagination || isNaN(page) || isNaN(limit)) {
+      return res.status(200).json({ data: enrichedTimesheets });
+    }
+
+    return res.status(200).json({
+      data: enrichedTimesheets,
+      totalPages: Math.ceil(total / limit),
+      total,
+      page
+    });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch timesheets" });
   }
 };
-
 const buildEmailToNameUsernameMap = async () => {
   const [users, drivers] = await Promise.all([
     User.find({}, "email name"),

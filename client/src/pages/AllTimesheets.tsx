@@ -18,10 +18,11 @@ const AllTimesheets: React.FC = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedTimesheet, setSelectedTimesheet] = useState<any | null>(null);
   const [, setShowExportOptions] = useState(false);
-  const [categoryRates, setCategoryRates] = useState<Record<string, number>>(
+  const [, setCategoryRates] = useState<Record<string, number>>(
     {}
   );
   const [selectedFilter, setSelectedFilter] = useState<string>("All");
+  const [isFiltered, setIsFiltered] = useState(false);
   const [rangeStart, setRangeStart] = useState<string>("");
   const [rangeEnd, setRangeEnd] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -29,6 +30,11 @@ const AllTimesheets: React.FC = () => {
   const [users, setUsers] = useState<any[]>([]);
   // const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
 
   // Modal state for delete confirmation
   const [showModal, setShowModal] = useState(false);
@@ -65,6 +71,16 @@ const AllTimesheets: React.FC = () => {
     }
   }, []);
 
+useEffect(() => {
+  const active = selectedFilter !== "All" || selectedUser !== "All" || !!searchQuery.trim();
+  setIsFiltered(active);
+  if (active) {
+    fetchTimesheets(true);
+  } else {
+    fetchTimesheets();
+  }
+}, [selectedFilter, selectedUser, searchQuery]);
+
   const handleExport = () => {
     if (filteredData.length === 0) {
       alert("No timesheets available to export.");
@@ -95,8 +111,6 @@ const AllTimesheets: React.FC = () => {
     }
   };
 
-  const normalizeDate = (date: Date) =>
-    new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
   const filteredData = useMemo(() => {
     let result;
@@ -117,12 +131,12 @@ const AllTimesheets: React.FC = () => {
       return result;
     }
 
-    const now = new Date();
-
     if (selectedFilter === "Today") {
+      const todayStr = new Date().toLocaleDateString("sv-SE"); // "yyyy-mm-dd"
       result = data.filter(ts => {
-        const tsDate = normalizeDate(new Date(ts.date));
-        return tsDate.getTime() === normalizeDate(now).getTime();
+        console.log(todayStr);
+        console.log("Filtering for today:", ts.date, "==", todayStr);
+        return ts.date === todayStr;
       });
       if (selectedUser !== "All") {
         result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
@@ -138,14 +152,16 @@ const AllTimesheets: React.FC = () => {
     }
 
     if (selectedFilter === "This Week") {
-      const startOfWeek = normalizeDate(new Date(now));
-      startOfWeek.setDate(now.getDate() - now.getDay());
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-
+      const today = new Date();
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay());
+      const endOfWeek = new Date(today);
+      endOfWeek.setDate(today.getDate() + (6 - today.getDay()));
+      const startStr = startOfWeek.toISOString().split("T")[0];
+      const endStr = endOfWeek.toISOString().split("T")[0];
       result = data.filter(ts => {
-        const tsDate = normalizeDate(new Date(ts.date));
-        return tsDate >= startOfWeek && tsDate <= endOfWeek;
+        const tsDateStr = ts.date;
+        return tsDateStr >= startStr && tsDateStr <= endStr;
       });
       if (selectedUser !== "All") {
         result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
@@ -161,12 +177,10 @@ const AllTimesheets: React.FC = () => {
     }
 
     if (selectedFilter === "This Month") {
+      const today = new Date();
+      const yearMonth = today.toISOString().slice(0, 7); // "YYYY-MM"
       result = data.filter(ts => {
-        const tsDate = new Date(ts.date);
-        return (
-          tsDate.getMonth() === now.getMonth() &&
-          tsDate.getFullYear() === now.getFullYear()
-        );
+        return typeof ts.date === "string" && ts.date.startsWith(yearMonth);
       });
       if (selectedUser !== "All") {
         result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
@@ -182,12 +196,12 @@ const AllTimesheets: React.FC = () => {
     }
 
     if (selectedFilter === "Custom" && rangeStart && rangeEnd) {
-      const start = new Date(rangeStart);
-      const end = new Date(rangeEnd);
-      end.setHours(23, 59, 59, 999); // include full end date
+      // Use ISO string comparison for date range
+      const startStr = rangeStart;
+      const endStr = rangeEnd;
       result = data.filter(ts => {
-        const tsDate = new Date(ts.date);
-        return tsDate >= start && tsDate <= end;
+        const tsDateStr = ts.date;
+        return tsDateStr >= startStr && tsDateStr <= endStr;
       });
       if (selectedUser !== "All") {
         result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
@@ -310,6 +324,11 @@ const AllTimesheets: React.FC = () => {
     }
   }, []);
 
+  // Refetch timesheets when page changes
+  useEffect(() => {
+    if (!isFiltered) fetchTimesheets();
+  }, [page, isFiltered]);
+
   const fetchUsers = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/drivers`);
@@ -340,11 +359,16 @@ const AllTimesheets: React.FC = () => {
     }
   };
 
-  const fetchTimesheets = async () => {
+  const fetchTimesheets = async (forceNoPagination = false) => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/timesheets`);
+      const shouldSkipPagination = isFiltered || forceNoPagination;
+      const url = shouldSkipPagination
+        ? `${API_BASE_URL}/timesheets?noPagination=true`
+        : `${API_BASE_URL}/timesheets?page=${page}&limit=${limit}`;
+      const response = await axios.get(url);
       console.log("Fetched timesheets:", response.data);
-      setData(response.data);
+      setData(response.data.data);
+      setTotalPages(shouldSkipPagination ? 1 : response.data.totalPages);
     } catch (error) {
       console.error("Error fetching timesheets:", error);
       setError("Failed to load timesheets. Please try again.");
@@ -432,8 +456,9 @@ const AllTimesheets: React.FC = () => {
         return tsCreatedAt.toLocaleString();
       },
     },
-    { header: "Start Time", accessorKey: "startTime" },
-    { header: "End Time", accessorKey: "endTime" },
+    {
+      header: "Total Hrs", accessorKey: "totalHours",
+    },
     { header: "Start KM", accessorKey: "startKM" },
     { header: "End KM", accessorKey: "endKM" },
     {
@@ -444,6 +469,17 @@ const AllTimesheets: React.FC = () => {
         const total = !isNaN(start) && !isNaN(end) ? end - start : "N/A";
         return total;
       },
+    },
+    { header: "Category", accessorKey: "category" },
+    { header: "Planned KM", accessorKey: "plannedKM" },
+    {
+      header: "Comments",
+      accessorKey: "comments",
+      cell: ({ row }: any) => (
+        <div style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxWidth: "250px" }}>
+          {row.original.comments}
+        </div>
+      ),
     },
     {
       header: "Attachments",
@@ -476,22 +512,6 @@ const AllTimesheets: React.FC = () => {
             ))}
           </div>
         );
-      },
-    },
-    { header: "Category", accessorKey: "category" },
-    { header: "Planned KM", accessorKey: "plannedKM" },
-    {
-      header: "Total",
-      cell: ({ row }: any) => {
-        const start = parseFloat(row.original.startKM);
-        const end = parseFloat(row.original.endKM);
-        const category = row.original.category;
-        const rate = categoryRates[category] || 0;
-
-        const totalKM = !isNaN(start) && !isNaN(end) ? end - start : 0;
-        const subtotal = totalKM * rate;
-
-        return !isNaN(subtotal) ? `$${subtotal.toFixed(2)}` : "N/A";
       },
     },
     {
@@ -545,7 +565,7 @@ const AllTimesheets: React.FC = () => {
   ];
 
   const filteredTable = useReactTable({
-    data: filteredData,
+    data: Array.isArray(filteredData) ? filteredData : [],
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
@@ -649,25 +669,20 @@ const AllTimesheets: React.FC = () => {
                   ))}
                 </thead>
                 <tbody>
-                  {filteredTable.getRowModel().rows.length === 0 ? (
-                    <tr>
-                      <td colSpan={columns.length} style={{ textAlign: "center", padding: "20px", color: "#888" }}>
-                        No data available for the selected filter.
-                      </td>
-                    </tr>
-                  ) : (
+                  {filteredData && filteredData.length > 0 ? (
                     filteredTable.getRowModel().rows.map((row) => (
                       <tr key={row.id}>
                         {row.getVisibleCells().map((cell) => (
-                          <td key={cell.id} style={styles.td}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
+                          <td key={cell.id}>
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
                           </td>
                         ))}
                       </tr>
                     ))
+                  ) : (
+                    <tr>
+                      <td colSpan={columns.length}>No data available</td>
+                    </tr>
                   )}
                 </tbody>
               </table>
@@ -681,6 +696,24 @@ const AllTimesheets: React.FC = () => {
                 }
               `}
             </style>
+            {/* Pagination controls */}
+            <div style={styles.pagination}>
+              <button
+                onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                disabled={page === 1}
+                style={styles.paginationButton}
+              >
+                Previous
+              </button>
+              <span>Page {page} of {totalPages}</span>
+              <button
+                onClick={() => setPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={page === totalPages}
+                style={styles.paginationButton}
+              >
+                Next
+              </button>
+            </div>
           </>
         )}
 
@@ -838,6 +871,24 @@ const styles = {
     alignItems: "center" as const,
     gap: "8px",
     minWidth: "150px",
+  },
+
+  pagination: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "12px",
+    marginTop: "24px",
+    padding: "12px 0",
+    fontSize: "14px",
+  },
+  paginationButton: {
+    padding: "6px 14px",
+    border: "1px solid #ccc",
+    borderRadius: "6px",
+    backgroundColor: "#f9fafb",
+    cursor: "pointer",
+    fontWeight: 500,
   },
   approveButton: {
     backgroundColor: "#ecfdf5",
