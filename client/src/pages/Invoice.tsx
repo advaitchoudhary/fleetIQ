@@ -165,8 +165,8 @@ const Invoice: React.FC = () => {
     const fetchDriverTimesheets = async () => {
       if (!selectedDriver?.email) return;
       try {
-        const response = await axios.get(`${API_BASE_URL}/timesheets`);
-        const driverTimesheets = response.data.filter(
+        const response = await axios.get(`${API_BASE_URL}/timesheets?noPagination=true`);
+        const driverTimesheets = response.data.data.filter(
           (t: any) => t.driver === selectedDriver.email
         );
         // Store the raw list, then let useEffect re-filter
@@ -185,7 +185,6 @@ const Invoice: React.FC = () => {
     fetchDrivers().then(drivers => {
       setData(drivers);
     });
-    fetchCategoryRates();
   }, []);
 
   useEffect(() => {
@@ -193,7 +192,7 @@ const Invoice: React.FC = () => {
       // Placeholder: Timesheets are present
     }
   }, [timesheets, categoryRates]); // Recalculate whenever timesheets or rates change
-  
+
   const fetchDrivers = async (): Promise<Driver[]> => {
     try {
       const response = await axios.get<Driver[]>(`${API_BASE_URL}/drivers`);
@@ -206,17 +205,23 @@ const Invoice: React.FC = () => {
 
   useEffect(() => {
     const newTotal = timesheets.reduce((acc, t) => {
-      // Only include timesheets where the status is 'approved'
       if (t.status === "approved") {
         const rate = categoryRates[t.category] || 0;
-        const subtotal = (t.endKM - t.startKM) * rate;
+        // Calculate hours worked from start and end time (assume both are "HH:mm" strings)
+        let start = new Date(`1970-01-01T${t.startTime}`);
+        let end = new Date(`1970-01-01T${t.endTime}`);
+        if (end <= start) {
+          end.setDate(end.getDate() + 1);
+        }
+        const hoursWorked = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+        const subtotal = hoursWorked * rate;
         return acc + subtotal;
       }
       return acc;
     }, 0);
-  
+
     const newHST = newTotal * 0.13;
-  
+
     setSubtotal(newTotal);
     setHst(newHST);
     setTotal(newTotal + newHST);
@@ -237,7 +242,10 @@ const Invoice: React.FC = () => {
       const inRange = isDateInRange(t.date);
       return inRange;
     });
+    console.log("Filtered Timesheets:", filtered);
     setTimesheets(filtered);
+    fetchCategoryRates();
+
   }, [timesheetsRaw, invoicePeriod, customRange]);
 
   const isGenerateDisabled = !selectedDriver || Object.values(fromDetails).some((value) => value.trim() === "");
@@ -259,17 +267,22 @@ const generatePDF = () => {
   doc.text("Attention:", 15, 100);
   doc.setFont("helvetica", "normal");
   doc.text(attention, 60, 100);
-  
+
   // Correctly formatting and calculating the timesheet entries
   const formattedTimesheets = timesheets.map(t => {
     const rate = categoryRates[t.category] || 0;
-    const quantity = t.endKM - t.startKM || 0;  // Ensuring quantity is defined
-    const subtotal = (quantity * rate).toFixed(2);
+    let start = new Date(`1970-01-01T${t.startTime}`);
+    let end = new Date(`1970-01-01T${t.endTime}`);
+    if (end <= start) {
+      end.setDate(end.getDate() + 1);
+    }
+    const hoursWorked = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+    const subtotal = (hoursWorked * rate).toFixed(2);
     return [
-      t.date, 
-      t.category, 
-      `${quantity}`, // Correctly formatted
-      `$${rate.toFixed(2)}`, 
+      t.date,
+      t.category,
+      `${hoursWorked.toFixed(2)} hrs`, // Updated to show hours
+      `$${rate.toFixed(2)}`,
       `$${subtotal}`
     ];
   });
@@ -288,7 +301,7 @@ const generatePDF = () => {
 
   // const generateAndSendPDF = async () => {
   //   const doc = new jsPDF();
-    
+
   //   // Title: INVOICE
   //   doc.setFont("helvetica", "bold").setFontSize(24).text("INVOICE", 15, 20);
   //   doc.setFontSize(12).text("Invoice Date:", 15, 30);
@@ -299,45 +312,45 @@ const generatePDF = () => {
   //   doc.setFont("helvetica", "normal");
   //   doc.text(fromDetails.name, 15, 63).text(fromDetails.contact, 15, 71).text(fromDetails.address, 15, 79).text(fromDetails.gst, 15, 87);
   //   doc.text(toDetails.name, 120, 63).text(toDetails.address, 120, 71).text(toDetails.gst, 120, 79).text(toDetails.phone, 120, 87);
-  
+
   //   // Attention
   //   doc.setFont("helvetica", "bold");
   //   doc.text("Attention:", 15, 100);
   //   doc.setFont("helvetica", "normal");
   //   doc.text(attention, 60, 100);
-  
+
   //   // Correctly formatting and calculating the timesheet entries
   //   const formattedTimesheets = timesheets.map(t => {
   //     const rate = categoryRates[t.category] || 0;
   //     const quantity = t.endKM - t.startKM || 0;  // Ensuring quantity is defined
   //     const subtotal = (quantity * rate).toFixed(2);
   //     return [
-  //       t.date, 
-  //       t.category, 
+  //       t.date,
+  //       t.category,
   //       `${quantity}`, // Correctly formatted
-  //       `$${rate.toFixed(2)}`, 
+  //       `$${rate.toFixed(2)}`,
   //       `$${subtotal}`
   //     ];
   //   });
-  
+
   //   (doc as any).autoTable({
   //     startY: 115,
   //     head: [["Date", "Category", "Total KMs", "Rate", "Subtotal"]],
   //     body: formattedTimesheets,
   //     theme: "grid"
   //   });
-  
+
   //   let finalY = (doc as any).lastAutoTable.finalY + 10;
   //   doc.setFontSize(16).setFont("helvetica", "bold").text(`Total: $${total.toFixed(2)}`, 140, finalY + 25);
-  
+
   //   // Convert PDF to Base64
   //   const pdfBase64 = doc.output('datauristring');
   //   const base64Only = pdfBase64.split(';base64,')[1];
-  
+
   //   // Send the Base64 string to the backend
   //   await sendInvoiceAsEmail(base64Only);
   // };
-  
+
   // async function sendInvoiceAsEmail(pdfBase64: string) {
   //   try {
   //     await axios.post(`${API_BASE_URL}/send-invoice-email`, {
@@ -355,16 +368,20 @@ const generatePDF = () => {
   const fetchCategoryRates = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/drivers`);
+      const allDrivers = response.data;
+      setData(allDrivers); // So dropdown still works
+
+      const selected = allDrivers.find((d: any) => d._id === selectedDriver);
+      if (!selected) return;
+
       const rates: Record<string, number> = {};
-  
-      response.data.forEach((driver: any) => {
-        if (driver.backhaulRate) rates["Backhaul"] = driver.backhaulRate;
-        if (driver.comboRate) rates["Combo"] = driver.comboRate;
-        if (driver.extraSheetEWRate) rates["Extra Sheet/E.W"] = driver.extraSheetEWRate;
-        if (driver.regularBannerRate) rates["Regular/Banner"] = driver.regularBannerRate;
-        if (driver.wholesaleRate) rates["Wholesale"] = driver.wholesaleRate;
-      });
-  
+
+      if (selected.backhaulRate) rates["Backhaul"] = selected.backhaulRate;
+      if (selected.comboRate) rates["Combo"] = selected.comboRate;
+      if (selected.extraSheetEWRate) rates["Extra Sheet/E.W"] = selected.extraSheetEWRate;
+      if (selected.regularBannerRate) rates["Regular/Banner"] = selected.regularBannerRate;
+      if (selected.wholesaleRate) rates["Wholesale"] = selected.wholesaleRate;
+
       setCategoryRates(rates);
     } catch (error) {
       console.error("Failed to fetch category rates:", error);
@@ -417,49 +434,61 @@ const generatePDF = () => {
           </div>
         </div>
 
-        {/* From & To Details */}
+        {/* Driver Selector above From & To Details */}
         <div>
-          <div style={styles.box}>
-            <h3>From:</h3>
-            <select value={selectedDriver} onChange={handleDriverChange} style={styles.dropdown}>
-              <option value="__placeholder__" disabled>Select a Driver</option>
-              {data.map((driver, index) => {
-                const driverId = driver._id || `missing-id-${index}`;
-                return (
-                  <option key={driverId} value={driverId}>
-                    {driver.name || `Unnamed Driver ${index + 1}`}
-                  </option>
-                );
-              })}
-            </select>
-            
-            {selectedDriver !== "__placeholder__" && (
-            <div style={styles.detailsContainer}>
-              {Object.keys(fromDetails).map((key) => (
+          <label>Select Driver:</label>
+          <select value={selectedDriver} onChange={handleDriverChange} style={styles.dropdown}>
+            <option value="__placeholder__" disabled>Select a Driver</option>
+            {data.map((driver, index) => {
+              const driverId = driver._id || `missing-id-${index}`;
+              return (
+                <option key={driverId} value={driverId}>
+                  {driver.name || `Unnamed Driver ${index + 1}`}
+                </option>
+              );
+            })}
+          </select>
+        </div>
+
+        {/* From & To Details */}
+        <div style={styles.flexRow}>
+          <div style={styles.flexColumn}>
+            <div style={styles.box}>
+              <h3 style={{ marginBottom: "12px", fontSize: "16px", fontWeight: 600, color: "#111827" }}>
+                From:
+              </h3>
+              {selectedDriver !== "__placeholder__" && (
+                <div style={styles.detailsContainer}>
+                  {Object.keys(fromDetails).map((key) => (
+                    <input
+                      key={key}
+                      type="text"
+                      value={fromDetails[key as keyof typeof fromDetails]}
+                      onChange={(e) =>
+                        setFromDetails({ ...fromDetails, [key]: e.target.value })
+                      }
+                      style={styles.input}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          <div style={styles.flexColumn}>
+            <div style={styles.box}>
+              <h3 style={{ marginBottom: "12px", fontSize: "16px", fontWeight: 600, color: "#111827" }}>
+                To:
+              </h3>
+              {Object.keys(toDetails).map((key) => (
                 <input
                   key={key}
                   type="text"
-                  value={fromDetails[key as keyof typeof fromDetails]}
-                  onChange={(e) =>
-                    setFromDetails({ ...fromDetails, [key]: e.target.value })
-                  }
+                  value={toDetails[key as keyof typeof toDetails]}
                   style={styles.input}
+                  readOnly
                 />
               ))}
             </div>
-            )}
-          </div>
-          <div style={styles.box}>
-            <h3>To:</h3>
-            {Object.keys(toDetails).map((key) => (
-              <input
-                key={key}
-                type="text"
-                value={toDetails[key as keyof typeof toDetails]}
-                style={styles.input}
-                readOnly
-              />
-            ))}
           </div>
         </div>
 
@@ -475,6 +504,7 @@ const generatePDF = () => {
                 <th style={styles.th}>Date</th>
                 <th style={styles.th}>Start</th>
                 <th style={styles.th}>End</th>
+                <th style={styles.th}>Total Hours</th>
                 <th style={styles.th}>Start KM</th>
                 <th style={styles.th}>End KM</th>
                 <th style={styles.th}>Category</th>
@@ -485,12 +515,19 @@ const generatePDF = () => {
             <tbody>
               {timesheets.map((t) => {
                 const rate = categoryRates[t.category] || 0;
-                const subtotal = ((t.endKM - t.startKM) * rate).toFixed(2);
+                let start = new Date(`1970-01-01T${t.startTime}`);
+                let end = new Date(`1970-01-01T${t.endTime}`);
+                if (end <= start) {
+                  end.setDate(end.getDate() + 1);
+                }
+                const hoursWorked = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+                const subtotal = (hoursWorked * rate).toFixed(2);
                 return (
                   <tr key={t._id}>
                     <td style={styles.td}>{t.date}</td>
                     <td style={styles.td}>{t.startTime}</td>
                     <td style={styles.td}>{t.endTime}</td>
+                    <td style={styles.td}>{hoursWorked.toFixed(2)} hrs</td>
                     <td style={styles.td}>{t.startKM}</td>
                     <td style={styles.td}>{t.endKM}</td>
                     <td style={styles.td}>{t.category}</td>
@@ -566,11 +603,11 @@ const styles: { [key: string]: CSSProperties } = {
   input: {
     display: "block",
     margin: "10px 0",
-    padding: "10px",
+    padding: "10px 14px",
     width: "80%",
-    maxWidth: "500px",
     border: "1px solid #ccc",
     borderRadius: "6px",
+    fontSize: "14px",
   },
   tableWrapper: {
     display: "flex",
@@ -612,43 +649,41 @@ const styles: { [key: string]: CSSProperties } = {
   totalsContainer: {
     marginTop: "30px",
     padding: "20px",
-    backgroundColor: "#fefefe",
+    backgroundColor: "#ffffff",
     borderRadius: "12px",
-    border: "1px solid #dee2e6",
+    border: "1px solid #e5e7eb",
     width: "100%",
     maxWidth: "600px",
-    textAlign: "right" as const,
     marginLeft: "auto",
     marginRight: "auto",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
   },
   subtotal: {
-    fontSize: "18px",
-    fontWeight: "bold",
-    color: "#343a40",
-    marginBottom: "10px",
+    fontSize: "16px",
+    fontWeight: 600,
+    color: "#111827",
+    marginBottom: "8px",
     display: "flex",
     justifyContent: "space-between",
-    padding: "0 10px",
+    padding: "4px 0",
   },
   hst: {
-    fontSize: "18px",
-    fontWeight: "bold",
-    color: "#1d4ed8",
-    marginBottom: "10px",
+    fontSize: "16px",
+    fontWeight: 600,
+    marginBottom: "8px",
     display: "flex",
     justifyContent: "space-between",
-    padding: "0 10px",
+    padding: "4px 0",
   },
   total: {
-    fontSize: "20px",
-    fontWeight: "bold",
-    color: "#c53030",
-    marginTop: "10px",
+    fontSize: "18px",
+    fontWeight: 700,
+    marginTop: "12px",
     paddingTop: "12px",
-    borderTop: "1px solid #dee2e6",
+    borderTop: "1px solid #e5e7eb",
     display: "flex",
     justifyContent: "space-between",
-    padding: "0 10px",
+    padding: "4px 0",
   },
   button: {
     backgroundColor: "#007bff",
@@ -671,17 +706,20 @@ const styles: { [key: string]: CSSProperties } = {
   flexRow: {
     display: "flex",
     flexWrap: "wrap" as const,
-    gap: "20px",
+    gap: "24px",
+    justifyContent: "space-between",
   },
   flexColumn: {
-    flex: 1,
-    minWidth: "280px",
+    flex: "1 1 48%",
+    minWidth: "300px",
   },
   box: {
-    backgroundColor: "#f1f5f9",
-    padding: "15px",
-    borderRadius: "8px",
-    marginBottom: "20px",
+    backgroundColor: "#f9fafb",
+    padding: "24px",
+    borderRadius: "10px",
+    marginBottom: "24px",
+    boxShadow: "0 1px 4px rgba(0, 0, 0, 0.05)",
+    border: "1px solid #e5e7eb",
   },
   detailsContainer: {
     marginTop: "10px",
@@ -689,13 +727,19 @@ const styles: { [key: string]: CSSProperties } = {
     paddingTop: "10px",
   },
   dropdown: {
-    padding: "10px",
-    fontSize: "16px",
-    margin: "10px 0",
+    padding: "10px 14px",
+    fontSize: "15px",
+    margin: "10px 0 20px 0",
     borderRadius: "6px",
-    border: "1px solid #ccc",
+    border: "1px solid #d1d5db",
+    backgroundColor: "#ffffff",
     width: "100%",
     maxWidth: "500px",
+    appearance: "none",
+    backgroundImage: "url('data:image/svg+xml;utf8,<svg fill=\"%23666\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "right 10px center",
+    backgroundSize: "16px 16px",
   },
   timesheetsSection: {
     marginBottom: "25px",

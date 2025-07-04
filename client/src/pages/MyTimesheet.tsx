@@ -27,8 +27,8 @@ const MyTimesheet: React.FC = () => {
           const user = JSON.parse(storedUser);
           setUserEmail(user.email); // Store user email for filtering
 
-          const response = await axios.get(`${API_BASE_URL}/timesheets`);
-          const allTimesheets = response.data;
+          const response = await axios.get(`${API_BASE_URL}/timesheets?noPagination=true`);
+          const allTimesheets = response.data.data;
 
           // Filter timesheets for the logged-in driver
           const userTimesheets = allTimesheets.filter(
