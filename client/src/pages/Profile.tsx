@@ -17,8 +17,8 @@ const Profile: React.FC = () => {
       if (!driver?.email) return;
 
       try {
-        const response = await axios.get(`${API_BASE_URL}/timesheets`);
-        const driverTimesheets = response.data.filter(
+        const response = await axios.get(`${API_BASE_URL}/timesheets?noPagination=true`);
+        const driverTimesheets = response.data.data.filter(
           (t: any) => t.driver === driver.email
         );
         setTimesheets(driverTimesheets);

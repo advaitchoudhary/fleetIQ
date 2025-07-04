@@ -73,8 +73,8 @@ const Drivers: React.FC = () => {
       try {
         setLoading(true);
         const response = await axios.get(`${API_BASE_URL}/drivers`);
-        const timesheetRes = await axios.get(`${API_BASE_URL}/timesheets`);
-        const allTimesheets = timesheetRes.data;
+        const timesheetRes = await axios.get(`${API_BASE_URL}/timesheets?noPagination=true`);
+        const allTimesheets = timesheetRes.data.data;
         const drivers = response.data;
 
         // Calculate start and end of current week (Sunday to Saturday)
