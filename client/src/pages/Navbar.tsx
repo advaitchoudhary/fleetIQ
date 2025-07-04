@@ -84,23 +84,30 @@ const Navbar: React.FC = () => {
     <>
       {/* Header */}
       <header style={styles.header}>
-        <button
-          onClick={() => setIsNavOpen(!isNavOpen)}
-          style={styles.menuButton}
-        >
-         <img
-            src={MenuImage}
-            alt="Menu"
-            style={{
-              height: "40px",           // or 48px, depending on design
-              width: "auto",            // preserve aspect ratio
-              objectFit: "contain",     // scale without cropping
-              borderRadius: "0",
-              display: "block"
-            }}
-          />
-        </button>
-        <h1 style={styles.title}>Premier Choice</h1>
+        <div style={styles.rowDiv}>
+          <button
+            onClick={() => setIsNavOpen(!isNavOpen)}
+            style={styles.menuButton}
+          >
+            <img
+              src={MenuImage}
+              alt="Menu"
+              style={{
+                height: "32px",
+                width: "32px",
+                objectFit: "contain",
+                display: "inline-block",
+                verticalAlign: "middle",
+              }}
+            />
+          </button>
+          <h1
+            style={{ ...styles.title, cursor: "pointer" }}
+            onClick={() => navigate(user?.role === "admin" ? "/users" : "/dashboard")}
+          >
+            Premier Choice
+          </h1>
+        </div>
         <div style={styles.authButtons}>
           {user?.role === "admin" && (
             <div style={styles.notificationIconWrapper}>
@@ -291,12 +298,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: "#fff",
     boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
   },
+  rowDiv: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    flexWrap: "nowrap",
+  },
   title: {
     fontSize: "1.5rem",
     margin: 0,
     padding: 0,
-    lineHeight: "1.2",
-    transform: "translateY(2px)",  // try 2-4px depending on image height
+    lineHeight: "1",
+    fontWeight: 600,
   },
   menuButton: {
     background: "none",
@@ -308,7 +321,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: "center",
     borderRadius: "6px",
     transition: "background 0.2s ease-in-out",
-    marginRight: "10px",
   },
   notificationIconWrapper: {
     position: "relative",
