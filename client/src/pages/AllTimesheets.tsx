@@ -229,7 +229,7 @@ useEffect(() => {
     }
     return result;
   }, [data, selectedFilter, rangeStart, rangeEnd, searchQuery, selectedUser]);
-
+  
   const exportTimesheets = () => {
     setShowExportOptions(false);
 
@@ -294,7 +294,7 @@ useEffect(() => {
     type CsvRow = {
       [key: string]: any; // Allow indexing with a string
     };
-
+    
     const csvRows = [
       headers.join(","),
       ...csvData.map((row: CsvRow) =>

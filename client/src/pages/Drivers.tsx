@@ -109,21 +109,21 @@ const Drivers: React.FC = () => {
     function calculateHours(startTime: string, endTime: string): number {
       const [startH, startM] = startTime.split(":").map(Number);
       const [endH, endM] = endTime.split(":").map(Number);
-
+    
       let start = new Date();
       start.setHours(startH, startM, 0, 0);
-
+    
       let end = new Date();
       end.setHours(endH, endM, 0, 0);
-
+    
       // If end is before start (overnight shift), add 1 day
       if (end < start) {
         end.setDate(end.getDate() + 1);
       }
-
+    
       const diffMs = end.getTime() - start.getTime();
       const diffHrs = diffMs / (1000 * 60 * 60);
-
+    
       return diffHrs;
     }
 

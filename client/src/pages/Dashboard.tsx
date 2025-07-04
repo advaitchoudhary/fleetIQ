@@ -85,25 +85,25 @@ const Timesheet: React.FC = () => {
     const minutes = diffMins % 60;
     return `${hours} hr ${minutes} min`;
   }
-
+  
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       const user = JSON.parse(storedUser);
       if (user.role === "driver") {
         setTimesheet(getEmptyTimesheet(user.email));
-        setDriverName(user.name);
-        setDriverUsername(user.username);
+        setDriverName(user.name); 
+        setDriverUsername(user.username); 
       }
     }
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-
+  
     setTimesheet((prev) => {
       const updatedTimesheet = { ...prev, [name]: value };
-
+  
       // ✅ Get startTime and endTime directly from the updated state
       if (updatedTimesheet.startTime && updatedTimesheet.endTime) {
         const [startH, startM] = updatedTimesheet.startTime.split(":").map(Number);
@@ -126,10 +126,10 @@ const Timesheet: React.FC = () => {
         setTotalHours("0");
       }
 
-
+  
       return updatedTimesheet;
     });
-
+  
     setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
@@ -351,7 +351,7 @@ const Timesheet: React.FC = () => {
             disabled
             style={styles.input}
           />
-
+  
           {/* Customer */}
           <label style={styles.label}>Customer:</label>
           <select name="customer" value={timesheet.customer} onChange={handleChange} style={styles.input}>
@@ -361,21 +361,21 @@ const Timesheet: React.FC = () => {
             ))}
           </select>
           {errors.customer && <span style={styles.error}>{errors.customer}</span>}
-
+  
           {/* Start Date and End Date inputs removed */}
-
+  
           {/* Date */}
           <label style={styles.label}>Trip Date:</label>
           <input type="date" name="date" value={timesheet.date} onChange={handleChange} style={styles.input} />
-
+  
           {/* Start & End Time */}
           <label style={styles.label}>Start Time:</label>
           <input type="time" name="startTime" value={timesheet.startTime} onChange={handleChange} style={styles.input} />
-
+  
           {/* End Time */}
           <label style={styles.label}>End Time:</label>
           <input type="time" name="endTime" value={timesheet.endTime} onChange={handleChange} style={styles.input} />
-
+  
           <label style={styles.label}>Total Hours:</label>
           <input
             type="text"
@@ -392,24 +392,24 @@ const Timesheet: React.FC = () => {
             ))}
           </select>
           {errors.category && <span style={styles.error}>{errors.category}</span>}
-
+  
           {/* Trip Number & Load ID */}
           <label style={styles.label}>Trip Number:</label>
           <input type="text" name="tripNumber" value={timesheet.tripNumber} onChange={handleChange} style={styles.input} />
           {errors.tripNumber && <span style={styles.error}>{errors.tripNumber}</span>}
-
+  
           <label style={styles.label}>Load ID:</label>
           <input type="text" name="loadID" value={timesheet.loadID} onChange={handleChange} style={styles.input} />
           {errors.loadID && <span style={styles.error}>{errors.loadID}</span>}
-
+  
           <label style={styles.label}>Gate Out Time:</label>
           <input type="time" name="gateOutTime" value={timesheet.gateOutTime} onChange={handleChange} style={styles.input} />
           {errors.gateOutTime && <span style={styles.error}>{errors.gateOutTime}</span>}
-
+  
           <label style={styles.label}>Gate In Time:</label>
           <input type="time" name="gateInTime" value={timesheet.gateInTime} onChange={handleChange} style={styles.input} />
           {errors.gateInTime && <span style={styles.error}>{errors.gateInTime}</span>}
-
+  
           {/* Extra Work Sheet radio and conditional duration */}
           <div style={styles.extraWorkWrapper}>
             <label style={styles.label}>Extra Work Sheet?</label>
@@ -788,8 +788,8 @@ const Timesheet: React.FC = () => {
                     name="attachments"
                     accept="image/png, image/jpeg, image/jpg"
                     onChange={(e) => handleFileChange(i, e)}
-                    style={{
-                      ...styles.customFileInput,
+                    style={{ 
+                      ...styles.customFileInput, 
                     }}
                   />
                 </label>
@@ -823,7 +823,7 @@ const Timesheet: React.FC = () => {
               )}
             </div>
           ))}
-
+  
           {/* Submit Button */}
           <button type="submit" style={styles.submitButton} disabled={loading}>
             {loading ? "Submitting..." : "Submit Timesheet"}

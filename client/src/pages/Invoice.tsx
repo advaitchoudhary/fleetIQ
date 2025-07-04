@@ -192,7 +192,7 @@ const Invoice: React.FC = () => {
       // Placeholder: Timesheets are present
     }
   }, [timesheets, categoryRates]); // Recalculate whenever timesheets or rates change
-
+  
   const fetchDrivers = async (): Promise<Driver[]> => {
     try {
       const response = await axios.get<Driver[]>(`${API_BASE_URL}/drivers`);
@@ -219,9 +219,9 @@ const Invoice: React.FC = () => {
       }
       return acc;
     }, 0);
-
+  
     const newHST = newTotal * 0.13;
-
+  
     setSubtotal(newTotal);
     setHst(newHST);
     setTotal(newTotal + newHST);
@@ -267,7 +267,7 @@ const generatePDF = () => {
   doc.text("Attention:", 15, 100);
   doc.setFont("helvetica", "normal");
   doc.text(attention, 60, 100);
-
+  
   // Correctly formatting and calculating the timesheet entries
   const formattedTimesheets = timesheets.map(t => {
     const rate = categoryRates[t.category] || 0;
@@ -301,7 +301,7 @@ const generatePDF = () => {
 
   // const generateAndSendPDF = async () => {
   //   const doc = new jsPDF();
-
+    
   //   // Title: INVOICE
   //   doc.setFont("helvetica", "bold").setFontSize(24).text("INVOICE", 15, 20);
   //   doc.setFontSize(12).text("Invoice Date:", 15, 30);
@@ -312,45 +312,45 @@ const generatePDF = () => {
   //   doc.setFont("helvetica", "normal");
   //   doc.text(fromDetails.name, 15, 63).text(fromDetails.contact, 15, 71).text(fromDetails.address, 15, 79).text(fromDetails.gst, 15, 87);
   //   doc.text(toDetails.name, 120, 63).text(toDetails.address, 120, 71).text(toDetails.gst, 120, 79).text(toDetails.phone, 120, 87);
-
+  
   //   // Attention
   //   doc.setFont("helvetica", "bold");
   //   doc.text("Attention:", 15, 100);
   //   doc.setFont("helvetica", "normal");
   //   doc.text(attention, 60, 100);
-
+  
   //   // Correctly formatting and calculating the timesheet entries
   //   const formattedTimesheets = timesheets.map(t => {
   //     const rate = categoryRates[t.category] || 0;
   //     const quantity = t.endKM - t.startKM || 0;  // Ensuring quantity is defined
   //     const subtotal = (quantity * rate).toFixed(2);
   //     return [
-  //       t.date,
-  //       t.category,
+  //       t.date, 
+  //       t.category, 
   //       `${quantity}`, // Correctly formatted
-  //       `$${rate.toFixed(2)}`,
+  //       `$${rate.toFixed(2)}`, 
   //       `$${subtotal}`
   //     ];
   //   });
-
+  
   //   (doc as any).autoTable({
   //     startY: 115,
   //     head: [["Date", "Category", "Total KMs", "Rate", "Subtotal"]],
   //     body: formattedTimesheets,
   //     theme: "grid"
   //   });
-
+  
   //   let finalY = (doc as any).lastAutoTable.finalY + 10;
   //   doc.setFontSize(16).setFont("helvetica", "bold").text(`Total: $${total.toFixed(2)}`, 140, finalY + 25);
-
+  
   //   // Convert PDF to Base64
   //   const pdfBase64 = doc.output('datauristring');
   //   const base64Only = pdfBase64.split(';base64,')[1];
-
+  
   //   // Send the Base64 string to the backend
   //   await sendInvoiceAsEmail(base64Only);
   // };
-
+  
   // async function sendInvoiceAsEmail(pdfBase64: string) {
   //   try {
   //     await axios.post(`${API_BASE_URL}/send-invoice-email`, {
@@ -370,18 +370,18 @@ const generatePDF = () => {
       const response = await axios.get(`${API_BASE_URL}/drivers`);
       const allDrivers = response.data;
       setData(allDrivers); // So dropdown still works
-
+  
       const selected = allDrivers.find((d: any) => d._id === selectedDriver);
       if (!selected) return;
-
+  
       const rates: Record<string, number> = {};
-
+  
       if (selected.backhaulRate) rates["Backhaul"] = selected.backhaulRate;
       if (selected.comboRate) rates["Combo"] = selected.comboRate;
       if (selected.extraSheetEWRate) rates["Extra Sheet/E.W"] = selected.extraSheetEWRate;
       if (selected.regularBannerRate) rates["Regular/Banner"] = selected.regularBannerRate;
       if (selected.wholesaleRate) rates["Wholesale"] = selected.wholesaleRate;
-
+  
       setCategoryRates(rates);
     } catch (error) {
       console.error("Failed to fetch category rates:", error);
