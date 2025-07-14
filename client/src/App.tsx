@@ -10,6 +10,7 @@ import Invoice from "./pages/Invoice";
 import Applications from "./pages/AllTimesheets";
 import MyInfo from "./pages/MyInfo";
 import MyTimesheet from "./pages/MyTimesheet";
+import DetailedTimesheet from "./pages/DetailedTimesheet";
 import UploadDispatchSheet from "./pages/UploadDipatchSheet";
 import Logout from "./pages/Logout";
 import ChangePassword from "./pages/ChangePassword";
@@ -109,6 +110,15 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute requiredRole="admin">
               <UploadDispatchSheet />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/timesheet/:id"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <DetailedTimesheet />
             </ProtectedRoute>
           }
         />
