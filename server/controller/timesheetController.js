@@ -17,6 +17,59 @@ const createTimesheet = async (req, res) => {
   try {
     const attachmentPaths = req.files?.map?.(file => file.path) || [];
 
+    // Parse extraWorkSheetDetails safely if present
+    let extraWorkSheetDetails = {};
+    try {
+      if (req.body.extraWorkSheetDetails) {
+        extraWorkSheetDetails = JSON.parse(req.body.extraWorkSheetDetails);
+      }
+    } catch (err) {
+      console.warn("Invalid extraWorkSheetDetails JSON:", err);
+    }
+
+    // Parse storeDelay, roadDelay, otherDelay safely if present
+    let storeDelay = {};
+    try {
+      if (req.body.storeDelay) {
+        storeDelay = JSON.parse(req.body.storeDelay);
+      }
+    } catch (err) {
+      console.warn("Invalid storeDelay JSON:", err);
+    }
+
+    let roadDelay = {};
+    try {
+      if (req.body.roadDelay) {
+        roadDelay = JSON.parse(req.body.roadDelay);
+      }
+    } catch (err) {
+      console.warn("Invalid roadDelay JSON:", err);
+    }
+
+    let otherDelay = {};
+    try {
+      if (req.body.otherDelay) {
+        otherDelay = JSON.parse(req.body.otherDelay);
+      }
+    } catch (err) {
+      console.warn("Invalid otherDelay JSON:", err);
+    }
+
+    // Normalize extraDelay to be always "yes" or "no" lowercase
+    let extraDelay = req.body.extraDelay;
+    if (typeof extraDelay === "string") {
+      extraDelay = extraDelay.trim().toLowerCase() === "yes" ? "yes" : "no";
+    } else {
+      extraDelay = "no";
+    }
+
+    // Only store delay details if extraDelay is explicitly "yes"
+    if (extraDelay !== "yes") {
+      storeDelay = {};
+      roadDelay = {};
+      otherDelay = {};
+    }
+
     const timesheetData = {
       driver: req.body.driver,
       date: req.body.date,
@@ -36,26 +89,28 @@ const createTimesheet = async (req, res) => {
       comments: req.body.comments,
       attachments: attachmentPaths,
       extraWorkSheet: req.body.extraWorkSheet,
-      extraDuration: req.body.extraWorkSheetDetails?.duration,
-      durationFrom: req.body.extraWorkSheetDetails?.from,
-      durationTo: req.body.extraWorkSheetDetails?.to,
-      extraWorkComments: req.body.extraWorkSheetDetails?.comments || "",
+      extraDuration: extraWorkSheetDetails.duration,
+      durationFrom: extraWorkSheetDetails.from,
+      durationTo: extraWorkSheetDetails.to,
+      extraWorkComments: extraWorkSheetDetails.comments || "",
       extraWorkSheetComments: req.body.extraWorkSheetComments,
 
       // Delay sections from frontend
-      extraDelay: req.body.extraDelay,
-      delayStoreDuration: req.body.storeDelay?.duration,
-      delayStoreFrom: req.body.storeDelay?.from,
-      delayStoreTo: req.body.storeDelay?.to,
-      delayStoreReason: req.body.storeDelay?.reason,
-      delayRoadDuration: req.body.delayRoadDuration,
-      delayRoadFrom: req.body.delayRoadFrom,
-      delayRoadTo: req.body.delayRoadTo,
-      delayRoadReason: req.body.delayRoadReason,
-      delayOtherDuration: req.body.delayOtherDuration,
-      delayOtherFrom: req.body.delayOtherFrom,
-      delayOtherTo: req.body.delayOtherTo,
-      delayOtherReason: req.body.delayOtherReason,
+      extraDelay,
+      delayStoreDuration: storeDelay.duration,
+      delayStoreFrom: storeDelay.from,
+      delayStoreTo: storeDelay.to,
+      delayStoreReason: storeDelay.reason,
+
+      delayRoadDuration: roadDelay.duration,
+      delayRoadFrom: roadDelay.from,
+      delayRoadTo: roadDelay.to,
+      delayRoadReason: roadDelay.reason,
+
+      delayOtherDuration: otherDelay.duration,
+      delayOtherFrom: otherDelay.from,
+      delayOtherTo: otherDelay.to,
+      delayOtherReason: otherDelay.reason,
     };
 
     // Create new timesheet (leave driverName blank initially)
@@ -81,12 +136,16 @@ const createTimesheet = async (req, res) => {
           from: savedTimesheet.durationFrom || "",
           to: savedTimesheet.durationTo || ""
         },
-        storeDelay: {
-          duration: savedTimesheet.delayStoreDuration || "",
-          from: savedTimesheet.delayStoreFrom || "",
-          to: savedTimesheet.delayStoreTo || "",
-          reason: savedTimesheet.delayStoreReason || ""
-        },
+        ...(savedTimesheet.delayStoreDuration || savedTimesheet.delayStoreFrom || savedTimesheet.delayStoreTo || savedTimesheet.delayStoreReason
+          ? {
+              storeDelay: {
+                duration: savedTimesheet.delayStoreDuration || "",
+                from: savedTimesheet.delayStoreFrom || "",
+                to: savedTimesheet.delayStoreTo || "",
+                reason: savedTimesheet.delayStoreReason || ""
+              }
+            }
+          : {}),
         extraWorkSheetComments: savedTimesheet.extraWorkSheetComments || ""
       }
     });
@@ -190,7 +249,21 @@ const getTimesheetById = async (req, res) => {
     if (!timesheet) {
       return res.status(404).json({ message: "Timesheet not found" });
     }
-    res.status(200).json(timesheet);
+    res.status(200).json({
+      ...timesheet.toObject(),
+      extraWorkSheetDetails: {
+        duration: timesheet.extraDuration || "",
+        from: timesheet.durationFrom || "",
+        to: timesheet.durationTo || "",
+        comments: timesheet.extraWorkComments || ""
+      },
+      storeDelay: {
+        duration: timesheet.delayStoreDuration || "",
+        from: timesheet.delayStoreFrom || "",
+        to: timesheet.delayStoreTo || "",
+        reason: timesheet.delayStoreReason || ""
+      }
+    });
   } catch (error) {
     res.status(500).json({ errorMessage: error.message });
   }

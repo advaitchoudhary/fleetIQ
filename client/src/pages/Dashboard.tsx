@@ -239,16 +239,19 @@ const Timesheet: React.FC = () => {
           endKM: Number(timesheet.endKM),
           attachments: [],
         };
+        payload.extraDelay = extraDelayYesNo;
 
         // Only include delay fields if valid
-        if (storeDelay.duration && storeDelay.from && storeDelay.to) {
-          payload.storeDelay = storeDelay;
-        }
-        if (roadDelay.duration && roadDelay.from && roadDelay.to) {
-          payload.roadDelay = roadDelay;
-        }
-        if (otherDelay.duration && otherDelay.from && otherDelay.to) {
-          payload.otherDelay = otherDelay;
+        if (extraDelayYesNo === 'yes') {
+          if (storeDelay.duration && storeDelay.from && storeDelay.to) {
+            payload.storeDelay = storeDelay;
+          }
+          if (roadDelay.duration && roadDelay.from && roadDelay.to) {
+            payload.roadDelay = roadDelay;
+          }
+          if (otherDelay.duration && otherDelay.from && otherDelay.to) {
+            payload.otherDelay = otherDelay;
+          }
         }
 
         // Only include extraWorkSheet fields if selected as 'yes'
@@ -277,6 +280,8 @@ const Timesheet: React.FC = () => {
             }
           }
         });
+        // Always append extraDelay after constructing formData
+        formData.append("extraDelay", extraDelayYesNo?.toLowerCase?.() || "no");
 
         formData.append("totalHours", totalHours);
 
@@ -316,6 +321,16 @@ const Timesheet: React.FC = () => {
       alert("Timesheet submitted successfully!");
 
       setTimesheet(getEmptyTimesheet(timesheet.driver));
+      // Reset delay and extra worksheet fields
+      setExtraWorkSheet("");
+      setExtraWorkSheetDuration({ duration: "", from: "", to: "" });
+      setExtraWorkSheetComments({ comments: "" });
+      setExtraDelayYesNo("");
+      setHasDelay([]);
+      setStoreDelay({ duration: "", from: "", to: "", reason: "" });
+      setRoadDelay({ duration: "", from: "", to: "", reason: "" });
+      setOtherDelay({ duration: "", from: "", to: "", reason: "" });
+      setTotalHours("0");
       setErrors({});
     } catch (error) {
       const err = (error as any).response?.data || (error as any).message;

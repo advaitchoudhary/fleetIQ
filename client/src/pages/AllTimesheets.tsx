@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   ColumnDef,
@@ -14,9 +15,8 @@ const AllTimesheets: React.FC = () => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [selectedTimesheet, setSelectedTimesheet] = useState<any | null>(null);
+  const [, setUserRole] = useState<string | null>(null);
+  // Removed edit modal state
   const [, setShowExportOptions] = useState(false);
   const [, setCategoryRates] = useState<Record<string, number>>(
     {}
@@ -377,47 +377,8 @@ useEffect(() => {
     }
   };
 
-  const updateTimesheetStatus = async (
-    id: string,
-    status: "approved" | "rejected"
-  ) => {
-    try {
-      await axios.put(`${API_BASE_URL}/timesheet/${id}/status`, { status });
-      setData((prevData) =>
-        prevData.map((timesheet) =>
-          timesheet._id === id ? { ...timesheet, status } : timesheet
-        )
-      );
-    } catch (error) {
-      console.error(`Error updating timesheet to ${status}:`, error);
-    }
-  };
 
-  const handleUpdate = async () => {
-    try {
-      await axios.put(
-        `${API_BASE_URL}/timesheet/${selectedTimesheet._id}`,
-        selectedTimesheet
-      );
-      setData((prev) =>
-        prev.map((t) =>
-          t._id === selectedTimesheet._id ? selectedTimesheet : t
-        )
-      );
-      setEditModalOpen(false);
-    } catch (error) {
-      console.error("Error updating timesheet:", error);
-    }
-  };
-
-  const openEditModal = (timesheet: any) => {
-    setSelectedTimesheet(timesheet);
-    setEditModalOpen(true);
-  };
-
-  const handleChange = (field: string, value: string | number) => {
-    setSelectedTimesheet((prev: any) => ({ ...prev, [field]: value }));
-  };
+  // Removed edit modal handlers
 
   const columns: ColumnDef<(typeof data)[0]>[] = [
     {
@@ -425,12 +386,6 @@ useEffect(() => {
       header: "",
       cell: ({ row }: any) => (
         <span>
-          <button
-            onClick={() => openEditModal(row.original)}
-            style={styles.editIcon}
-          >
-            ✏️
-          </button>
           <button
             className="delete-button"
             onClick={() => handleDeleteClick(row.original._id)}
@@ -453,7 +408,28 @@ useEffect(() => {
       accessorKey: "date",
       cell: ({ row }: any) => {
         const tsCreatedAt = new Date(row.original.createdAt);
-        return tsCreatedAt.toLocaleString();
+        const tsUpdatedAt = new Date(row.original.updatedAt);
+        const createdAtString = tsCreatedAt.toLocaleString();
+        const updatedAtString = tsUpdatedAt.toLocaleString();
+        // Compare ISO strings to avoid ms differences
+        const createdAtIso = tsCreatedAt.toISOString();
+        const updatedAtIso = tsUpdatedAt.toISOString();
+        const isEdited = createdAtIso !== updatedAtIso;
+        return (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <span>Created: {createdAtString}</span>
+            {isEdited && (
+              <>
+                <span style={{ fontWeight: "bold", color: "orange", marginTop: "4px", fontFamily: "Inter, system-ui, sans-serif" }}>
+                  Edited
+                </span>
+                <span style={{ color: "#888", fontSize: "12px" }}>
+                  Updated: {updatedAtString}
+                </span>
+              </>
+            )}
+          </div>
+        );
       },
     },
     {
@@ -507,7 +483,10 @@ useEffect(() => {
                   borderRadius: "4px",
                   cursor: "pointer"
                 }}
-                onClick={() => setSelectedImageIndex(rowStartIndex + index)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImageIndex(rowStartIndex + index);
+                }}
               />
             ))}
           </div>
@@ -533,35 +512,6 @@ useEffect(() => {
         );
       },
     },
-    {
-      header: "Actions",
-      accessorKey: "actions",
-      cell: ({ row }: any) => {
-        const { _id, status } = row.original;
-        return userRole === "admin" || userRole === "manager" ? (
-          <div style={styles.actions}>
-            {status === "pending" && (
-              <>
-                <button
-                  style={styles.approveButton}
-                  onClick={() => updateTimesheetStatus(_id, "approved")}
-                >
-                  Approve
-                </button>
-                <button
-                  style={styles.rejectButton}
-                  onClick={() => updateTimesheetStatus(_id, "rejected")}
-                >
-                  Reject
-                </button>
-              </>
-            )}
-          </div>
-        ) : (
-          <span style={styles.readOnly}>No Action</span>
-        );
-      },
-    },
   ];
 
   const filteredTable = useReactTable({
@@ -569,6 +519,8 @@ useEffect(() => {
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
+
+  const navigate = useNavigate();
 
   const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm }: {
     isOpen: boolean;
@@ -671,7 +623,14 @@ useEffect(() => {
                 <tbody>
                   {filteredData && filteredData.length > 0 ? (
                     filteredTable.getRowModel().rows.map((row) => (
-                      <tr key={row.id}>
+                      <tr
+                        key={row.id}
+                        onClick={(e) => {
+                          const target = e.target as HTMLElement;
+                          if (target.closest("button")) return;
+                          navigate(`/timesheet/${row.original._id}`);
+                        }}
+                      >
                         {row.getVisibleCells().map((cell) => (
                           <td key={cell.id}>
                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -717,91 +676,6 @@ useEffect(() => {
           </>
         )}
 
-        {editModalOpen && selectedTimesheet && (
-          <div style={styles.modalOverlay}>
-            <div style={styles.modal}>
-              <h2>Edit Timesheet</h2>
-              <div style={{ display: "grid", gap: "12px" }}>
-                <div>
-                  <label style={{ fontWeight: "bold" }}>Start Time:</label>
-                  <input
-                    type="time"
-                    value={selectedTimesheet.startTime}
-                    onChange={(e) => handleChange("startTime", e.target.value)}
-                    style={styles.input}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontWeight: "bold" }}>End Time:</label>
-                  <input
-                    type="time"
-                    value={selectedTimesheet.endTime}
-                    onChange={(e) => handleChange("endTime", e.target.value)}
-                    style={styles.input}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontWeight: "bold" }}>Start KM:</label>
-                  <input
-                    type="number"
-                    value={selectedTimesheet.startKM}
-                    onChange={(e) => handleChange("startKM", Number(e.target.value))}
-                    style={styles.input}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontWeight: "bold" }}>End KM:</label>
-                  <input
-                    type="number"
-                    value={selectedTimesheet.endKM}
-                    onChange={(e) => handleChange("endKM", Number(e.target.value))}
-                    style={styles.input}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontWeight: "bold" }}>Planned KM:</label>
-                  <input
-                    type="number"
-                    value={selectedTimesheet.plannedKM}
-                    onChange={(e) => handleChange("plannedKM", Number(e.target.value))}
-                    style={styles.input}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontWeight: "bold" }}>Comments:</label>
-                  <textarea
-                    value={selectedTimesheet.comments || ""}
-                    onChange={(e) => handleChange("comments", e.target.value)}
-                    style={{ ...styles.input, minHeight: "80px" }}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontWeight: "bold" }}>Status:</label>
-                  <select
-                    value={selectedTimesheet.status}
-                    onChange={(e) => handleChange("status", e.target.value)}
-                    style={styles.input}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                  </select>
-                </div>
-              </div>
-              <div style={{ marginTop: "20px", display: "flex", gap: "12px" }}>
-                <button style={styles.approveButton} onClick={handleUpdate}>
-                  Save Changes
-                </button>
-                <button
-                  style={styles.rejectButton}
-                  onClick={() => setEditModalOpen(false)}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
       {/* Enhanced Image/PDF preview modal */}
       {selectedImageIndex !== null && (
@@ -1108,6 +982,15 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
 }) => {
   // Flat list of all attachments in filteredData
   const allAttachments: string[] = filteredData.flatMap(ts => ts.attachments || []);
+  // Map each attachment index to its parent timesheet id for navigation logic
+  const attachmentTimesheetIds: string[] = [];
+  filteredData.forEach(ts => {
+    const tsId = ts._id || (ts.attachments?.[0]?.split("-")[0] ?? "");
+    const count = (ts.attachments || []).length;
+    for (let i = 0; i < count; i++) {
+      attachmentTimesheetIds.push(tsId);
+    }
+  });
   const fileUrl = allAttachments[selectedImageIndex]
     ? `${FILE_BASE_URL}/${allAttachments[selectedImageIndex]}`
     : "";
@@ -1125,15 +1008,36 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
     lastZoom.current = 1;
   }, [selectedImageIndex]);
 
-    // Lock body scroll when modal is open
-    React.useEffect(() => {
-      const originalStyle = window.getComputedStyle(document.body).overflow;
-      document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = originalStyle;
-      };
-    }, []);
+  // Lock body scroll when modal is open
+  React.useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
 
+  // Navigation logic: only allow navigation if next/prev image is from same timesheet
+  const handlePrevImage = () => {
+    if (selectedImageIndex > 0) {
+      const currentTimesheetId = attachmentTimesheetIds[selectedImageIndex];
+      const prevTimesheetId = attachmentTimesheetIds[selectedImageIndex - 1];
+      if (currentTimesheetId !== prevTimesheetId) {
+        return; // prevent navigating to previous image if from different timesheet
+      }
+      setSelectedImageIndex(selectedImageIndex - 1);
+    }
+  };
+  const handleNextImage = () => {
+    if (selectedImageIndex < allAttachments.length - 1) {
+      const currentTimesheetId = attachmentTimesheetIds[selectedImageIndex];
+      const nextTimesheetId = attachmentTimesheetIds[selectedImageIndex + 1];
+      if (currentTimesheetId !== nextTimesheetId) {
+        return; // prevent navigating to next image if from different timesheet
+      }
+      setSelectedImageIndex(selectedImageIndex + 1);
+    }
+  };
 
   // Handle wheel zoom for images
   function handleWheel(e: React.WheelEvent<HTMLImageElement>) {
@@ -1183,10 +1087,20 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
       if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
         // Horizontal swipe
         if (dx < 0 && selectedImageIndex < allAttachments.length - 1) {
-          setSelectedImageIndex(selectedImageIndex + 1);
+          // Only allow next if same timesheet
+          const currentTimesheetId = attachmentTimesheetIds[selectedImageIndex];
+          const nextTimesheetId = attachmentTimesheetIds[selectedImageIndex + 1];
+          if (currentTimesheetId === nextTimesheetId) {
+            setSelectedImageIndex(selectedImageIndex + 1);
+          }
         }
         if (dx > 0 && selectedImageIndex > 0) {
-          setSelectedImageIndex(selectedImageIndex - 1);
+          // Only allow prev if same timesheet
+          const currentTimesheetId = attachmentTimesheetIds[selectedImageIndex];
+          const prevTimesheetId = attachmentTimesheetIds[selectedImageIndex - 1];
+          if (currentTimesheetId === prevTimesheetId) {
+            setSelectedImageIndex(selectedImageIndex - 1);
+          }
         }
       }
       startX.current = null;
@@ -1198,10 +1112,18 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
   React.useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "ArrowLeft" && selectedImageIndex > 0) {
-        setSelectedImageIndex(selectedImageIndex - 1);
+        const currentTimesheetId = attachmentTimesheetIds[selectedImageIndex];
+        const prevTimesheetId = attachmentTimesheetIds[selectedImageIndex - 1];
+        if (currentTimesheetId === prevTimesheetId) {
+          setSelectedImageIndex(selectedImageIndex - 1);
+        }
       }
       if (e.key === "ArrowRight" && selectedImageIndex < allAttachments.length - 1) {
-        setSelectedImageIndex(selectedImageIndex + 1);
+        const currentTimesheetId = attachmentTimesheetIds[selectedImageIndex];
+        const nextTimesheetId = attachmentTimesheetIds[selectedImageIndex + 1];
+        if (currentTimesheetId === nextTimesheetId) {
+          setSelectedImageIndex(selectedImageIndex + 1);
+        }
       }
       if (e.key === "Escape") {
         setSelectedImageIndex(null);
@@ -1209,9 +1131,17 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedImageIndex, allAttachments.length, setSelectedImageIndex]);
+  }, [selectedImageIndex, allAttachments.length, setSelectedImageIndex, attachmentTimesheetIds]);
 
   if (!fileUrl) return null;
+
+  // Determine if prev/next image is from same timesheet
+  const canGoPrev =
+    selectedImageIndex > 0 &&
+    attachmentTimesheetIds[selectedImageIndex] === attachmentTimesheetIds[selectedImageIndex - 1];
+  const canGoNext =
+    selectedImageIndex < allAttachments.length - 1 &&
+    attachmentTimesheetIds[selectedImageIndex] === attachmentTimesheetIds[selectedImageIndex + 1];
 
   return (
     <div style={{
@@ -1273,8 +1203,8 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
         )}
         {/* Navigation Buttons */}
         <button
-          onClick={() => setSelectedImageIndex(prev => (prev! > 0 ? prev! - 1 : prev))}
-          disabled={selectedImageIndex === 0}
+          onClick={handlePrevImage}
+          disabled={!canGoPrev}
           style={{
             position: "absolute",
             top: "50%",
@@ -1284,16 +1214,16 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
             borderRadius: "50%",
             padding: "8px 12px",
             fontSize: "18px",
-            cursor: selectedImageIndex === 0 ? "not-allowed" : "pointer",
+            cursor: !canGoPrev ? "not-allowed" : "pointer",
             transform: "translateY(-50%)",
-            opacity: selectedImageIndex === 0 ? 0.5 : 1
+            opacity: !canGoPrev ? 0.5 : 1
           }}
         >
           ◀
         </button>
         <button
-          onClick={() => setSelectedImageIndex(prev => (prev! < allAttachments.length - 1 ? prev! + 1 : prev))}
-          disabled={selectedImageIndex === allAttachments.length - 1}
+          onClick={handleNextImage}
+          disabled={!canGoNext}
           style={{
             position: "absolute",
             top: "50%",
@@ -1303,9 +1233,9 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
             borderRadius: "50%",
             padding: "8px 12px",
             fontSize: "18px",
-            cursor: selectedImageIndex === allAttachments.length - 1 ? "not-allowed" : "pointer",
+            cursor: !canGoNext ? "not-allowed" : "pointer",
             transform: "translateY(-50%)",
-            opacity: selectedImageIndex === allAttachments.length - 1 ? 0.5 : 1
+            opacity: !canGoNext ? 0.5 : 1
           }}
         >
           ▶
