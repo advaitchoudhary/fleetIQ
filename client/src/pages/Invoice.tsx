@@ -278,19 +278,21 @@ const generatePDF = () => {
     }
     const hoursWorked = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
     const subtotal = (hoursWorked * rate).toFixed(2);
-    return [
-      t.date,
-      t.category,
-      `${hoursWorked.toFixed(2)} hrs`, // Updated to show hours
-      `$${rate.toFixed(2)}`,
-      `$${subtotal}`
-    ];
+    return {
+      date: t.date,
+      category: t.category,
+      hoursWorked: `${hoursWorked.toFixed(2)} hrs`, // Updated to show hours
+      rate: `$${rate.toFixed(2)}`,
+      subtotal: `$${subtotal}`,
+      status: t.status // Ensure status is included
+    };
   });
+  const approvedTimesheets = formattedTimesheets.filter(row => row.status === "approved"); // Filter out rejected or pending entries
 
   (doc as any).autoTable({
     startY: 115,
-    head: [["Date", "Category", "Total KMs", "Rate", "Subtotal"]],
-    body: formattedTimesheets,
+    head: [["Date", "Category", "Total Hours", "Rate", "Subtotal"]],
+    body: approvedTimesheets,
     theme: "grid"
   });
 
@@ -435,19 +437,21 @@ const generatePDF = () => {
         </div>
 
         {/* Driver Selector above From & To Details */}
-        <div>
-          <label>Select Driver:</label>
-          <select value={selectedDriver} onChange={handleDriverChange} style={styles.dropdown}>
-            <option value="__placeholder__" disabled>Select a Driver</option>
-            {data.map((driver, index) => {
-              const driverId = driver._id || `missing-id-${index}`;
-              return (
-                <option key={driverId} value={driverId}>
-                  {driver.name || `Unnamed Driver ${index + 1}`}
-                </option>
-              );
-            })}
-          </select>
+        <div style={styles.flexRow}>
+          <div style={styles.flexColumn}>
+            <label>Select Driver:</label>
+            <select value={selectedDriver} onChange={handleDriverChange} style={styles.dropdown}>
+              <option value="__placeholder__" disabled>Select a Driver</option>
+              {data.map((driver, index) => {
+                const driverId = driver._id || `missing-id-${index}`;
+                return (
+                  <option key={driverId} value={driverId}>
+                    {driver.name || `Unnamed Driver ${index + 1}`}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
         </div>
 
         {/* From & To Details */}
@@ -729,7 +733,7 @@ const styles: { [key: string]: CSSProperties } = {
   dropdown: {
     padding: "10px 14px",
     fontSize: "15px",
-    margin: "10px 0 20px 0",
+    margin: "10px 0 0 0",
     borderRadius: "6px",
     border: "1px solid #d1d5db",
     backgroundColor: "#ffffff",
