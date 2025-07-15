@@ -238,7 +238,8 @@ useEffect(() => {
     return result;
   }, [data, selectedFilter, rangeStart, rangeEnd, searchQuery, selectedUser]);
   
-  const exportTimesheets = () => {
+  // Export timesheets as XLSX using the full filteredData array
+  const exportTimesheets = async () => {
     setShowExportOptions(false);
 
     // Debug: Log total data available in memory before filtering
@@ -248,94 +249,62 @@ useEffect(() => {
       alert("No timesheets available to export for the selected filter.");
       return;
     }
-    // Debug: Log filtered timesheets count and sample before export
-    console.log("Filtered timesheets count:", filteredData.length);
-    console.log(
-      "Exporting timesheets:",
-      filteredData.map((ts, index) => ({
-        index,
-        id: ts._id,
-        date: ts.date,
-        driver: ts.driverName,
-      }))
-    );
-    // Build CSV data with updated mapping to ensure all values are mapped properly
-    const csvData = filteredData.map((item) => ({
-      "Full Name": item.driverName?.split(" (@")[0] || "",
-      "Trip Date": item.date || "",
-      "Driver Id": item.driverName?.match(/\(@(.*?)\)/)?.[1] || "",
-      "Trip Number": item.tripNumber || "",
-      "Load Type": item.category || "",
-      "Load ID": item.loadID || "",
-      "Start Time": item.startTime || "",
-      "Finish Time": item.endTime || "",
-      "Total Hours": item.totalHours || "",
-      "Gate Out Time": item.gateOutTime || "",
-      "Gate In Time": item.gateInTime || "",
-      "Start KMS": item.startKM ?? "",
-      "Finish KMS": item.endKM ?? "",
-      "Total KMS": item.endKM && item.startKM ? (item.endKM - item.startKM).toFixed(2) : "N/A",
-      "Extra Work": item.extraWorkSheetDetails?.duration ? `"Yes/${item.extraWorkSheetComments}"` : "N/A",
-      "Store Delays": item.storeDelay?.duration ? `"Yes"/${item.delayStoreReason}` : "N/A",
-      "Planned Hours": item.plannedHours || "",
-      "Driver Comments": item.comments || "",
-    }));
 
-    // Get headers
-    const headers = [
-      "Full Name",
-      "Trip Date",
-      "Driver Id",
-      "Trip Number",
-      "Load Type",
-      "Load ID",
-      "Start Time",
-      "Finish Time",
-      "Total Hours",
-      "Gate Out Time",
-      "Gate In Time",
-      "Start KMS",
-      "Finish KMS",
-      "Total KMS",
-      "Extra Work",
-      "Store Delays",
-      "Planned Hours",
-      "Driver Comments"
-    ];
+    // 🟢 Exporting debug log
+    console.log("🟢 Exporting", filteredData.length, "timesheets");
 
-    // Helper to escape CSV values
-    function escapeCSV(val: any) {
-      if (val == null) return "";
-      const str = String(val);
-      if (str.includes('"') || str.includes(",") || str.includes("\n")) {
-        return `"${str.replace(/"/g, '""')}"`;
-      }
-      return str;
-    }
+    // Dynamically import xlsx only when exporting
+    const XLSX = await import("xlsx");
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet([
+      [
+        "Full Name",
+        "Trip Date",
+        "Driver Id",
+        "Trip Number",
+        "Load Type",
+        "Load ID",
+        "Start Time",
+        "Finish Time",
+        "Total Hours",
+        "Gate Out Time",
+        "Gate In Time",
+        "Start KMS",
+        "Finish KMS",
+        "Total KMS",
+        "Extra Work",
+        "Store Delays",
+        "Planned Hours",
+        "Driver Comments"
+      ]
+    ]);
 
-    type CsvRow = {
-      [key: string]: any; // Allow indexing with a string
-    };
-    
-    const csvRows = [
-      headers.join(","),
-      ...csvData.map((row: CsvRow) =>
-        headers.map(h => escapeCSV(row[h])).join(",")
-      )
-    ];
+    // Use filteredData for export, not paginated rows
+    filteredData.forEach((timesheet) => {
+      worksheet.addRow([
+        timesheet.fullName,
+        timesheet.date,
+        timesheet.driverId,
+        timesheet.tripNumber,
+        timesheet.loadType,
+        timesheet.loadId,
+        timesheet.startTime,
+        timesheet.finishTime,
+        timesheet.totalHours,
+        timesheet.gateOutTime,
+        timesheet.gateInTime,
+        timesheet.startKMS,
+        timesheet.finishKMS,
+        timesheet.totalKMS,
+        timesheet.extraWork,
+        timesheet.storeDelays,
+        timesheet.plannedHours,
+        timesheet.driverComments,
+      ]);
+    });
 
-    // Debug: Log row count and preview before downloading
-    console.log("Final CSV row count (including header):", csvRows.length);
-    console.log("CSV preview:", csvRows.slice(0, 3)); // sample of header + first 2 rows
-
-    const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `filtered_timesheets_export.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Timesheets");
+    XLSX.writeFile(workbook, "filtered_timesheets_export.xlsx");
   };
 
   useEffect(() => {
