@@ -16,12 +16,14 @@ const AllTimesheets: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [, setUserRole] = useState<string | null>(null);
+  // FilterType must be defined before useState for selectedFilter
+  type FilterType = "All" | "Today" | "This Week" | "This Month" | "Custom";
   // Removed edit modal state
   const [, setShowExportOptions] = useState(false);
   const [, setCategoryRates] = useState<Record<string, number>>(
     {}
   );
-  const [selectedFilter, setSelectedFilter] = useState<string>("All");
+  const [selectedFilter, setSelectedFilter] = useState<FilterType>("All");
   const [isFiltered, setIsFiltered] = useState(false);
   const [rangeStart, setRangeStart] = useState<string>("");
   const [rangeEnd, setRangeEnd] = useState<string>("");
@@ -72,14 +74,20 @@ const AllTimesheets: React.FC = () => {
   }, []);
 
 useEffect(() => {
-  const active = selectedFilter !== "All" || selectedUser !== "All" || !!searchQuery.trim();
+  const active =
+    selectedFilter !== "All" ||
+    selectedUser !== "All" ||
+    !!searchQuery.trim() ||
+    (String(selectedFilter) === "Custom" && !!rangeStart && !!rangeEnd);
+
   setIsFiltered(active);
+
   if (active) {
-    fetchTimesheets(true);
+    fetchTimesheets(true); // noPagination=true
   } else {
     fetchTimesheets();
   }
-}, [selectedFilter, selectedUser, searchQuery]);
+}, [selectedFilter, selectedUser, searchQuery, rangeStart, rangeEnd]);
 
   const handleExport = () => {
     if (filteredData.length === 0) {
@@ -233,10 +241,16 @@ useEffect(() => {
   const exportTimesheets = () => {
     setShowExportOptions(false);
 
+    // Debug: Log total data available in memory before filtering
+    console.log("Total data available in memory:", data.length);
+
     if (filteredData.length === 0) {
       alert("No timesheets available to export for the selected filter.");
       return;
     }
+    // Debug: Log filtered timesheets count and sample before export
+    console.log("Filtered timesheets count:", filteredData.length);
+    console.log("Exporting timesheets:", filteredData.map(ts => ({ id: ts._id, date: ts.date, driver: ts.driverName })));
     // Build CSV data with updated mapping to ensure all values are mapped properly
     const csvData = filteredData.map((item) => ({
       "Full Name": item.driverName?.split(" (@")[0] || "",
@@ -572,7 +586,11 @@ useEffect(() => {
             </div>
             <div style={styles.filterGroup}>
               <label>Filter:</label>
-              <select value={selectedFilter} onChange={e => setSelectedFilter(e.target.value)} style={styles.selectInput}>
+              <select
+                value={selectedFilter ?? "All"}
+                onChange={e => setSelectedFilter(e.target.value as FilterType)}
+                style={styles.selectInput}
+              >
                 <option value="All">All</option>
                 <option value="Today">Today</option>
                 <option value="This Week">This Week</option>
