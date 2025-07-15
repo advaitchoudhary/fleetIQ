@@ -250,7 +250,15 @@ useEffect(() => {
     }
     // Debug: Log filtered timesheets count and sample before export
     console.log("Filtered timesheets count:", filteredData.length);
-    console.log("Exporting timesheets:", filteredData.map(ts => ({ id: ts._id, date: ts.date, driver: ts.driverName })));
+    console.log(
+      "Exporting timesheets:",
+      filteredData.map((ts, index) => ({
+        index,
+        id: ts._id,
+        date: ts.date,
+        driver: ts.driverName,
+      }))
+    );
     // Build CSV data with updated mapping to ensure all values are mapped properly
     const csvData = filteredData.map((item) => ({
       "Full Name": item.driverName?.split(" (@")[0] || "",
@@ -315,6 +323,10 @@ useEffect(() => {
         headers.map(h => escapeCSV(row[h])).join(",")
       )
     ];
+
+    // Debug: Log row count and preview before downloading
+    console.log("Final CSV row count (including header):", csvRows.length);
+    console.log("CSV preview:", csvRows.slice(0, 3)); // sample of header + first 2 rows
 
     const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
     const encodedUri = encodeURI(csvContent);
