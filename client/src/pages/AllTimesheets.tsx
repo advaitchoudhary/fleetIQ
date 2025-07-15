@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
+import * as XLSX from "xlsx";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -19,7 +20,6 @@ const AllTimesheets: React.FC = () => {
   // FilterType must be defined before useState for selectedFilter
   type FilterType = "All" | "Today" | "This Week" | "This Month" | "Custom";
   // Removed edit modal state
-  const [, setShowExportOptions] = useState(false);
   const [, setCategoryRates] = useState<Record<string, number>>(
     {}
   );
@@ -239,72 +239,45 @@ useEffect(() => {
   }, [data, selectedFilter, rangeStart, rangeEnd, searchQuery, selectedUser]);
   
   // Export timesheets as XLSX using the full filteredData array
-  const exportTimesheets = async () => {
-    setShowExportOptions(false);
-
-    // Debug: Log total data available in memory before filtering
-    console.log("Total data available in memory:", data.length);
-
-    if (filteredData.length === 0) {
-      alert("No timesheets available to export for the selected filter.");
+  const exportTimesheets = () => {
+    if (!filteredData || filteredData.length === 0) {
+      alert("No timesheets available to export.");
       return;
     }
 
-    // 🟢 Exporting debug log
-    console.log("🟢 Exporting", filteredData.length, "timesheets");
+    const headers = [
+      "Full Name", "Trip Date", "Driver Id", "Trip Number", "Load Type",
+      "Load ID", "Start Time", "Finish Time", "Total Hours", "Gate Out Time",
+      "Gate In Time", "Start KMS", "Finish KMS", "Total KMS", "Extra Work",
+      "Store Delays", "Planned Hours", "Driver Comments",
+    ];
 
-    // Dynamically import xlsx only when exporting
-    const XLSX = await import("xlsx");
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.aoa_to_sheet([
-      [
-        "Full Name",
-        "Trip Date",
-        "Driver Id",
-        "Trip Number",
-        "Load Type",
-        "Load ID",
-        "Start Time",
-        "Finish Time",
-        "Total Hours",
-        "Gate Out Time",
-        "Gate In Time",
-        "Start KMS",
-        "Finish KMS",
-        "Total KMS",
-        "Extra Work",
-        "Store Delays",
-        "Planned Hours",
-        "Driver Comments"
-      ]
+    const rows = filteredData.map((t) => [
+      t.fullName,
+      t.date,
+      t.driverId,
+      t.tripNumber,
+      t.loadType,
+      t.loadId,
+      t.startTime,
+      t.finishTime,
+      t.totalHours,
+      t.gateOutTime,
+      t.gateInTime,
+      t.startKMS,
+      t.finishKMS,
+      t.totalKMS,
+      t.extraWork,
+      t.storeDelays,
+      t.plannedHours,
+      t.driverComments,
     ]);
 
-    // Use filteredData for export, not paginated rows
-    filteredData.forEach((timesheet) => {
-      worksheet.addRow([
-        timesheet.fullName,
-        timesheet.date,
-        timesheet.driverId,
-        timesheet.tripNumber,
-        timesheet.loadType,
-        timesheet.loadId,
-        timesheet.startTime,
-        timesheet.finishTime,
-        timesheet.totalHours,
-        timesheet.gateOutTime,
-        timesheet.gateInTime,
-        timesheet.startKMS,
-        timesheet.finishKMS,
-        timesheet.totalKMS,
-        timesheet.extraWork,
-        timesheet.storeDelays,
-        timesheet.plannedHours,
-        timesheet.driverComments,
-      ]);
-    });
-
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Timesheets");
-    XLSX.writeFile(workbook, "filtered_timesheets_export.xlsx");
+
+    XLSX.writeFile(workbook, `filtered_timesheets_export_${Date.now()}.xlsx`);
   };
 
   useEffect(() => {
