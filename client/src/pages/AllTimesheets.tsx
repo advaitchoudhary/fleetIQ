@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -238,46 +238,77 @@ useEffect(() => {
     return result;
   }, [data, selectedFilter, rangeStart, rangeEnd, searchQuery, selectedUser]);
   
-  // Export timesheets as XLSX using the full filteredData array
-  const exportTimesheets = () => {
+  // Export timesheets using ExcelJS
+
+  const exportTimesheets = async () => {
     if (!filteredData || filteredData.length === 0) {
       alert("No timesheets available to export.");
       return;
     }
 
-    const headers = [
-      "Full Name", "Trip Date", "Driver Id", "Trip Number", "Load Type",
-      "Load ID", "Start Time", "Finish Time", "Total Hours", "Gate Out Time",
-      "Gate In Time", "Start KMS", "Finish KMS", "Total KMS", "Extra Work",
-      "Store Delays", "Planned Hours", "Driver Comments",
+    // Log a sample timesheet before export
+    console.log("Sample timesheet before export:", filteredData[0]);
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Timesheets");
+
+    worksheet.columns = [
+      { header: "Full Name", key: "fullName" },
+      { header: "Trip Date", key: "date" },
+      { header: "Driver Id", key: "driverId" },
+      { header: "Trip Number", key: "tripNumber" },
+      { header: "Load Type", key: "loadType" },
+      { header: "Load ID", key: "loadId" },
+      { header: "Start Time", key: "startTime" },
+      { header: "Finish Time", key: "finishTime" },
+      { header: "Total Hours", key: "totalHours" },
+      { header: "Gate Out Time", key: "gateOutTime" },
+      { header: "Gate In Time", key: "gateInTime" },
+      { header: "Start KMS", key: "startKMS" },
+      { header: "Finish KMS", key: "finishKMS" },
+      { header: "Total KMS", key: "totalKMS" },
+      { header: "Extra Work", key: "extraWork" },
+      { header: "Store Delays", key: "storeDelays" },
+      { header: "Planned Hours", key: "plannedHours" },
+      { header: "Driver Comments", key: "driverComments" },
     ];
 
-    const rows = filteredData.map((t) => [
-      t.fullName,
-      t.date,
-      t.driverId,
-      t.tripNumber,
-      t.loadType,
-      t.loadId,
-      t.startTime,
-      t.finishTime,
-      t.totalHours,
-      t.gateOutTime,
-      t.gateInTime,
-      t.startKMS,
-      t.finishKMS,
-      t.totalKMS,
-      t.extraWork,
-      t.storeDelays,
-      t.plannedHours,
-      t.driverComments,
-    ]);
+    // Use the working CSV transformation logic
+    const exportRows = filteredData.map((item) => ({
+      fullName: item.driverName?.split(" (@")[0] || "",
+      date: item.date || "",
+      driverId: item.driverName?.match(/\(@(.*?)\)/)?.[1] || "",
+      tripNumber: item.tripNumber || "",
+      loadType: item.category || "",
+      loadId: item.loadID || "",
+      startTime: item.startTime || "",
+      finishTime: item.endTime || "",
+      totalHours: item.totalHours || "",
+      gateOutTime: item.gateOutTime || "",
+      gateInTime: item.gateInTime || "",
+      startKMS: item.startKM ?? "",
+      finishKMS: item.endKM ?? "",
+      totalKMS: item.endKM && item.startKM ? (item.endKM - item.startKM).toFixed(2) : "N/A",
+      extraWork: item.extraWorkSheetDetails?.duration ? `"Yes/${item.extraWorkSheetComments}"` : "N/A",
+      storeDelays: item.storeDelay?.duration ? `"Yes"/${item.delayStoreReason}` : "N/A",
+      plannedHours: item.plannedHours || "",
+      driverComments: item.comments || "",
+    }));
 
-    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Timesheets");
+    worksheet.addRows(exportRows);
 
-    XLSX.writeFile(workbook, `filtered_timesheets_export_${Date.now()}.xlsx`);
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "filtered_timesheets_export.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   useEffect(() => {
