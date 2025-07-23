@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import ExcelJS from "exceljs";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import axios from "axios";
 import {
   ColumnDef,
@@ -13,6 +13,8 @@ import Navbar from "./Navbar";
 import { FILE_BASE_URL, API_BASE_URL } from "../utils/env";
 
 const AllTimesheets: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,24 +25,68 @@ const AllTimesheets: React.FC = () => {
   const [, setCategoryRates] = useState<Record<string, number>>(
     {}
   );
-  const [selectedFilter, setSelectedFilter] = useState<FilterType>("All");
+  
+  // Initialize filter states from URL params or defaults
+  const [selectedFilter, setSelectedFilter] = useState<FilterType>(
+    (searchParams.get("filter") as FilterType) || "All"
+  );
   const [isFiltered, setIsFiltered] = useState(false);
-  const [rangeStart, setRangeStart] = useState<string>("");
-  const [rangeEnd, setRangeEnd] = useState<string>("");
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [selectedUser, setSelectedUser] = useState<string>("All");
+  const [rangeStart, setRangeStart] = useState<string>(
+    searchParams.get("rangeStart") || ""
+  );
+  const [rangeEnd, setRangeEnd] = useState<string>(
+    searchParams.get("rangeEnd") || ""
+  );
+  const [searchQuery, setSearchQuery] = useState<string>(
+    searchParams.get("search") || ""
+  );
+  const [selectedUser, setSelectedUser] = useState<string>(
+    searchParams.get("user") || "All"
+  );
   const [users, setUsers] = useState<any[]>([]);
   // const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
 
-  // Pagination state
-  const [page, setPage] = useState(1);
+  // Pagination state - also persist in URL
+  const [page, setPage] = useState(
+    parseInt(searchParams.get("page") || "1")
+  );
   const [limit] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
 
   // Modal state for delete confirmation
   const [showModal, setShowModal] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Track if this is the first load
+  const isFirstLoad = useRef(true);
+
+  // Function to update URL params when filters change
+  const updateURLParams = (newParams: Record<string, string>) => {
+    const currentParams = Object.fromEntries(searchParams.entries());
+    const updatedParams = { ...currentParams, ...newParams };
+    
+    // Remove empty values
+    Object.keys(updatedParams).forEach(key => {
+      if (!updatedParams[key] || updatedParams[key] === "All") {
+        delete updatedParams[key];
+      }
+    });
+    
+    setSearchParams(updatedParams);
+  };
+
+  // Update URL when filter states change
+  useEffect(() => {
+    updateURLParams({
+      filter: selectedFilter,
+      search: searchQuery,
+      user: selectedUser,
+      rangeStart,
+      rangeEnd,
+      page: page.toString()
+    });
+  }, [selectedFilter, searchQuery, selectedUser, rangeStart, rangeEnd, page]);
 
   // Handler for delete button click (opens modal)
   const handleDeleteClick = (id: string) => {
@@ -71,7 +117,51 @@ const AllTimesheets: React.FC = () => {
       const user = JSON.parse(storedUser);
       setUserRole(user.role);
     }
+
+    // Add focus event listener to refetch data when returning to this component
+    const handleFocus = () => {
+      console.log("🔄 Component focused, refetching data...");
+      fetchTimesheets();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
+
+  // Refetch data when URL parameters change (e.g., when returning from child component)
+  useEffect(() => {
+    const urlFilter = searchParams.get("filter") as FilterType;
+    const urlUser = searchParams.get("user");
+    const urlSearch = searchParams.get("search");
+    const urlPage = searchParams.get("page");
+    
+    // Only refetch if URL params differ from current state
+    if (urlFilter && urlFilter !== selectedFilter) {
+      setSelectedFilter(urlFilter);
+    }
+    if (urlUser && urlUser !== selectedUser) {
+      setSelectedUser(urlUser);
+    }
+    if (urlSearch && urlSearch !== searchQuery) {
+      setSearchQuery(urlSearch);
+    }
+    if (urlPage && parseInt(urlPage) !== page) {
+      setPage(parseInt(urlPage));
+    }
+  }, [searchParams]);
+
+  // Refetch data when navigating back to this component
+  useEffect(() => {
+    if (!isFirstLoad.current) {
+      console.log("🔄 Location changed, refetching data...");
+      fetchTimesheets();
+    } else {
+      isFirstLoad.current = false;
+    }
+  }, [location.pathname]);
 
 useEffect(() => {
   const active =
@@ -119,6 +209,40 @@ useEffect(() => {
     }
   };
 
+  // Function to clear all filters
+  const clearAllFilters = () => {
+    setSelectedFilter("All");
+    setSelectedUser("All");
+    setSearchQuery("");
+    setRangeStart("");
+    setRangeEnd("");
+    setPage(1);
+    // Clear URL params
+    setSearchParams({});
+  };
+
+  // Enhanced filter handlers that update URL
+  const handleFilterChange = (newFilter: FilterType) => {
+    setSelectedFilter(newFilter);
+    if (newFilter !== "Custom") {
+      setRangeStart("");
+      setRangeEnd("");
+    }
+  };
+
+  const handleUserChange = (newUser: string) => {
+    setSelectedUser(newUser);
+    setPage(1); // Reset to first page when changing user filter
+  };
+
+  const handleSearchChange = (newSearch: string) => {
+    setSearchQuery(newSearch);
+    setPage(1); // Reset to first page when searching
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+  };
 
   const filteredData = useMemo(() => {
     let result;
@@ -364,12 +488,29 @@ useEffect(() => {
       const url = shouldSkipPagination
         ? `${API_BASE_URL}/timesheets?noPagination=true`
         : `${API_BASE_URL}/timesheets?page=${page}&limit=${limit}`;
+      
+      console.log("🔍 Fetching timesheets with URL:", url);
+      console.log("🔍 isFiltered:", isFiltered, "forceNoPagination:", forceNoPagination);
+      
       const response = await axios.get(url);
-      console.log("Fetched timesheets:", response.data);
-      setData(response.data.data);
-      setTotalPages(shouldSkipPagination ? 1 : response.data.totalPages);
+      console.log("📊 Raw response data:", response.data);
+      
+      // Handle different response formats
+      if (shouldSkipPagination) {
+        // When noPagination=true, server returns { data: [...] }
+        const timesheetData = response.data.data || response.data;
+        console.log("📊 Setting data (no pagination):", timesheetData.length, "records");
+        setData(timesheetData);
+        setTotalPages(1);
+      } else {
+        // When pagination is used, server returns { data: [...], totalPages, total, page }
+        const timesheetData = response.data.data || response.data;
+        console.log("📊 Setting data (with pagination):", timesheetData.length, "records, totalPages:", response.data.totalPages);
+        setData(timesheetData);
+        setTotalPages(response.data.totalPages || 1);
+      }
     } catch (error) {
-      console.error("Error fetching timesheets:", error);
+      console.error("❌ Error fetching timesheets:", error);
       setError("Failed to load timesheets. Please try again.");
     } finally {
       setLoading(false);
@@ -554,7 +695,7 @@ useEffect(() => {
                 type="text"
                 placeholder="Search..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 style={styles.searchInput}
               />
             </div>
@@ -562,7 +703,7 @@ useEffect(() => {
           <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
             <div style={styles.filterGroup}>
               <label>User:</label>
-              <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)} style={styles.selectInput}>
+              <select value={selectedUser} onChange={(e) => handleUserChange(e.target.value)} style={styles.selectInput}>
                 <option value="All">All Users</option>
                 {users.map((driver: any) => (
                   <option key={driver._id} value={driver.email}>{driver.name} ({driver.username})</option>
@@ -573,7 +714,7 @@ useEffect(() => {
               <label>Filter:</label>
               <select
                 value={selectedFilter ?? "All"}
-                onChange={e => setSelectedFilter(e.target.value as FilterType)}
+                onChange={e => handleFilterChange(e.target.value as FilterType)}
                 style={styles.selectInput}
               >
                 <option value="All">All</option>
@@ -591,6 +732,12 @@ useEffect(() => {
                 </>
               )}
             </div>
+            {/* Clear Filters Button */}
+            {((selectedFilter !== "All") || (selectedUser !== "All") || searchQuery.trim() || ((selectedFilter as string) === "Custom" && (rangeStart || rangeEnd))) && (
+              <button onClick={clearAllFilters} style={styles.clearButton}>
+                Clear Filters ✕
+              </button>
+            )}
             <button onClick={handleExport} style={styles.exportButton}>
               Export Timesheet 📤
             </button>
@@ -631,7 +778,16 @@ useEffect(() => {
                         onClick={(e) => {
                           const target = e.target as HTMLElement;
                           if (target.closest("button")) return;
-                          navigate(`/timesheet/${row.original._id}`);
+                          
+                          // Build URL with current search parameters to preserve filters
+                          let detailUrl = `/timesheet/${row.original._id}`;
+                          const currentParams = new URLSearchParams(searchParams);
+                          
+                          if (currentParams.toString()) {
+                            detailUrl += `?${currentParams.toString()}`;
+                          }
+                          
+                          navigate(detailUrl);
                         }}
                       >
                         {row.getVisibleCells().map((cell) => (
@@ -661,7 +817,7 @@ useEffect(() => {
             {/* Pagination controls */}
             <div style={styles.pagination}>
               <button
-                onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => handlePageChange(Math.max(page - 1, 1))}
                 disabled={page === 1}
                 style={styles.paginationButton}
               >
@@ -669,7 +825,7 @@ useEffect(() => {
               </button>
               <span>Page {page} of {totalPages}</span>
               <button
-                onClick={() => setPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() => handlePageChange(Math.min(page + 1, totalPages))}
                 disabled={page === totalPages}
                 style={styles.paginationButton}
               >
@@ -907,6 +1063,19 @@ const styles = {
     fontSize: "14px",
     width: "250px",
   },
+  clearButton: {
+    padding: "8px 14px",
+    backgroundColor: "#e0e0e0",
+    color: "#333",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "14px",
+    fontWeight: 500,
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  },
 };
 
 const statusStyles = {
@@ -951,7 +1120,7 @@ export default AllTimesheets;
 
 // The modal should be rendered after the main return block, but in React,
 // it should be inside the component's return.
-// So, append it just after the closing </div> of the main return block.
+// So, append it just after the closing </div> of the main return.
 
 // To achieve this, move the modal JSX outside and after the main <div> in the return.
 // Since this is a single file, we can inject the modal just after the main return's </div>:

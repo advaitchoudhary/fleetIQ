@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useCallback, JSX } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL, FILE_BASE_URL } from "../utils/env";
 import Navbar from "./Navbar";
 
 const DetailedTimesheet: React.FC = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [timesheet, setTimesheet] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<any>({});
@@ -14,6 +16,29 @@ const DetailedTimesheet: React.FC = () => {
   const [resetHover, setResetHover] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [driversMap, setDriversMap] = useState<Record<string, string>>({});
+
+  // Function to handle back navigation while preserving filters
+  const handleBackClick = () => {
+    // Get the current search params from the URL that brought us here
+    const searchParams = new URLSearchParams(location.search);
+    
+    // Build the back URL with preserved filters
+    let backUrl = "/applications";
+    const params = [];
+    
+    if (searchParams.get("filter")) params.push(`filter=${searchParams.get("filter")}`);
+    if (searchParams.get("user")) params.push(`user=${searchParams.get("user")}`);
+    if (searchParams.get("search")) params.push(`search=${searchParams.get("search")}`);
+    if (searchParams.get("rangeStart")) params.push(`rangeStart=${searchParams.get("rangeStart")}`);
+    if (searchParams.get("rangeEnd")) params.push(`rangeEnd=${searchParams.get("rangeEnd")}`);
+    if (searchParams.get("page")) params.push(`page=${searchParams.get("page")}`);
+    
+    if (params.length > 0) {
+      backUrl += `?${params.join("&")}`;
+    }
+    
+    navigate(backUrl);
+  };
 
   const allFields = [
     "date", "driver", "driverName", "startTime", "endTime", "customer", "totalHours",
@@ -76,6 +101,20 @@ const DetailedTimesheet: React.FC = () => {
     fetchTimesheet();
   }, [id, fetchAllDrivers]);
 
+  // Add keyboard event listener for Escape key
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleBackClick();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   useEffect(() => {
     const calculateDuration = (from: string, to: string) => {
       if (!from || !to) return "";
@@ -115,6 +154,42 @@ const DetailedTimesheet: React.FC = () => {
   return (
     <div style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
     <Navbar />
+    {/* Back Button */}
+    <div style={{ 
+      padding: "20px 20px 0 20px",
+      display: "flex",
+      alignItems: "center"
+    }}>
+      <button
+        onClick={handleBackClick}
+        title="Go back to timesheets list (or press Escape)"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          padding: "10px 16px",
+          backgroundColor: "#4F46E5",
+          color: "white",
+          border: "none",
+          borderRadius: "8px",
+          fontSize: "14px",
+          fontWeight: "500",
+          cursor: "pointer",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+          transition: "all 0.2s ease"
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = "#4338CA";
+          e.currentTarget.style.transform = "translateY(-1px)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = "#4F46E5";
+          e.currentTarget.style.transform = "translateY(0)";
+        }}
+      >
+        ← Back to Applications
+      </button>
+    </div>
     <div style={{ display: "flex", padding: "20px", gap: "20px" }}>
       {/* Left Side: Beautified Details */}
       <div style={{
