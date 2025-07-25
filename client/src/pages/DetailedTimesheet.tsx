@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, JSX } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL, FILE_BASE_URL } from "../utils/env";
 import Navbar from "./Navbar";
@@ -7,7 +7,6 @@ import Navbar from "./Navbar";
 const DetailedTimesheet: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
   const [timesheet, setTimesheet] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<any>({});
@@ -17,13 +16,13 @@ const DetailedTimesheet: React.FC = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [driversMap, setDriversMap] = useState<Record<string, string>>({});
   // Local UI state for dropdown and supporting fields
-  const [extraWorkSelected, setExtraWorkSelected] = useState("No");
-  const [extraWorkFrom, setExtraWorkFrom] = useState("");
-  const [extraWorkTo, setExtraWorkTo] = useState("");
-  const [extraWorkComments, setExtraWorkComments] = useState("");
+  const [, setExtraWorkSelected] = useState("No");
+  const [, setExtraWorkFrom] = useState("");
+  const [, setExtraWorkTo] = useState("");
+  const [, setExtraWorkComments] = useState("");
   // Multi-select for delay types (legacy, will be replaced by checkboxes)
-  const [extraDelay, setExtraDelay] = useState("No");
-  const [extraDelayTypes, setExtraDelayTypes] = useState<string[]>([]);
+  const [, setExtraDelay] = useState("No");
+  const [, setExtraDelayTypes] = useState<string[]>([]);
   // Checkbox-based selection for delay types
   const [selectedDelayTypes, setSelectedDelayTypes] = useState<string[]>([]);
   // Store delay fields
@@ -41,21 +40,21 @@ const DetailedTimesheet: React.FC = () => {
     reason: "",
   });
   // Other delay fields
-  const [otherDelayFields, setOtherDelayFields] = useState({
+  const [, setOtherDelayFields] = useState({
     from: "",
     to: "",
     duration: "",
     reason: "",
   });
   // Store delay state variables
-  const [storeDelay, setStoreDelay] = useState(
-    formData.storeDelay || {
-      duration: "",
-      from: "",
-      to: "",
-      reason: "",
-    }
-  );
+  // const [storeDelay, setStoreDelay] = useState(
+  //   formData.storeDelay || {
+  //     duration: "",
+  //     from: "",
+  //     to: "",
+  //     reason: "",
+  //   }
+  // );
 
   // Function to handle back navigation while preserving filters
   const handleBackClick = () => {
@@ -104,6 +103,20 @@ const DetailedTimesheet: React.FC = () => {
       console.error("Failed to fetch drivers:", error);
     }
   }, []);
+
+    // Add keyboard event listener for Escape key
+    useEffect(() => {
+      const handleKeyDown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+          handleBackClick();
+        }
+      };
+  
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+      };
+    }, []);
 
   useEffect(() => {
     fetchAllDrivers();
@@ -216,20 +229,6 @@ const DetailedTimesheet: React.FC = () => {
     return `${hours} hr ${minutes} min`;
   };
 
-  // Add keyboard event listener for Escape key
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        handleBackClick();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
-
   useEffect(() => {
     const calculateDuration = (from: string, to: string) => {
       if (!from || !to) return "";
@@ -341,41 +340,6 @@ const DetailedTimesheet: React.FC = () => {
     }
   };
 
-  // Handler for multi-select delay type change (legacy)
-  const handleDelayTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
-    setExtraDelayTypes(selected);
-    // Optionally clear fields for types that are now unselected
-    if (!selected.includes("Store Delay")) {
-      setStoreDelayFields({ duration: "", from: "", to: "", reason: "" });
-    }
-    if (!selected.includes("Road Delay")) {
-      setRoadDelayFields({ duration: "", from: "", to: "", reason: "" });
-    }
-    if (!selected.includes("Other Delay")) {
-      setOtherDelayFields({ duration: "", from: "", to: "", reason: "" });
-    }
-  };
-
-  // Handler for checkbox-based delay type selection
-  const handleDelayTypeCheckboxChange = (type: string, isChecked: boolean) => {
-    if (isChecked) {
-      setSelectedDelayTypes((prev) => [...prev, type]);
-    } else {
-      setSelectedDelayTypes((prev) => prev.filter((t) => t !== type));
-      // Optionally clear fields for types that are now unselected
-      if (type === "Store Delay") {
-        setStoreDelayFields({ duration: "", from: "", to: "", reason: "" });
-      }
-      if (type === "Road Delay") {
-        setRoadDelayFields({ duration: "", from: "", to: "", reason: "" });
-      }
-      if (type === "Other Delay") {
-        setOtherDelayFields({ duration: "", from: "", to: "", reason: "" });
-      }
-    }
-  };
-
   // Handlers for each delay type's fields
   const handleStoreDelayField = (field: string, value: string) => {
     setStoreDelayFields((prev) => ({ ...prev, [field]: value }));
@@ -440,7 +404,6 @@ const DetailedTimesheet: React.FC = () => {
   return (
     <div style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
     <Navbar />
-    {/* Back Button */}
     <div style={{ 
       padding: "20px 20px 0 20px",
       display: "flex",
@@ -473,7 +436,7 @@ const DetailedTimesheet: React.FC = () => {
           e.currentTarget.style.transform = "translateY(0)";
         }}
       >
-        ← Back to Applications
+        ← Back to Timesheets
       </button>
     </div>
     <div style={{ display: "flex", padding: "20px", gap: "20px" }}>
@@ -570,7 +533,7 @@ const DetailedTimesheet: React.FC = () => {
         {
           // Custom fields rendering for form, with new Extra Delay block
           (() => {
-            let inExtra = false, inDelay = false;
+            let inExtra = false;
             const categoryOptions = ["Backhaul", "Combo", "Extra Sheet/E.W", "Regular/Banner", "Wholesale", "Wholesale DZ"];
             // Filter out delay-related fields, will be handled in custom block
             const DELAY_FIELDS = [
