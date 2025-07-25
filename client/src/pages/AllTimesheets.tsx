@@ -28,7 +28,7 @@ const AllTimesheets: React.FC = () => {
   
   // Initialize filter states from URL params or defaults
   const [selectedFilter, setSelectedFilter] = useState<FilterType>(
-    (searchParams.get("filter") as FilterType) || "All"
+    (searchParams.get("filter") as FilterType) || "Today"
   );
   const [isFiltered, setIsFiltered] = useState(false);
   const [rangeStart, setRangeStart] = useState<string>(
@@ -46,6 +46,8 @@ const AllTimesheets: React.FC = () => {
   const [users, setUsers] = useState<any[]>([]);
   // const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  // --- [1] Add state for status filter
+  const [selectedStatus, setSelectedStatus] = useState<string>("All");
 
   // Pagination state - also persist in URL
   const [page, setPage] = useState(
@@ -167,6 +169,7 @@ useEffect(() => {
   const active =
     selectedFilter !== "All" ||
     selectedUser !== "All" ||
+    selectedStatus !== "All" ||
     !!searchQuery.trim() ||
     (String(selectedFilter) === "Custom" && !!rangeStart && !!rangeEnd);
 
@@ -177,7 +180,7 @@ useEffect(() => {
   } else {
     fetchTimesheets();
   }
-}, [selectedFilter, selectedUser, searchQuery, rangeStart, rangeEnd]);
+}, [selectedFilter, selectedUser, selectedStatus, searchQuery, rangeStart, rangeEnd]);
 
   const handleExport = () => {
     if (filteredData.length === 0) {
@@ -211,8 +214,9 @@ useEffect(() => {
 
   // Function to clear all filters
   const clearAllFilters = () => {
-    setSelectedFilter("All");
+    setSelectedFilter("Today");
     setSelectedUser("All");
+    setSelectedStatus("All"); // [3] reset status filter
     setSearchQuery("");
     setRangeStart("");
     setRangeEnd("");
@@ -248,6 +252,10 @@ useEffect(() => {
     let result;
     if (selectedFilter === "All") {
       result = data;
+      // [5] Status filter
+      if (selectedStatus !== "All") {
+        result = result.filter(ts => ts.status === selectedStatus);
+      }
       // Filter by selectedUser before searchQuery
       if (selectedUser !== "All") {
         result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
@@ -270,6 +278,9 @@ useEffect(() => {
         console.log("Filtering for today:", ts.date, "==", todayStr);
         return ts.date === todayStr;
       });
+      if (selectedStatus !== "All") {
+        result = result.filter(ts => ts.status === selectedStatus);
+      }
       if (selectedUser !== "All") {
         result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
       }
@@ -295,6 +306,9 @@ useEffect(() => {
         const tsDateStr = ts.date;
         return tsDateStr >= startStr && tsDateStr <= endStr;
       });
+      if (selectedStatus !== "All") {
+        result = result.filter(ts => ts.status === selectedStatus);
+      }
       if (selectedUser !== "All") {
         result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
       }
@@ -314,6 +328,9 @@ useEffect(() => {
       result = data.filter(ts => {
         return typeof ts.date === "string" && ts.date.startsWith(yearMonth);
       });
+      if (selectedStatus !== "All") {
+        result = result.filter(ts => ts.status === selectedStatus);
+      }
       if (selectedUser !== "All") {
         result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
       }
@@ -335,6 +352,9 @@ useEffect(() => {
         const tsDateStr = ts.date;
         return tsDateStr >= startStr && tsDateStr <= endStr;
       });
+      if (selectedStatus !== "All") {
+        result = result.filter(ts => ts.status === selectedStatus);
+      }
       if (selectedUser !== "All") {
         result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
       }
@@ -349,6 +369,9 @@ useEffect(() => {
     }
 
     result = data;
+    if (selectedStatus !== "All") {
+      result = result.filter(ts => ts.status === selectedStatus);
+    }
     if (selectedUser !== "All") {
       result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
     }
@@ -360,7 +383,7 @@ useEffect(() => {
       );
     }
     return result;
-  }, [data, selectedFilter, rangeStart, rangeEnd, searchQuery, selectedUser]);
+  }, [data, selectedFilter, rangeStart, rangeEnd, searchQuery, selectedUser, selectedStatus]);
   
   // Export timesheets using ExcelJS
 
@@ -717,8 +740,8 @@ useEffect(() => {
                 onChange={e => handleFilterChange(e.target.value as FilterType)}
                 style={styles.selectInput}
               >
-                <option value="All">All</option>
                 <option value="Today">Today</option>
+                <option value="All">All</option>
                 <option value="This Week">This Week</option>
                 <option value="This Month">This Month</option>
                 <option value="Custom">Custom Range</option>
@@ -732,8 +755,22 @@ useEffect(() => {
                 </>
               )}
             </div>
+            {/* [2] Add status filter dropdown */}
+            <div style={styles.filterGroup}>
+              <label>Status:</label>
+              <select
+                value={selectedStatus}
+                onChange={e => setSelectedStatus(e.target.value)}
+                style={styles.selectInput}
+              >
+                <option value="All">All</option>
+                <option value="approved">Approved</option>
+                <option value="pending">Pending</option>
+                <option value="rejected">Rejected</option>
+              </select>
+            </div>
             {/* Clear Filters Button */}
-            {((selectedFilter !== "All") || (selectedUser !== "All") || searchQuery.trim() || ((selectedFilter as string) === "Custom" && (rangeStart || rangeEnd))) && (
+            {((selectedFilter !== "Today" && selectedFilter !== "All" && selectedFilter !== "Custom") || selectedUser !== "All" || selectedStatus !== "All" || searchQuery.trim() || (selectedFilter === "Custom" && (rangeStart || rangeEnd))) && (
               <button onClick={clearAllFilters} style={styles.clearButton}>
                 Clear Filters ✕
               </button>
