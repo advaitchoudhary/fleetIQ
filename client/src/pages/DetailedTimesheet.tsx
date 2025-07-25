@@ -14,6 +14,46 @@ const DetailedTimesheet: React.FC = () => {
   const [resetHover, setResetHover] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [driversMap, setDriversMap] = useState<Record<string, string>>({});
+  // Local UI state for dropdown and supporting fields
+  const [extraWorkSelected, setExtraWorkSelected] = useState("No");
+  const [extraWorkFrom, setExtraWorkFrom] = useState("");
+  const [extraWorkTo, setExtraWorkTo] = useState("");
+  const [extraWorkComments, setExtraWorkComments] = useState("");
+  // Multi-select for delay types (legacy, will be replaced by checkboxes)
+  const [extraDelay, setExtraDelay] = useState("No");
+  const [extraDelayTypes, setExtraDelayTypes] = useState<string[]>([]);
+  // Checkbox-based selection for delay types
+  const [selectedDelayTypes, setSelectedDelayTypes] = useState<string[]>([]);
+  // Store delay fields
+  const [storeDelayFields, setStoreDelayFields] = useState({
+    duration: "",
+    from: "",
+    to: "",
+    reason: "",
+  });
+  // Road delay fields
+  const [roadDelayFields, setRoadDelayFields] = useState({
+    duration: "",
+    from: "",
+    to: "",
+    reason: "",
+  });
+  // Other delay fields
+  const [otherDelayFields, setOtherDelayFields] = useState({
+    from: "",
+    to: "",
+    duration: "",
+    reason: "",
+  });
+  // Store delay state variables
+  const [storeDelay, setStoreDelay] = useState(
+    formData.storeDelay || {
+      duration: "",
+      from: "",
+      to: "",
+      reason: "",
+    }
+  );
 
   const allFields = [
     "date", "driver", "driverName", "startTime", "endTime", "customer", "totalHours",
@@ -55,8 +95,46 @@ const DetailedTimesheet: React.FC = () => {
           filledData[field] = field in data ? data[field] : "";
         });
 
-        setTimesheet(data);
-        setFormData(filledData);
+        // --- Unified delayDetails object ---
+        const delayDetails = {
+          store: {
+            duration: data.delayStoreDuration || "",
+            from: data.delayStoreFrom || "",
+            to: data.delayStoreTo || "",
+            reason: data.delayStoreReason || "",
+          },
+          road: {
+            duration: data.delayRoadDuration || "",
+            from: data.delayRoadFrom || "",
+            to: data.delayRoadTo || "",
+            reason: data.delayRoadReason || "",
+          },
+          other: {
+            duration: data.delayOtherDuration || "",
+            from: data.delayOtherFrom || "",
+            to: data.delayOtherTo || "",
+            reason: data.delayOtherReason || "",
+          },
+        };
+        // --- Unified extraWorkSheetDetails object ---
+        const extraWorkSheetDetails = {
+          duration: data.extraWorkSheetDetails?.duration || "",
+          from: data.extraWorkSheetDetails?.from || "",
+          to: data.extraWorkSheetDetails?.to || "",
+          comments: data.extraWorkSheetDetails?.comments || data.extraWorkSheetComments || "",
+        };
+        const transformedTimesheet = {
+          ...data,
+          delayDetails,
+          extraWorkSheetDetails,
+        };
+        setTimesheet(transformedTimesheet);
+        setFormData({
+          ...filledData,
+          extraWorkSheet: data.extraWorkSheet ? "yes" : "no",
+          delayDetails,
+          extraWorkSheetDetails,
+        });
         setRequiredFields(
           Object.entries(filledData)
             .filter(([k, v]) =>
@@ -66,6 +144,29 @@ const DetailedTimesheet: React.FC = () => {
             )
             .map(([k]) => k)
         );
+
+        // Initialize extra work and store delay UI state
+        setExtraWorkSelected(data.extraWorkSheet ? "Yes" : "No");
+        setExtraDelay(data.extraDelay || "No");
+        setExtraDelayTypes([]); // reset on fetch
+        setStoreDelayFields({
+          duration: calculateDuration(delayDetails.store.from, delayDetails.store.to),
+          from: delayDetails.store.from,
+          to: delayDetails.store.to,
+          reason: delayDetails.store.reason,
+        });
+        setRoadDelayFields({
+          duration: calculateDuration(delayDetails.road.from, delayDetails.road.to),
+          from: delayDetails.road.from,
+          to: delayDetails.road.to,
+          reason: delayDetails.road.reason,
+        });
+        setOtherDelayFields({
+          duration: delayDetails.other.duration,
+          from: delayDetails.other.from,
+          to: delayDetails.other.to,
+          reason: delayDetails.other.reason,
+        });
       } catch (error) {
         console.error("Failed to load timesheet", error);
       } finally {
@@ -75,6 +176,20 @@ const DetailedTimesheet: React.FC = () => {
 
     fetchTimesheet();
   }, [id, fetchAllDrivers]);
+
+  // Utility function to calculate delay duration
+  const calculateDuration = (from: string, to: string) => {
+    if (!from || !to) return "";
+    const [fromHours, fromMinutes] = from.split(":").map(Number);
+    const [toHours, toMinutes] = to.split(":").map(Number);
+
+    let totalMinutes = (toHours * 60 + toMinutes) - (fromHours * 60 + fromMinutes);
+    if (totalMinutes < 0) totalMinutes += 24 * 60; // handle overnight delays
+
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours} hr ${minutes} min`;
+  };
 
   useEffect(() => {
     const calculateDuration = (from: string, to: string) => {
@@ -90,23 +205,194 @@ const DetailedTimesheet: React.FC = () => {
       return `${hours} hr ${minutes} min`;
     };
 
+    const extraDuration = calculateDuration(
+      formData.extraWorkSheetDetails?.from,
+      formData.extraWorkSheetDetails?.to
+    );
+
     setFormData((prev: any) => ({
       ...prev,
+      extraWorkSheetDetails: {
+        ...prev.extraWorkSheetDetails,
+        duration: extraDuration,
+      },
       extraDuration: calculateDuration(prev.durationFrom, prev.durationTo),
-      delayStoreDuration: calculateDuration(prev.delayStoreFrom, prev.delayStoreTo),
-      delayRoadDuration: calculateDuration(prev.delayRoadFrom, prev.delayRoadTo),
-      delayOtherDuration: calculateDuration(prev.delayOtherFrom, prev.delayOtherTo)
+      delayDetails: {
+        ...prev.delayDetails,
+        store: {
+          ...prev.delayDetails?.store,
+          duration: calculateDuration(storeDelayFields.from, storeDelayFields.to),
+        },
+        road: {
+          ...prev.delayDetails?.road,
+          duration: calculateDuration(roadDelayFields.from, roadDelayFields.to),
+        },
+        other: {
+          ...prev.delayDetails?.other,
+          // Keep as is for now
+        },
+      },
     }));
+
+    setStoreDelayFields((prev) => ({
+      ...prev,
+      duration: calculateDuration(prev.from, prev.to),
+    }));
+
+    setRoadDelayFields((prev) => ({
+      ...prev,
+      duration: calculateDuration(prev.from, prev.to),
+    }));
+    // OtherDelayFields: duration is not based on from/to, so leave as is
   }, [
     formData.durationFrom, formData.durationTo,
-    formData.delayStoreFrom, formData.delayStoreTo,
-    formData.delayRoadFrom, formData.delayRoadTo,
-    formData.delayOtherFrom, formData.delayOtherTo
+    storeDelayFields.from, storeDelayFields.to,
+    roadDelayFields.from, roadDelayFields.to,
+    formData.extraWorkSheetDetails?.from,
+    formData.extraWorkSheetDetails?.to,
   ]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  // Set default selected delay types when formData or timesheet is loaded
+  useEffect(() => {
+    if (formData.extraDelay === "yes") {
+      const selected: string[] = [];
+      if (
+        formData.delayDetails?.store?.duration ||
+        formData.delayDetails?.store?.reason
+      ) {
+        selected.push("Store Delay");
+      }
+      if (
+        formData.delayDetails?.road?.duration ||
+        formData.delayDetails?.road?.reason
+      ) {
+        selected.push("Road Delay");
+      }
+      if (
+        formData.delayDetails?.other?.duration ||
+        formData.delayDetails?.other?.reason
+      ) {
+        selected.push("Other Delay");
+      }
+      setSelectedDelayTypes(selected);
+    }
+  }, [formData]);
+
+  // Unified input handler for all form fields, including extraDelay
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({ ...prev, [name]: value }));
+    if (name === "extraWorkSheet") {
+      setExtraWorkSelected(value === "yes" ? "Yes" : "No");
+      if (value === "no") {
+        setExtraWorkFrom("");
+        setExtraWorkTo("");
+        setExtraWorkComments("");
+      }
+    }
+    if (name === "extraDelay") {
+      // This will always be "yes" or "no"
+      // No need for extraDelay state variable, use formData.extraDelay everywhere
+      if (value === "no") {
+        setExtraDelayTypes([]);
+        setStoreDelayFields({ duration: "", from: "", to: "", reason: "" });
+        setRoadDelayFields({ duration: "", from: "", to: "", reason: "" });
+        setOtherDelayFields({ duration: "", from: "", to: "", reason: "" });
+      }
+    }
+  };
+
+  // Handler for multi-select delay type change (legacy)
+  const handleDelayTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = Array.from(e.target.selectedOptions).map(opt => opt.value);
+    setExtraDelayTypes(selected);
+    // Optionally clear fields for types that are now unselected
+    if (!selected.includes("Store Delay")) {
+      setStoreDelayFields({ duration: "", from: "", to: "", reason: "" });
+    }
+    if (!selected.includes("Road Delay")) {
+      setRoadDelayFields({ duration: "", from: "", to: "", reason: "" });
+    }
+    if (!selected.includes("Other Delay")) {
+      setOtherDelayFields({ duration: "", from: "", to: "", reason: "" });
+    }
+  };
+
+  // Handler for checkbox-based delay type selection
+  const handleDelayTypeCheckboxChange = (type: string, isChecked: boolean) => {
+    if (isChecked) {
+      setSelectedDelayTypes((prev) => [...prev, type]);
+    } else {
+      setSelectedDelayTypes((prev) => prev.filter((t) => t !== type));
+      // Optionally clear fields for types that are now unselected
+      if (type === "Store Delay") {
+        setStoreDelayFields({ duration: "", from: "", to: "", reason: "" });
+      }
+      if (type === "Road Delay") {
+        setRoadDelayFields({ duration: "", from: "", to: "", reason: "" });
+      }
+      if (type === "Other Delay") {
+        setOtherDelayFields({ duration: "", from: "", to: "", reason: "" });
+      }
+    }
+  };
+
+  // Handlers for each delay type's fields
+  const handleStoreDelayField = (field: string, value: string) => {
+    setStoreDelayFields((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev: any) => ({
+      ...prev,
+      delayDetails: {
+        ...prev.delayDetails,
+        store: {
+          ...prev.delayDetails?.store,
+          [field]: value,
+        },
+        road: prev.delayDetails?.road,
+        other: prev.delayDetails?.other,
+      },
+    }));
+  };
+  const handleRoadDelayField = (field: string, value: string) => {
+    setRoadDelayFields((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev: any) => ({
+      ...prev,
+      delayDetails: {
+        ...prev.delayDetails,
+        road: {
+          ...prev.delayDetails?.road,
+          [field]: value,
+        },
+        store: prev.delayDetails?.store,
+        other: prev.delayDetails?.other,
+      },
+    }));
+  };
+  const handleOtherDelayField = (field: string, value: string) => {
+    setOtherDelayFields((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev: any) => ({
+      ...prev,
+      delayDetails: {
+        ...prev.delayDetails,
+        other: {
+          ...prev.delayDetails?.other,
+          [field]: value,
+        },
+        store: prev.delayDetails?.store,
+        road: prev.delayDetails?.road,
+      },
+    }));
+  };
+
+  // Unified delay change handler for use in new Other Delay block
+  const handleDelayChange = (delayType: string, field: string, value: string) => {
+    if (delayType === "Store Delay") {
+      handleStoreDelayField(field, value);
+    } else if (delayType === "Road Delay") {
+      handleRoadDelayField(field, value);
+    } else if (delayType === "Other Delay") {
+      handleOtherDelayField(field, value);
+    }
   };
 
   if (loading) return <p>Loading...</p>;
@@ -207,88 +493,262 @@ const DetailedTimesheet: React.FC = () => {
       <div style={{ flex: 1, background: "#fff", padding: "20px", border: "1px solid #ccc", borderRadius: "8px", height: "150vh", overflowY: "auto" }}>
         <h2>Edit Timesheet</h2>
         {
-          // Collapse Empty Fields: Only show fields with non-empty values
+          // Custom fields rendering for form, with new Extra Delay block
           (() => {
-            // 1. Add logic to determine which dependent fields to show
-            const showExtraWorkSheetFields = String(formData.extraWorkSheet).toLowerCase() === "yes";
-            const showExtraDelayFields = String(formData.extraDelay).toLowerCase() === "yes";
             let inExtra = false, inDelay = false;
-            // Category dropdown options
             const categoryOptions = ["Backhaul", "Combo", "Extra Sheet/E.W", "Regular/Banner", "Wholesale", "Wholesale DZ"];
-            return Object.entries(formData)
-              .filter(([_, value]) => value !== "")
-              .map(([key, value]) => {
-                // 2. Exclude extraWorkSheet dependent fields if its value is "no"
-                if (
-                  !showExtraWorkSheetFields &&
-                  ["extraDuration", "durationFrom", "durationTo", "extraWorkSheetComments"].includes(key)
-                ) return null;
-                // Ensure extraWorkSheet dropdown is always shown, regardless of value
-                if (!showExtraDelayFields && key.startsWith("delay") && key !== "extraDelay") return null;
-                if (key === "status") return null;
-                if (!(typeof value === "string" || typeof value === "number")) return null;
-                return (
+            // Filter out delay-related fields, will be handled in custom block
+            const DELAY_FIELDS = [
+              "extraDelay",
+              "delayStoreDuration", "delayStoreFrom", "delayStoreTo", "delayStoreReason",
+              "delayRoadDuration", "delayRoadFrom", "delayRoadTo", "delayRoadReason",
+              "delayOtherDuration", "delayOtherFrom", "delayOtherTo", "delayOtherReason",
+              "delayDetails"
+            ];
+            // Explicitly exclude extra worksheet fields to prevent duplicate rendering
+            const EXCLUDED_FIELDS = [
+              "extraDuration", "durationFrom", "durationTo", "extraWorkSheetComments"
+            ];
+            // Render all fields except delay and excluded extra worksheet fields (handled separately below)
+            const filtered = Object.entries(formData)
+              .filter(([key, value]) =>
+                value !== "" &&
+                key !== "status" &&
+                DELAY_FIELDS.indexOf(key) === -1 &&
+                EXCLUDED_FIELDS.indexOf(key) === -1 &&
+                (typeof value === "string" || typeof value === "number")
+              );
+            // We'll manually inject the new Extra Delay block after "extraDelay"
+            return (
+              <>
+                {filtered.map(([key, value]) => (
                   <React.Fragment key={key}>
-                    {/* Section headers for Extra Worksheet and Delays */}
+                    {/* Section header for Extra Worksheet */}
                     {key === "extraWorkSheet" && !inExtra && (inExtra = true) && (
                       <h4 style={{ gridColumn: "1 / -1", marginTop: "20px", color: "#555" }}>Extra Worksheet</h4>
                     )}
-                    {key === "delayStoreDuration" && !inDelay && (inDelay = true) && (
-                      <h4 style={{ gridColumn: "1 / -1", marginTop: "20px", color: "#555" }}>Delays</h4>
-                    )}
-                    <div
-                      style={{
-                        marginBottom: "12px",
-                        display: "grid",
-                        gridTemplateColumns: "140px 1fr 30px",
-                        alignItems: "center",
-                        gap: "10px"
-                      }}
-                    >
-                      <label style={{ fontWeight: "bold" }}>
-                        {key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^\w/, c => c.toUpperCase())}
-                      </label>
-                      {key === "extraWorkSheet" && (String(value).toLowerCase() === "yes" || String(value).toLowerCase() === "no") ? (
-                        <select
-                          name={key}
-                          value={String(value).toLowerCase()}
-                          onChange={handleChange}
-                          disabled={correctedFields.has(key)}
+                    {/* Render extra worksheet fields conditionally */}
+                    {key === "extraWorkSheet" ? (
+                      <>
+                        <div
                           style={{
-                            width: "100%",
-                            padding: "8px",
-                            paddingRight: "30px",
-                            fontSize: "14px",
-                            border: "1px solid #ccc",
-                            borderRadius: "4px"
+                            marginBottom: "12px",
+                            display: "grid",
+                            gridTemplateColumns: "140px 1fr 30px",
+                            alignItems: "center",
+                            gap: "10px"
                           }}
                         >
-                          <option value="no">No</option>
-                          <option value="yes">Yes</option>
-                        </select>
-                      ) : key === "extraDelay" && (String(value).toLowerCase() === "yes" || String(value).toLowerCase() === "no") ? (
+                          <label style={{ fontWeight: "bold" }}>
+                            {key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^\w/, c => c.toUpperCase())}
+                          </label>
+                          <select
+                            name={key}
+                            value={formData.extraWorkSheet}
+                            onChange={handleInputChange}
+                            disabled={correctedFields.has(key)}
+                            style={{
+                              width: "100%",
+                              padding: "8px",
+                              paddingRight: "30px",
+                              fontSize: "14px",
+                              border: "1px solid #ccc",
+                              borderRadius: "4px"
+                            }}
+                          >
+                            <option value="no">No</option>
+                            <option value="yes">Yes</option>
+                          </select>
+                          {!correctedFields.has(key) && (
+                            <button
+                              onClick={() => setCorrectedFields(prev => new Set(prev).add(key))}
+                              style={{
+                                background: "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                                fontSize: "18px",
+                                color: "green"
+                              }}
+                              title="Mark as Correct"
+                            >
+                              ✅
+                            </button>
+                          )}
+                        </div>
+                        {formData.extraWorkSheet === "yes" && (
+                          <>
+                            {/* Extra Duration: no correct-info icon for duration */}
+                            <div
+                              style={{
+                                marginBottom: "12px",
+                                display: "grid",
+                                gridTemplateColumns: "140px 1fr 30px",
+                                alignItems: "center",
+                                gap: "10px"
+                              }}
+                            >
+                              <label style={{ fontWeight: "bold" }}>Extra Duration</label>
+                              <input
+                                type="text"
+                                name="extraDuration"
+                                value={formData.extraDuration}
+                                readOnly
+                                disabled
+                                style={{
+                                  width: "100%",
+                                  padding: "8px",
+                                  fontSize: "14px",
+                                  border: "1px solid #ccc",
+                                  borderRadius: "4px",
+                                  backgroundColor: "#f9f9f9",
+                                  color: "#888"
+                                }}
+                              />
+                              {/* No correct-info icon for duration */}
+                            </div>
+                            {/* Duration From */}
+                            <div
+                              style={{
+                                marginBottom: "12px",
+                                display: "grid",
+                                gridTemplateColumns: "140px 1fr 30px",
+                                alignItems: "center",
+                                gap: "10px"
+                              }}
+                            >
+                              <label style={{ fontWeight: "bold" }}>Duration From</label>
+                              <input
+                                type="time"
+                                name="durationFrom"
+                                value={formData.durationFrom}
+                                onChange={handleInputChange}
+                                disabled={correctedFields.has("durationFrom")}
+                                style={{
+                                  width: "100%",
+                                  padding: "8px",
+                                  fontSize: "14px",
+                                  border: "1px solid #ccc",
+                                  borderRadius: "4px"
+                                }}
+                              />
+                              {!correctedFields.has("durationFrom") && (
+                                <button
+                                  onClick={() => setCorrectedFields(prev => new Set(prev).add("durationFrom"))}
+                                  style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontSize: "18px",
+                                    color: "green"
+                                  }}
+                                  title="Mark as Correct"
+                                >
+                                  ✅
+                                </button>
+                              )}
+                            </div>
+                            {/* Duration To */}
+                            <div
+                              style={{
+                                marginBottom: "12px",
+                                display: "grid",
+                                gridTemplateColumns: "140px 1fr 30px",
+                                alignItems: "center",
+                                gap: "10px"
+                              }}
+                            >
+                              <label style={{ fontWeight: "bold" }}>Duration To</label>
+                              <input
+                                type="time"
+                                name="durationTo"
+                                value={formData.durationTo}
+                                onChange={handleInputChange}
+                                disabled={correctedFields.has("durationTo")}
+                                style={{
+                                  width: "100%",
+                                  padding: "8px",
+                                  fontSize: "14px",
+                                  border: "1px solid #ccc",
+                                  borderRadius: "4px"
+                                }}
+                              />
+                              {!correctedFields.has("durationTo") && (
+                                <button
+                                  onClick={() => setCorrectedFields(prev => new Set(prev).add("durationTo"))}
+                                  style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontSize: "18px",
+                                    color: "green"
+                                  }}
+                                  title="Mark as Correct"
+                                >
+                                  ✅
+                                </button>
+                              )}
+                            </div>
+                            {/* Extra Work Sheet Comments */}
+                            <div
+                              style={{
+                                marginBottom: "12px",
+                                display: "grid",
+                                gridTemplateColumns: "140px 1fr 30px",
+                                alignItems: "center",
+                                gap: "10px"
+                              }}
+                            >
+                              <label style={{ fontWeight: "bold" }}>Extra Work Sheet Comments</label>
+                              <textarea
+                                name="extraWorkSheetComments"
+                                value={formData.extraWorkSheetComments}
+                                onChange={handleInputChange}
+                                rows={3}
+                                style={{
+                                  width: "100%",
+                                  padding: "8px",
+                                  fontSize: "14px",
+                                  border: "1px solid #ccc",
+                                  borderRadius: "4px"
+                                }}
+                                disabled={correctedFields.has("extraWorkSheetComments")}
+                              />
+                              {!correctedFields.has("extraWorkSheetComments") && (
+                                <button
+                                  onClick={() => setCorrectedFields(prev => new Set(prev).add("extraWorkSheetComments"))}
+                                  style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontSize: "18px",
+                                    color: "green"
+                                  }}
+                                  title="Mark as Correct"
+                                >
+                                  ✅
+                                </button>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </>
+                    ) : key === "category" ? (
+                      <div
+                        style={{
+                          marginBottom: "12px",
+                          display: "grid",
+                          gridTemplateColumns: "140px 1fr 30px",
+                          alignItems: "center",
+                          gap: "10px"
+                        }}
+                      >
+                        <label style={{ fontWeight: "bold" }}>
+                          {key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^\w/, c => c.toUpperCase())}
+                        </label>
                         <select
                           name={key}
-                          value={String(value).toLowerCase()}
-                          onChange={handleChange}
-                          disabled={correctedFields.has(key)}
-                          style={{
-                            width: "100%",
-                            padding: "8px",
-                            paddingRight: "30px",
-                            fontSize: "14px",
-                            border: "1px solid #ccc",
-                            borderRadius: "4px"
-                          }}
-                        >
-                          <option value="no">No</option>
-                          <option value="yes">Yes</option>
-                        </select>
-                      ) : key === "category" ? (
-                        <select
-                          name={key}
-                          value={value}
-                          onChange={handleChange}
+                          value={String(value)}
+                          onChange={handleInputChange}
                           disabled={correctedFields.has(key)}
                           style={{
                             width: "100%",
@@ -304,11 +764,39 @@ const DetailedTimesheet: React.FC = () => {
                             <option key={opt} value={opt}>{opt}</option>
                           ))}
                         </select>
-                      ) : key === "comments" || key.toLowerCase().includes("comment") ? (
+                        {!correctedFields.has(key) && (
+                          <button
+                            onClick={() => setCorrectedFields(prev => new Set(prev).add(key))}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              cursor: "pointer",
+                              fontSize: "18px",
+                              color: "green"
+                            }}
+                            title="Mark as Correct"
+                          >
+                            ✅
+                          </button>
+                        )}
+                      </div>
+                    ) : key === "comments" || key.toLowerCase().includes("comment") ? (
+                      <div
+                        style={{
+                          marginBottom: "12px",
+                          display: "grid",
+                          gridTemplateColumns: "140px 1fr 30px",
+                          alignItems: "center",
+                          gap: "10px"
+                        }}
+                      >
+                        <label style={{ fontWeight: "bold" }}>
+                          {key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^\w/, c => c.toUpperCase())}
+                        </label>
                         <textarea
                           name={key}
-                          value={value}
-                          onChange={handleChange}
+                          value={value as string}
+                          onChange={handleInputChange}
                           rows={3}
                           style={{
                             width: "100%",
@@ -320,80 +808,171 @@ const DetailedTimesheet: React.FC = () => {
                           }}
                           disabled={correctedFields.has(key)}
                         />
-                      ) : (
-                        // Custom field rendering for time/duration fields
-                        (
-                          [
-                            "durationFrom", "durationTo",
-                            "delayStoreFrom", "delayStoreTo",
-                            "delayRoadFrom", "delayRoadTo",
-                            "delayOtherFrom", "delayOtherTo"
-                          ].includes(key) ? (
-                            <input
-                              type="time"
-                              name={key}
-                              value={value}
-                              onChange={handleChange}
-                              disabled={correctedFields.has(key)}
-                              style={{
-                                width: "100%",
-                                padding: "8px",
-                                paddingRight: "30px",
-                                fontSize: "14px",
-                                border: "1px solid #ccc",
-                                borderRadius: "4px"
-                              }}
-                            />
-                          ) : [
-                            "extraDuration",
-                            "delayStoreDuration",
-                            "delayRoadDuration",
-                            "delayOtherDuration"
-                          ].includes(key) ? (
-                            <input
-                              type="text"
-                              name={key}
-                              value={value}
-                              readOnly
-                              disabled
-                              style={{
-                                width: "100%",
-                                padding: "8px",
-                                paddingRight: "30px",
-                                fontSize: "14px",
-                                border: "1px solid #ccc",
-                                borderRadius: "4px",
-                                backgroundColor: "#f9f9f9",
-                                color: "#888"
-                              }}
-                            />
-                          ) : (
-                          <input
-                            type="text"
-                            name={key}
-                            value={
-                              key === "driver"
-                                ? driversMap[value] || value
-                                : value
-                            }
-                            onChange={handleChange}
-                            readOnly={key === "customer"}
-                            disabled={correctedFields.has(key)}
+                        {!correctedFields.has(key) && (
+                          <button
+                            onClick={() => setCorrectedFields(prev => new Set(prev).add(key))}
                             style={{
-                              width: "100%",
-                              padding: "8px",
-                              paddingRight: "30px",
-                              fontSize: "14px",
-                              border: "1px solid #ccc",
-                              borderRadius: "4px"
+                              background: "transparent",
+                              border: "none",
+                              cursor: "pointer",
+                              fontSize: "18px",
+                              color: "green"
+                            }}
+                            title="Mark as Correct"
+                          >
+                            ✅
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <div
+                        style={{
+                          marginBottom: "12px",
+                          display: "grid",
+                          gridTemplateColumns: "140px 1fr 30px",
+                          alignItems: "center",
+                          gap: "10px"
+                        }}
+                      >
+                        <label style={{ fontWeight: "bold" }}>
+                          {key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^\w/, c => c.toUpperCase())}
+                        </label>
+                        <input
+                          type="text"
+                          name={key}
+                          value={
+                            key === "driver"
+                              ? String(driversMap[value as keyof typeof driversMap] || value)
+                              : String(value)
+                          }
+                          onChange={handleInputChange}
+                          readOnly={key === "customer"}
+                          disabled={correctedFields.has(key)}
+                          style={{
+                            width: "100%",
+                            padding: "8px",
+                            paddingRight: "30px",
+                            fontSize: "14px",
+                            border: "1px solid #ccc",
+                            borderRadius: "4px"
+                          }}
+                        />
+                        {!correctedFields.has(key) && (
+                          <button
+                            onClick={() => setCorrectedFields(prev => new Set(prev).add(key))}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              cursor: "pointer",
+                              fontSize: "18px",
+                              color: "green"
+                            }}
+                            title="Mark as Correct"
+                          >
+                            ✅
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </React.Fragment>
+                ))}
+                {/* --- Extra Delay Custom Block (dropdown + checkboxes + forms) --- */}
+                <h4 style={{ gridColumn: "1 / -1", marginTop: "20px", color: "#555" }}>Delays</h4>
+                {/* Improved "Was there an Extra Delay?" field - standardized dropdown + check icon */}
+                <div
+                  style={{
+                    marginBottom: "12px",
+                    display: "grid",
+                    gridTemplateColumns: "200px 1fr 30px",
+                    alignItems: "center",
+                    gap: "10px"
+                  }}
+                >
+                  <label style={{ fontWeight: "bold" }}>
+                    Was there an Extra Delay?
+                  </label>
+                  <select
+                    name="extraDelay"
+                    value={formData.extraDelay || ""}
+                    onChange={handleInputChange}
+                    disabled={correctedFields.has("extraDelay")}
+                    className="form-select"
+                    style={{
+                      width: "100%",
+                      padding: "8px",
+                      paddingRight: "30px",
+                      fontSize: "14px",
+                      border: "1px solid #ccc",
+                      borderRadius: "4px"
+                    }}
+                  >
+                    <option value="">Select</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                  {!correctedFields.has("extraDelay") && (
+                    <button
+                      onClick={() => setCorrectedFields(prev => new Set(prev).add("extraDelay"))}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "18px",
+                        color: "green"
+                      }}
+                      title="Mark as Correct"
+                    >
+                      ✅
+                    </button>
+                  )}
+                </div>
+                {/* Delay Types Checkboxes */}
+                {(formData.extraDelay === "yes") && (
+                  <div style={{ marginBottom: "16px", marginLeft: 20 }}>
+                    <label style={{ fontWeight: "bold" }}>
+                      <strong>Select Delay Types:</strong>
+                    </label>
+                    <div style={{ display: "flex", flexDirection: "row", gap: "24px", marginTop: "8px" }}>
+                      {["Store Delay", "Road Delay", "Other Delay"].map((type) => (
+                        <label key={type} style={{ marginRight: "10px" }}>
+                          <input
+                            type="checkbox"
+                            checked={selectedDelayTypes.includes(type)}
+                            onChange={e => {
+                              const updated = e.target.checked
+                                ? [...selectedDelayTypes, type]
+                                : selectedDelayTypes.filter((t) => t !== type);
+                              setSelectedDelayTypes(updated);
                             }}
                           />
-                          )
-                        )
-                      )}
-                      {!correctedFields.has(key) && (
+                          {type}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* Delay Forms */}
+                {(formData.extraDelay === "yes") && selectedDelayTypes.includes("Store Delay") && (
+                  <div className="delay-section" style={{
+                    border: "1px solid #ccc",
+                    borderRadius: "8px",
+                    padding: "16px",
+                    marginBottom: "16px",
+                    backgroundColor: "#f9f9f9"
+                  }}>
+                    <h4>Store Delay</h4>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                      <label style={{ minWidth: 60 }}>From:</label>
+                      <input
+                        type="time"
+                        value={formData.delayDetails?.store?.from || ""}
+                        onChange={e => handleStoreDelayField("from", e.target.value)}
+                        disabled={correctedFields.has("delayStoreFrom")}
+                        style={styles.input}
+                      />
+                      {!correctedFields.has("delayStoreFrom") && (
                         <button
-                          onClick={() => setCorrectedFields(prev => new Set(prev).add(key))}
+                          onClick={() => setCorrectedFields(prev => new Set(prev).add("delayStoreFrom"))}
                           style={{
                             background: "transparent",
                             border: "none",
@@ -407,9 +986,272 @@ const DetailedTimesheet: React.FC = () => {
                         </button>
                       )}
                     </div>
-                  </React.Fragment>
-                );
-              });
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                      <label style={{ minWidth: 60 }}>To:</label>
+                      <input
+                        type="time"
+                        value={formData.delayDetails?.store?.to || ""}
+                        onChange={e => handleStoreDelayField("to", e.target.value)}
+                        disabled={correctedFields.has("delayStoreTo")}
+                        style={styles.input}
+                      />
+                      {!correctedFields.has("delayStoreTo") && (
+                        <button
+                          onClick={() => setCorrectedFields(prev => new Set(prev).add("delayStoreTo"))}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: "18px",
+                            color: "green"
+                          }}
+                          title="Mark as Correct"
+                        >
+                          ✅
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                      <label style={{ minWidth: 60 }}>Duration:</label>
+                      <input
+                        type="text"
+                        value={formData.delayDetails?.store?.duration || ""}
+                        readOnly
+                        disabled
+                        style={{
+                          ...styles.input,
+                          backgroundColor: "#f9f9f9",
+                          color: "#888"
+                        }}
+                      />
+                      {/* No correct-info icon for duration */}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <label style={{ minWidth: 60 }}>Reason:</label>
+                      <textarea
+                        value={formData.delayDetails?.store?.reason || ""}
+                        onChange={e => handleStoreDelayField("reason", e.target.value)}
+                        disabled={correctedFields.has("delayStoreReason")}
+                        style={{ ...styles.input, resize: "vertical", minHeight: "60px" }}
+                      />
+                      {!correctedFields.has("delayStoreReason") && (
+                        <button
+                          onClick={() => setCorrectedFields(prev => new Set(prev).add("delayStoreReason"))}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: "18px",
+                            color: "green"
+                          }}
+                          title="Mark as Correct"
+                        >
+                          ✅
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {(formData.extraDelay === "yes") && selectedDelayTypes.includes("Road Delay") && (
+                  <div className="delay-section" style={{
+                    border: "1px solid #ccc",
+                    borderRadius: "8px",
+                    padding: "16px",
+                    marginBottom: "16px",
+                    backgroundColor: "#f9f9f9"
+                  }}>
+                    <h4>Road Delay</h4>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                      <label style={{ minWidth: 60 }}>From:</label>
+                      <input
+                        type="time"
+                        value={formData.delayDetails?.road?.from || ""}
+                        onChange={e => handleRoadDelayField("from", e.target.value)}
+                        disabled={correctedFields.has("delayRoadFrom")}
+                        style={styles.input}
+                      />
+                      {!correctedFields.has("delayRoadFrom") && (
+                        <button
+                          onClick={() => setCorrectedFields(prev => new Set(prev).add("delayRoadFrom"))}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: "18px",
+                            color: "green"
+                          }}
+                          title="Mark as Correct"
+                        >
+                          ✅
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                      <label style={{ minWidth: 60 }}>To:</label>
+                      <input
+                        type="time"
+                        value={formData.delayDetails?.road?.to || ""}
+                        onChange={e => handleRoadDelayField("to", e.target.value)}
+                        disabled={correctedFields.has("delayRoadTo")}
+                        style={styles.input}
+                      />
+                      {!correctedFields.has("delayRoadTo") && (
+                        <button
+                          onClick={() => setCorrectedFields(prev => new Set(prev).add("delayRoadTo"))}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: "18px",
+                            color: "green"
+                          }}
+                          title="Mark as Correct"
+                        >
+                          ✅
+                        </button>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                      <label style={{ minWidth: 60 }}>Duration:</label>
+                      <input
+                        type="text"
+                        value={formData.delayDetails?.road?.duration || ""}
+                        readOnly
+                        disabled
+                        style={{
+                          ...styles.input,
+                          backgroundColor: "#f9f9f9",
+                          color: "#888"
+                        }}
+                      />
+                      {/* No correct-info icon for duration */}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <label style={{ minWidth: 60 }}>Reason:</label>
+                      <textarea
+                        value={formData.delayDetails?.road?.reason || ""}
+                        onChange={e => handleRoadDelayField("reason", e.target.value)}
+                        disabled={correctedFields.has("delayRoadReason")}
+                        style={{ ...styles.input, resize: "vertical", minHeight: "60px" }}
+                      />
+                      {!correctedFields.has("delayRoadReason") && (
+                        <button
+                          onClick={() => setCorrectedFields(prev => new Set(prev).add("delayRoadReason"))}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: "18px",
+                            color: "green"
+                          }}
+                          title="Mark as Correct"
+                        >
+                          ✅
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {(formData.extraDelay === "yes") && selectedDelayTypes.includes("Other Delay") && (
+                  <div className="delay-section" style={{
+                    border: "1px solid #ccc",
+                    borderRadius: "8px",
+                    padding: "16px",
+                    marginBottom: "16px",
+                    backgroundColor: "#f9f9f9"
+                  }}>
+                    <h4>Other Delay</h4>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <label>From:</label>
+                        <input
+                          type="time"
+                          value={formData.delayDetails?.other?.from || ""}
+                          onChange={e => handleDelayChange("Other Delay", "from", e.target.value)}
+                          disabled={correctedFields.has("delayOtherFrom")}
+                          style={styles.input}
+                        />
+                        {!correctedFields.has("delayOtherFrom") && (
+                          <button
+                            onClick={() => setCorrectedFields(prev => new Set(prev).add("delayOtherFrom"))}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              cursor: "pointer",
+                              fontSize: "18px",
+                              color: "green"
+                            }}
+                            title="Mark as Correct"
+                          >
+                            ✅
+                          </button>
+                        )}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <label>To:</label>
+                        <input
+                          type="time"
+                          value={formData.delayDetails?.other?.to || ""}
+                          onChange={e => handleDelayChange("Other Delay", "to", e.target.value)}
+                          disabled={correctedFields.has("delayOtherTo")}
+                          style={styles.input}
+                        />
+                        {!correctedFields.has("delayOtherTo") && (
+                          <button
+                            onClick={() => setCorrectedFields(prev => new Set(prev).add("delayOtherTo"))}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              cursor: "pointer",
+                              fontSize: "18px",
+                              color: "green"
+                            }}
+                            title="Mark as Correct"
+                          >
+                            ✅
+                          </button>
+                        )}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <label>Duration:</label>
+                        <input
+                          type="text"
+                          value={formData.delayDetails?.other?.duration || ""}
+                          onChange={e => handleDelayChange("Other Delay", "duration", e.target.value)}
+                          disabled
+                          style={styles.input}
+                        />
+                        {/* No correct-info icon for duration */}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <label>Reason:</label>
+                        <textarea
+                          value={formData.delayDetails?.other?.reason || ""}
+                          onChange={e => handleDelayChange("Other Delay", "reason", e.target.value)}
+                          disabled={correctedFields.has("delayOtherReason")}
+                          style={{ ...styles.input, resize: "vertical", minHeight: "60px" }}
+                        />
+                        {!correctedFields.has("delayOtherReason") && (
+                          <button
+                            onClick={() => setCorrectedFields(prev => new Set(prev).add("delayOtherReason"))}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              cursor: "pointer",
+                              fontSize: "18px",
+                              color: "green"
+                            }}
+                            title="Mark as Correct"
+                          >
+                            ✅
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            );
           })()
         }
         {/* Reset All Corrections Button */}
@@ -437,12 +1279,32 @@ const DetailedTimesheet: React.FC = () => {
         >
           Reset All Corrections
         </button>
-        {/* Approve button logic update */}
+        {/* Approve button logic update with delay validation */}
         {(() => {
           const allCorrected = requiredFields.every((field) =>
             Array.from(correctedFields).some(corrected =>
               corrected.trim().toLowerCase() === field.trim().toLowerCase()
             )
+          );
+          // Delay validation logic and enhanced Approve button disabling
+          const storeDelayChecked = formData.extraDelay === "yes" && selectedDelayTypes.includes("Store Delay");
+          const roadDelayChecked = formData.extraDelay === "yes" && selectedDelayTypes.includes("Road Delay");
+          const otherDelayChecked = formData.extraDelay === "yes" && selectedDelayTypes.includes("Other Delay");
+          const isStoreDelayValid = !storeDelayChecked ||
+            (formData.delayDetails?.store?.from && formData.delayDetails?.store?.to && formData.delayDetails?.store?.reason);
+          const isRoadDelayValid = !roadDelayChecked ||
+            (formData.delayDetails?.road?.from && formData.delayDetails?.road?.to && formData.delayDetails?.road?.reason);
+          const isOtherDelayValid = !otherDelayChecked ||
+            (formData.delayDetails?.other?.from && formData.delayDetails?.other?.to && formData.delayDetails?.other?.reason);
+          // Enhanced: Approve disabled if extraDelay === "yes" and all checkboxes are false
+          const storeDelaySelected = selectedDelayTypes && selectedDelayTypes.includes("Store Delay");
+          const roadDelaySelected = selectedDelayTypes && selectedDelayTypes.includes("Road Delay");
+          const otherDelaySelected = selectedDelayTypes && selectedDelayTypes.includes("Other Delay");
+          const isApproveDisabled = !(
+            allCorrected &&
+            isStoreDelayValid &&
+            isRoadDelayValid &&
+            isOtherDelayValid
           );
           return (
             <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
@@ -457,14 +1319,38 @@ const DetailedTimesheet: React.FC = () => {
                     alert("Failed to update or approve timesheet.");
                   }
                 }}
-                disabled={!allCorrected}
+                disabled={
+                  isApproveDisabled ||
+                  (
+                    formData.extraDelay === "yes" &&
+                    !storeDelaySelected &&
+                    !roadDelaySelected &&
+                    !otherDelaySelected
+                  )
+                }
                 style={{
-                  backgroundColor: !allCorrected ? "#aaa" : "green",
+                  backgroundColor: (
+                    isApproveDisabled ||
+                    (
+                      formData.extraDelay === "yes" &&
+                      !storeDelaySelected &&
+                      !roadDelaySelected &&
+                      !otherDelaySelected
+                    )
+                  ) ? "#aaa" : "green",
                   color: "white",
                   padding: "10px",
                   border: "none",
                   borderRadius: "5px",
-                  cursor: !allCorrected ? "not-allowed" : "pointer"
+                  cursor: (
+                    isApproveDisabled ||
+                    (
+                      formData.extraDelay === "yes" &&
+                      !storeDelaySelected &&
+                      !roadDelaySelected &&
+                      !otherDelaySelected
+                    )
+                  ) ? "not-allowed" : "pointer"
                 }}
               >
                 Approve
@@ -530,6 +1416,14 @@ const DetailedTimesheet: React.FC = () => {
     </div>
     </div>
   );
+};
+
+const styles = {
+  section: { margin: "16px 0" },
+  label: { fontWeight: "bold" },
+  select: { padding: "8px", borderRadius: "4px", border: "1px solid #ccc" },
+  supportingFields: { marginTop: "10px" },
+  input: { padding: "8px", marginBottom: "8px", borderRadius: "4px", border: "1px solid #ccc" },
 };
 
 export default DetailedTimesheet;
