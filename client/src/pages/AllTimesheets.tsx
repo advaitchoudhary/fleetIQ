@@ -12,10 +12,62 @@ import Navbar from "./Navbar";
 
 import { FILE_BASE_URL, API_BASE_URL } from "../utils/env";
 
+// TypeScript interfaces
+interface Timesheet {
+  _id: string;
+  driver: string;
+  driverName: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  customer: string;
+  category: string;
+  tripNumber: string;
+  loadID: string;
+  gateOutTime: string;
+  gateInTime: string;
+  plannedHours: string;
+  plannedKM: string;
+  startKM: number;
+  endKM: number;
+  totalHours: string;
+  comments: string;
+  attachments: string[];
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  extraWorkSheetDetails: {
+    duration: string;
+    from: string;
+    to: string;
+    comments: string;
+  };
+  storeDelay: {
+    duration: string;
+    from: string;
+    to: string;
+    reason: string;
+  };
+  extraWorkSheetComments?: string;
+  delayStoreReason?: string;
+}
+
+interface Driver {
+  _id: string;
+  name: string;
+  email: string;
+  username: string;
+  backhaulRate?: number;
+  comboRate?: number;
+  extraSheetEWRate?: number;
+  regularBannerRate?: number;
+  wholesaleRate?: number;
+}
+
 const AllTimesheets: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
-  const [data, setData] = useState<any[]>([]);
+  const [data, setData] = useState<Timesheet[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [, setUserRole] = useState<string | null>(null);
@@ -28,9 +80,8 @@ const AllTimesheets: React.FC = () => {
   
   // Initialize filter states from URL params or defaults
   const [selectedFilter, setSelectedFilter] = useState<FilterType>(
-    (searchParams.get("filter") as FilterType) || "Today"
+    (searchParams.get("filter") as FilterType) || "All"
   );
-  const [isFiltered, setIsFiltered] = useState(false);
   const [rangeStart, setRangeStart] = useState<string>(
     searchParams.get("rangeStart") || ""
   );
@@ -43,7 +94,7 @@ const AllTimesheets: React.FC = () => {
   const [selectedUser, setSelectedUser] = useState<string>(
     searchParams.get("user") || "All"
   );
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<Driver[]>([]);
   // const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   // --- [1] Add state for status filter
@@ -62,6 +113,7 @@ const AllTimesheets: React.FC = () => {
 
   // Track if this is the first load
   const isFirstLoad = useRef(true);
+  const filterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Function to update URL params when filters change
   const updateURLParams = (newParams: Record<string, string>) => {
@@ -84,11 +136,12 @@ const AllTimesheets: React.FC = () => {
       filter: selectedFilter,
       search: searchQuery,
       user: selectedUser,
+      status: selectedStatus,
       rangeStart,
       rangeEnd,
       page: page.toString()
     });
-  }, [selectedFilter, searchQuery, selectedUser, rangeStart, rangeEnd, page]);
+  }, [selectedFilter, searchQuery, selectedUser, selectedStatus, rangeStart, rangeEnd, page]);
 
   // Handler for delete button click (opens modal)
   const handleDeleteClick = (id: string) => {
@@ -102,9 +155,10 @@ const AllTimesheets: React.FC = () => {
     try {
       await axios.delete(`${API_BASE_URL}/timesheet/${selectedId}`);
       setData(prev => prev.filter(t => t._id !== selectedId));
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Delete error:", error);
-      alert(error?.response?.data?.message || "Something went wrong");
+      const errorMessage = error instanceof Error ? error.message : "Something went wrong";
+      alert(errorMessage);
     } finally {
       setShowModal(false);
       setSelectedId(null);
@@ -122,8 +176,9 @@ const AllTimesheets: React.FC = () => {
 
     // Add focus event listener to refetch data when returning to this component
     const handleFocus = () => {
+      console.log("check refetch")
       console.log("🔄 Component focused, refetching data...");
-      fetchTimesheets();
+      // fetchTimesheets();
     };
 
     window.addEventListener('focus', handleFocus);
@@ -139,19 +194,42 @@ const AllTimesheets: React.FC = () => {
     const urlUser = searchParams.get("user");
     const urlSearch = searchParams.get("search");
     const urlPage = searchParams.get("page");
+    const urlRangeStart = searchParams.get("rangeStart");
+    const urlRangeEnd = searchParams.get("rangeEnd");
+    const urlStatus = searchParams.get("status");
     
-    // Only refetch if URL params differ from current state
+    console.log("🔍 URL params changed:", {
+      urlFilter,
+      urlUser,
+      urlSearch,
+      urlPage,
+      urlRangeStart,
+      urlRangeEnd,
+      urlStatus,
+      currentState: { selectedFilter, selectedUser, searchQuery, page, rangeStart, rangeEnd, selectedStatus }
+    });
+    
+    // Only update state if URL params differ from current state
     if (urlFilter && urlFilter !== selectedFilter) {
       setSelectedFilter(urlFilter);
     }
     if (urlUser && urlUser !== selectedUser) {
       setSelectedUser(urlUser);
     }
-    if (urlSearch && urlSearch !== searchQuery) {
+    if (urlSearch !== null && urlSearch !== searchQuery) {
       setSearchQuery(urlSearch);
     }
     if (urlPage && parseInt(urlPage) !== page) {
       setPage(parseInt(urlPage));
+    }
+    if (urlRangeStart !== null && urlRangeStart !== rangeStart) {
+      setRangeStart(urlRangeStart);
+    }
+    if (urlRangeEnd !== null && urlRangeEnd !== rangeEnd) {
+      setRangeEnd(urlRangeEnd);
+    }
+    if (urlStatus && urlStatus !== selectedStatus) {
+      setSelectedStatus(urlStatus);
     }
   }, [searchParams]);
 
@@ -165,25 +243,38 @@ const AllTimesheets: React.FC = () => {
     }
   }, [location.pathname]);
 
-useEffect(() => {
-  const active =
-    selectedFilter !== "All" ||
-    selectedUser !== "All" ||
-    selectedStatus !== "All" ||
-    !!searchQuery.trim() ||
-    (String(selectedFilter) === "Custom" && !!rangeStart && !!rangeEnd);
+  useEffect(() => {
+    const isCustomFilterActive = selectedFilter === "Custom" && !!rangeStart && !!rangeEnd;
 
-  setIsFiltered(active);
+    console.log("🔍 Filter state:", {
+      selectedFilter,
+      selectedUser,
+      selectedStatus,
+      searchQuery,
+      rangeStart,
+      rangeEnd,
+      isCustomFilterActive
+    });
 
-  if (active) {
-    fetchTimesheets(true); // noPagination=true
-  } else {
-    fetchTimesheets();
-  }
-}, [selectedFilter, selectedUser, selectedStatus, searchQuery, rangeStart, rangeEnd]);
+    // Clear any existing timeout
+    if (filterTimeoutRef.current) {
+      clearTimeout(filterTimeoutRef.current);
+    }
+
+    // Debounce the API call to prevent race conditions
+    filterTimeoutRef.current = setTimeout(() => {
+      fetchTimesheets();
+    }, 100);
+
+    return () => {
+      if (filterTimeoutRef.current) {
+        clearTimeout(filterTimeoutRef.current);
+      }
+    };
+  }, [selectedFilter, selectedUser, selectedStatus, searchQuery, rangeStart, rangeEnd]);
 
   const handleExport = () => {
-    if (filteredData.length === 0) {
+    if (data.length === 0) {
       alert("No timesheets available to export.");
       return;
     }
@@ -191,17 +282,17 @@ useEffect(() => {
   };
 
   const handleDeleteFilteredTimesheets = async () => {
-    if (filteredData.length === 0) {
+    if (data.length === 0) {
       alert("No timesheets available to delete.");
       return;
     }
 
-    if (!window.confirm(`Are you sure you want to delete ${filteredData.length} timesheets? This action cannot be undone.`)) {
+    if (!window.confirm(`Are you sure you want to delete ${data.length} timesheets? This action cannot be undone.`)) {
       return;
     }
 
     try {
-      for (const ts of filteredData) {
+      for (const ts of data) {
         await axios.delete(`${API_BASE_URL}/timesheet/${ts._id}`);
       }
       fetchTimesheets();
@@ -214,14 +305,14 @@ useEffect(() => {
 
   // Function to clear all filters
   const clearAllFilters = () => {
-    setSelectedFilter("Today");
+    setSelectedFilter("All");
     setSelectedUser("All");
-    setSelectedStatus("All"); // [3] reset status filter
+    setSelectedStatus("All");
     setSearchQuery("");
     setRangeStart("");
     setRangeEnd("");
     setPage(1);
-    // Clear URL params
+    // Clear URL params immediately
     setSearchParams({});
   };
 
@@ -239,6 +330,11 @@ useEffect(() => {
     setPage(1); // Reset to first page when changing user filter
   };
 
+  const handleStatusChange = (newStatus: string) => {
+    setSelectedStatus(newStatus);
+    setPage(1); // Reset to first page when changing status filter
+  };
+
   const handleSearchChange = (newSearch: string) => {
     setSearchQuery(newSearch);
     setPage(1); // Reset to first page when searching
@@ -249,141 +345,9 @@ useEffect(() => {
   };
 
   const filteredData = useMemo(() => {
-    let result;
-    if (selectedFilter === "All") {
-      result = data;
-      // [5] Status filter
-      if (selectedStatus !== "All") {
-        result = result.filter(ts => ts.status === selectedStatus);
-      }
-      // Filter by selectedUser before searchQuery
-      if (selectedUser !== "All") {
-        result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
-      }
-      // filtering by searchQuery
-      if (searchQuery.trim()) {
-        result = result.filter(ts =>
-          Object.values(ts).some(val =>
-            String(val).toLowerCase().includes(searchQuery.toLowerCase())
-          )
-        );
-      }
-      return result;
-    }
-
-    if (selectedFilter === "Today") {
-      const todayStr = new Date().toLocaleDateString("sv-SE"); // "yyyy-mm-dd"
-      result = data.filter(ts => {
-        console.log(todayStr);
-        console.log("Filtering for today:", ts.date, "==", todayStr);
-        return ts.date === todayStr;
-      });
-      if (selectedStatus !== "All") {
-        result = result.filter(ts => ts.status === selectedStatus);
-      }
-      if (selectedUser !== "All") {
-        result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
-      }
-      if (searchQuery.trim()) {
-        result = result.filter(ts =>
-          Object.values(ts).some(val =>
-            String(val).toLowerCase().includes(searchQuery.toLowerCase())
-          )
-        );
-      }
-      return result;
-    }
-
-    if (selectedFilter === "This Week") {
-      const today = new Date();
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - today.getDay());
-      const endOfWeek = new Date(today);
-      endOfWeek.setDate(today.getDate() + (6 - today.getDay()));
-      const startStr = startOfWeek.toISOString().split("T")[0];
-      const endStr = endOfWeek.toISOString().split("T")[0];
-      result = data.filter(ts => {
-        const tsDateStr = ts.date;
-        return tsDateStr >= startStr && tsDateStr <= endStr;
-      });
-      if (selectedStatus !== "All") {
-        result = result.filter(ts => ts.status === selectedStatus);
-      }
-      if (selectedUser !== "All") {
-        result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
-      }
-      if (searchQuery.trim()) {
-        result = result.filter(ts =>
-          Object.values(ts).some(val =>
-            String(val).toLowerCase().includes(searchQuery.toLowerCase())
-          )
-        );
-      }
-      return result;
-    }
-
-    if (selectedFilter === "This Month") {
-      const today = new Date();
-      const yearMonth = today.toISOString().slice(0, 7); // "YYYY-MM"
-      result = data.filter(ts => {
-        return typeof ts.date === "string" && ts.date.startsWith(yearMonth);
-      });
-      if (selectedStatus !== "All") {
-        result = result.filter(ts => ts.status === selectedStatus);
-      }
-      if (selectedUser !== "All") {
-        result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
-      }
-      if (searchQuery.trim()) {
-        result = result.filter(ts =>
-          Object.values(ts).some(val =>
-            String(val).toLowerCase().includes(searchQuery.toLowerCase())
-          )
-        );
-      }
-      return result;
-    }
-
-    if (selectedFilter === "Custom" && rangeStart && rangeEnd) {
-      // Use ISO string comparison for date range
-      const startStr = rangeStart;
-      const endStr = rangeEnd;
-      result = data.filter(ts => {
-        const tsDateStr = ts.date;
-        return tsDateStr >= startStr && tsDateStr <= endStr;
-      });
-      if (selectedStatus !== "All") {
-        result = result.filter(ts => ts.status === selectedStatus);
-      }
-      if (selectedUser !== "All") {
-        result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
-      }
-      if (searchQuery.trim()) {
-        result = result.filter(ts =>
-          Object.values(ts).some(val =>
-            String(val).toLowerCase().includes(searchQuery.toLowerCase())
-          )
-        );
-      }
-      return result;
-    }
-
-    result = data;
-    if (selectedStatus !== "All") {
-      result = result.filter(ts => ts.status === selectedStatus);
-    }
-    if (selectedUser !== "All") {
-      result = result.filter(ts => ts.driver?.email === selectedUser || ts.driver === selectedUser);
-    }
-    if (searchQuery.trim()) {
-      result = result.filter(ts =>
-        Object.values(ts).some(val =>
-          String(val).toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      );
-    }
-    return result;
-  }, [data, selectedFilter, rangeStart, rangeEnd, searchQuery, selectedUser, selectedStatus]);
+    // Since filtering is now handled by the backend, just return the data
+    return data;
+  }, [data]);
   
   // Export timesheets using ExcelJS
 
@@ -472,8 +436,8 @@ useEffect(() => {
 
   // Refetch timesheets when page changes
   useEffect(() => {
-    if (!isFiltered) fetchTimesheets();
-  }, [page, isFiltered]);
+    fetchTimesheets();
+  }, [page]);
 
   const fetchUsers = async () => {
     try {
@@ -489,7 +453,7 @@ useEffect(() => {
       const response = await axios.get(`${API_BASE_URL}/drivers`);
       const rates: Record<string, number> = {};
 
-      response.data.forEach((driver: any) => {
+      response.data.forEach((driver: Driver) => {
         if (driver.backhaulRate) rates["Backhaul"] = driver.backhaulRate;
         if (driver.comboRate) rates["Combo"] = driver.comboRate;
         if (driver.extraSheetEWRate)
@@ -505,33 +469,47 @@ useEffect(() => {
     }
   };
 
-  const fetchTimesheets = async (forceNoPagination = false) => {
+  const fetchTimesheets = async () => {
     try {
-      const shouldSkipPagination = isFiltered || forceNoPagination;
-      const url = shouldSkipPagination
-        ? `${API_BASE_URL}/timesheets?noPagination=true`
-        : `${API_BASE_URL}/timesheets?page=${page}&limit=${limit}`;
+      // Build query parameters for backend filtering
+      const queryParams = new URLSearchParams();
+      
+      // Always use pagination
+      queryParams.append('page', page.toString());
+      queryParams.append('limit', limit.toString());
+      
+      // Add filter parameters
+      if (selectedFilter !== "All") {
+        queryParams.append('filter', selectedFilter);
+      }
+      if (selectedUser !== "All") {
+        queryParams.append('user', selectedUser);
+      }
+      if (searchQuery.trim()) {
+        queryParams.append('search', searchQuery.trim());
+      }
+      if (selectedFilter === "Custom" && rangeStart && rangeEnd) {
+        queryParams.append('rangeStart', rangeStart);
+        queryParams.append('rangeEnd', rangeEnd);
+      }
+      if (selectedStatus !== "All") {
+        queryParams.append('status', selectedStatus);
+      }
+      
+      const url = `${API_BASE_URL}/timesheets?${queryParams.toString()}`;
       
       console.log("🔍 Fetching timesheets with URL:", url);
-      console.log("🔍 isFiltered:", isFiltered, "forceNoPagination:", forceNoPagination);
+      console.log("🔍 Filter params:", { selectedFilter, selectedUser, searchQuery, rangeStart, rangeEnd, selectedStatus });
+      console.log("🔍 Query params:", queryParams.toString());
       
       const response = await axios.get(url);
       console.log("📊 Raw response data:", response.data);
       
-      // Handle different response formats
-      if (shouldSkipPagination) {
-        // When noPagination=true, server returns { data: [...] }
-        const timesheetData = response.data.data || response.data;
-        console.log("📊 Setting data (no pagination):", timesheetData.length, "records");
-        setData(timesheetData);
-        setTotalPages(1);
-      } else {
-        // When pagination is used, server returns { data: [...], totalPages, total, page }
-        const timesheetData = response.data.data || response.data;
-        console.log("📊 Setting data (with pagination):", timesheetData.length, "records, totalPages:", response.data.totalPages);
-        setData(timesheetData);
-        setTotalPages(response.data.totalPages || 1);
-      }
+      // Handle response with pagination
+      const timesheetData = response.data.data || response.data;
+      console.log("📊 Setting data:", timesheetData.length, "records, totalPages:", response.data.totalPages);
+      setData(timesheetData);
+      setTotalPages(response.data.totalPages || 1);
     } catch (error) {
       console.error("❌ Error fetching timesheets:", error);
       setError("Failed to load timesheets. Please try again.");
@@ -543,11 +521,11 @@ useEffect(() => {
 
   // Removed edit modal handlers
 
-  const columns: ColumnDef<(typeof data)[0]>[] = [
+  const columns: ColumnDef<Timesheet>[] = [
     {
       accessorKey: "edit",
       header: "",
-      cell: ({ row }: any) => (
+      cell: ({ row }) => (
         <span>
           <button
             className="delete-button"
@@ -562,14 +540,14 @@ useEffect(() => {
     {
       accessorKey: "driverName",
       header: "Driver",
-      cell: (info) => info.getValue(), // or format it if needed
+      cell: (info) => info.getValue(),
     },
     { header: "Load ID", accessorKey: "loadID" },
     { header: "Route No.", accessorKey: "tripNumber" },
     {
       header: "Date/Time",
       accessorKey: "date",
-      cell: ({ row }: any) => {
+      cell: ({ row }) => {
         const tsCreatedAt = new Date(row.original.createdAt);
         const tsUpdatedAt = new Date(row.original.updatedAt);
         const createdAtString = tsCreatedAt.toLocaleString();
@@ -602,9 +580,9 @@ useEffect(() => {
     { header: "End KM", accessorKey: "endKM" },
     {
       header: "Total KM",
-      cell: ({ row }: any) => {
-        const start = parseFloat(row.original.startKM);
-        const end = parseFloat(row.original.endKM);
+      cell: ({ row }) => {
+        const start = parseFloat(row.original.startKM.toString());
+        const end = parseFloat(row.original.endKM.toString());
         const total = !isNaN(start) && !isNaN(end) ? end - start : "N/A";
         return total;
       },
@@ -614,7 +592,7 @@ useEffect(() => {
     {
       header: "Comments",
       accessorKey: "comments",
-      cell: ({ row }: any) => (
+      cell: ({ row }) => (
         <div style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxWidth: "250px" }}>
           {row.original.comments}
         </div>
@@ -622,7 +600,7 @@ useEffect(() => {
     },
     {
       header: "Attachments",
-      cell: ({ row }: any) => {
+      cell: ({ row }) => {
         const attachments = row.original.attachments || [];
         if (attachments.length === 0) {
           return <span></span>;
@@ -659,7 +637,7 @@ useEffect(() => {
     {
       header: "Status",
       accessorKey: "status",
-      cell: ({ row }: any) => {
+      cell: ({ row }) => {
         const status = row.original.status;
         const label =
           status === "approved"
@@ -728,7 +706,7 @@ useEffect(() => {
               <label>User:</label>
               <select value={selectedUser} onChange={(e) => handleUserChange(e.target.value)} style={styles.selectInput}>
                 <option value="All">All Users</option>
-                {users.map((driver: any) => (
+                {users.map((driver: Driver) => (
                   <option key={driver._id} value={driver.email}>{driver.name} ({driver.username})</option>
                 ))}
               </select>
@@ -760,7 +738,7 @@ useEffect(() => {
               <label>Status:</label>
               <select
                 value={selectedStatus}
-                onChange={e => setSelectedStatus(e.target.value)}
+                onChange={e => handleStatusChange(e.target.value)}
                 style={styles.selectInput}
               >
                 <option value="All">All</option>
@@ -770,7 +748,7 @@ useEffect(() => {
               </select>
             </div>
             {/* Clear Filters Button */}
-            {((selectedFilter !== "Today" && selectedFilter !== "All" && selectedFilter !== "Custom") || selectedUser !== "All" || selectedStatus !== "All" || searchQuery.trim() || (selectedFilter === "Custom" && (rangeStart || rangeEnd))) && (
+            {((selectedFilter !== "All") || (selectedUser !== "All") || (selectedStatus !== "All") || searchQuery.trim() || ((selectedFilter as string) === "Custom" && (rangeStart || rangeEnd))) && (
               <button onClick={clearAllFilters} style={styles.clearButton}>
                 Clear Filters ✕
               </button>
@@ -779,7 +757,7 @@ useEffect(() => {
               Export Timesheet 📤
             </button>
             <button onClick={handleDeleteFilteredTimesheets} style={styles.rejectButton}>
-              Delete Timesheet 🗑️
+              Delete Timesheets 🗑️
             </button>
           </div>
         </div>
@@ -1150,38 +1128,11 @@ const statusStyles = {
 
 export default AllTimesheets;
 
-// Image preview modal
-// Place after the main return block
-
-// eslint-disable-next-line
-
-// The modal should be rendered after the main return block, but in React,
-// it should be inside the component's return.
-// So, append it just after the closing </div> of the main return.
-
-// To achieve this, move the modal JSX outside and after the main <div> in the return.
-// Since this is a single file, we can inject the modal just after the main return's </div>:
-
-// -- PATCHED: Modal JSX for selectedImage preview --
-
-// To ensure this is rendered, add after the main </div> of the return:
-
-// (copy-paste below into the file, after the main </div> in the return)
-
-// But in React, you must return a single element. So, instead, add the modal JSX
-// inside the main return, after everything else, before the final closing </div> of the outermost.
-
-// So, search for the end of the main return, and add:
-
-// {selectedImage && (
-//   <div ...>...</div>
-// )}
-
 // Enhanced Image/PDF Preview Modal Component
 type ImagePreviewModalProps = {
   selectedImageIndex: number;
   setSelectedImageIndex: React.Dispatch<React.SetStateAction<number | null>>;
-  filteredData: any[];
+  filteredData: Timesheet[];
 };
 
 const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
@@ -1278,7 +1229,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
       );
-      let scale = newDist / lastDistance.current;
+      const scale = newDist / lastDistance.current;
       let newZoom = lastZoom.current * scale;
       newZoom = Math.max(0.3, Math.min(3, newZoom));
       setZoom(newZoom);

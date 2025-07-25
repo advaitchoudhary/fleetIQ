@@ -130,32 +130,82 @@ const createTimesheet = async (req, res) => {
   }
 };
 
-// **2. Get All Timesheets (with Pagination)**
+// **2. Get All Timesheets (with Pagination and Filtering)**
 const getAllTimesheets = async (req, res) => {
   try {
-    const page = parseInt(req.query.page);
-    const limit = parseInt(req.query.limit);
-    const noPagination = req.query.noPagination === "true";
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    
+    // Filter parameters from query string
+    const filter = req.query.filter;
+    const selectedUser = req.query.user;
+    const searchQuery = req.query.search;
+    const rangeStart = req.query.rangeStart;
+    const rangeEnd = req.query.rangeEnd;
+    const selectedStatus = req.query.status;
 
-    let timesheets;
-    let total = 0;
-
-    if (noPagination || isNaN(page) || isNaN(limit)) {
-      timesheets = await Timesheet.find({}).lean();
-    } else {
-      const skip = (page - 1) * limit;
-      [timesheets, total] = await Promise.all([
-        Timesheet.find({}).skip(skip).limit(limit).lean(),
-        Timesheet.countDocuments()
-      ]);
+    // Build query object for filtering
+    let query = {};
+    
+    // User filter
+    if (selectedUser && selectedUser !== "All") {
+      query.driver = selectedUser;
     }
+    
+    // Status filter
+    if (selectedStatus && selectedStatus !== "All") {
+      query.status = selectedStatus.toLowerCase();
+    }
+    
+    // Date filter
+    if (filter && filter !== "All") {
+      const today = new Date();
+      
+      if (filter === "Today") {
+        const todayStr = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+        query.date = todayStr;
+      } else if (filter === "This Week") {
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - today.getDay());
+        const endOfWeek = new Date(today);
+        endOfWeek.setDate(today.getDate() + (6 - today.getDay()));
+        const startStr = startOfWeek.toISOString().split('T')[0];
+        const endStr = endOfWeek.toISOString().split('T')[0];
+        query.date = { $gte: startStr, $lte: endStr };
+      } else if (filter === "This Month") {
+        const yearMonth = today.toISOString().slice(0, 7); // YYYY-MM
+        query.date = { $regex: `^${yearMonth}`, $options: 'i' };
+      } else if (filter === "Custom" && rangeStart && rangeEnd) {
+        query.date = { $gte: rangeStart, $lte: rangeEnd };
+      }
+    }
+    
+    // Search query - search across multiple fields
+    if (searchQuery && searchQuery.trim()) {
+      const searchRegex = { $regex: searchQuery, $options: 'i' };
+      query.$or = [
+        { driver: searchRegex },
+        { customer: searchRegex },
+        { category: searchRegex },
+        { tripNumber: searchRegex },
+        { loadID: searchRegex },
+        { comments: searchRegex },
+        { gateOutTime: searchRegex },
+        { gateInTime: searchRegex },
+        { plannedHours: searchRegex },
+        { plannedKM: searchRegex },
+        { totalHours: searchRegex }
+      ];
+    }
+
+    const skip = (page - 1) * limit;
+    const [timesheets, total] = await Promise.all([
+      Timesheet.find(query).skip(skip).limit(limit).lean(),
+      Timesheet.countDocuments(query)
+    ]);
 
     const emailToNameMap = await buildEmailToNameUsernameMap();
     const enrichedTimesheets = timesheets.map(t => normalizeTimesheet(t, emailToNameMap));
-
-    if (noPagination || isNaN(page) || isNaN(limit)) {
-      return res.status(200).json({ data: enrichedTimesheets });
-    }
 
     return res.status(200).json({
       data: enrichedTimesheets,
@@ -164,6 +214,7 @@ const getAllTimesheets = async (req, res) => {
       page
     });
   } catch (error) {
+    console.error("Error fetching timesheets:", error);
     res.status(500).json({ error: "Failed to fetch timesheets" });
   }
 };
