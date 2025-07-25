@@ -119,35 +119,10 @@ const createTimesheet = async (req, res) => {
     });
     const savedTimesheet = await newTimesheet.save();
 
-    // Find the user by email and set driverName as "name (username)"
-    const driver = await User.findOne({ email: req.body.driver });
-    const driverName =
-      driver?.name && driver?.username
-        ? `${driver.name} (${driver.username})`
-        : driver?.name || "Unknown";
-
+    const emailToNameMap = await buildEmailToNameUsernameMap();
     res.status(201).json({
       message: "Timesheet created successfully",
-      savedTimesheet: {
-        ...savedTimesheet.toObject(),
-        driverName,
-        extraWorkSheetDetails: {
-          duration: savedTimesheet.extraDuration || "",
-          from: savedTimesheet.durationFrom || "",
-          to: savedTimesheet.durationTo || ""
-        },
-        ...(savedTimesheet.delayStoreDuration || savedTimesheet.delayStoreFrom || savedTimesheet.delayStoreTo || savedTimesheet.delayStoreReason
-          ? {
-              storeDelay: {
-                duration: savedTimesheet.delayStoreDuration || "",
-                from: savedTimesheet.delayStoreFrom || "",
-                to: savedTimesheet.delayStoreTo || "",
-                reason: savedTimesheet.delayStoreReason || ""
-              }
-            }
-          : {}),
-        extraWorkSheetComments: savedTimesheet.extraWorkSheetComments || ""
-      }
+      savedTimesheet: normalizeTimesheet(savedTimesheet, emailToNameMap)
     });
   } catch (error) {
     console.error("❌ Error saving Timesheet:", error.message);
@@ -176,28 +151,7 @@ const getAllTimesheets = async (req, res) => {
     }
 
     const emailToNameMap = await buildEmailToNameUsernameMap();
-    const enrichedTimesheets = timesheets.map((t) => {
-      const driverEmail = t.driver;
-      const driverInfo = emailToNameMap[driverEmail] || {};
-      const fullName = driverInfo.name || driverEmail;
-      const username = driverInfo.username ? `(@${driverInfo.username})` : "";
-      return {
-        ...t,
-        driverName: `${fullName} ${username}`.trim(),
-        extraWorkSheetDetails: {
-          duration: t.extraDuration || "",
-          from: t.durationFrom || "",
-          to: t.durationTo || "",
-          comments: t.extraWorkComments || ""
-        },
-        storeDelay: {
-          duration: t.delayStoreDuration || "",
-          from: t.delayStoreFrom || "",
-          to: t.delayStoreTo || "",
-          reason: t.delayStoreReason || ""
-        }
-      };
-    });
+    const enrichedTimesheets = timesheets.map(t => normalizeTimesheet(t, emailToNameMap));
 
     if (noPagination || isNaN(page) || isNaN(limit)) {
       return res.status(200).json({ data: enrichedTimesheets });
@@ -249,21 +203,8 @@ const getTimesheetById = async (req, res) => {
     if (!timesheet) {
       return res.status(404).json({ message: "Timesheet not found" });
     }
-    res.status(200).json({
-      ...timesheet.toObject(),
-      extraWorkSheetDetails: {
-        duration: timesheet.extraDuration || "",
-        from: timesheet.durationFrom || "",
-        to: timesheet.durationTo || "",
-        comments: timesheet.extraWorkComments || ""
-      },
-      storeDelay: {
-        duration: timesheet.delayStoreDuration || "",
-        from: timesheet.delayStoreFrom || "",
-        to: timesheet.delayStoreTo || "",
-        reason: timesheet.delayStoreReason || ""
-      }
-    });
+    const emailToNameMap = await buildEmailToNameUsernameMap();
+    res.status(200).json(normalizeTimesheet(timesheet, emailToNameMap));
   } catch (error) {
     res.status(500).json({ errorMessage: error.message });
   }
@@ -454,6 +395,48 @@ const sendInvoiceEmail = async (req, res) => {
     res.status(500).json({ errorMessage: error.message });
   }
 };
+
+// **10. Normalize Timesheet Object**
+function normalizeTimesheet(timesheet, driverInfoMap = null) {
+  if (!timesheet) return null;
+  const obj = timesheet.toObject?.() || timesheet;
+
+  if (obj.driver && driverInfoMap) {
+    const driverInfo = driverInfoMap[obj.driver] || {};
+    const fullName = driverInfo.name || obj.driver;
+    const username = driverInfo.username ? `(@${driverInfo.username})` : "";
+    obj.driverName = `${fullName} ${username}`.trim();
+  }
+
+  return {
+    ...obj,
+    extraWorkSheetDetails: {
+      duration: obj.extraDuration || "",
+      from: obj.durationFrom || "",
+      to: obj.durationTo || "",
+      comments: obj.extraWorkComments || obj.extraWorkSheetComments || ""
+    },
+    storeDelay: {
+      duration: obj.delayStoreDuration || "",
+      from: obj.delayStoreFrom || "",
+      to: obj.delayStoreTo || "",
+      reason: obj.delayStoreReason || ""
+    },
+    roadDelay: {
+      duration: obj.delayRoadDuration || "",
+      from: obj.delayRoadFrom || "",
+      to: obj.delayRoadTo || "",
+      reason: obj.delayRoadReason || ""
+    },
+    otherDelay: {
+      duration: obj.delayOtherDuration || "",
+      from: obj.delayOtherFrom || "",
+      to: obj.delayOtherTo || "",
+      reason: obj.delayOtherReason || ""
+    }
+  };
+}
+
 module.exports = {
   createTimesheet,
   getAllTimesheets,
