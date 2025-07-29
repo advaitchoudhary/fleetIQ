@@ -233,10 +233,6 @@ const AllTimesheets: React.FC = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    const isCustomFilterActive = selectedFilter === "Custom" && !!rangeStart && !!rangeEnd;
-
-    // Filter state debug log removed
-
     // Clear any existing timeout
     if (filterTimeoutRef.current) {
       clearTimeout(filterTimeoutRef.current);

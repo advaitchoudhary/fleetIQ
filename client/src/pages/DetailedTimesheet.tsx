@@ -1351,13 +1351,6 @@ const DetailedTimesheet: React.FC = () => {
         </button>
         {/* Approve button logic update with delay validation */}
         {(() => {
-          // Debugging logs to trace required/corrected/missing fields
-          const missingFields = requiredFields.filter(field =>
-            !Array.from(correctedFields).some(corrected =>
-              corrected.trim().toLowerCase() === field.trim().toLowerCase()
-            )
-          );
-
           const allCorrected = requiredFields.every((field) =>
             Array.from(correctedFields).some(corrected =>
               corrected.trim().toLowerCase() === field.trim().toLowerCase()
