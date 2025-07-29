@@ -176,8 +176,6 @@ const AllTimesheets: React.FC = () => {
 
     // Add focus event listener to refetch data when returning to this component
     const handleFocus = () => {
-      console.log("check refetch")
-      console.log("🔄 Component focused, refetching data...");
       // fetchTimesheets();
     };
 
@@ -198,16 +196,7 @@ const AllTimesheets: React.FC = () => {
     const urlRangeEnd = searchParams.get("rangeEnd");
     const urlStatus = searchParams.get("status");
     
-    console.log("🔍 URL params changed:", {
-      urlFilter,
-      urlUser,
-      urlSearch,
-      urlPage,
-      urlRangeStart,
-      urlRangeEnd,
-      urlStatus,
-      currentState: { selectedFilter, selectedUser, searchQuery, page, rangeStart, rangeEnd, selectedStatus }
-    });
+    // URL params changed debug log removed
     
     // Only update state if URL params differ from current state
     if (urlFilter && urlFilter !== selectedFilter) {
@@ -236,7 +225,7 @@ const AllTimesheets: React.FC = () => {
   // Refetch data when navigating back to this component
   useEffect(() => {
     if (!isFirstLoad.current) {
-      console.log("🔄 Location changed, refetching data...");
+      // Location changed, refetching data...
       fetchTimesheets();
     } else {
       isFirstLoad.current = false;
@@ -246,15 +235,7 @@ const AllTimesheets: React.FC = () => {
   useEffect(() => {
     const isCustomFilterActive = selectedFilter === "Custom" && !!rangeStart && !!rangeEnd;
 
-    console.log("🔍 Filter state:", {
-      selectedFilter,
-      selectedUser,
-      selectedStatus,
-      searchQuery,
-      rangeStart,
-      rangeEnd,
-      isCustomFilterActive
-    });
+    // Filter state debug log removed
 
     // Clear any existing timeout
     if (filterTimeoutRef.current) {
@@ -357,8 +338,7 @@ const AllTimesheets: React.FC = () => {
       return;
     }
 
-    // Log a sample timesheet before export
-    console.log("Sample timesheet before export:", filteredData[0]);
+    // Log a sample timesheet before export (removed)
 
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Timesheets");
@@ -498,16 +478,10 @@ const AllTimesheets: React.FC = () => {
       
       const url = `${API_BASE_URL}/timesheets?${queryParams.toString()}`;
       
-      console.log("🔍 Fetching timesheets with URL:", url);
-      console.log("🔍 Filter params:", { selectedFilter, selectedUser, searchQuery, rangeStart, rangeEnd, selectedStatus });
-      console.log("🔍 Query params:", queryParams.toString());
-      
+      // Debug logs removed for fetching timesheets
       const response = await axios.get(url);
-      console.log("📊 Raw response data:", response.data);
-      
       // Handle response with pagination
       const timesheetData = response.data.data || response.data;
-      console.log("📊 Setting data:", timesheetData.length, "records, totalPages:", response.data.totalPages);
       setData(timesheetData);
       setTotalPages(response.data.totalPages || 1);
     } catch (error) {

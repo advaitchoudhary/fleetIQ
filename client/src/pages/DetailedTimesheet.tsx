@@ -132,6 +132,9 @@ const DetailedTimesheet: React.FC = () => {
         allFields.forEach((field) => {
           filledData[field] = field in data ? data[field] : "";
         });
+        // --- Normalize extraWorkSheet and extraDelay values for dropdowns ---
+        filledData.extraWorkSheet = data.extraWorkSheet ? "yes" : "no";
+        filledData.extraDelay = data.extraDelay || "no";
 
         // --- Unified delayDetails object ---
         const delayDetails = {
@@ -173,15 +176,44 @@ const DetailedTimesheet: React.FC = () => {
           delayDetails,
           extraWorkSheetDetails,
         });
-        setRequiredFields(
-          Object.entries(filledData)
-            .filter(([k, v]) =>
-              v !== "" &&
-              (typeof v === "string" || typeof v === "number") &&
-              k !== "status"
-            )
-            .map(([k]) => k)
-        );
+        // --- Compute required fields with new logic ---
+        const computeRequiredFields = (data: any, context: any) => {
+          const extraWorkSheet = context.extraWorkSheet?.toLowerCase?.() === "yes";
+          const extraDelay = context.extraDelay?.toLowerCase?.() === "yes";
+
+          const excludedFields: string[] = [];
+
+          if (!extraWorkSheet) {
+            excludedFields.push(
+              "extraDuration",
+              "durationFrom",
+              "durationTo",
+              "extraWorkSheetComments"
+            );
+          }
+
+          if (!extraDelay) {
+            excludedFields.push(
+              "delayStoreDuration", "delayStoreFrom", "delayStoreTo", "delayStoreReason",
+              "delayRoadDuration", "delayRoadFrom", "delayRoadTo", "delayRoadReason",
+              "delayOtherDuration", "delayOtherFrom", "delayOtherTo", "delayOtherReason"
+            );
+          }
+
+          const fields = Object.entries(data)
+            .filter(([k, v]) => {
+              if (k === "status") return false;
+              if (v === "" || v == null) return false;
+              if (typeof v !== "string" && typeof v !== "number") return false;
+              if (excludedFields.includes(k)) return false;
+              return true;
+            })
+            .map(([k]) => k);
+
+          return fields;
+        };
+
+        setRequiredFields(computeRequiredFields(filledData, formData));
 
         // Initialize extra work and store delay UI state
         setExtraWorkSelected(data.extraWorkSheet ? "Yes" : "No");
@@ -1319,6 +1351,13 @@ const DetailedTimesheet: React.FC = () => {
         </button>
         {/* Approve button logic update with delay validation */}
         {(() => {
+          // Debugging logs to trace required/corrected/missing fields
+          const missingFields = requiredFields.filter(field =>
+            !Array.from(correctedFields).some(corrected =>
+              corrected.trim().toLowerCase() === field.trim().toLowerCase()
+            )
+          );
+
           const allCorrected = requiredFields.every((field) =>
             Array.from(correctedFields).some(corrected =>
               corrected.trim().toLowerCase() === field.trim().toLowerCase()
