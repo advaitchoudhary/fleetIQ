@@ -32,7 +32,8 @@ const driverSchema = new mongoose.Schema(
         password: { type: String, required: true },
         workStatus: { type: String, required: true },
         sinNo: { type: String, required: true },
-        plainPassword: { type: String }
+        plainPassword: { type: String },
+        hoursThisWeek: { type: Number, default: 0 } // New field to track hours this week
     },
     { timestamps: true } // Adds createdAt and updatedAt timestamps
 );
