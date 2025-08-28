@@ -8,7 +8,8 @@ const {
   deleteDriverById,
   checkUsername,
   changePassword,
-  driverLogin
+  driverLogin,
+  updateAllDriversHours
 } = require("../controller/driverController.js");
 
 const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
@@ -28,5 +29,6 @@ route.post(
   changePassword
 );
 route.post("/login", driverLogin);
+route.post("/update-hours", protect, authorizeRoles("admin"), updateAllDriversHours);
 
 module.exports = route;

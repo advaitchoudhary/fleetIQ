@@ -73,59 +73,17 @@ const Drivers: React.FC = () => {
       try {
         setLoading(true);
         const response = await axios.get(`${API_BASE_URL}/drivers`);
-        const timesheetRes = await axios.get(`${API_BASE_URL}/timesheets?noPagination=true`);
-        const allTimesheets = timesheetRes.data.data;
         const drivers = response.data;
-
-        // Calculate start and end of current week (Sunday to Saturday)
-        const startOfWeek = new Date();
-        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay()); // Sunday
-        startOfWeek.setHours(0, 0, 0, 0);
-
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(endOfWeek.getDate() + 7); // Saturday end
-
-        const updatedDrivers = drivers.map((driver: any) => {
-          const driverTimesheets = allTimesheets.filter((t: any) =>
-            t.driver === driver.email &&
-            new Date(t.date) >= startOfWeek &&
-            new Date(t.date) < endOfWeek
-          );
-          const totalHours = driverTimesheets.reduce((sum: any, t: any) => {
-            const hours = calculateHours(t.startTime, t.endTime);
-            return sum + (isNaN(hours) ? 0 : hours);
-          }, 0);
-          return { ...driver, hoursThisWeek: totalHours.toFixed(2) };
-        });
-        setData(updatedDrivers);
+        setData(drivers);
         setLoading(false);
       } catch (err) {
         console.error(err);
-        setError("Failed to fetch drivers or timesheets.");
+        setError("Failed to fetch drivers.");
         setLoading(false);
       }
     };
 
-    function calculateHours(startTime: string, endTime: string): number {
-      const [startH, startM] = startTime.split(":").map(Number);
-      const [endH, endM] = endTime.split(":").map(Number);
-    
-      let start = new Date();
-      start.setHours(startH, startM, 0, 0);
-    
-      let end = new Date();
-      end.setHours(endH, endM, 0, 0);
-    
-      // If end is before start (overnight shift), add 1 day
-      if (end < start) {
-        end.setDate(end.getDate() + 1);
-      }
-    
-      const diffMs = end.getTime() - start.getTime();
-      const diffHrs = diffMs / (1000 * 60 * 60);
-    
-      return diffHrs;
-    }
+
 
     const createDriver = async (newDriver: any) => {
     try {
@@ -184,7 +142,14 @@ const Drivers: React.FC = () => {
       { accessorKey: "email", header: "Email" },
       { accessorKey: "contact", header: "Contact" },
       { accessorKey: "status", header: "Status" },
-      { accessorKey: "hoursThisWeek", header: "Hours This Week" },
+      { 
+        accessorKey: "hoursThisWeek", 
+        header: "Hours This Week",
+        cell: ({ row }) => {
+          const hours = row.original.hoursThisWeek || 0;
+          return hours.toFixed(2);
+        }
+      },
       { accessorKey: "workStatus", header: "Work Status" },
       {
         accessorKey: "actions",
