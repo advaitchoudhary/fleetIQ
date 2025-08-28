@@ -8,11 +8,40 @@ import axios from "axios";
 import Navbar from "./Navbar";
 import { FILE_BASE_URL, API_BASE_URL } from "../utils/env";
 
+interface Driver {
+  _id: string;
+  name: string;
+  email: string;
+  hoursThisWeek: number;
+}
+
+interface Timesheet {
+  _id: string;
+  driver: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  customer: string;
+  category: string;
+  tripNumber: string;
+  loadID: string;
+  plannedHours: string;
+  plannedKM: string;
+  startKM: number;
+  endKM: number;
+  comments: string;
+  attachments: string[];
+  status: string;
+  totalHours: string;
+}
+
 const MyTimesheet: React.FC = () => {
-  const [timesheets, setTimesheets] = useState<any[]>([]);
+  const [timesheets, setTimesheets] = useState<Timesheet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [driverHours, setDriverHours] = useState<number>(0);
+  const [driverName, setDriverName] = useState<string>("");
 
   const [selectedFilter, setSelectedFilter] = useState<string>("All");
   const [rangeStart, setRangeStart] = useState<string>("");
@@ -20,33 +49,46 @@ const MyTimesheet: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
-    const fetchTimesheets = async () => {
+    const fetchData = async () => {
       try {
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
           const user = JSON.parse(storedUser);
-          setUserEmail(user.email); // Store user email for filtering
+          setUserEmail(user.email);
 
-          const response = await axios.get(`${API_BASE_URL}/timesheets?noPagination=true`);
-          const allTimesheets = response.data.data;
+          // Fetch timesheets and driver info in parallel
+          const [timesheetsResponse, driversResponse] = await Promise.all([
+            axios.get(`${API_BASE_URL}/timesheets?noPagination=true`),
+            axios.get(`${API_BASE_URL}/drivers`)
+          ]);
+
+          const allTimesheets = timesheetsResponse.data.data;
+          const drivers = driversResponse.data;
 
           // Filter timesheets for the logged-in driver
           const userTimesheets = allTimesheets.filter(
-            (timesheet: any) => timesheet.driver === user.email
+            (timesheet: Timesheet) => timesheet.driver === user.email
           );
           setTimesheets(userTimesheets);
+
+          // Find the current driver and get their hours
+          const currentDriver = drivers.find((driver: Driver) => driver.email === user.email);
+          if (currentDriver) {
+            setDriverHours(currentDriver.hoursThisWeek || 0);
+            setDriverName(currentDriver.name);
+          }
         } else {
           setError("User not found in localStorage.");
         }
       } catch (error) {
-        console.error("❌ Error fetching timesheets:", error);
-        setError("Failed to load timesheets. Please try again.");
+        console.error("❌ Error fetching data:", error);
+        setError("Failed to load data. Please try again.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTimesheets();
+    fetchData();
   }, []);
 
   const columns = [
@@ -65,7 +107,7 @@ const MyTimesheet: React.FC = () => {
     {
       accessorKey: "totalHours",
       header: "Total Hours",
-      cell: ({ row }: any) => {
+      cell: ({ row }: { row: { original: Timesheet } }) => {
         const start = row.original.startTime;
         const end = row.original.endTime;
         if (start && end) {
@@ -127,7 +169,7 @@ const MyTimesheet: React.FC = () => {
     {
       accessorKey: "comments",
       header: "Comments",
-      cell: ({ row }: any) => {
+      cell: ({ row }: { row: { original: Timesheet } }) => {
         const comment = row.original.comments || "";
 
         // Split into groups of 59 words
@@ -154,7 +196,7 @@ const MyTimesheet: React.FC = () => {
     },
     {
       header: "Attachments",
-      cell: ({ row }: any) => {
+      cell: ({ row }: { row: { original: Timesheet } }) => {
         const attachments = row.original.attachments || [];
         if (attachments.length === 0) {
           return <span>No Attachments</span>;
@@ -187,7 +229,7 @@ const MyTimesheet: React.FC = () => {
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }: any) => {
+      cell: ({ row }: { row: { original: Timesheet } }) => {
         const status = row.original.status;
         return (
           <span style={statusStyles[status] || styles.pending}>
@@ -273,28 +315,62 @@ const MyTimesheet: React.FC = () => {
         {loading && <p>Loading timesheets...</p>}
         {error && <p style={styles.error}>{error}</p>}
 
-        <div style={{ marginTop: "20px", marginBottom: "20px", display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "center" }}>
-          <input
-            type="text"
-            placeholder="Search..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc", minWidth: "200px" }}
-          />
-          <select value={selectedFilter} onChange={e => setSelectedFilter(e.target.value)} style={{ padding: "8px", borderRadius: "4px", border: "1px solid #ccc" }}>
-            <option value="All">All</option>
-            <option value="Today">Today</option>
-            <option value="This Week">This Week</option>
-            <option value="This Month">This Month</option>
-            <option value="Custom">Custom Range</option>
-          </select>
-          {selectedFilter === "Custom" && (
-            <>
-              <input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)} style={{ padding: "6px", borderRadius: "4px", border: "1px solid #ccc" }} />
-              <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} style={{ padding: "6px", borderRadius: "4px", border: "1px solid #ccc" }} />
-            </>
-          )}
-        </div>
+        {/* Hours This Week Display and Search/Filter Controls */}
+        {!loading && driverName && (
+          <div style={styles.controlsContainer}>
+            {/* Hours This Week Display */}
+            <div style={styles.hoursCard}>
+              <div style={styles.hoursContent}>
+                <div style={styles.hoursInfo}>
+                  <h2 style={styles.hoursTitle}>Hours This Week</h2>
+                  <p style={styles.driverName}>{driverName}</p>
+                </div>
+                <div style={styles.hoursValue}>
+                  <span style={styles.hoursNumber}>{driverHours.toFixed(2)}</span>
+                  <span style={styles.hoursUnit}>hours</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Search and Filter Controls */}
+            <div style={styles.searchFilterContainer}>
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={styles.searchInput}
+              />
+              <select 
+                value={selectedFilter} 
+                onChange={e => setSelectedFilter(e.target.value)} 
+                style={styles.filterSelect}
+              >
+                <option value="All">All</option>
+                <option value="Today">Today</option>
+                <option value="This Week">This Week</option>
+                <option value="This Month">This Month</option>
+                <option value="Custom">Custom Range</option>
+              </select>
+              {selectedFilter === "Custom" && (
+                <>
+                  <input 
+                    type="date" 
+                    value={rangeStart} 
+                    onChange={e => setRangeStart(e.target.value)} 
+                    style={styles.dateInput} 
+                  />
+                  <input 
+                    type="date" 
+                    value={rangeEnd} 
+                    onChange={e => setRangeEnd(e.target.value)} 
+                    style={styles.dateInput} 
+                  />
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {!loading && !error && timesheets.length === 0 && (
           <p>No timesheets found for {userEmail}.</p>
@@ -402,6 +478,90 @@ const styles: { [key: string]: React.CSSProperties } = {
   pending: {
     color: "orange",
     fontSize: "20px",
+  },
+  hoursCard: {
+    backgroundColor: "#f8fafc",
+    color: "#374151",
+    borderRadius: "8px",
+    padding: "12px 16px",
+    display: "flex",
+    alignItems: "center",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+    border: "1px solid #e5e7eb",
+    minWidth: "25%",
+  },
+  hoursContent: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+  },
+  hoursInfo: {
+    textAlign: "left",
+    display: "flex",
+    flexDirection: "column",
+    gap: "2px",
+  },
+  hoursTitle: {
+    fontSize: "16px",
+    marginBottom: "0",
+    fontWeight: "600",
+    color: "#6b7280",
+    lineHeight: "1.2",
+  },
+  driverName: {
+    fontSize: "20px",
+    fontWeight: "500",
+    color: "#374151",
+    lineHeight: "1.2",
+    marginTop: "0",
+  },
+  hoursValue: {
+    display: "flex",
+    alignItems: "baseline",
+  },
+  hoursNumber: {
+    fontSize: "24px",
+    fontWeight: "600",
+    lineHeight: "1",
+    color: "#111827",
+  },
+  hoursUnit: {
+    fontSize: "16px",
+    fontWeight: "500",
+    marginLeft: "4px",
+    color: "#6b7280",
+  },
+  controlsContainer: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: "20px",
+    marginBottom: "20px",
+    flexWrap: "wrap",
+  },
+  searchFilterContainer: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "12px",
+    alignItems: "center",
+  },
+  searchInput: {
+    padding: "8px",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+    minWidth: "200px",
+  },
+  filterSelect: {
+    padding: "8px",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
+  },
+  dateInput: {
+    padding: "6px",
+    borderRadius: "4px",
+    border: "1px solid #ccc",
   },
 };
 

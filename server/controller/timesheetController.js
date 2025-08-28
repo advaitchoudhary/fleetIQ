@@ -6,6 +6,9 @@ const fs = require("fs");
 const path = require("path");
 const PDFDocument = require("pdfkit");
 
+// Import the updateDriverHours function from driverController
+const { updateDriverHours } = require("./driverController.js");
+
 // Safe number parser
 const parseNumber = (value) => {
   const parsed = Number(value);
@@ -118,6 +121,9 @@ const createTimesheet = async (req, res) => {
       ...timesheetData
     });
     const savedTimesheet = await newTimesheet.save();
+
+    // Update driver's hours for this week
+    await updateDriverHours(req.body.driver);
 
     const emailToNameMap = await buildEmailToNameUsernameMap();
     res.status(201).json({
@@ -269,6 +275,12 @@ const updateTimesheetById = async (req, res) => {
       return res.status(400).json({ message: "No data provided for update" });
     }
 
+    // Get the original timesheet to get the driver email
+    const originalTimesheet = await Timesheet.findById(id);
+    if (!originalTimesheet) {
+      return res.status(404).json({ message: "Timesheet not found" });
+    }
+
     const updatedTimesheet = await Timesheet.findByIdAndUpdate(id, req.body, {
       new: true,
       runValidators: true,
@@ -277,6 +289,9 @@ const updateTimesheetById = async (req, res) => {
     if (!updatedTimesheet) {
       return res.status(404).json({ message: "Timesheet not found" });
     }
+
+    // Update driver's hours for this week
+    await updateDriverHours(originalTimesheet.driver);
 
     res.status(200).json({ message: "Timesheet updated successfully", updatedTimesheet });
   } catch (error) {
@@ -303,6 +318,9 @@ const deleteTimesheetById = async (req, res) => {
         }
       });
     }
+
+    // Update driver's hours for this week after deletion
+    await updateDriverHours(deletedTimesheet.driver);
 
     res.status(200).json({ message: "Timesheet deleted successfully" });
   } catch (error) {
