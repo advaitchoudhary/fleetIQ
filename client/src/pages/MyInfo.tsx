@@ -162,6 +162,12 @@ const MyInfo: React.FC = () => {
             <p>
               <strong>Wholesale Rate:</strong> ${driver.wholesaleRate}
             </p>
+            <p>
+              <strong>Voila Rate:</strong> ${driver.voilaRate}
+            </p>
+            <p>
+              <strong>TCS Linehaul Trenton Rate:</strong> ${driver.tcsLinehaulTrentonRate}
+            </p>
             {isEditing ? (
               <label style={styles.formField}>
                 <span style={styles.labelText}>Licence:</span>

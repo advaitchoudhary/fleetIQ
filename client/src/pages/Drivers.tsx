@@ -48,6 +48,8 @@ const Drivers: React.FC = () => {
     extraSheetEWRate: "",
     regularBannerRate: "",
     wholesaleRate: "",
+    voilaRate: "",
+    tcsLinehaulTrentonRate: "",
     licence: "",
     licence_expiry_date: "",
     status: "Active",
@@ -465,6 +467,28 @@ const Drivers: React.FC = () => {
                 />
             </div>
 
+            {/* Voila Rate */}
+            <div style={styles.formGroup}>
+                <label style={styles.label}>Voila Rate:</label>
+                <input
+                    type="number"
+                    placeholder="Enter voila rate"
+                    style={styles.input}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, voilaRate: e.target.value })}
+                />
+            </div>
+
+            {/* TCS Linehaul Trenton Rate */}
+            <div style={styles.formGroup}>
+                <label style={styles.label}>TCS Linehaul Trenton Rate:</label>
+                <input
+                    type="number"
+                    placeholder="Enter TCS linehaul trenton rate"
+                    style={styles.input}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, tcsLinehaulTrentonRate: e.target.value })}
+                />
+            </div>
+
             {/* Sin No. */}
             <div style={styles.formGroup}>
               <label style={styles.label}>Sin No.:</label>
@@ -720,6 +744,28 @@ const Drivers: React.FC = () => {
                     defaultValue={selectedDriver?.wholesaleRate}
                     style={styles.input}
                     onChange={(e) => handleInputChange("wholesaleRate", e.target.value)}
+                />
+            </div>
+
+            {/* Voila Rate */}
+            <div style={styles.formGroup}>
+                <label style={styles.label}>Voila Rate:</label>
+                <input
+                    type="number"
+                    defaultValue={selectedDriver?.voilaRate}
+                    style={styles.input}
+                    onChange={(e) => handleInputChange("voilaRate", e.target.value)}
+                />
+            </div>
+
+            {/* TCS Linehaul Trenton Rate */}
+            <div style={styles.formGroup}>
+                <label style={styles.label}>TCS Linehaul Trenton Rate:</label>
+                <input
+                    type="number"
+                    defaultValue={selectedDriver?.tcsLinehaulTrentonRate}
+                    style={styles.input}
+                    onChange={(e) => handleInputChange("tcsLinehaulTrentonRate", e.target.value)}
                 />
             </div>
 

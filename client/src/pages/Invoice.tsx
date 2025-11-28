@@ -31,6 +31,8 @@ interface Driver {
   extraSheetEWRate?: number;
   regularBannerRate?: number;
   wholesaleRate?: number;
+  voilaRate?: number;
+  tcsLinehaulTrentonRate?: number;
 }
 
 const Invoice: React.FC = () => {
@@ -383,6 +385,8 @@ const generatePDF = () => {
       if (selected.extraSheetEWRate) rates["Extra Sheet/E.W"] = selected.extraSheetEWRate;
       if (selected.regularBannerRate) rates["Regular/Banner"] = selected.regularBannerRate;
       if (selected.wholesaleRate) rates["Wholesale"] = selected.wholesaleRate;
+      if (selected.voilaRate) rates["voila"] = selected.voilaRate;
+      if (selected.tcsLinehaulTrentonRate) rates["TCS linehaul trenton"] = selected.tcsLinehaulTrentonRate;
   
       setCategoryRates(rates);
     } catch (error) {

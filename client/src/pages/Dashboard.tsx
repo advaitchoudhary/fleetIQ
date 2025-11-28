@@ -49,7 +49,7 @@ const Timesheet: React.FC = () => {
   const [timesheet, setTimesheet] = useState<TimesheetType>(() => getEmptyTimesheet(""));
   const [errors, setErrors] = useState<Partial<Record<keyof TimesheetType, string>>>({});
   const [loading, setLoading] = useState(false);
-  const categoryOptions = ["Backhaul", "Combo", "Extra Sheet/E.W", "Regular/Banner", "Wholesale", "Wholesale DZ"];
+  const categoryOptions = ["Backhaul", "Combo", "Extra Sheet/E.W", "Regular/Banner", "Wholesale", "Wholesale DZ", "voila", "TCS linehaul trenton"];
   const customerOptions = ["Sobeys Capital Inc."];
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessagesList, setErrorMessagesList] = useState<string[]>([]);

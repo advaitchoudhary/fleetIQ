@@ -24,6 +24,7 @@ const FileDriverApplication: React.FC = () => {
   const [licenseFront, setLicenseFront] = useState<File | null>(null);
   const [licenseBack, setLicenseBack] = useState<File | null>(null);
   const [applicationForm, setApplicationForm] = useState<File | null>(null);
+  const [pceConsentForm, setPceConsentForm] = useState<File | null>(null);
   const [cvor, setCvor] = useState<File | null>(null);
   const [driversAbstract, setDriversAbstract] = useState<File | null>(null);
 
@@ -31,6 +32,7 @@ const FileDriverApplication: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [isBackButtonHovered, setIsBackButtonHovered] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -59,6 +61,9 @@ const FileDriverApplication: React.FC = () => {
         case "applicationForm":
           setApplicationForm(file);
           break;
+        case "pceConsentForm":
+          setPceConsentForm(file);
+          break;
         case "cvor":
           setCvor(file);
           break;
@@ -74,6 +79,16 @@ const FileDriverApplication: React.FC = () => {
     const link = document.createElement("a");
     link.href = "/forms/Sampleapplication.pdf";
     link.download = "Sampleapplication.pdf";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDownloadPCEConsent = () => {
+    // Download the PCE Consent Form PDF
+    const link = document.createElement("a");
+    link.href = "/forms/PCE Consent form.pdf";
+    link.download = "PCE Consent form.pdf";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -105,6 +120,12 @@ const FileDriverApplication: React.FC = () => {
       return;
     }
 
+    if (!pceConsentForm) {
+      setSubmitError("Please download, fill, and upload the PCE Consent Form");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const formDataToSend = new FormData();
 
@@ -119,6 +140,7 @@ const FileDriverApplication: React.FC = () => {
       if (licenseFront) formDataToSend.append("licenseFront", licenseFront);
       if (licenseBack) formDataToSend.append("licenseBack", licenseBack);
       if (applicationForm) formDataToSend.append("applicationForm", applicationForm);
+      if (pceConsentForm) formDataToSend.append("pceConsentForm", pceConsentForm);
       if (cvor) formDataToSend.append("cvor", cvor);
       if (driversAbstract) formDataToSend.append("driversAbstract", driversAbstract);
 
@@ -155,6 +177,23 @@ const FileDriverApplication: React.FC = () => {
 
   return (
     <div style={styles.container}>
+      <button
+        type="button"
+        onClick={() => navigate("/")}
+        onMouseEnter={() => setIsBackButtonHovered(true)}
+        onMouseLeave={() => setIsBackButtonHovered(false)}
+        style={{
+          ...styles.backToHomeButton,
+          backgroundColor: isBackButtonHovered 
+            ? "rgba(255, 255, 255, 0.3)" 
+            : "rgba(255, 255, 255, 0.2)",
+          borderColor: isBackButtonHovered 
+            ? "rgba(255, 255, 255, 0.5)" 
+            : "rgba(255, 255, 255, 0.3)",
+        }}
+      >
+        ← Back to Home
+      </button>
       <div style={styles.overlay}>
         <div style={styles.content}>
           <h1 style={styles.title}>Driver Application</h1>
@@ -386,6 +425,49 @@ const FileDriverApplication: React.FC = () => {
                 </div>
               </div>
 
+              {/* PCE Consent Form Section */}
+              <div style={styles.section}>
+                <h2 style={styles.sectionTitle}>PCE Consent Form *</h2>
+                <p style={styles.requirementText}>
+                  <strong>Required:</strong> You must download, fill out, and upload the PCE Consent Form before submitting your application.
+                  <br />
+                  • Download the PCE Consent Form below
+                  <br />
+                  • Fill out all required fields
+                  <br />
+                  • Upload the completed form
+                  <br />
+                  <strong>You cannot submit the application until the PCE Consent Form is uploaded.</strong>
+                </p>
+                <div style={styles.formGroup}>
+                  <button
+                    type="button"
+                    onClick={handleDownloadPCEConsent}
+                    style={styles.downloadButton}
+                  >
+                    Download PCE Consent Form
+                  </button>
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Upload Filled PCE Consent Form *</label>
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,image/*"
+                    onChange={(e) => handleFileChange(e, "pceConsentForm")}
+                    required
+                    style={styles.fileInput}
+                  />
+                  {pceConsentForm && (
+                    <p style={styles.fileName}>Selected: {pceConsentForm.name}</p>
+                  )}
+                  {!pceConsentForm && (
+                    <p style={styles.requirementText}>
+                      <strong style={{ color: "#fbbf24" }}>⚠️ Required: Please upload the filled PCE Consent Form to proceed.</strong>
+                    </p>
+                  )}
+                </div>
+              </div>
+
               {/* CVOR Section (Optional) */}
               <div style={styles.section}>
                 <h2 style={styles.sectionTitle}>Add CVOR (Optional)</h2>
@@ -447,8 +529,11 @@ const FileDriverApplication: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  style={styles.submitButton}
-                  disabled={isSubmitting}
+                  style={{
+                    ...styles.submitButton,
+                    ...(!pceConsentForm ? { opacity: 0.5, cursor: "not-allowed" } : {}),
+                  }}
+                  disabled={isSubmitting || !pceConsentForm}
                 >
                   {isSubmitting ? "Submitting..." : "Submit"}
                 </button>
@@ -598,6 +683,21 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: "1rem",
     fontWeight: 600,
     transition: "all 0.3s ease",
+  },
+  backToHomeButton: {
+    position: "absolute" as const,
+    top: "20px",
+    left: "20px",
+    padding: "10px 16px",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    color: "#fff",
+    border: "1px solid rgba(255, 255, 255, 0.3)",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: 500,
+    transition: "all 0.3s ease",
+    zIndex: 1000,
   },
   submitButton: {
     padding: "14px 28px",

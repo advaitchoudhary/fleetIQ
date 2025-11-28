@@ -62,6 +62,8 @@ interface Driver {
   extraSheetEWRate?: number;
   regularBannerRate?: number;
   wholesaleRate?: number;
+  voilaRate?: number;
+  tcsLinehaulTrentonRate?: number;
 }
 
 const AllTimesheets: React.FC = () => {
@@ -437,6 +439,8 @@ const AllTimesheets: React.FC = () => {
         if (driver.regularBannerRate)
           rates["Regular/Banner"] = driver.regularBannerRate;
         if (driver.wholesaleRate) rates["Wholesale"] = driver.wholesaleRate;
+        if (driver.voilaRate) rates["voila"] = driver.voilaRate;
+        if (driver.tcsLinehaulTrentonRate) rates["TCS linehaul trenton"] = driver.tcsLinehaulTrentonRate;
       });
 
       setCategoryRates(rates);

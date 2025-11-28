@@ -50,6 +50,7 @@ const uploadFields = upload.fields([
   { name: "licenseFront", maxCount: 1 },
   { name: "licenseBack", maxCount: 1 },
   { name: "applicationForm", maxCount: 1 },
+  { name: "pceConsentForm", maxCount: 1 },
   { name: "cvor", maxCount: 1 },
   { name: "driversAbstract", maxCount: 1 },
 ]);
@@ -61,6 +62,7 @@ const submitDriverApplication = asyncHandler(async (req, res) => {
     const licenseFront = req.files?.licenseFront?.[0]?.path;
     const licenseBack = req.files?.licenseBack?.[0]?.path;
     const applicationForm = req.files?.applicationForm?.[0]?.path;
+    const pceConsentForm = req.files?.pceConsentForm?.[0]?.path;
     const cvor = req.files?.cvor?.[0]?.path;
     const driversAbstract = req.files?.driversAbstract?.[0]?.path;
 
@@ -90,6 +92,10 @@ const submitDriverApplication = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "Application form is required" });
     }
 
+    if (!pceConsentForm) {
+      return res.status(400).json({ message: "PCE Consent Form is required" });
+    }
+
     // Create new driver application
     const driverApplication = new DriverApplication({
       name,
@@ -102,6 +108,7 @@ const submitDriverApplication = asyncHandler(async (req, res) => {
       licenseFront,
       licenseBack,
       applicationForm,
+      pceConsentForm,
       truckingExperienceYears: parseInt(truckingExperienceYears) || 0,
       truckingExperienceMonths: parseInt(truckingExperienceMonths) || 0,
       cvor: cvor || undefined,

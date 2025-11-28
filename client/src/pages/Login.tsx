@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { API_BASE_URL } from "../utils/env";
 import axios from "axios";
 
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
   const [role, setRole] = useState("admin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isBackButtonHovered, setIsBackButtonHovered] = useState(false);
   const { login } = useAuth();
 
   useEffect(() => {
@@ -59,6 +62,23 @@ const Login: React.FC = () => {
 
   return (
     <div style={styles.container}>
+      <button
+        type="button"
+        onClick={() => navigate("/")}
+        onMouseEnter={() => setIsBackButtonHovered(true)}
+        onMouseLeave={() => setIsBackButtonHovered(false)}
+        style={{
+          ...styles.backButton,
+          backgroundColor: isBackButtonHovered 
+            ? "rgba(255, 255, 255, 0.3)" 
+            : "rgba(255, 255, 255, 0.2)",
+          borderColor: isBackButtonHovered 
+            ? "rgba(255, 255, 255, 0.5)" 
+            : "rgba(255, 255, 255, 0.3)",
+        }}
+      >
+        ← Back to Home
+      </button>
       <div style={styles.overlay}>
         <h1 style={styles.title}>Welcome to the Driver Portal</h1>
         <p style={styles.description}>
@@ -169,6 +189,20 @@ const styles = {
     cursor: "pointer",
     fontSize: "18px",
     transition: "background 0.3s ease",
+  },
+  backButton: {
+    position: "absolute" as const,
+    top: "20px",
+    left: "20px",
+    padding: "10px 16px",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    color: "#fff",
+    border: "1px solid rgba(255, 255, 255, 0.3)",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: 500,
+    transition: "all 0.3s ease",
   },
 };
 
