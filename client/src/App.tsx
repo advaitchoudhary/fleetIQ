@@ -1,6 +1,8 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
+import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import FileDriverApplication from "./pages/FileDriverApplication";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Drivers";
 import Profile from "./pages/Profile";
@@ -14,6 +16,7 @@ import DetailedTimesheet from "./pages/DetailedTimesheet";
 import UploadDispatchSheet from "./pages/UploadDipatchSheet";
 import Logout from "./pages/Logout";
 import ChangePassword from "./pages/ChangePassword";
+import DriverApplications from "./pages/DriverApplications";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -21,8 +24,10 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <Routes>
-        {/* Public Route */}
-        <Route path="/" element={<Login />} />
+        {/* Public Routes */}
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/file-application" element={<FileDriverApplication />} />
 
         {/* Driver Role Routes */}
         <Route
@@ -92,6 +97,15 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute requiredRole="admin">
               <Enquiries />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/driver-applications"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <DriverApplications />
             </ProtectedRoute>
           }
         />

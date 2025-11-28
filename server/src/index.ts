@@ -15,6 +15,8 @@ import driverRoute from "../routes/driverRoute";
 import contactRoutes from "../routes/contactRoute";
 // @ts-ignore
 import notificationRoutes from "../routes/notificationRoute.js";
+// @ts-ignore
+import driverApplicationRoutes from "../routes/driverApplicationRoute.js";
 
 
 const app = express();
@@ -65,15 +67,36 @@ dotenv.config();
 const PORT = process.env.PORT || 7000;
 const MONGOURL = process.env.MONGO_URL as string;
 
+if (!MONGOURL) {
+    console.error("❌ MONGO_URL environment variable is not set!");
+    process.exit(1);
+}
+
 mongoose
-        .connect(MONGOURL)
-        .then(() => {
-            console.log("DB connected successfully");
-            app.listen(PORT, () => {
-                console.log(`Server is running on port ${PORT}`)
-            })
+    .connect(MONGOURL, {
+        serverSelectionTimeoutMS: 10000, // Timeout after 10 seconds instead of 30
+        socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+        connectTimeoutMS: 10000, // Give up initial connection after 10 seconds
+        retryWrites: true,
+        w: 'majority'
+    })
+    .then(() => {
+        console.log("✅ DB connected successfully");
+        app.listen(PORT, () => {
+            console.log(`🚀 Server is running on port ${PORT}`)
         })
-        .catch((error) => console.log(error));
+    })
+    .catch((error) => {
+        console.error("❌ Database connection failed:", error.message);
+        console.error("\n💡 Troubleshooting steps:");
+        console.error("1. Check if MongoDB server is running");
+        console.error("2. Verify MONGO_URL in .env file is correct");
+        console.error("3. Check network connectivity to MongoDB server");
+        console.error("4. Verify firewall allows connections on port 27017");
+        console.error("5. If using remote MongoDB, check if it requires authentication");
+        console.error("\nCurrent MONGO_URL:", MONGOURL.replace(/\/\/.*@/, '//***:***@')); // Hide credentials
+        process.exit(1);
+    });
 
 app.use("/api/auth", authRoutes);
 app.use("/api/drivers", driverRoute);
@@ -82,3 +105,4 @@ app.use("/api/timesheet", timesheetRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/driver-applications", driverApplicationRoutes);
