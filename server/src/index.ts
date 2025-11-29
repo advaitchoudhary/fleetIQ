@@ -26,13 +26,17 @@ app.options("*", cors({
        const allowedOrigins = [
           'http://3.13.233.198',
           'http://localhost:5173',
+          'http://127.0.0.1:5173',
+          'http://192.168.29.113:5173',
           'http://premierchoicemployment.com',
           'https://premierchoicemployment.com',
           'https://www.premierchoicemployment.com'
     ];
+      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.log(`❌ CORS blocked origin: ${origin}`);
         callback(new Error("Not allowed by CORS"));
       }
     },
@@ -47,13 +51,17 @@ app.use(cors({
        const allowedOrigins = [
           'http://3.13.233.198',
           'http://localhost:5173',
+          'http://127.0.0.1:5173',
+          'http://192.168.29.113:5173',
           'http://premierchoicemployment.com',
           'https://premierchoicemployment.com',
           'https://www.premierchoicemployment.com'
     ];
+      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.log(`❌ CORS blocked origin: ${origin}`);
         callback(new Error("Not allowed by CORS"));
       }
     },
