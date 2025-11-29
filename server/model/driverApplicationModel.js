@@ -22,7 +22,7 @@ const driverApplicationSchema = new mongoose.Schema(
         // Application Form
         applicationForm: { type: String, required: true }, // File path
         
-        // PCE Consent Form
+        // PCE Consent Form (required for submission/approval, but not for rejection)
         pceConsentForm: { type: String, required: true }, // File path
         
         // Optional Documents

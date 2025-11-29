@@ -66,11 +66,29 @@ const Drivers: React.FC = () => {
   const [, setError] = useState("");
   const [searchText, setSearchText] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"highest" | "lowest" | "none">("none");
+  const [pendingApplicationsCount, setPendingApplicationsCount] = useState<number>(0);
+  const [isApplicationsButtonHovered, setIsApplicationsButtonHovered] = useState(false);
   
   // Fetch users on component mount
   useEffect(() => {
     fetchDrivers();
+    fetchPendingApplicationsCount();
   }, []);
+
+  // Fetch pending applications count
+  const fetchPendingApplicationsCount = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_BASE_URL}/driver-applications?status=Pending`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setPendingApplicationsCount(response.data.length);
+    } catch (err) {
+      console.error("Failed to fetch pending applications count:", err);
+    }
+  };
     const fetchDrivers = async () => {
       try {
         setLoading(true);
@@ -290,6 +308,20 @@ const Drivers: React.FC = () => {
                 <option value="highest">Highest Hours</option>
                 <option value="lowest">Lowest Hours</option>
               </select>
+              <button 
+                style={{
+                  ...styles.driverApplicationsButton,
+                  backgroundColor: isApplicationsButtonHovered ? "#218838" : "#28a745",
+                }}
+                onClick={() => navigate("/driver-applications")}
+                onMouseEnter={() => setIsApplicationsButtonHovered(true)}
+                onMouseLeave={() => setIsApplicationsButtonHovered(false)}
+              >
+                Driver Applications
+                {pendingApplicationsCount > 0 && (
+                  <span style={styles.notificationBadge}>{pendingApplicationsCount}</span>
+                )}
+              </button>
               <button style={styles.addDriverButton} onClick={() => setIsAddModalOpen(true)}>
                 + Add Driver
               </button>
@@ -1113,6 +1145,38 @@ const styles: { [key: string]: CSSProperties } = {
     boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
     gap: "16px",
     marginBottom: "16px",
+  },
+  driverApplicationsButton: {
+    backgroundColor: "#28a745",
+    color: "#fff",
+    border: "none",
+    padding: "10px 20px",
+    fontSize: "16px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: 600,
+    position: "relative",
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    transition: "background-color 0.3s ease",
+  },
+  notificationBadge: {
+    backgroundColor: "#dc3545",
+    color: "#fff",
+    borderRadius: "50%",
+    minWidth: "20px",
+    height: "20px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "11px",
+    fontWeight: "bold",
+    position: "absolute",
+    top: "-6px",
+    right: "-6px",
+    padding: "0 4px",
+    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
   },
 };
 
