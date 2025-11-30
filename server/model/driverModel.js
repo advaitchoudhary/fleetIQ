@@ -20,6 +20,8 @@ const driverSchema = new mongoose.Schema(
         extraSheetEWRate: { type: Number, required: false },
         regularBannerRate: { type: Number, required: false },
         wholesaleRate: { type: Number, required: false },
+        voilaRate: { type: Number, required: false },
+        tcsLinehaulTrentonRate: { type: Number, required: false },
         licence: { type: String, required: true },
         licence_expiry_date: { type: Date, required: true },
         status: {

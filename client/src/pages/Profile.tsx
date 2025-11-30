@@ -108,6 +108,12 @@ const Profile: React.FC = () => {
               <p>
                 <strong>Wholesale Rate:</strong> ${driver.wholesaleRate || "N/A"}
               </p>
+              <p>
+                <strong>Voila Rate:</strong> ${driver.voilaRate || "N/A"}
+              </p>
+              <p>
+                <strong>TCS Linehaul Trenton Rate:</strong> ${driver.tcsLinehaulTrentonRate || "N/A"}
+              </p>
             </div>
             {/* Status */}
             <div style={styles.statusSection}>
@@ -189,10 +195,20 @@ const Profile: React.FC = () => {
                   const end = parseFloat(t.endKM);
                   const totalKM =
                     !isNaN(start) && !isNaN(end) ? end - start : "N/A";
-                  const rate =
-                    driver?.[
-                      `${t.category?.toLowerCase().replace(/\/|\s+/g, "")}Rate`
-                    ] || 0;
+                  // Map category names to rate field names
+                  const categoryToRateMap: Record<string, string> = {
+                    "Backhaul": "backhaulRate",
+                    "Combo": "comboRate",
+                    "Extra Sheet/E.W": "extraSheetEWRate",
+                    "Regular/Banner": "regularBannerRate",
+                    "Wholesale": "wholesaleRate",
+                    "Wholesale DZ": "wholesaleRate", // Uses same rate as Wholesale
+                    "voila": "voilaRate",
+                    "TCS linehaul trenton": "tcsLinehaulTrentonRate"
+                  };
+                  const rateField = categoryToRateMap[t.category || ""] || 
+                    `${t.category?.toLowerCase().replace(/\/|\s+/g, "")}Rate`;
+                  const rate = driver?.[rateField] || 0;
                   const subtotal =
                     !isNaN(Number(totalKM)) && !isNaN(rate)
                       ? Number(totalKM) * rate

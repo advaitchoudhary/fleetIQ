@@ -126,24 +126,21 @@ const create = asyncHandler(async (req, res) => {
     plainPassword: req.body.password // save plainPassword too
   });
   const savedData = await newDriver.save();
-  res.status(201).json(savedData);
+  // Exclude password and plainPassword from response
+  const savedDataObj = savedData.toObject();
+  const { password, plainPassword, ...driverWithoutPassword } = savedDataObj;
+  res.status(201).json(driverWithoutPassword);
 });
 
 const getAllDrivers = asyncHandler(async (req, res) => {
   const drivers = await Driver.find().lean(); // lean() for faster read
 
   const enhancedDrivers = drivers.map(driver => {
-    let plainPassword = "";
-
-    if (driver.plainPassword) {
-      plainPassword = driver.plainPassword;
-    } else if (driver.password && !driver.password.startsWith("$2b$")) {
-      plainPassword = driver.password;
-    }
-
+    // Exclude password and plainPassword from response
+    const { password, plainPassword, ...driverWithoutPassword } = driver;
+    
     return {
-      ...driver,
-      plainPassword,
+      ...driverWithoutPassword,
       hoursThisWeek: driver.hoursThisWeek || 0 // Include the calculated hours
     };
   });
@@ -156,12 +153,14 @@ const getAllDrivers = asyncHandler(async (req, res) => {
 });
 
 const getDriverById = asyncHandler(async (req, res) => {
-  const driver = await Driver.findById(req.params.id);
+  const driver = await Driver.findById(req.params.id).lean();
   if (!driver) {
     res.status(404).json({ message: "Driver not found" });
     return;
   }
-  res.json(driver);
+  // Exclude password and plainPassword from response
+  const { password, plainPassword, ...driverWithoutPassword } = driver;
+  res.json(driverWithoutPassword);
 });
 
 const driverLogin = async (req, res) => {
@@ -254,13 +253,15 @@ const updateDriverById = asyncHandler(async (req, res) => {
       new: true,
       runValidators: true,
     }
-  );
+  ).lean();
 
   if (!updatedDriver) {
     res.status(404).json({ message: "Driver not found" });
     return;
   }
-  res.json(updatedDriver);
+  // Exclude password and plainPassword from response
+  const { password, plainPassword, ...driverWithoutPassword } = updatedDriver;
+  res.json(driverWithoutPassword);
 });
 
 const deleteDriverById = asyncHandler(async (req, res) => {

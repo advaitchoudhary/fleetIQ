@@ -275,6 +275,11 @@ const Navbar: React.FC = () => {
                 </Link>
               </li>
               <li style={styles.navItem}>
+                <Link to="/driver-applications" style={styles.navLink}>
+                  <FaClipboardList size={20} /> Driver Applications
+                </Link>
+              </li>
+              <li style={styles.navItem}>
                 <Link to="/uploadDispatchDetails" style={styles.navLink}>
                   <MdDashboard size={20} /> Upload Dispatch Details
                 </Link>

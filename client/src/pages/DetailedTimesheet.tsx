@@ -566,7 +566,7 @@ const DetailedTimesheet: React.FC = () => {
           // Custom fields rendering for form, with new Extra Delay block
           (() => {
             let inExtra = false;
-            const categoryOptions = ["Backhaul", "Combo", "Extra Sheet/E.W", "Regular/Banner", "Wholesale", "Wholesale DZ"];
+            const categoryOptions = ["Backhaul", "Combo", "Extra Sheet/E.W", "Regular/Banner", "Wholesale", "Wholesale DZ", "voila", "TCS linehaul trenton"];
             // Filter out delay-related fields, will be handled in custom block
             const DELAY_FIELDS = [
               "extraDelay",

@@ -15,6 +15,8 @@ import driverRoute from "../routes/driverRoute";
 import contactRoutes from "../routes/contactRoute";
 // @ts-ignore
 import notificationRoutes from "../routes/notificationRoute.js";
+// @ts-ignore
+import driverApplicationRoutes from "../routes/driverApplicationRoute.js";
 
 
 const app = express();
@@ -28,9 +30,11 @@ app.options("*", cors({
           'https://premierchoicemployment.com',
           'https://www.premierchoicemployment.com'
     ];
+      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.log(`❌ CORS blocked origin: ${origin}`);
         callback(new Error("Not allowed by CORS"));
       }
     },
@@ -49,9 +53,11 @@ app.use(cors({
           'https://premierchoicemployment.com',
           'https://www.premierchoicemployment.com'
     ];
+      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.log(`❌ CORS blocked origin: ${origin}`);
         callback(new Error("Not allowed by CORS"));
       }
     },
@@ -82,3 +88,4 @@ app.use("/api/timesheet", timesheetRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/driver-applications", driverApplicationRoutes);

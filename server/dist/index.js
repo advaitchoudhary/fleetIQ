@@ -20,6 +20,8 @@ const driverRoute_1 = __importDefault(require("../routes/driverRoute"));
 const contactRoute_1 = __importDefault(require("../routes/contactRoute"));
 // @ts-ignore
 const notificationRoute_js_1 = __importDefault(require("../routes/notificationRoute.js"));
+// @ts-ignore
+const driverApplicationRoute_js_1 = __importDefault(require("../routes/driverApplicationRoute.js"));
 const app = (0, express_1.default)();
 app.options("*", (0, cors_1.default)({
     origin: (origin, callback) => {
@@ -57,9 +59,9 @@ const MONGOURL = process.env.MONGO_URL;
 mongoose_1.default
     .connect(MONGOURL)
     .then(() => {
-    console.log("DB connected successfully");
+    console.log("✅ DB connected successfully");
     app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
+        console.log(`🚀 Server is running on port ${PORT}`);
     });
 })
     .catch((error) => console.log(error));
@@ -70,3 +72,4 @@ app.use("/api/timesheet", timesheetRoute_1.default);
 app.use("/api/uploads", uploadRoute_1.default);
 app.use("/api/contacts", contactRoute_1.default);
 app.use("/api/notifications", notificationRoute_js_1.default);
+app.use("/api/driver-applications", driverApplicationRoute_js_1.default);
