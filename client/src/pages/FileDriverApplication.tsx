@@ -75,10 +75,10 @@ const FileDriverApplication: React.FC = () => {
   };
 
   const handleDownloadApplication = () => {
-    // Download the sample application PDF
+    // Download the driver application form PDF
     const link = document.createElement("a");
-    link.href = "/forms/Sampleapplication.pdf";
-    link.download = "Sampleapplication.pdf";
+    link.href = "/forms/DriverApplicationForm.pdf";
+    link.download = "DriverApplicationForm.pdf";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -177,6 +177,24 @@ const FileDriverApplication: React.FC = () => {
 
   return (
     <div style={styles.container}>
+      <style>{`
+        .driver-application-input::placeholder {
+          color: rgba(255, 255, 255, 0.7) !important;
+          opacity: 1;
+        }
+        .driver-application-input::-webkit-input-placeholder {
+          color: rgba(255, 255, 255, 0.7) !important;
+          opacity: 1;
+        }
+        .driver-application-input::-moz-placeholder {
+          color: rgba(255, 255, 255, 0.7) !important;
+          opacity: 1;
+        }
+        .driver-application-input:-ms-input-placeholder {
+          color: rgba(255, 255, 255, 0.7) !important;
+          opacity: 1;
+        }
+      `}</style>
       <button
         type="button"
         onClick={() => navigate("/")}
@@ -222,6 +240,7 @@ const FileDriverApplication: React.FC = () => {
                       onChange={handleInputChange}
                       required
                       style={styles.input}
+                      className="driver-application-input"
                       placeholder="Enter your full name"
                     />
                   </div>
@@ -234,6 +253,7 @@ const FileDriverApplication: React.FC = () => {
                       onChange={handleInputChange}
                       required
                       style={styles.input}
+                      className="driver-application-input"
                       placeholder="Enter your email"
                     />
                   </div>
@@ -248,6 +268,7 @@ const FileDriverApplication: React.FC = () => {
                       onChange={handleInputChange}
                       required
                       style={styles.input}
+                      className="driver-application-input"
                       placeholder="Enter your phone number"
                     />
                   </div>
@@ -260,6 +281,7 @@ const FileDriverApplication: React.FC = () => {
                       onChange={handleInputChange}
                       required
                       style={styles.input}
+                      className="driver-application-input"
                       placeholder="Enter your address"
                     />
                   </div>
@@ -274,6 +296,7 @@ const FileDriverApplication: React.FC = () => {
                       onChange={handleInputChange}
                       required
                       style={styles.input}
+                      className="driver-application-input"
                       placeholder="Enter your SIN number"
                     />
                   </div>
@@ -326,6 +349,7 @@ const FileDriverApplication: React.FC = () => {
                       required
                       min="0"
                       style={styles.input}
+                      className="driver-application-input"
                       placeholder="Years"
                     />
                   </div>
@@ -340,6 +364,7 @@ const FileDriverApplication: React.FC = () => {
                       min="0"
                       max="11"
                       style={styles.input}
+                      className="driver-application-input"
                       placeholder="Months"
                     />
                   </div>
@@ -352,6 +377,7 @@ const FileDriverApplication: React.FC = () => {
                     value={formData.preferredStartLocation}
                     onChange={handleInputChange}
                     style={styles.input}
+                    className="driver-application-input"
                     placeholder="Enter preferred start location"
                   />
                 </div>
@@ -588,10 +614,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: "30px",
   },
   section: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "rgba(255, 255, 255, 0.25)",
     padding: "25px",
     borderRadius: "10px",
-    border: "1px solid rgba(255, 255, 255, 0.2)",
+    border: "1px solid rgba(255, 255, 255, 0.3)",
   },
   sectionTitle: {
     fontSize: "1.5rem",
@@ -627,8 +653,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "12px",
     fontSize: "1rem",
     borderRadius: "6px",
-    border: "1px solid rgba(255, 255, 255, 0.3)",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    border: "1px solid rgba(255, 255, 255, 0.4)",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     color: "#fff",
     outline: "none",
   },
