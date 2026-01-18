@@ -397,7 +397,23 @@ const generatePDF = () => {
   return (
     <div>
       <Navbar />
-
+      <style>{`
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+          border-color: #4F46E5;
+          box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+          outline: none;
+        }
+        input[type="text"]:hover:not(:disabled):not([readonly]),
+        input[type="date"]:hover:not(:disabled),
+        select:hover:not(:disabled) {
+          border-color: #9ca3af;
+        }
+        select:hover:not(:disabled) {
+          background-color: #f9fafb;
+        }
+      `}</style>
     <div style={styles.container}>
       <h1 style={styles.title}>Invoice</h1>
 
@@ -406,7 +422,7 @@ const generatePDF = () => {
         {/* Invoice Date & Period */}
         <div style={styles.flexRow}>
           <div style={styles.flexColumn}>
-            <label>Invoice Date:</label>
+            <label style={styles.label}>Invoice Date:</label>
               <input
                 type="date"
                 value={invoiceDate.toISOString().split('T')[0]}
@@ -415,11 +431,11 @@ const generatePDF = () => {
               />
           </div>
           <div style={styles.flexColumn}>
-            <label>Invoice Period:</label>
+            <label style={styles.label}>Invoice Period:</label>
             <select
               value={selectedPeriodKey}
               onChange={handlePeriodChange}
-              style={styles.input}
+              style={styles.dropdown}
             >
               {invoicePeriodOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -443,7 +459,7 @@ const generatePDF = () => {
         {/* Driver Selector above From & To Details */}
         <div style={styles.flexRow}>
           <div style={styles.flexColumn}>
-            <label>Select Driver:</label>
+            <label style={styles.label}>Select Driver:</label>
             <select value={selectedDriver} onChange={handleDriverChange} style={styles.dropdown}>
               <option value="__placeholder__" disabled>Select a Driver</option>
               {data.map((driver, index) => {
@@ -492,7 +508,7 @@ const generatePDF = () => {
                   key={key}
                   type="text"
                   value={toDetails[key as keyof typeof toDetails]}
-                  style={styles.input}
+                  style={styles.inputReadOnly}
                   readOnly
                 />
               ))}
@@ -565,7 +581,7 @@ const generatePDF = () => {
         </div>
 
         {/* Generate PDF Button */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', float: 'right' }}>
+        <div style={styles.buttonContainer}>
           <button
             onClick={generatePDF}
             style={{
@@ -610,12 +626,40 @@ const styles: { [key: string]: CSSProperties } = {
   },
   input: {
     display: "block",
-    margin: "10px 0",
-    padding: "10px 14px",
-    width: "80%",
-    border: "1px solid #ccc",
-    borderRadius: "6px",
+    margin: "8px 0 16px 0",
+    padding: "12px 16px",
+    width: "100%",
+    border: "1.5px solid #d1d5db",
+    borderRadius: "8px",
+    fontSize: "15px",
+    fontFamily: "Inter, system-ui, sans-serif",
+    backgroundColor: "#ffffff",
+    color: "#111827",
+    transition: "all 0.2s ease-in-out",
+    boxSizing: "border-box" as const,
+    outline: "none",
+  },
+  inputReadOnly: {
+    display: "block",
+    margin: "8px 0 16px 0",
+    padding: "12px 16px",
+    width: "100%",
+    border: "1.5px solid #e5e7eb",
+    borderRadius: "8px",
+    fontSize: "15px",
+    fontFamily: "Inter, system-ui, sans-serif",
+    backgroundColor: "#f9fafb",
+    color: "#6b7280",
+    cursor: "not-allowed",
+    boxSizing: "border-box" as const,
+  },
+  label: {
+    display: "block",
     fontSize: "14px",
+    fontWeight: 600,
+    color: "#374151",
+    marginBottom: "6px",
+    letterSpacing: "0.01em",
   },
   tableWrapper: {
     display: "flex",
@@ -701,8 +745,14 @@ const styles: { [key: string]: CSSProperties } = {
     border: "none",
     borderRadius: "5px",
     cursor: "pointer",
-    marginLeft: "8px",
     transition: "all 0.3s ease",
+  },
+  buttonContainer: {
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: "12px",
+    marginTop: "32px",
+    width: "100%",
   },
   title: {
     fontSize: "28px",
@@ -730,24 +780,30 @@ const styles: { [key: string]: CSSProperties } = {
     border: "1px solid #e5e7eb",
   },
   detailsContainer: {
-    marginTop: "10px",
-    borderTop: "1px solid #ccc",
-    paddingTop: "10px",
+    marginTop: "16px",
+    borderTop: "1px solid #e5e7eb",
+    paddingTop: "16px",
   },
   dropdown: {
-    padding: "10px 14px",
+    padding: "12px 40px 12px 16px",
     fontSize: "15px",
-    margin: "10px 0 0 0",
-    borderRadius: "6px",
-    border: "1px solid #d1d5db",
+    fontFamily: "Inter, system-ui, sans-serif",
+    margin: "8px 0 16px 0",
+    borderRadius: "8px",
+    border: "1.5px solid #d1d5db",
     backgroundColor: "#ffffff",
+    color: "#111827",
     width: "100%",
-    maxWidth: "500px",
+    maxWidth: "100%",
     appearance: "none",
-    backgroundImage: "url('data:image/svg+xml;utf8,<svg fill=\"%23666\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
+    backgroundImage: "url('data:image/svg+xml;utf8,<svg fill=\"%236b7280\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
     backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 10px center",
-    backgroundSize: "16px 16px",
+    backgroundPosition: "right 12px center",
+    backgroundSize: "18px 18px",
+    cursor: "pointer",
+    transition: "all 0.2s ease-in-out",
+    boxSizing: "border-box" as const,
+    outline: "none",
   },
   timesheetsSection: {
     marginBottom: "25px",

@@ -42,6 +42,58 @@ const FileDriverApplication: React.FC = () => {
     }));
   };
 
+  // Format Canadian SIN number (XXX XXX XXX)
+  const formatSIN = (value: string): string => {
+    // Remove all non-numeric characters
+    const numbers = value.replace(/\D/g, "");
+    
+    // Limit to 9 digits
+    const limited = numbers.slice(0, 9);
+    
+    // Format as XXX XXX XXX
+    if (limited.length <= 3) {
+      return limited;
+    } else if (limited.length <= 6) {
+      return `${limited.slice(0, 3)} ${limited.slice(3)}`;
+    } else {
+      return `${limited.slice(0, 3)} ${limited.slice(3, 6)} ${limited.slice(6)}`;
+    }
+  };
+
+  const handleSINChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedValue = formatSIN(e.target.value);
+    setFormData((prev) => ({
+      ...prev,
+      sinNo: formattedValue,
+    }));
+  };
+
+  // Format Canadian phone number ((XXX) XXX-XXXX)
+  const formatPhone = (value: string): string => {
+    // Remove all non-numeric characters
+    const numbers = value.replace(/\D/g, "");
+    
+    // Limit to 10 digits
+    const limited = numbers.slice(0, 10);
+    
+    // Format as (XXX) XXX-XXXX
+    if (limited.length <= 3) {
+      return limited.length > 0 ? `(${limited}` : limited;
+    } else if (limited.length <= 6) {
+      return `(${limited.slice(0, 3)}) ${limited.slice(3)}`;
+    } else {
+      return `(${limited.slice(0, 3)}) ${limited.slice(3, 6)}-${limited.slice(6)}`;
+    }
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedValue = formatPhone(e.target.value);
+    setFormData((prev) => ({
+      ...prev,
+      phone: formattedValue,
+    }));
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fileType: string) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -132,7 +184,14 @@ const FileDriverApplication: React.FC = () => {
       // Add form fields
       Object.entries(formData).forEach(([key, value]) => {
         if (value) {
-          formDataToSend.append(key, value);
+          // Strip formatting from SIN number and phone number before sending (remove spaces, parentheses, dashes)
+          let valueToSend = value;
+          if (key === "sinNo") {
+            valueToSend = value.replace(/\s/g, "");
+          } else if (key === "phone") {
+            valueToSend = value.replace(/\D/g, ""); // Remove all non-numeric characters
+          }
+          formDataToSend.append(key, valueToSend);
         }
       });
 
@@ -265,11 +324,12 @@ const FileDriverApplication: React.FC = () => {
                       type="tel"
                       name="phone"
                       value={formData.phone}
-                      onChange={handleInputChange}
+                      onChange={handlePhoneChange}
                       required
                       style={styles.input}
                       className="driver-application-input"
-                      placeholder="Enter your phone number"
+                      placeholder="(XXX) XXX-XXXX"
+                      maxLength={14}
                     />
                   </div>
                   <div style={styles.formGroup}>
@@ -293,11 +353,12 @@ const FileDriverApplication: React.FC = () => {
                       type="text"
                       name="sinNo"
                       value={formData.sinNo}
-                      onChange={handleInputChange}
+                      onChange={handleSINChange}
                       required
                       style={styles.input}
                       className="driver-application-input"
-                      placeholder="Enter your SIN number"
+                      placeholder="XXX XXX XXX"
+                      maxLength={11}
                     />
                   </div>
                 </div>
@@ -635,6 +696,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: "flex",
     gap: "15px",
     marginBottom: "15px",
+    marginTop: "15px",
     flexWrap: "wrap" as const,
   },
   formGroup: {
@@ -692,6 +754,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: "1rem",
     fontWeight: 600,
     transition: "background 0.3s ease",
+    marginBottom: "15px",
   },
   buttonContainer: {
     display: "flex",
