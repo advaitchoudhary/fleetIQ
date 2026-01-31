@@ -35,7 +35,12 @@ const driverSchema = new mongoose.Schema(
         workStatus: { type: String, required: true },
         sinNo: { type: String, required: true },
         plainPassword: { type: String },
-        hoursThisWeek: { type: Number, default: 0 } // New field to track hours this week
+        hoursThisWeek: { type: Number, default: 0 }, // New field to track hours this week
+        requiredOnboardingForms: {
+            sop: { type: String, required: false }, // File path for SOP form
+            tobocaoSop: { type: String, required: false }, // File path for TOBOCAO SOP form
+            phonePolicy: { type: String, required: false } // File path for PHONE POLICY form
+        }
     },
     { timestamps: true } // Adds createdAt and updatedAt timestamps
 );

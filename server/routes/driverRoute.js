@@ -9,7 +9,9 @@ const {
   checkUsername,
   changePassword,
   driverLogin,
-  updateAllDriversHours
+  updateAllDriversHours,
+  uploadRequiredForm,
+  uploadOnboardingForm
 } = require("../controller/driverController.js");
 
 const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
@@ -30,5 +32,12 @@ route.post(
 );
 route.post("/login", driverLogin);
 route.post("/update-hours", protect, authorizeRoles("admin"), updateAllDriversHours);
+route.post(
+  "/upload-required-form",
+  protect,
+  authorizeRoles("driver", "admin"),
+  uploadOnboardingForm.single("file"),
+  uploadRequiredForm
+);
 
 module.exports = route;

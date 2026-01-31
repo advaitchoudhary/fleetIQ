@@ -165,6 +165,76 @@ const Profile: React.FC = () => {
                 <p>No Direct Deposit details available.</p>
               )}
             </div>
+            {/* Required Documents Section */}
+            <div style={styles.statusSection}>
+              <h3 style={styles.sectionTitle}>📄 Required Documents</h3>
+              <div style={styles.documentsChecklist}>
+                <div style={styles.checklistItem}>
+                  <span style={{
+                    ...styles.checkIcon,
+                    color: driver.requiredOnboardingForms?.sop ? "#10b981" : "#ef4444"
+                  }}>
+                    {driver.requiredOnboardingForms?.sop ? "✓" : "✗"}
+                  </span>
+                  <span style={styles.checklistLabel}>SOP</span>
+                  {driver.requiredOnboardingForms?.sop && (
+                    <a
+                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.sop}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.viewDocumentLink}
+                    >
+                      View
+                    </a>
+                  )}
+                </div>
+                <div style={styles.checklistItem}>
+                  <span style={{
+                    ...styles.checkIcon,
+                    color: driver.requiredOnboardingForms?.tobocaoSop ? "#10b981" : "#ef4444"
+                  }}>
+                    {driver.requiredOnboardingForms?.tobocaoSop ? "✓" : "✗"}
+                  </span>
+                  <span style={styles.checklistLabel}>TOBOCAO SOP</span>
+                  {driver.requiredOnboardingForms?.tobocaoSop && (
+                    <a
+                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.tobocaoSop}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.viewDocumentLink}
+                    >
+                      View
+                    </a>
+                  )}
+                </div>
+                <div style={styles.checklistItem}>
+                  <span style={{
+                    ...styles.checkIcon,
+                    color: driver.requiredOnboardingForms?.phonePolicy ? "#10b981" : "#ef4444"
+                  }}>
+                    {driver.requiredOnboardingForms?.phonePolicy ? "✓" : "✗"}
+                  </span>
+                  <span style={styles.checklistLabel}>PHONE POLICY</span>
+                  {driver.requiredOnboardingForms?.phonePolicy && (
+                    <a
+                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.phonePolicy}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.viewDocumentLink}
+                    >
+                      View
+                    </a>
+                  )}
+                </div>
+              </div>
+              {(!driver.requiredOnboardingForms?.sop || 
+                !driver.requiredOnboardingForms?.tobocaoSop || 
+                !driver.requiredOnboardingForms?.phonePolicy) && (
+                <p style={styles.missingDocsWarning}>
+                  ⚠️ Some required documents are missing
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -501,6 +571,53 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: "left",
     backgroundColor: "#ffffff",
     wordBreak: "break-word",
+  },
+  documentsChecklist: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    marginTop: "15px",
+  },
+  checklistItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    padding: "10px",
+    backgroundColor: "#ffffff",
+    borderRadius: "6px",
+    border: "1px solid #e5e7eb",
+  },
+  checkIcon: {
+    fontSize: "20px",
+    fontWeight: "bold",
+    minWidth: "24px",
+    textAlign: "center",
+  },
+  checklistLabel: {
+    flex: 1,
+    fontSize: "15px",
+    fontWeight: 500,
+    color: "#1f2937",
+  },
+  viewDocumentLink: {
+    color: "#4F46E5",
+    textDecoration: "none",
+    fontSize: "14px",
+    fontWeight: 500,
+    padding: "4px 12px",
+    borderRadius: "4px",
+    backgroundColor: "#eef2ff",
+    transition: "background-color 0.2s",
+  },
+  missingDocsWarning: {
+    marginTop: "15px",
+    padding: "10px",
+    backgroundColor: "#fef3c7",
+    borderRadius: "6px",
+    color: "#92400e",
+    fontSize: "14px",
+    fontWeight: 500,
+    textAlign: "center",
   },
 };
 

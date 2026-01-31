@@ -3,6 +3,9 @@ const bcrypt = require("bcryptjs");
 const Driver = require("../model/driverModel.js");
 const Timesheet = require("../model/timesheetModel.js");
 const asyncHandler = require("express-async-handler");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 
 // Utility function to calculate hours from start and end times
 const calculateHours = (startTime, endTime) => {
@@ -282,6 +285,115 @@ const checkUsername = asyncHandler(async (req, res) => {
   res.json({ exists: !!userExists });
 });
 
+// Configure multer for required onboarding forms
+const ONBOARDING_FORMS_DIR = "uploads/required-onboarding-forms/";
+if (!fs.existsSync(ONBOARDING_FORMS_DIR)) {
+  fs.mkdirSync(ONBOARDING_FORMS_DIR, { recursive: true });
+}
+
+const onboardingFormsStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, ONBOARDING_FORMS_DIR);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const onboardingFormsFileFilter = (req, file, cb) => {
+  const allowedTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only JPEG, PNG, PDF, and DOC files are allowed"), false);
+  }
+};
+
+const uploadOnboardingForm = multer({
+  storage: onboardingFormsStorage,
+  fileFilter: onboardingFormsFileFilter,
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB max per file
+});
+
+// Upload or update required onboarding form
+const uploadRequiredForm = asyncHandler(async (req, res) => {
+  try {
+    const { driverId, formType } = req.body; // formType: 'sop', 'tobocaoSop', 'phonePolicy'
+    
+    if (!driverId || !formType) {
+      return res.status(400).json({ message: "Driver ID and form type are required" });
+    }
+
+    const allowedFormTypes = ['sop', 'tobocaoSop', 'phonePolicy'];
+    if (!allowedFormTypes.includes(formType)) {
+      return res.status(400).json({ message: "Invalid form type" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "File is required" });
+    }
+
+    const driver = await Driver.findById(driverId);
+    if (!driver) {
+      // Delete uploaded file if driver not found
+      if (req.file.path) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(404).json({ message: "Driver not found" });
+    }
+
+    // Authorization check: drivers can only update their own forms, admins can update any
+    if (req.user && req.user.role === 'driver') {
+      // For drivers, check if they're updating their own form
+      // We need to get the driver's email from the token's id
+      const driverFromToken = await Driver.findById(req.user.id);
+      if (!driverFromToken || driverFromToken.email !== driver.email) {
+        // Delete uploaded file if unauthorized
+        if (req.file.path) {
+          fs.unlinkSync(req.file.path);
+        }
+        return res.status(403).json({ message: "You can only update your own forms" });
+      }
+    }
+
+    // Delete old file if it exists
+    const oldFilePath = driver.requiredOnboardingForms?.[formType];
+    if (oldFilePath && fs.existsSync(oldFilePath)) {
+      fs.unlinkSync(oldFilePath);
+    }
+
+    // Update driver with new file path
+    if (!driver.requiredOnboardingForms) {
+      driver.requiredOnboardingForms = {};
+    }
+    driver.requiredOnboardingForms[formType] = req.file.path;
+    await driver.save();
+
+    const updatedDriver = await Driver.findById(driverId).lean();
+    const { password, plainPassword, ...driverWithoutPassword } = updatedDriver;
+    
+    res.status(200).json({
+      message: "Form uploaded successfully",
+      driver: driverWithoutPassword
+    });
+  } catch (error) {
+    // Delete uploaded file on error
+    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    console.error("Error uploading required form:", error);
+    res.status(500).json({ message: "Failed to upload form", error: error.message });
+  }
+});
+
 
 module.exports = {
   create,
@@ -293,5 +405,7 @@ module.exports = {
   changePassword,
   driverLogin,
   updateDriverHours,
-  updateAllDriversHours
+  updateAllDriversHours,
+  uploadRequiredForm,
+  uploadOnboardingForm
 };
