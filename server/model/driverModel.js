@@ -29,7 +29,10 @@ const driverSchema = new mongoose.Schema(
             enum: ["Active", "Inactive", "Suspended"],
             default: "Active"
         },
-        trainings: [{ type: String, required: false }],
+        trainings: [{
+            name: { type: String, required: true }, // Training name
+            proofDocument: { type: String, required: false } // File path for proof document
+        }],
         username: { type: String, unique: true, required: true },
         password: { type: String, required: true },
         workStatus: { type: String, required: true },

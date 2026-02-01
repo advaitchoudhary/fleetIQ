@@ -142,6 +142,19 @@ const getAllDrivers = asyncHandler(async (req, res) => {
     // Exclude password and plainPassword from response
     const { password, plainPassword, ...driverWithoutPassword } = driver;
     
+    // Filter out unwanted training "Adipisci laborum laboriosam"
+    if (driverWithoutPassword.trainings && Array.isArray(driverWithoutPassword.trainings)) {
+      driverWithoutPassword.trainings = driverWithoutPassword.trainings.filter((t) => {
+        if (typeof t === 'string') {
+          return t !== "Adipisci laborum laboriosam";
+        }
+        if (typeof t === 'object' && t !== null) {
+          return t.name !== "Adipisci laborum laboriosam";
+        }
+        return true;
+      });
+    }
+    
     return {
       ...driverWithoutPassword,
       hoursThisWeek: driver.hoursThisWeek || 0 // Include the calculated hours
@@ -163,6 +176,19 @@ const getDriverById = asyncHandler(async (req, res) => {
   }
   // Exclude password and plainPassword from response
   const { password, plainPassword, ...driverWithoutPassword } = driver;
+  
+  // Filter out unwanted training "Adipisci laborum laboriosam"
+  if (driverWithoutPassword.trainings && Array.isArray(driverWithoutPassword.trainings)) {
+    driverWithoutPassword.trainings = driverWithoutPassword.trainings.filter((t) => {
+      if (typeof t === 'string') {
+        return t !== "Adipisci laborum laboriosam";
+      }
+      if (typeof t === 'object' && t !== null) {
+        return t.name !== "Adipisci laborum laboriosam";
+      }
+      return true;
+    });
+  }
   res.json(driverWithoutPassword);
 });
 
@@ -291,6 +317,12 @@ if (!fs.existsSync(ONBOARDING_FORMS_DIR)) {
   fs.mkdirSync(ONBOARDING_FORMS_DIR, { recursive: true });
 }
 
+// Configure multer for training proof documents
+const TRAINING_PROOFS_DIR = "uploads/training-proofs/";
+if (!fs.existsSync(TRAINING_PROOFS_DIR)) {
+  fs.mkdirSync(TRAINING_PROOFS_DIR, { recursive: true });
+}
+
 const onboardingFormsStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, ONBOARDING_FORMS_DIR);
@@ -320,6 +352,38 @@ const onboardingFormsFileFilter = (req, file, cb) => {
 const uploadOnboardingForm = multer({
   storage: onboardingFormsStorage,
   fileFilter: onboardingFormsFileFilter,
+  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB max per file
+});
+
+const trainingProofsStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, TRAINING_PROOFS_DIR);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const trainingProofsFileFilter = (req, file, cb) => {
+  const allowedTypes = [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "application/pdf",
+    "application/msword",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  ];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only JPEG, PNG, PDF, and DOC files are allowed"), false);
+  }
+};
+
+const uploadTrainingProof = multer({
+  storage: trainingProofsStorage,
+  fileFilter: trainingProofsFileFilter,
   limits: { fileSize: 15 * 1024 * 1024 }, // 15MB max per file
 });
 
@@ -394,6 +458,116 @@ const uploadRequiredForm = asyncHandler(async (req, res) => {
   }
 });
 
+// Upload or update training proof document
+const uploadTrainingProofDocument = asyncHandler(async (req, res) => {
+  try {
+    const { driverId, trainingName } = req.body;
+    
+    if (!driverId || !trainingName) {
+      return res.status(400).json({ message: "Driver ID and training name are required" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ message: "File is required" });
+    }
+
+    // Get driver as plain object to handle migration
+    const driver = await Driver.findById(driverId).lean();
+    if (!driver) {
+      // Delete uploaded file if driver not found
+      if (req.file.path) {
+        fs.unlinkSync(req.file.path);
+      }
+      return res.status(404).json({ message: "Driver not found" });
+    }
+
+    // Authorization check: drivers can only update their own trainings, admins can update any
+    if (req.user && req.user.role === 'driver') {
+      const driverFromToken = await Driver.findById(req.user.id).lean();
+      if (!driverFromToken || driverFromToken.email !== driver.email) {
+        // Delete uploaded file if unauthorized
+        if (req.file.path) {
+          fs.unlinkSync(req.file.path);
+        }
+        return res.status(403).json({ message: "You can only update your own trainings" });
+      }
+    }
+
+    // Migrate old string format to new object format if needed
+    let migratedTrainings = [];
+    if (driver.trainings && Array.isArray(driver.trainings) && driver.trainings.length > 0) {
+      migratedTrainings = driver.trainings.map((t) => {
+        // If it's a string (old format), convert to object
+        if (typeof t === 'string') {
+          return {
+            name: t,
+            proofDocument: null
+          };
+        }
+        // If it's an object, ensure it has the right structure
+        if (typeof t === 'object' && t !== null) {
+          return {
+            name: t.name || String(t), // Fallback to string conversion if name is missing
+            proofDocument: t.proofDocument || null
+          };
+        }
+        return null;
+      }).filter(t => {
+        // Remove any null entries, entries without name, and the unwanted training
+        return t !== null && t.name && t.name !== "Adipisci laborum laboriosam";
+      });
+    }
+
+    // Check if training already exists
+    const existingTrainingIndex = migratedTrainings.findIndex(
+      (t) => t && t.name === trainingName
+    );
+
+    // Delete old file if it exists
+    if (existingTrainingIndex !== -1) {
+      const existingTraining = migratedTrainings[existingTrainingIndex];
+      if (existingTraining.proofDocument) {
+        const oldFilePath = existingTraining.proofDocument;
+        if (oldFilePath && fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
+      }
+      // Update existing training
+      migratedTrainings[existingTrainingIndex] = {
+        name: trainingName,
+        proofDocument: req.file.path
+      };
+    } else {
+      // Add new training
+      migratedTrainings.push({
+        name: trainingName,
+        proofDocument: req.file.path
+      });
+    }
+
+    // Update driver with migrated and updated trainings
+    await Driver.findByIdAndUpdate(
+      driverId,
+      { trainings: migratedTrainings },
+      { new: true, runValidators: true }
+    );
+
+    const updatedDriver = await Driver.findById(driverId).lean();
+    const { password, plainPassword, ...driverWithoutPassword } = updatedDriver;
+    
+    res.status(200).json({
+      message: "Training proof uploaded successfully",
+      driver: driverWithoutPassword
+    });
+  } catch (error) {
+    // Delete uploaded file on error
+    if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    console.error("Error uploading training proof:", error);
+    res.status(500).json({ message: "Failed to upload training proof", error: error.message });
+  }
+});
 
 module.exports = {
   create,
@@ -407,5 +581,7 @@ module.exports = {
   updateDriverHours,
   updateAllDriversHours,
   uploadRequiredForm,
-  uploadOnboardingForm
+  uploadOnboardingForm,
+  uploadTrainingProofDocument,
+  uploadTrainingProof
 };

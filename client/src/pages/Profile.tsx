@@ -9,7 +9,6 @@ const Profile: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const driver = location.state?.driver;
-  const [showTrainingsModal, setShowTrainingsModal] = useState(false);
   const [timesheets, setTimesheets] = useState<any[]>([]);
 
   useEffect(() => {
@@ -125,32 +124,6 @@ const Profile: React.FC = () => {
                 <strong>Work Status:</strong> {driver.workStatus || "N/A"}
               </p>
             </div>
-          </div>
-          <div style={styles.rightColumn}>
-            {/* License Details */}
-            <div style={styles.licenseSection}>
-              <h3 style={styles.sectionTitle}>🚘 License Details</h3>
-              <p>
-                <strong>Licence No.:</strong> {driver.licence || "N/A"}
-              </p>
-              <p>
-                <strong>Licence Expiry Date:</strong>{" "}
-                {driver.licence_expiry_date || "N/A"}
-              </p>
-            </div>
-            {/* Trainings Section */}
-            <div style={styles.trainingsSection}>
-              <h3 style={styles.sectionTitle}>📚 Trainings</h3>
-              <p>
-                {driver.trainings ? driver.trainings : "No Trainings Available"}
-              </p>
-              <button
-                style={styles.seeAllButton}
-                onClick={() => setShowTrainingsModal(true)}
-              >
-                See All
-              </button>
-            </div>
             {/* Direct Deposit Details */}
             <div style={styles.statusSection}>
               <h3 style={styles.sectionTitle}>💳 Direct Deposit Details</h3>
@@ -234,6 +207,109 @@ const Profile: React.FC = () => {
                   ⚠️ Some required documents are missing
                 </p>
               )}
+            </div>
+          </div>
+          <div style={styles.rightColumn}>
+            {/* License Details */}
+            <div style={styles.licenseSection}>
+              <h3 style={styles.sectionTitle}>🚘 License Details</h3>
+              <p>
+                <strong>Licence No.:</strong> {driver.licence || "N/A"}
+              </p>
+              <p>
+                <strong>Licence Expiry Date:</strong>{" "}
+                {driver.licence_expiry_date || "N/A"}
+              </p>
+            </div>
+            {/* Trainings Section */}
+            <div style={styles.trainingsSection}>
+              <h3 style={styles.sectionTitle}>📚 Trainings</h3>
+              <div style={styles.trainingsTracker}>
+                {(() => {
+                  // List of all available trainings
+                  const availableTrainings = [
+                    "Defensive Driving - Tractor-Trailer",
+                    "Distracted Driving",
+                    "Hours of Service: Canadian Regulations",
+                    "Transportation of Dangerous Goods",
+                    "Vehicle Inspections",
+                    "WHMIS",
+                    "Winter Driving",
+                    "Fall Protection for Drivers",
+                    "Pallet Trucks (Walkies and Riders)",
+                    "Practical Cargo Securement for Drivers (Cargo Van)",
+                    "Food Safety for Drivers",
+                    "Lift Truck Operator Skills"
+                  ];
+
+                  // Get completed trainings (with proof documents)
+                  const completedTrainings = driver.trainings?.filter((t: any) => {
+                    const name = typeof t === 'string' ? t : t?.name;
+                    return name && name !== "Adipisci laborum laboriosam" && (typeof t === 'object' ? t.proofDocument : false);
+                  }) || [];
+
+                  // Get pending trainings (in available list but not completed)
+                  const completedTrainingNames = completedTrainings.map((t: any) => typeof t === 'string' ? t : t.name);
+                  const pendingTrainings = availableTrainings.filter(name => !completedTrainingNames.includes(name));
+
+                  return (
+                    <div>
+                      {/* Completed Trainings */}
+                      {completedTrainings.length > 0 && (
+                        <div>
+                          <h4 style={styles.trainingsSubtitle}>Completed Trainings</h4>
+                          <div style={styles.trainingsList}>
+                            {completedTrainings.map((training: any, index: number) => {
+                              const trainingName = typeof training === 'string' ? training : training.name;
+                              return (
+                                <div key={index} style={styles.trainingTrackerItem}>
+                                  <div style={styles.trainingTrackerLeft}>
+                                    <span style={styles.trainingCheckIcon}>✓</span>
+                                    <span style={styles.trainingTrackerName}>{trainingName}</span>
+                                  </div>
+                                  {typeof training === 'object' && training.proofDocument && (
+                                    <a
+                                      href={`${API_BASE_URL.replace("/api", "")}/${training.proofDocument}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      style={styles.viewTrainingProofLink}
+                                    >
+                                      View Proof
+                                    </a>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Pending Trainings */}
+                      {pendingTrainings.length > 0 && (
+                        <div style={{ marginTop: completedTrainings.length > 0 ? "20px" : "0" }}>
+                          <h4 style={styles.trainingsSubtitle}>Pending Trainings</h4>
+                          <div style={styles.trainingsList}>
+                            {pendingTrainings.map((trainingName, index) => (
+                              <div key={index} style={styles.trainingTrackerItem}>
+                                <div style={styles.trainingTrackerLeft}>
+                                  <span style={styles.trainingPendingIcon}>○</span>
+                                  <span style={styles.trainingTrackerNamePending}>{trainingName}</span>
+                                </div>
+                                <span style={styles.pendingLabel}>Pending</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* No Trainings Message */}
+                      {completedTrainings.length === 0 && pendingTrainings.length === 0 && (
+                        <p style={styles.noTrainingsText}>No trainings available</p>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
             </div>
           </div>
         </div>
@@ -358,23 +434,6 @@ const Profile: React.FC = () => {
         </button>
       </div>
 
-      {/* Trainings Modal */}
-      {showTrainingsModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <h2>All Trainings</h2>
-            <ul style={styles.modalList}>
-              <li>{driver.trainings || "No Trainings Available"}</li>
-            </ul>
-            <button
-              style={styles.modalCloseButton}
-              onClick={() => setShowTrainingsModal(false)}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -618,6 +677,85 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: "14px",
     fontWeight: 500,
     textAlign: "center",
+  },
+  trainingsTracker: {
+    marginTop: "15px",
+  },
+  trainingsList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  },
+  trainingTrackerItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "12px",
+    backgroundColor: "#ffffff",
+    borderRadius: "6px",
+    border: "1px solid #e5e7eb",
+  },
+  trainingTrackerLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    flex: 1,
+  },
+  trainingCheckIcon: {
+    fontSize: "20px",
+    color: "#10b981",
+    fontWeight: "bold",
+    minWidth: "24px",
+    textAlign: "center",
+  },
+  trainingPendingIcon: {
+    fontSize: "20px",
+    color: "#6b7280",
+    fontWeight: "bold",
+    minWidth: "24px",
+    textAlign: "center",
+  },
+  trainingTrackerName: {
+    fontSize: "15px",
+    fontWeight: 500,
+    color: "#1f2937",
+  },
+  trainingTrackerNamePending: {
+    fontSize: "15px",
+    fontWeight: 500,
+    color: "#6b7280",
+  },
+  trainingsSubtitle: {
+    fontSize: "16px",
+    fontWeight: 600,
+    color: "#374151",
+    marginBottom: "12px",
+    marginTop: "0",
+  },
+  pendingLabel: {
+    fontSize: "13px",
+    fontWeight: 500,
+    color: "#f59e0b",
+    padding: "4px 12px",
+    borderRadius: "4px",
+    backgroundColor: "#fef3c7",
+  },
+  viewTrainingProofLink: {
+    color: "#4F46E5",
+    textDecoration: "none",
+    fontSize: "14px",
+    fontWeight: 500,
+    padding: "4px 12px",
+    borderRadius: "4px",
+    backgroundColor: "#eef2ff",
+    transition: "background-color 0.2s",
+  },
+  noTrainingsText: {
+    color: "#6b7280",
+    fontSize: "14px",
+    fontStyle: "italic",
+    textAlign: "center",
+    padding: "20px",
   },
 };
 

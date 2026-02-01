@@ -17,6 +17,23 @@ const MyInfo: React.FC = () => {
     institutionNumber: "",
   });
   const [uploadingForm, setUploadingForm] = useState<string | null>(null);
+  const [uploadingTraining, setUploadingTraining] = useState<string | null>(null);
+
+  // List of available trainings
+  const availableTrainings = [
+    "Defensive Driving - Tractor-Trailer",
+    "Distracted Driving",
+    "Hours of Service: Canadian Regulations",
+    "Transportation of Dangerous Goods",
+    "Vehicle Inspections",
+    "WHMIS",
+    "Winter Driving",
+    "Fall Protection for Drivers",
+    "Pallet Trucks (Walkies and Riders)",
+    "Practical Cargo Securement for Drivers (Cargo Van)",
+    "Food Safety for Drivers",
+    "Lift Truck Operator Skills"
+  ];
 
   useEffect(() => {
     if (driver?.email) {
@@ -616,6 +633,145 @@ const MyInfo: React.FC = () => {
             </div>
           </div>
 
+          {/* Trainings Section */}
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>📚 Trainings</h3>
+            <p style={styles.sectionDescription}>
+              Upload proof documents for trainings you have passed. You can update them at any time.
+            </p>
+            <div style={styles.trainingsGrid}>
+              {availableTrainings.map((trainingName) => {
+                const training = driver.trainings?.find((t: any) => t.name === trainingName);
+                const hasProof = training && training.proofDocument;
+                
+                return (
+                  <div key={trainingName} style={styles.trainingCard}>
+                    <h4 style={styles.trainingTitle}>{trainingName}</h4>
+                    {hasProof ? (
+                      <div style={styles.trainingUploaded}>
+                        <p style={styles.trainingStatus}>✓ Passed</p>
+                        <a
+                          href={`${API_BASE_URL.replace("/api", "")}/${training.proofDocument}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={styles.viewLink}
+                        >
+                          View Proof
+                        </a>
+                        <label 
+                          style={styles.uploadButton}
+                          onMouseEnter={(e) => {
+                            if (uploadingTraining !== trainingName) {
+                              e.currentTarget.style.backgroundColor = "#4338ca";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (uploadingTraining !== trainingName) {
+                              e.currentTarget.style.backgroundColor = "#4F46E5";
+                            }
+                          }}
+                        >
+                          {uploadingTraining === trainingName ? 'Uploading...' : 'Update'}
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                            style={{ display: 'none' }}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              setUploadingTraining(trainingName);
+                              const formData = new FormData();
+                              formData.append('file', file);
+                              formData.append('driverId', driver._id);
+                              formData.append('trainingName', trainingName);
+                              try {
+                                const token = localStorage.getItem("token");
+                                const res = await axios.post(
+                                  `${API_BASE_URL}/drivers/upload-training-proof`,
+                                  formData,
+                                  {
+                                    headers: {
+                                      Authorization: `Bearer ${token}`,
+                                      'Content-Type': 'multipart/form-data',
+                                    },
+                                  }
+                                );
+                                setDriver(res.data.driver);
+                                setFormData(res.data.driver);
+                                alert(`${trainingName} proof updated successfully!`);
+                              } catch (err: any) {
+                                console.error('Error uploading training proof:', err);
+                                alert(err.response?.data?.message || `Failed to upload ${trainingName} proof`);
+                              } finally {
+                                setUploadingTraining(null);
+                              }
+                            }}
+                            disabled={uploadingTraining === trainingName}
+                          />
+                        </label>
+                      </div>
+                    ) : (
+                      <div style={styles.trainingNotUploaded}>
+                        <p style={styles.trainingStatusPending}>Not Passed</p>
+                        <label 
+                          style={styles.uploadButton}
+                          onMouseEnter={(e) => {
+                            if (uploadingTraining !== trainingName) {
+                              e.currentTarget.style.backgroundColor = "#4338ca";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (uploadingTraining !== trainingName) {
+                              e.currentTarget.style.backgroundColor = "#4F46E5";
+                            }
+                          }}
+                        >
+                          {uploadingTraining === trainingName ? 'Uploading...' : 'Upload Proof'}
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                            style={{ display: 'none' }}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              setUploadingTraining(trainingName);
+                              const formData = new FormData();
+                              formData.append('file', file);
+                              formData.append('driverId', driver._id);
+                              formData.append('trainingName', trainingName);
+                              try {
+                                const token = localStorage.getItem("token");
+                                const res = await axios.post(
+                                  `${API_BASE_URL}/drivers/upload-training-proof`,
+                                  formData,
+                                  {
+                                    headers: {
+                                      Authorization: `Bearer ${token}`,
+                                      'Content-Type': 'multipart/form-data',
+                                    },
+                                  }
+                                );
+                                setDriver(res.data.driver);
+                                setFormData(res.data.driver);
+                                alert(`${trainingName} proof uploaded successfully!`);
+                              } catch (err: any) {
+                                console.error('Error uploading training proof:', err);
+                                alert(err.response?.data?.message || `Failed to upload ${trainingName} proof`);
+                              } finally {
+                                setUploadingTraining(null);
+                              }
+                            }}
+                            disabled={uploadingTraining === trainingName}
+                          />
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {showBankForm && (
             <div style={styles.section}>
               <h3 style={styles.sectionTitle}>Add Direct Deposit Details</h3>
@@ -911,6 +1067,48 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: "#92400e",
     fontSize: "15px",
     margin: 0,
+  },
+  trainingsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+    gap: "20px",
+    marginTop: "20px",
+  },
+  trainingCard: {
+    backgroundColor: "#f9fafb",
+    padding: "20px",
+    borderRadius: "12px",
+    border: "1px solid #e5e7eb",
+    textAlign: "center",
+  },
+  trainingTitle: {
+    fontSize: "15px",
+    fontWeight: 600,
+    marginBottom: "15px",
+    color: "#1f2937",
+    lineHeight: "1.4",
+  },
+  trainingUploaded: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+    alignItems: "center",
+  },
+  trainingNotUploaded: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+    alignItems: "center",
+  },
+  trainingStatus: {
+    color: "#10b981",
+    fontWeight: 600,
+    fontSize: "14px",
+  },
+  trainingStatusPending: {
+    color: "#6b7280",
+    fontWeight: 500,
+    fontSize: "14px",
   },
 };
 

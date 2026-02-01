@@ -14,6 +14,21 @@ const protect = (req, res, next) => {
     next();
   } catch (error) {
     console.error("JWT verification failed in protect:", error);
+    
+    // Provide specific error messages for different JWT errors
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ 
+        message: "Token expired. Please log in again.",
+        error: "TokenExpiredError",
+        expiredAt: error.expiredAt
+      });
+    } else if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ 
+        message: "Invalid token. Please log in again.",
+        error: "JsonWebTokenError"
+      });
+    }
+    
     res.status(401).json({ message: "Invalid token" });
   }
 };
