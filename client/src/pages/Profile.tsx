@@ -145,14 +145,14 @@ const Profile: React.FC = () => {
                 <div style={styles.checklistItem}>
                   <span style={{
                     ...styles.checkIcon,
-                    color: driver.requiredOnboardingForms?.sop ? "#10b981" : "#ef4444"
+                    color: driver.requiredOnboardingForms?.agencySignOff ? "#10b981" : "#ef4444"
                   }}>
-                    {driver.requiredOnboardingForms?.sop ? "✓" : "✗"}
+                    {driver.requiredOnboardingForms?.agencySignOff ? "✓" : "✗"}
                   </span>
-                  <span style={styles.checklistLabel}>SOP</span>
-                  {driver.requiredOnboardingForms?.sop && (
+                  <span style={styles.checklistLabel}>Agency Sign Off</span>
+                  {driver.requiredOnboardingForms?.agencySignOff && (
                     <a
-                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.sop}`}
+                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.agencySignOff}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={styles.viewDocumentLink}
@@ -164,14 +164,14 @@ const Profile: React.FC = () => {
                 <div style={styles.checklistItem}>
                   <span style={{
                     ...styles.checkIcon,
-                    color: driver.requiredOnboardingForms?.tobocaoSop ? "#10b981" : "#ef4444"
+                    color: driver.requiredOnboardingForms?.driverDeliveryExpectations ? "#10b981" : "#ef4444"
                   }}>
-                    {driver.requiredOnboardingForms?.tobocaoSop ? "✓" : "✗"}
+                    {driver.requiredOnboardingForms?.driverDeliveryExpectations ? "✓" : "✗"}
                   </span>
-                  <span style={styles.checklistLabel}>TOBOCAO SOP</span>
-                  {driver.requiredOnboardingForms?.tobocaoSop && (
+                  <span style={styles.checklistLabel}>Driver Delivery Expectations</span>
+                  {driver.requiredOnboardingForms?.driverDeliveryExpectations && (
                     <a
-                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.tobocaoSop}`}
+                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.driverDeliveryExpectations}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={styles.viewDocumentLink}
@@ -183,14 +183,71 @@ const Profile: React.FC = () => {
                 <div style={styles.checklistItem}>
                   <span style={{
                     ...styles.checkIcon,
-                    color: driver.requiredOnboardingForms?.phonePolicy ? "#10b981" : "#ef4444"
+                    color: driver.requiredOnboardingForms?.cellPhonePolicy ? "#10b981" : "#ef4444"
                   }}>
-                    {driver.requiredOnboardingForms?.phonePolicy ? "✓" : "✗"}
+                    {driver.requiredOnboardingForms?.cellPhonePolicy ? "✓" : "✗"}
                   </span>
-                  <span style={styles.checklistLabel}>PHONE POLICY</span>
-                  {driver.requiredOnboardingForms?.phonePolicy && (
+                  <span style={styles.checklistLabel}>Cell Phone Policy</span>
+                  {driver.requiredOnboardingForms?.cellPhonePolicy && (
                     <a
-                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.phonePolicy}`}
+                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.cellPhonePolicy}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.viewDocumentLink}
+                    >
+                      View
+                    </a>
+                  )}
+                </div>
+                <div style={styles.checklistItem}>
+                  <span style={{
+                    ...styles.checkIcon,
+                    color: driver.requiredOnboardingForms?.storeSurvey1 ? "#10b981" : "#ef4444"
+                  }}>
+                    {driver.requiredOnboardingForms?.storeSurvey1 ? "✓" : "✗"}
+                  </span>
+                  <span style={styles.checklistLabel}>Store Survey 1</span>
+                  {driver.requiredOnboardingForms?.storeSurvey1 && (
+                    <a
+                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.storeSurvey1}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.viewDocumentLink}
+                    >
+                      View
+                    </a>
+                  )}
+                </div>
+                <div style={styles.checklistItem}>
+                  <span style={{
+                    ...styles.checkIcon,
+                    color: driver.requiredOnboardingForms?.tobaccoAndLCPValidation ? "#10b981" : "#ef4444"
+                  }}>
+                    {driver.requiredOnboardingForms?.tobaccoAndLCPValidation ? "✓" : "✗"}
+                  </span>
+                  <span style={styles.checklistLabel}>Tobacco and LCP Validation</span>
+                  {driver.requiredOnboardingForms?.tobaccoAndLCPValidation && (
+                    <a
+                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.tobaccoAndLCPValidation}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.viewDocumentLink}
+                    >
+                      View
+                    </a>
+                  )}
+                </div>
+                <div style={styles.checklistItem}>
+                  <span style={{
+                    ...styles.checkIcon,
+                    color: driver.requiredOnboardingForms?.driverSop ? "#10b981" : "#ef4444"
+                  }}>
+                    {driver.requiredOnboardingForms?.driverSop ? "✓" : "✗"}
+                  </span>
+                  <span style={styles.checklistLabel}>Driver SOP</span>
+                  {driver.requiredOnboardingForms?.driverSop && (
+                    <a
+                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.driverSop}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={styles.viewDocumentLink}
@@ -200,9 +257,12 @@ const Profile: React.FC = () => {
                   )}
                 </div>
               </div>
-              {(!driver.requiredOnboardingForms?.sop || 
-                !driver.requiredOnboardingForms?.tobocaoSop || 
-                !driver.requiredOnboardingForms?.phonePolicy) && (
+              {(!driver.requiredOnboardingForms?.agencySignOff || 
+                !driver.requiredOnboardingForms?.driverDeliveryExpectations || 
+                !driver.requiredOnboardingForms?.cellPhonePolicy ||
+                !driver.requiredOnboardingForms?.storeSurvey1 ||
+                !driver.requiredOnboardingForms?.tobaccoAndLCPValidation ||
+                !driver.requiredOnboardingForms?.driverSop) && (
                 <p style={styles.missingDocsWarning}>
                   ⚠️ Some required documents are missing
                 </p>

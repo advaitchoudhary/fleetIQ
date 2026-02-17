@@ -40,9 +40,12 @@ const driverSchema = new mongoose.Schema(
         plainPassword: { type: String },
         hoursThisWeek: { type: Number, default: 0 }, // New field to track hours this week
         requiredOnboardingForms: {
-            sop: { type: String, required: false }, // File path for SOP form
-            tobocaoSop: { type: String, required: false }, // File path for TOBOCAO SOP form
-            phonePolicy: { type: String, required: false } // File path for PHONE POLICY form
+            agencySignOff: { type: String, required: false }, // File path for Agency Sign Off form
+            driverDeliveryExpectations: { type: String, required: false }, // File path for Driver Delivery Expectations form
+            cellPhonePolicy: { type: String, required: false }, // File path for Cell Phone Policy form
+            storeSurvey1: { type: String, required: false }, // File path for Store Survey 1 form
+            tobaccoAndLCPValidation: { type: String, required: false }, // File path for Tobacco and LCP Validation form
+            driverSop: { type: String, required: false } // File path for Driver SOP form
         }
     },
     { timestamps: true } // Adds createdAt and updatedAt timestamps

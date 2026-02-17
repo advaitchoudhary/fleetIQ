@@ -77,10 +77,152 @@ const MyInfo: React.FC = () => {
 
   // Check for missing required forms
   const missingForms = [];
-  if (!driver.requiredOnboardingForms?.sop) missingForms.push("SOP");
-  if (!driver.requiredOnboardingForms?.tobocaoSop) missingForms.push("TOBOCAO SOP");
-  if (!driver.requiredOnboardingForms?.phonePolicy) missingForms.push("PHONE POLICY");
+  if (!driver.requiredOnboardingForms?.agencySignOff) missingForms.push("Agency Sign Off");
+  if (!driver.requiredOnboardingForms?.driverDeliveryExpectations) missingForms.push("Driver Delivery Expectations");
+  if (!driver.requiredOnboardingForms?.cellPhonePolicy) missingForms.push("Cell Phone Policy");
+  if (!driver.requiredOnboardingForms?.storeSurvey1) missingForms.push("Store Survey 1");
+  if (!driver.requiredOnboardingForms?.tobaccoAndLCPValidation) missingForms.push("Tobacco and LCP Validation");
+  if (!driver.requiredOnboardingForms?.driverSop) missingForms.push("Driver SOP");
   const hasMissingForms = missingForms.length > 0;
+
+  // Helper function to handle form download
+  const handleDownloadForm = (formName: string, fileName: string) => {
+    const link = document.createElement("a");
+    link.href = `/forms/${fileName}`;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Helper function to render a form card
+  const renderFormCard = (formKey: string, formTitle: string, fileName: string) => {
+    const formValue = driver.requiredOnboardingForms?.[formKey];
+    return (
+      <div style={styles.formCard} key={formKey}>
+        <h4 style={styles.formTitle}>{formTitle}</h4>
+        {formValue ? (
+          <div style={styles.formUploaded}>
+            <p style={styles.formStatus}>✓ Uploaded</p>
+            <a
+              href={`${API_BASE_URL.replace("/api", "")}/${formValue}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={styles.viewLink}
+            >
+              View Document
+            </a>
+            <button
+              onClick={() => handleDownloadForm(formTitle, fileName)}
+              style={styles.downloadButton}
+            >
+              Download Sample
+            </button>
+            <label 
+              style={styles.uploadButton}
+              onMouseEnter={(e) => {
+                if (uploadingForm !== formKey) {
+                  e.currentTarget.style.backgroundColor = "#4338ca";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (uploadingForm !== formKey) {
+                  e.currentTarget.style.backgroundColor = "#4F46E5";
+                }
+              }}
+            >
+              {uploadingForm === formKey ? 'Uploading...' : 'Update'}
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                style={{ display: 'none' }}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setUploadingForm(formKey);
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  formData.append('driverId', driver._id);
+                  formData.append('formType', formKey);
+                  try {
+                    const token = localStorage.getItem("token");
+                    const res = await axios.post(
+                      `${API_BASE_URL}/drivers/upload-required-form`,
+                      formData,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                          'Content-Type': 'multipart/form-data',
+                        },
+                      }
+                    );
+                    setDriver(res.data.driver);
+                    setFormData(res.data.driver);
+                    alert(`${formTitle} form updated successfully!`);
+                  } catch (err: any) {
+                    console.error(`Error uploading ${formTitle}:`, err);
+                    alert(err.response?.data?.message || `Failed to upload ${formTitle} form`);
+                  } finally {
+                    setUploadingForm(null);
+                  }
+                }}
+                disabled={uploadingForm === formKey}
+              />
+            </label>
+          </div>
+        ) : (
+          <div style={styles.formNotUploaded}>
+            <p style={styles.formStatusRequired}>⚠ Required</p>
+            <button
+              onClick={() => handleDownloadForm(formTitle, fileName)}
+              style={styles.downloadButton}
+            >
+              Download Sample
+            </button>
+            <label style={styles.uploadButton}>
+              {uploadingForm === formKey ? 'Uploading...' : 'Upload'}
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                style={{ display: 'none' }}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setUploadingForm(formKey);
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  formData.append('driverId', driver._id);
+                  formData.append('formType', formKey);
+                  try {
+                    const token = localStorage.getItem("token");
+                    const res = await axios.post(
+                      `${API_BASE_URL}/drivers/upload-required-form`,
+                      formData,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                          'Content-Type': 'multipart/form-data',
+                        },
+                      }
+                    );
+                    setDriver(res.data.driver);
+                    setFormData(res.data.driver);
+                    alert(`${formTitle} form uploaded successfully!`);
+                  } catch (err: any) {
+                    console.error(`Error uploading ${formTitle}:`, err);
+                    alert(err.response?.data?.message || `Failed to upload ${formTitle} form`);
+                  } finally {
+                    setUploadingForm(null);
+                  }
+                }}
+                disabled={uploadingForm === formKey}
+              />
+            </label>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -316,320 +458,15 @@ const MyInfo: React.FC = () => {
           <div style={styles.section}>
             <h3 style={styles.sectionTitle}>📋 Required Onboarding Forms</h3>
             <p style={styles.sectionDescription}>
-              Please upload the following required documents. You can update them at any time.
+              Please download the sample forms, fill them out, and upload them. You can update them at any time.
             </p>
             <div style={styles.formsGrid}>
-              {/* SOP Form */}
-              <div style={styles.formCard}>
-                <h4 style={styles.formTitle}>SOP</h4>
-                {driver.requiredOnboardingForms?.sop ? (
-                  <div style={styles.formUploaded}>
-                    <p style={styles.formStatus}>✓ Uploaded</p>
-                    <a
-                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.sop}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={styles.viewLink}
-                    >
-                      View Document
-                    </a>
-                    <label 
-                      style={styles.uploadButton}
-                      onMouseEnter={(e) => {
-                        if (uploadingForm !== 'sop') {
-                          e.currentTarget.style.backgroundColor = "#4338ca";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (uploadingForm !== 'sop') {
-                          e.currentTarget.style.backgroundColor = "#4F46E5";
-                        }
-                      }}
-                    >
-                      {uploadingForm === 'sop' ? 'Uploading...' : 'Update'}
-                      <input
-                        type="file"
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        style={{ display: 'none' }}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          setUploadingForm('sop');
-                          const formData = new FormData();
-                          formData.append('file', file);
-                          formData.append('driverId', driver._id);
-                          formData.append('formType', 'sop');
-                          try {
-                            const token = localStorage.getItem("token");
-                            const res = await axios.post(
-                              `${API_BASE_URL}/drivers/upload-required-form`,
-                              formData,
-                              {
-                                headers: {
-                                  Authorization: `Bearer ${token}`,
-                                  'Content-Type': 'multipart/form-data',
-                                },
-                              }
-                            );
-                            setDriver(res.data.driver);
-                            setFormData(res.data.driver);
-                            alert('SOP form updated successfully!');
-                          } catch (err: any) {
-                            console.error('Error uploading SOP:', err);
-                            alert(err.response?.data?.message || 'Failed to upload SOP form');
-                          } finally {
-                            setUploadingForm(null);
-                          }
-                        }}
-                        disabled={uploadingForm === 'sop'}
-                      />
-                    </label>
-                  </div>
-                ) : (
-                  <div style={styles.formNotUploaded}>
-                    <p style={styles.formStatusRequired}>⚠ Required</p>
-                    <label style={styles.uploadButton}>
-                      {uploadingForm === 'sop' ? 'Uploading...' : 'Upload'}
-                      <input
-                        type="file"
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        style={{ display: 'none' }}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          setUploadingForm('sop');
-                          const formData = new FormData();
-                          formData.append('file', file);
-                          formData.append('driverId', driver._id);
-                          formData.append('formType', 'sop');
-                          try {
-                            const token = localStorage.getItem("token");
-                            const res = await axios.post(
-                              `${API_BASE_URL}/drivers/upload-required-form`,
-                              formData,
-                              {
-                                headers: {
-                                  Authorization: `Bearer ${token}`,
-                                  'Content-Type': 'multipart/form-data',
-                                },
-                              }
-                            );
-                            setDriver(res.data.driver);
-                            setFormData(res.data.driver);
-                            alert('SOP form uploaded successfully!');
-                          } catch (err: any) {
-                            console.error('Error uploading SOP:', err);
-                            alert(err.response?.data?.message || 'Failed to upload SOP form');
-                          } finally {
-                            setUploadingForm(null);
-                          }
-                        }}
-                        disabled={uploadingForm === 'sop'}
-                      />
-                    </label>
-                  </div>
-                )}
-              </div>
-
-              {/* TOBOCAO SOP Form */}
-              <div style={styles.formCard}>
-                <h4 style={styles.formTitle}>TOBOCAO SOP</h4>
-                {driver.requiredOnboardingForms?.tobocaoSop ? (
-                  <div style={styles.formUploaded}>
-                    <p style={styles.formStatus}>✓ Uploaded</p>
-                    <a
-                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.tobocaoSop}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={styles.viewLink}
-                    >
-                      View Document
-                    </a>
-                    <label style={styles.uploadButton}>
-                      {uploadingForm === 'tobocaoSop' ? 'Uploading...' : 'Update'}
-                      <input
-                        type="file"
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        style={{ display: 'none' }}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          setUploadingForm('tobocaoSop');
-                          const formData = new FormData();
-                          formData.append('file', file);
-                          formData.append('driverId', driver._id);
-                          formData.append('formType', 'tobocaoSop');
-                          try {
-                            const token = localStorage.getItem("token");
-                            const res = await axios.post(
-                              `${API_BASE_URL}/drivers/upload-required-form`,
-                              formData,
-                              {
-                                headers: {
-                                  Authorization: `Bearer ${token}`,
-                                  'Content-Type': 'multipart/form-data',
-                                },
-                              }
-                            );
-                            setDriver(res.data.driver);
-                            setFormData(res.data.driver);
-                            alert('TOBOCAO SOP form updated successfully!');
-                          } catch (err: any) {
-                            console.error('Error uploading TOBOCAO SOP:', err);
-                            alert(err.response?.data?.message || 'Failed to upload TOBOCAO SOP form');
-                          } finally {
-                            setUploadingForm(null);
-                          }
-                        }}
-                        disabled={uploadingForm === 'tobocaoSop'}
-                      />
-                    </label>
-                  </div>
-                ) : (
-                  <div style={styles.formNotUploaded}>
-                    <p style={styles.formStatusRequired}>⚠ Required</p>
-                    <label style={styles.uploadButton}>
-                      {uploadingForm === 'tobocaoSop' ? 'Uploading...' : 'Upload'}
-                      <input
-                        type="file"
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        style={{ display: 'none' }}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          setUploadingForm('tobocaoSop');
-                          const formData = new FormData();
-                          formData.append('file', file);
-                          formData.append('driverId', driver._id);
-                          formData.append('formType', 'tobocaoSop');
-                          try {
-                            const token = localStorage.getItem("token");
-                            const res = await axios.post(
-                              `${API_BASE_URL}/drivers/upload-required-form`,
-                              formData,
-                              {
-                                headers: {
-                                  Authorization: `Bearer ${token}`,
-                                  'Content-Type': 'multipart/form-data',
-                                },
-                              }
-                            );
-                            setDriver(res.data.driver);
-                            setFormData(res.data.driver);
-                            alert('TOBOCAO SOP form uploaded successfully!');
-                          } catch (err: any) {
-                            console.error('Error uploading TOBOCAO SOP:', err);
-                            alert(err.response?.data?.message || 'Failed to upload TOBOCAO SOP form');
-                          } finally {
-                            setUploadingForm(null);
-                          }
-                        }}
-                        disabled={uploadingForm === 'tobocaoSop'}
-                      />
-                    </label>
-                  </div>
-                )}
-              </div>
-
-              {/* PHONE POLICY Form */}
-              <div style={styles.formCard}>
-                <h4 style={styles.formTitle}>PHONE POLICY</h4>
-                {driver.requiredOnboardingForms?.phonePolicy ? (
-                  <div style={styles.formUploaded}>
-                    <p style={styles.formStatus}>✓ Uploaded</p>
-                    <a
-                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.phonePolicy}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={styles.viewLink}
-                    >
-                      View Document
-                    </a>
-                    <label style={styles.uploadButton}>
-                      {uploadingForm === 'phonePolicy' ? 'Uploading...' : 'Update'}
-                      <input
-                        type="file"
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        style={{ display: 'none' }}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          setUploadingForm('phonePolicy');
-                          const formData = new FormData();
-                          formData.append('file', file);
-                          formData.append('driverId', driver._id);
-                          formData.append('formType', 'phonePolicy');
-                          try {
-                            const token = localStorage.getItem("token");
-                            const res = await axios.post(
-                              `${API_BASE_URL}/drivers/upload-required-form`,
-                              formData,
-                              {
-                                headers: {
-                                  Authorization: `Bearer ${token}`,
-                                  'Content-Type': 'multipart/form-data',
-                                },
-                              }
-                            );
-                            setDriver(res.data.driver);
-                            setFormData(res.data.driver);
-                            alert('PHONE POLICY form updated successfully!');
-                          } catch (err: any) {
-                            console.error('Error uploading PHONE POLICY:', err);
-                            alert(err.response?.data?.message || 'Failed to upload PHONE POLICY form');
-                          } finally {
-                            setUploadingForm(null);
-                          }
-                        }}
-                        disabled={uploadingForm === 'phonePolicy'}
-                      />
-                    </label>
-                  </div>
-                ) : (
-                  <div style={styles.formNotUploaded}>
-                    <p style={styles.formStatusRequired}>⚠ Required</p>
-                    <label style={styles.uploadButton}>
-                      {uploadingForm === 'phonePolicy' ? 'Uploading...' : 'Upload'}
-                      <input
-                        type="file"
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        style={{ display: 'none' }}
-                        onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          setUploadingForm('phonePolicy');
-                          const formData = new FormData();
-                          formData.append('file', file);
-                          formData.append('driverId', driver._id);
-                          formData.append('formType', 'phonePolicy');
-                          try {
-                            const token = localStorage.getItem("token");
-                            const res = await axios.post(
-                              `${API_BASE_URL}/drivers/upload-required-form`,
-                              formData,
-                              {
-                                headers: {
-                                  Authorization: `Bearer ${token}`,
-                                  'Content-Type': 'multipart/form-data',
-                                },
-                              }
-                            );
-                            setDriver(res.data.driver);
-                            setFormData(res.data.driver);
-                            alert('PHONE POLICY form uploaded successfully!');
-                          } catch (err: any) {
-                            console.error('Error uploading PHONE POLICY:', err);
-                            alert(err.response?.data?.message || 'Failed to upload PHONE POLICY form');
-                          } finally {
-                            setUploadingForm(null);
-                          }
-                        }}
-                        disabled={uploadingForm === 'phonePolicy'}
-                      />
-                    </label>
-                  </div>
-                )}
-              </div>
+              {renderFormCard('agencySignOff', 'Agency Sign Off', 'Agency Sign Off.pdf')}
+              {renderFormCard('driverDeliveryExpectations', 'Driver Delivery Expectations', 'Driver Delivery Expectations.pdf')}
+              {renderFormCard('cellPhonePolicy', 'Cell Phone Policy', 'Cell Phone Policy.pdf')}
+              {renderFormCard('storeSurvey1', 'Store Survey 1', 'Store Survey 1.pdf')}
+              {renderFormCard('tobaccoAndLCPValidation', 'Tobacco and LCP Validation', 'Tobacco and LCP Validation.pdf')}
+              {renderFormCard('driverSop', 'Driver SOP', 'Driver SOP.pdf')}
             </div>
           </div>
 
@@ -995,7 +832,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   formsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+    gridTemplateColumns: "repeat(3, 1fr)",
     gap: "20px",
     marginTop: "20px",
   },
@@ -1039,6 +876,20 @@ const styles: { [key: string]: React.CSSProperties } = {
     textDecoration: "none",
     fontSize: "14px",
     fontWeight: 500,
+  },
+  downloadButton: {
+    backgroundColor: "#10b981",
+    color: "#fff",
+    padding: "8px 16px",
+    borderRadius: "6px",
+    border: "none",
+    fontSize: "14px",
+    fontWeight: 500,
+    cursor: "pointer",
+    transition: "background-color 0.3s ease",
+    display: "inline-block",
+    marginTop: "8px",
+    marginBottom: "8px",
   },
   uploadButton: {
     backgroundColor: "#4F46E5",

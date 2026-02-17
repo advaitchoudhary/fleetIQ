@@ -342,10 +342,19 @@ const onboardingFormsFileFilter = (req, file, cb) => {
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ];
-  if (allowedTypes.includes(file.mimetype)) {
+  
+  // Log the received MIME type for debugging
+  console.log("Received file MIME type:", file.mimetype);
+  console.log("File original name:", file.originalname);
+  
+  // Normalize MIME type (remove extra spaces, convert to lowercase for comparison)
+  const normalizedMimeType = file.mimetype?.toLowerCase().trim();
+  
+  if (allowedTypes.some(type => type.toLowerCase() === normalizedMimeType)) {
     cb(null, true);
   } else {
-    cb(new Error("Only JPEG, PNG, PDF, and DOC files are allowed"), false);
+    const error = new Error(`Invalid file type: ${file.mimetype || 'unknown'}. Only JPEG, PNG, PDF, and DOC files are allowed`);
+    cb(error, false);
   }
 };
 
@@ -390,19 +399,19 @@ const uploadTrainingProof = multer({
 // Upload or update required onboarding form
 const uploadRequiredForm = asyncHandler(async (req, res) => {
   try {
-    const { driverId, formType } = req.body; // formType: 'sop', 'tobocaoSop', 'phonePolicy'
+    const { driverId, formType } = req.body; // formType: 'agencySignOff', 'driverDeliveryExpectations', 'cellPhonePolicy', 'storeSurvey1', 'tobaccoAndLCPValidation', 'driverSop'
     
     if (!driverId || !formType) {
       return res.status(400).json({ message: "Driver ID and form type are required" });
     }
 
-    const allowedFormTypes = ['sop', 'tobocaoSop', 'phonePolicy'];
+    const allowedFormTypes = ['agencySignOff', 'driverDeliveryExpectations', 'cellPhonePolicy', 'storeSurvey1', 'tobaccoAndLCPValidation', 'driverSop'];
     if (!allowedFormTypes.includes(formType)) {
       return res.status(400).json({ message: "Invalid form type" });
     }
 
     if (!req.file) {
-      return res.status(400).json({ message: "File is required" });
+      return res.status(400).json({ message: "File is required. Please ensure the file is a valid PDF, DOC, DOCX, JPEG, JPG, or PNG file." });
     }
 
     const driver = await Driver.findById(driverId);

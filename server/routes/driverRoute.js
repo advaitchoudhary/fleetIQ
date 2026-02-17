@@ -38,7 +38,18 @@ route.post(
   "/upload-required-form",
   protect,
   authorizeRoles("driver", "admin"),
-  uploadOnboardingForm.single("file"),
+  (req, res, next) => {
+    uploadOnboardingForm.single("file")(req, res, (err) => {
+      if (err) {
+        // Handle multer errors (fileFilter errors, etc.)
+        if (err.message && err.message.includes("file type")) {
+          return res.status(400).json({ message: err.message || "Invalid file type" });
+        }
+        return res.status(400).json({ message: err.message || "File upload error" });
+      }
+      next();
+    });
+  },
   uploadRequiredForm
 );
 route.post(
