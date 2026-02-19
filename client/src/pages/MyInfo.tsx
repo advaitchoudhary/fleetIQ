@@ -86,7 +86,7 @@ const MyInfo: React.FC = () => {
   const hasMissingForms = missingForms.length > 0;
 
   // Helper function to handle form download
-  const handleDownloadForm = (formName: string, fileName: string) => {
+  const handleDownloadForm = (fileName: string) => {
     const link = document.createElement("a");
     link.href = `/forms/${fileName}`;
     link.download = fileName;
@@ -113,7 +113,7 @@ const MyInfo: React.FC = () => {
               View Document
             </a>
             <button
-              onClick={() => handleDownloadForm(formTitle, fileName)}
+              onClick={() => handleDownloadForm(fileName)}
               style={styles.downloadButton}
             >
               Download Sample
@@ -174,7 +174,7 @@ const MyInfo: React.FC = () => {
           <div style={styles.formNotUploaded}>
             <p style={styles.formStatusRequired}>⚠ Required</p>
             <button
-              onClick={() => handleDownloadForm(formTitle, fileName)}
+              onClick={() => handleDownloadForm(fileName)}
               style={styles.downloadButton}
             >
               Download Sample

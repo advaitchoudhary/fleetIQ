@@ -18,6 +18,7 @@ interface DriverApplication {
   applicationForm: string;
   truckingExperienceYears: number;
   truckingExperienceMonths: number;
+  pceConsentForm?: string;
   cvor?: string;
   driversAbstract?: string;
   status: "Pending" | "Approved" | "Rejected";
@@ -336,6 +337,16 @@ const DriverApplications: React.FC = () => {
                     >
                       View Application Form
                     </a>
+                    {selectedApplication.pceConsentForm && (
+                      <a
+                        href={getFileUrl(selectedApplication.pceConsentForm)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={styles.fileLink}
+                      >
+                        View PCE Consent Form
+                      </a>
+                    )}
                     {selectedApplication.cvor && (
                       <a
                         href={getFileUrl(selectedApplication.cvor)}

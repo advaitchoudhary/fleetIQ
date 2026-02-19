@@ -226,6 +226,7 @@ const Drivers: React.FC = () => {
     setEditedDriver(driver); // Store the original driver data
     setIsEditModalOpen(true);
     setIsUpdateDisabled(true); // Disable update button initially
+    setUsernameError(""); // Clear any previous username errors
   };
 
   const handleCopyPassword = (password: string): void => {
@@ -278,6 +279,23 @@ const Drivers: React.FC = () => {
         (key) => editedDriver[key] === selectedDriver[key]
       )
     );
+  };
+
+  const handleUsernameChangeEdit = (value: string) => {
+    setSelectedDriver((prev: any) => ({
+      ...prev,
+      username: value,
+    }));
+
+    // If username is the same as original, clear error
+    if (editedDriver && editedDriver.username === value.trim()) {
+      setUsernameError("");
+    } else if (value.trim()) {
+      // Only check if username has changed and is not empty
+      checkUsernameExists(value.trim());
+    } else {
+      setUsernameError("");
+    }
   };
 
   return (
@@ -684,6 +702,22 @@ const Drivers: React.FC = () => {
             </div>
 
             <div style={styles.formGroup}>
+              <label style={styles.label}>Username:</label>
+              <input
+                type="text"
+                placeholder="Enter username"
+                defaultValue={selectedDriver?.username}
+                style={styles.input}
+                onChange={(e) => handleUsernameChangeEdit(e.target.value)}
+              />
+              {usernameError && (
+                <div style={{ color: "red", fontSize: "0.85rem", marginTop: "4px" }}>
+                  {usernameError}
+                </div>
+              )}
+            </div>
+
+            <div style={styles.formGroup}>
               <label style={styles.label}>Contact:</label>
               <input
                 type="text"
@@ -860,6 +894,10 @@ const Drivers: React.FC = () => {
               <button
                 style={styles.editButton}
                 onClick={() => {
+                  if (usernameError) {
+                    alert("Please resolve username error before submitting.");
+                    return;
+                  }
                   if (!selectedDriver.sinNo?.trim()) {
                     alert("Sin No. is required.");
                     return;
@@ -869,7 +907,13 @@ const Drivers: React.FC = () => {
               >
                 Update
               </button>
-              <button style={styles.closeButton} onClick={() => setIsEditModalOpen(false)}>
+              <button 
+                style={styles.closeButton} 
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setUsernameError("");
+                }}
+              >
                 Close
               </button>
             </div>
