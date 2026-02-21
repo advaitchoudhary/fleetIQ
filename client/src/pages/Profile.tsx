@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { useEffect } from "react";
 import axios from "axios";
@@ -7,6 +8,7 @@ import { API_BASE_URL } from "../utils/env";
 
 const Profile: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const driver = location.state?.driver;
   const [timesheets, setTimesheets] = useState<any[]>([]);
 
@@ -46,6 +48,9 @@ const Profile: React.FC = () => {
     <div>
       <Navbar />
       <div style={styles.container}>
+        <button onClick={() => navigate(-1)} style={styles.backButton}>
+          <FaArrowLeft size={13} /> Back
+        </button>
         {/* Profile Header */}
         <div style={styles.profileHeader}>
           <div style={styles.leftSection}>
@@ -534,6 +539,22 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: "#f4f6f8",
     fontFamily: "Inter, system-ui, sans-serif",
     minHeight: "100vh",
+  },
+  backButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    padding: "8px 16px",
+    backgroundColor: "#fff",
+    color: "#374151",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    fontSize: "13px",
+    fontWeight: 600,
+    cursor: "pointer",
+    marginBottom: "20px",
+    transition: "background-color 0.2s, border-color 0.2s",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   sectionsWrapper: {
     display: "flex",

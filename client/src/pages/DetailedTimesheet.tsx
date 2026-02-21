@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL, FILE_BASE_URL } from "../utils/env";
 import Navbar from "./Navbar";
+import { FaArrowLeft } from "react-icons/fa";
 
 const DetailedTimesheet: React.FC = () => {
   const { id } = useParams();
@@ -436,32 +437,27 @@ const DetailedTimesheet: React.FC = () => {
   return (
     <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
     <Navbar />
-    <div style={{ padding: "24px 40px 0 40px", display: "flex", alignItems: "center" }}>
+    <div style={{ padding: "24px 40px 0 40px" }}>
       <button
         onClick={handleBackClick}
         title="Go back to timesheets list (or press Escape)"
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "8px",
-          padding: "8px 18px",
-          backgroundColor: "#4F46E5",
-          color: "white",
-          border: "none",
+          gap: "6px",
+          padding: "8px 16px",
+          backgroundColor: "#fff",
+          color: "#374151",
+          border: "1px solid #d1d5db",
           borderRadius: "8px",
           fontSize: "13px",
           fontWeight: 600,
           cursor: "pointer",
-          transition: "all 0.2s ease"
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = "#4338CA";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = "#4F46E5";
+          transition: "background-color 0.2s, border-color 0.2s",
+          fontFamily: "Inter, system-ui, sans-serif",
         }}
       >
-        ← Back to Timesheets
+        <FaArrowLeft size={13} /> Back
       </button>
     </div>
     <div style={{ display: "flex", padding: "20px 40px", gap: "24px" }}>
