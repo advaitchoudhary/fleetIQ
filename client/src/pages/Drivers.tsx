@@ -299,7 +299,7 @@ const Drivers: React.FC = () => {
   };
 
   return (
-    <div>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", minHeight: "100vh", background: "linear-gradient(180deg, #eef2ff 0%, #f4f6f8 40%, #f4f6f8 100%)" }}>
       <Navbar />
       <div style={styles.container}>
       <h1 style={styles.pageTitle}>All Drivers</h1>
@@ -958,8 +958,6 @@ const styles: { [key: string]: CSSProperties } = {
   container: {
     fontFamily: "Inter, system-ui, sans-serif",
     padding: "30px 40px",
-    backgroundColor: "#f4f6f8",
-    minHeight: "100vh",
   },
   pageTitle: {
     fontSize: "26px",

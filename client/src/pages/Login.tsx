@@ -63,6 +63,58 @@ const Login: React.FC = () => {
 
   return (
     <div style={styles.container}>
+      <style>{`
+        @keyframes loginFadeIn {
+          from { opacity: 0; transform: translateY(20px) scale(0.97); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes loginSlideUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes loginBackIn {
+          from { opacity: 0; transform: translateX(-16px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes loginPulseGlow {
+          0%, 100% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 0 rgba(79, 70, 229, 0); }
+          50% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 40px -8px rgba(79, 70, 229, 0.15); }
+        }
+        [data-login-back] {
+          animation: loginBackIn 0.5s ease-out both;
+        }
+        [data-login-card] {
+          animation: loginFadeIn 0.6s ease-out both;
+          animation-delay: 0.1s;
+          transition: box-shadow 0.4s ease;
+        }
+        [data-login-card]:hover {
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 40px -8px rgba(79, 70, 229, 0.2);
+        }
+        [data-login-title] {
+          animation: loginSlideUp 0.5s ease-out both;
+          animation-delay: 0.3s;
+        }
+        [data-login-desc] {
+          animation: loginSlideUp 0.5s ease-out both;
+          animation-delay: 0.4s;
+        }
+        [data-login-form] > *:nth-child(1) { animation: loginSlideUp 0.4s ease-out both; animation-delay: 0.5s; }
+        [data-login-form] > *:nth-child(2) { animation: loginSlideUp 0.4s ease-out both; animation-delay: 0.6s; }
+        [data-login-form] > *:nth-child(3) { animation: loginSlideUp 0.4s ease-out both; animation-delay: 0.7s; }
+        [data-login-form] > *:nth-child(4) { animation: loginSlideUp 0.4s ease-out both; animation-delay: 0.8s; }
+        [data-login-btn]:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5) !important;
+        }
+        [data-login-btn]:active {
+          transform: translateY(0);
+        }
+        [data-login-input]:focus {
+          border-color: rgba(79, 70, 229, 0.6) !important;
+          box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+      `}</style>
       <button
         type="button"
         onClick={() => navigate("/")}
@@ -77,17 +129,18 @@ const Login: React.FC = () => {
             ? "rgba(255, 255, 255, 0.5)" 
             : "rgba(255, 255, 255, 0.3)",
         }}
+        data-login-back
       >
         <FaArrowLeft style={{ marginRight: "8px", fontSize: "12px" }} />
         Back
       </button>
-      <div style={styles.overlay}>
-        <h1 style={styles.title}>Welcome to the Driver Portal</h1>
-        <p style={styles.description}>
+      <div style={styles.overlay} data-login-card>
+        <h1 style={styles.title} data-login-title>Welcome to the Driver Portal</h1>
+        <p style={styles.description} data-login-desc>
           Manage your trips, track your hours, and stay updated with important information.
         </p>
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <select value={role} onChange={(e) => setRole(e.target.value)} style={styles.select}>
+        <form onSubmit={handleSubmit} style={styles.form} data-login-form>
+          <select value={role} onChange={(e) => setRole(e.target.value)} style={styles.select} data-login-input>
             <option value="admin">Admin</option>
             <option value="driver">Driver</option>
           </select>
@@ -99,6 +152,7 @@ const Login: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               style={styles.input}
+              data-login-input
             />
           ) : (
             <input
@@ -108,6 +162,7 @@ const Login: React.FC = () => {
               onChange={(e) => setEmail(e.target.value)}
               required
               style={styles.input}
+              data-login-input
             />
           )}
           <input
@@ -117,8 +172,9 @@ const Login: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
             style={styles.input}
+            data-login-input
           />
-          <button type="submit" style={styles.button}>Login</button>
+          <button type="submit" style={styles.button} data-login-btn>Login</button>
         </form>
       </div>
     </div>
