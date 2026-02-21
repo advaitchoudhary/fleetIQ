@@ -83,7 +83,7 @@ const Navbar: React.FC = () => {
   return (
     <>
       {/* Header */}
-      <header style={styles.header}>
+      <header style={styles.header} data-nav-header>
         <div style={styles.rowDiv}>
           <button
             onClick={() => setIsNavOpen(!isNavOpen)}
@@ -104,11 +104,12 @@ const Navbar: React.FC = () => {
           <h1
             style={{ ...styles.title, cursor: "pointer" }}
             onClick={() => navigate(user?.role === "admin" ? "/users" : "/dashboard")}
+            data-nav-title
           >
             Premier Choice
           </h1>
         </div>
-        <div style={styles.authButtons}>
+        <div style={styles.authButtons} data-nav-auth>
           {user?.role === "admin" && (
             <div style={styles.notificationIconWrapper}>
               <div style={styles.notificationBell}>
@@ -123,9 +124,9 @@ const Navbar: React.FC = () => {
                 )}
               </div>
               {showNotification && (
-                <div style={styles.notificationDropdown} ref={notificationRef}>
+                <div style={styles.notificationDropdown} ref={notificationRef} data-nav-dropdown>
                   <div style={styles.notificationHeader}>
-                    <span style={{ fontWeight: "600", fontSize: "15px" }}>Notification</span>
+                    <span style={{ fontWeight: 700, fontSize: "14px", color: "#111827" }}>Notifications</span>
                     <button
                       style={styles.markAllRead}
                       onClick={handleMarkAllRead}
@@ -164,14 +165,14 @@ const Navbar: React.FC = () => {
                             <td style={{ ...styles.notificationTableCell, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                               <span>
                                 {!notification.read && (
-                                  <span style={{ color: "green", marginRight: "6px" }}>●</span>
+                                  <span style={{ color: "#4F46E5", marginRight: "6px", fontSize: "10px" }}>●</span>
                                 )}
                                 {`${notification.message} on ${new Date(
                                   notification.createdAt
                                 ).toLocaleString()}`}
                               </span>
                               <span
-                                style={{ marginLeft: "12px", color: "#888", cursor: "pointer" }}
+                                style={{ marginLeft: "12px", color: "#9ca3af", cursor: "pointer", fontSize: "13px" }}
                                 onClick={async (e) => {
                                   e.stopPropagation(); // Prevent row click from firing
                                   try {
@@ -292,16 +293,16 @@ const Navbar: React.FC = () => {
   );
 };
 
-// Define Styles
 const styles: { [key: string]: React.CSSProperties } = {
   header: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "15px 20px",
-    background: "black",
+    padding: "12px 24px",
+    background: "#111827",
     color: "#fff",
-    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+    fontFamily: "Inter, system-ui, sans-serif",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.12)",
   },
   rowDiv: {
     display: "flex",
@@ -310,11 +311,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexWrap: "nowrap",
   },
   title: {
-    fontSize: "1.5rem",
+    fontSize: "18px",
     margin: 0,
     padding: 0,
     lineHeight: "1",
-    fontWeight: 600,
+    fontWeight: 700,
+    letterSpacing: "-0.2px",
   },
   menuButton: {
     background: "none",
@@ -324,13 +326,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: "6px",
+    borderRadius: "8px",
     transition: "background 0.2s ease-in-out",
   },
   notificationIconWrapper: {
     position: "relative",
-    marginRight: "15px",
-    marginTop: "7px",
+    marginRight: "10px",
+    marginTop: "4px",
   },
   notificationBell: {
     position: "relative",
@@ -338,13 +340,14 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   unreadBadge: {
     position: "absolute",
-    top: "-14px",
-    right: "-14px",
-    backgroundColor: "red",
+    top: "-10px",
+    right: "-10px",
+    backgroundColor: "#dc2626",
     color: "white",
     borderRadius: "50%",
     fontSize: "10px",
-    padding: "2px 6px",
+    fontWeight: 700,
+    padding: "2px 5px",
     minWidth: "7px",
     height: "16px",
     display: "flex",
@@ -355,27 +358,31 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: "absolute",
     top: "35px",
     right: "0",
-    width: "350px",
+    width: "380px",
     background: "#fff",
-    color: "#000",
-    borderRadius: "10px",
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+    color: "#374151",
+    borderRadius: "12px",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 8px 30px rgba(0, 0, 0, 0.12)",
     zIndex: 1001,
-    padding: "15px",
+    padding: "16px",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   notificationHeader: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingBottom: "8px",
+    paddingBottom: "10px",
+    borderBottom: "1px solid #f3f4f6",
+    marginBottom: "8px",
   },
   markAllRead: {
     background: "none",
     border: "none",
-    color: "#5b21b6",
+    color: "#4F46E5",
     cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: "500",
+    fontSize: "13px",
+    fontWeight: 600,
   },
   notificationTabs: {
     display: "flex",
@@ -383,9 +390,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: "10px",
   },
   tabButton: {
-    background: "#eee",
+    background: "#f3f4f6",
     border: "none",
-    borderRadius: "5px",
+    borderRadius: "6px",
     padding: "5px 10px",
     fontSize: "12px",
     cursor: "pointer",
@@ -399,62 +406,82 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   notificationItem: {
     marginBottom: "10px",
-    fontSize: "14px",
+    fontSize: "13px",
   },
   notificationTable: {
     width: "100%",
     borderCollapse: "collapse",
-    fontSize: "12px",
+    fontSize: "13px",
   },
   notificationTableHeader: {
-    borderBottom: "1px solid #ccc",
+    borderBottom: "1px solid #e5e7eb",
     textAlign: "left",
-    paddingBottom: "5px",
+    paddingBottom: "6px",
+    fontSize: "11px",
+    fontWeight: 700,
+    color: "#6b7280",
+    textTransform: "uppercase",
+    letterSpacing: "0.5px",
   },
   notificationTableCell: {
-    padding: "5px 0",
-    borderBottom: "1px solid #eee",
+    padding: "8px 0",
+    borderBottom: "1px solid #f3f4f6",
+    fontSize: "13px",
+    color: "#374151",
+    lineHeight: "1.5",
   },
   acceptButton: {
-    background: "#7c3aed",
+    background: "#4F46E5",
     color: "#fff",
     border: "none",
     padding: "5px 10px",
     marginLeft: "5px",
-    borderRadius: "4px",
+    borderRadius: "6px",
     cursor: "pointer",
+    fontSize: "12px",
+    fontWeight: 600,
   },
   declineButton: {
-    background: "#eee",
-    color: "#333",
-    border: "none",
+    background: "#f3f4f6",
+    color: "#374151",
+    border: "1px solid #d1d5db",
     padding: "5px 10px",
-    borderRadius: "4px",
+    borderRadius: "6px",
     cursor: "pointer",
+    fontSize: "12px",
   },
   authButtons: {
     display: "flex",
-    gap: "15px",
+    gap: "8px",
+    alignItems: "center",
   },
   logoutButton: {
-    background: "none",
-    border: "none",
+    background: "rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.15)",
     color: "#fff",
     cursor: "pointer",
-    fontSize: "1rem",
+    fontSize: "13px",
+    fontWeight: 500,
     display: "flex",
     alignItems: "center",
-    gap: "5px",
+    gap: "6px",
+    padding: "7px 14px",
+    borderRadius: "8px",
+    transition: "background 0.2s",
   },
   changePasswordButton: {
-    background: "none",
-    border: "none",
+    background: "rgba(255,255,255,0.08)",
+    border: "1px solid rgba(255,255,255,0.15)",
     color: "#fff",
     cursor: "pointer",
-    fontSize: "1rem",
+    fontSize: "13px",
+    fontWeight: 500,
     display: "flex",
     alignItems: "center",
-    gap: "5px",
+    gap: "6px",
+    padding: "7px 14px",
+    borderRadius: "8px",
+    transition: "background 0.2s",
   },
   sidebar: {
     position: "fixed" as const,
@@ -462,31 +489,36 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: "-250px",
     width: "250px",
     height: "100%",
-    backgroundColor: "#333",
+    backgroundColor: "#1f2937",
     color: "#fff",
     paddingTop: "60px",
-    transition: "0.3s",
-    zIndex: 1000, // Ensure sidebar is above other content
+    transition: "left 0.3s ease",
+    zIndex: 1000,
+    fontFamily: "Inter, system-ui, sans-serif",
+    boxShadow: "2px 0 8px rgba(0,0,0,0.15)",
   },
   navList: {
     listStyleType: "none",
     padding: "0",
+    margin: "0",
   },
   navItem: {
-    padding: "15px 20px",
-    borderBottom: "1px solid #555",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
+    borderBottom: "1px solid rgba(255,255,255,0.08)",
+    listStyle: "none",
   },
   navLink: {
-    color: "#fff",
+    color: "#d1d5db",
     textDecoration: "none",
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    fontSize: "16px",
+    gap: "12px",
+    fontSize: "14px",
+    fontWeight: 500,
+    padding: "14px 24px",
+    cursor: "pointer",
+    width: "100%",
+    boxSizing: "border-box",
+    transition: "color 0.2s, background 0.2s",
   },
 };
 
@@ -501,12 +533,33 @@ style.innerHTML = `
   }
 }
 
+@media (max-width: 480px) {
+  [data-nav-header] {
+    padding: 10px 12px !important;
+  }
+  [data-nav-title] {
+    font-size: 15px !important;
+  }
+  [data-nav-dropdown] {
+    width: calc(100vw - 32px) !important;
+    right: -60px !important;
+  }
+  [data-nav-auth] {
+    gap: 4px !important;
+  }
+  [data-nav-auth] button {
+    padding: 6px 8px !important;
+    font-size: 12px !important;
+  }
+}
+
 nav ul li:hover {
-  background-color: #444;
+  background-color: rgba(255,255,255,0.06);
 }
 
 nav ul li a:hover {
-  text-decoration: underline;
+  color: #fff !important;
+  text-decoration: none;
 }
 `;
 if (typeof document !== "undefined" && !document.getElementById("hide-on-mobile-style")) {

@@ -73,7 +73,7 @@ const MyInfo: React.FC = () => {
     fetchDriverDetails();
   }, []);
 
-  if (!driver || !formData) return <div style={styles.loading}>Loading...</div>;
+  if (!driver || !formData) return <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontFamily: "Inter, system-ui, sans-serif", color: "#6b7280", fontSize: "15px" }}>Loading...</div>;
 
   // Check for missing required forms
   const missingForms = [];
@@ -225,30 +225,53 @@ const MyInfo: React.FC = () => {
   };
 
   return (
-    <div>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
+      <style>{`
+        @media (max-width: 1024px) {
+          [data-mi-container] { padding: 24px 20px !important; }
+          [data-mi-card] { padding: 28px 20px !important; }
+          [data-mi-forms-grid] { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 768px) {
+          [data-mi-container] { padding: 16px 12px !important; }
+          [data-mi-card] { padding: 24px 16px !important; }
+          [data-mi-title] { font-size: 22px !important; }
+          [data-mi-info-grid] { grid-template-columns: 1fr !important; gap: 8px !important; }
+          [data-mi-forms-grid] { grid-template-columns: 1fr !important; }
+          [data-mi-training-grid] { grid-template-columns: 1fr !important; }
+          [data-mi-section] { padding: 16px !important; margin-top: 20px !important; }
+          [data-mi-icon] { width: 60px !important; height: 60px !important; }
+        }
+        @media (max-width: 480px) {
+          [data-mi-container] { padding: 12px 8px !important; }
+          [data-mi-card] { padding: 20px 12px !important; border-radius: 12px !important; }
+          [data-mi-title] { font-size: 20px !important; }
+          [data-mi-section] { padding: 12px !important; border-radius: 12px !important; }
+        }
+      `}</style>
       <Navbar />
-      <div style={styles.container}>
+      <div style={styles.container} data-mi-container>
         {hasMissingForms && (
           <div style={styles.warningBanner}>
             <p style={styles.warningText}>
-              ⚠️ <strong>Required Documents Pending:</strong> Please upload the following required onboarding forms: {missingForms.join(", ")}
+              <strong>Required Documents Pending:</strong> Please upload the following required onboarding forms: {missingForms.join(", ")}
             </p>
           </div>
         )}
-        <div style={styles.profileCard}>
-          <FaUserCircle size={80} color="#333" />
-          <h2 style={styles.profileTitle}>Welcome, {driver.name}</h2>
+        <div style={styles.profileCard} data-mi-card>
+          <FaUserCircle size={80} color="#4F46E5" data-mi-icon />
+          <h2 style={styles.profileTitle} data-mi-title>Welcome, {driver.name}</h2>
           <button
             onClick={() => setIsEditing(!isEditing)}
             style={{ ...styles.button, marginBottom: "20px" }}
           >
             {isEditing ? "Cancel" : "Edit My Info"}
           </button>
-          <div style={styles.profileInfo}>
-            {/* Email is not editable */}
-            <p>
-              <strong>Email:</strong> {driver.email}
-            </p>
+          <div style={styles.profileInfo} data-mi-info-grid>
+            <div style={styles.infoItem}>
+              <span style={styles.infoLabel}>Email</span>
+              <span style={styles.infoValue}>{driver.email}</span>
+            </div>
             {isEditing ? (
               <label style={styles.formField}>
                 <span style={styles.labelText}>Contact:</span>
@@ -263,9 +286,10 @@ const MyInfo: React.FC = () => {
                 />
               </label>
             ) : (
-              <p>
-                <strong>Contact:</strong> {driver.contact}
-              </p>
+              <div style={styles.infoItem}>
+                <span style={styles.infoLabel}>Contact</span>
+                <span style={styles.infoValue}>{driver.contact}</span>
+              </div>
             )}
             {isEditing ? (
               <label style={styles.formField}>
@@ -281,9 +305,10 @@ const MyInfo: React.FC = () => {
                 />
               </label>
             ) : (
-              <p>
-                <strong>Address:</strong> {driver.address}
-              </p>
+              <div style={styles.infoItem}>
+                <span style={styles.infoLabel}>Address</span>
+                <span style={styles.infoValue}>{driver.address}</span>
+              </div>
             )}
             {isEditing ? (
               <label style={styles.formField}>
@@ -299,9 +324,10 @@ const MyInfo: React.FC = () => {
                 />
               </label>
             ) : (
-              <p>
-                <strong>HST/GST:</strong> {driver.hst_gst}
-              </p>
+              <div style={styles.infoItem}>
+                <span style={styles.infoLabel}>HST/GST</span>
+                <span style={styles.infoValue}>{driver.hst_gst}</span>
+              </div>
             )}
             {isEditing ? (
               <label style={styles.formField}>
@@ -317,31 +343,39 @@ const MyInfo: React.FC = () => {
                 />
               </label>
             ) : (
-              <p>
-                <strong>Business Name:</strong> {driver.business_name}
-              </p>
+              <div style={styles.infoItem}>
+                <span style={styles.infoLabel}>Business Name</span>
+                <span style={styles.infoValue}>{driver.business_name}</span>
+              </div>
             )}
-            <p>
-              <strong>Backhaul Rate:</strong> ${driver.backhaulRate}
-            </p>
-            <p>
-              <strong>Combo Rate:</strong> ${driver.comboRate}
-            </p>
-            <p>
-              <strong>Extra Sheet/E.W Rate:</strong> ${driver.extraSheetEWRate}
-            </p>
-            <p>
-              <strong>Regular/Banner Rate:</strong> ${driver.regularBannerRate}
-            </p>
-            <p>
-              <strong>Wholesale Rate:</strong> ${driver.wholesaleRate}
-            </p>
-            <p>
-              <strong>Voila Rate:</strong> ${driver.voilaRate}
-            </p>
-            <p>
-              <strong>TCS Linehaul Trenton Rate:</strong> ${driver.tcsLinehaulTrentonRate}
-            </p>
+            <div style={styles.infoItem}>
+              <span style={styles.infoLabel}>Backhaul Rate</span>
+              <span style={styles.infoValue}>${driver.backhaulRate}</span>
+            </div>
+            <div style={styles.infoItem}>
+              <span style={styles.infoLabel}>Combo Rate</span>
+              <span style={styles.infoValue}>${driver.comboRate}</span>
+            </div>
+            <div style={styles.infoItem}>
+              <span style={styles.infoLabel}>Extra Sheet/E.W Rate</span>
+              <span style={styles.infoValue}>${driver.extraSheetEWRate}</span>
+            </div>
+            <div style={styles.infoItem}>
+              <span style={styles.infoLabel}>Regular/Banner Rate</span>
+              <span style={styles.infoValue}>${driver.regularBannerRate}</span>
+            </div>
+            <div style={styles.infoItem}>
+              <span style={styles.infoLabel}>Wholesale Rate</span>
+              <span style={styles.infoValue}>${driver.wholesaleRate}</span>
+            </div>
+            <div style={styles.infoItem}>
+              <span style={styles.infoLabel}>Voila Rate</span>
+              <span style={styles.infoValue}>${driver.voilaRate}</span>
+            </div>
+            <div style={styles.infoItem}>
+              <span style={styles.infoLabel}>TCS Linehaul Trenton Rate</span>
+              <span style={styles.infoValue}>${driver.tcsLinehaulTrentonRate}</span>
+            </div>
             {isEditing ? (
               <label style={styles.formField}>
                 <span style={styles.labelText}>Licence:</span>
@@ -356,9 +390,10 @@ const MyInfo: React.FC = () => {
                 />
               </label>
             ) : (
-              <p>
-                <strong>Licence:</strong> {driver.licence}
-              </p>
+              <div style={styles.infoItem}>
+                <span style={styles.infoLabel}>Licence</span>
+                <span style={styles.infoValue}>{driver.licence}</span>
+              </div>
             )}
             {isEditing ? (
               <label style={styles.formField}>
@@ -376,14 +411,19 @@ const MyInfo: React.FC = () => {
                 />
               </label>
             ) : (
-              <p>
-                <strong>Licence Expiry:</strong>{" "}
-                {driver.licence_expiry_date?.substring(0, 10) || ""}
-              </p>
+              <div style={styles.infoItem}>
+                <span style={styles.infoLabel}>Licence Expiry</span>
+                <span style={styles.infoValue}>
+                  {driver.licence_expiry_date
+                    ? new Date(driver.licence_expiry_date).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" })
+                    : ""}
+                </span>
+              </div>
             )}
-            <p>
-              <strong>Status:</strong> {driver.status}
-            </p>
+            <div style={styles.infoItem}>
+              <span style={styles.infoLabel}>Status</span>
+              <span style={styles.infoValue}>{driver.status}</span>
+            </div>
             {isEditing ? (
               <label style={styles.formField}>
                 <span style={styles.labelText}>SIN No.:</span>
@@ -398,9 +438,10 @@ const MyInfo: React.FC = () => {
                 />
               </label>
             ) : (
-              <p>
-                <strong>SIN No.:</strong> {driver.sinNo}
-              </p>
+              <div style={styles.infoItem}>
+                <span style={styles.infoLabel}>SIN No.</span>
+                <span style={styles.infoValue}>{driver.sinNo}</span>
+              </div>
             )}
             {isEditing ? (
               <label style={styles.formField}>
@@ -416,9 +457,10 @@ const MyInfo: React.FC = () => {
                 />
               </label>
             ) : (
-              <p>
-                <strong>Work Status:</strong> {driver.workStatus}
-              </p>
+              <div style={styles.infoItem}>
+                <span style={styles.infoLabel}>Work Status</span>
+                <span style={styles.infoValue}>{driver.workStatus}</span>
+              </div>
             )}
           </div>
           {isEditing && (
@@ -455,12 +497,12 @@ const MyInfo: React.FC = () => {
             </button>
           )}
           {/* Required Onboarding Forms Section */}
-          <div style={styles.section}>
+          <div style={styles.section} data-mi-section>
             <h3 style={styles.sectionTitle}>📋 Required Onboarding Forms</h3>
             <p style={styles.sectionDescription}>
               Please download the sample forms, fill them out, and upload them. You can update them at any time.
             </p>
-            <div style={styles.formsGrid}>
+            <div style={styles.formsGrid} data-mi-forms-grid>
               {renderFormCard('agencySignOff', 'Agency Sign Off', 'Agency Sign Off.pdf')}
               {renderFormCard('driverDeliveryExpectations', 'Driver Delivery Expectations', 'Driver Delivery Expectations.pdf')}
               {renderFormCard('cellPhonePolicy', 'Cell Phone Policy', 'Cell Phone Policy.pdf')}
@@ -471,12 +513,12 @@ const MyInfo: React.FC = () => {
           </div>
 
           {/* Trainings Section */}
-          <div style={styles.section}>
+          <div style={styles.section} data-mi-section>
             <h3 style={styles.sectionTitle}>📚 Trainings</h3>
             <p style={styles.sectionDescription}>
               Upload proof documents for trainings you have passed. You can update them at any time.
             </p>
-            <div style={styles.trainingsGrid}>
+            <div style={styles.trainingsGrid} data-mi-training-grid>
               {availableTrainings.map((trainingName) => {
                 const training = driver.trainings?.find((t: any) => t.name === trainingName);
                 const hasProof = training && training.proofDocument;
@@ -610,7 +652,7 @@ const MyInfo: React.FC = () => {
           </div>
 
           {showBankForm && (
-            <div style={styles.section}>
+            <div style={styles.section} data-mi-section>
               <h3 style={styles.sectionTitle}>Add Direct Deposit Details</h3>
               <label style={styles.formField}>
                 <span style={styles.labelText}>Bank Name:</span>
@@ -711,255 +753,256 @@ const MyInfo: React.FC = () => {
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     textAlign: "center",
-    padding: "40px 20px",
-    backgroundColor: "#f4f6f8",
+    padding: "32px 40px",
     fontFamily: "Inter, system-ui, sans-serif",
-  },
-  loading: {
-    textAlign: "center",
-    padding: "100px 20px",
-    fontSize: "22px",
-    fontWeight: "500",
-    color: "#4a5568",
   },
   button: {
     backgroundColor: "#4F46E5",
     color: "#fff",
-    padding: "12px 24px",
+    padding: "10px 22px",
     borderRadius: "8px",
     border: "none",
-    fontSize: "16px",
+    fontSize: "14px",
     fontWeight: 600,
     cursor: "pointer",
-    transition: "background-color 0.3s ease",
+    transition: "background-color 0.2s ease",
   },
   profileCard: {
     backgroundColor: "#ffffff",
     padding: "40px",
     borderRadius: "16px",
-    boxShadow: "0 2px 12px rgba(0, 0, 0, 0.05)",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
     textAlign: "center",
     marginBottom: "40px",
-    border: "1px solid #e2e8f0",
   },
   profileTitle: {
-    margin: "20px 0",
-    fontSize: "32px",
-    color: "#1f2937",
-    fontWeight: "bold",
+    margin: "16px 0",
+    fontSize: "26px",
+    color: "#111827",
+    fontWeight: 700,
+    letterSpacing: "-0.3px",
   },
   profileInfo: {
-    marginTop: "30px",
+    marginTop: "28px",
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-    gap: "24px 32px",
-    fontSize: "16px",
-    color: "#1f2937",
+    gap: "16px 32px",
+    fontSize: "14px",
+    color: "#374151",
     textAlign: "left",
     padding: "0 12px",
   },
+  infoItem: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "2px",
+    padding: "8px 0",
+    borderBottom: "1px solid #f3f4f6",
+  },
+  infoLabel: {
+    fontSize: "12px",
+    fontWeight: 600,
+    color: "#6b7280",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.4px",
+  },
+  infoValue: {
+    fontSize: "15px",
+    color: "#111827",
+    fontWeight: 500,
+  },
   formField: {
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "column" as const,
     gap: "6px",
   },
   inputField: {
     padding: "10px 14px",
     border: "1px solid #d1d5db",
     borderRadius: "8px",
-    fontSize: "15px",
+    fontSize: "14px",
     backgroundColor: "#fff",
+    transition: "border-color 0.2s",
   },
   labelText: {
     fontWeight: 600,
-    marginBottom: "4px",
-    fontSize: "14px",
+    marginBottom: "2px",
+    fontSize: "13px",
     color: "#374151",
   },
   section: {
-    marginTop: "40px",
-    textAlign: "left",
-    padding: "0 12px",
+    marginTop: "32px",
+    textAlign: "left" as const,
+    padding: "24px",
     backgroundColor: "#ffffff",
-    paddingTop: "24px",
-    paddingBottom: "24px",
-    borderRadius: "12px",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+    borderRadius: "16px",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
   },
   sectionTitle: {
-    fontSize: "24px",
-    marginBottom: "20px",
-    borderBottom: "2px solid #4b5563",
-    paddingBottom: "8px",
-    color: "#1f2937",
-    fontWeight: "bold",
-  },
-  timesheetList: {
-    listStyle: "none",
-    padding: 0,
-  },
-  timesheetItem: {
-    backgroundColor: "#f1f5f9",
-    marginBottom: "16px",
-    padding: "16px 20px",
-    borderRadius: "10px",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    lineHeight: "1.6",
-    fontSize: "15px",
-  },
-  timesheetLabel: {
-    fontWeight: 600,
-    marginRight: "6px",
-  },
-  tableWrapper: {
-    display: "flex",
-    justifyContent: "center",
-    marginTop: "20px",
-    borderRadius: "8px",
-    boxShadow: "0 2px 12px rgba(0, 0, 0, 0.05)",
-    backgroundColor: "#fff",
-    padding: "10px",
-    overflowX: "auto",
+    fontSize: "18px",
+    marginBottom: "8px",
+    marginTop: 0,
+    borderBottom: "1px solid #e5e7eb",
+    paddingBottom: "12px",
+    color: "#111827",
+    fontWeight: 700,
   },
   sectionDescription: {
     fontSize: "14px",
     color: "#6b7280",
     marginBottom: "20px",
-    textAlign: "left",
+    marginTop: "8px",
+    textAlign: "left" as const,
   },
   formsGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "20px",
-    marginTop: "20px",
+    gap: "16px",
+    marginTop: "16px",
   },
   formCard: {
     backgroundColor: "#f9fafb",
     padding: "20px",
     borderRadius: "12px",
     border: "1px solid #e5e7eb",
-    textAlign: "center",
+    textAlign: "center" as const,
   },
   formTitle: {
-    fontSize: "16px",
+    fontSize: "14px",
     fontWeight: 600,
-    marginBottom: "15px",
-    color: "#1f2937",
+    marginBottom: "14px",
+    marginTop: 0,
+    color: "#111827",
   },
   formUploaded: {
     display: "flex",
-    flexDirection: "column",
-    gap: "10px",
+    flexDirection: "column" as const,
+    gap: "8px",
     alignItems: "center",
   },
   formNotUploaded: {
     display: "flex",
-    flexDirection: "column",
-    gap: "10px",
+    flexDirection: "column" as const,
+    gap: "8px",
     alignItems: "center",
   },
   formStatus: {
-    color: "#10b981",
+    display: "inline-block",
+    padding: "3px 10px",
+    borderRadius: "20px",
+    fontSize: "12px",
     fontWeight: 600,
-    fontSize: "14px",
+    backgroundColor: "#ecfdf5",
+    color: "#059669",
+    border: "1px solid #a7f3d0",
   },
   formStatusRequired: {
-    color: "#f59e0b",
+    display: "inline-block",
+    padding: "3px 10px",
+    borderRadius: "20px",
+    fontSize: "12px",
     fontWeight: 600,
-    fontSize: "14px",
+    backgroundColor: "#fffbeb",
+    color: "#d97706",
+    border: "1px solid #fde68a",
   },
   viewLink: {
     color: "#4F46E5",
     textDecoration: "none",
-    fontSize: "14px",
-    fontWeight: 500,
+    fontSize: "13px",
+    fontWeight: 600,
   },
   downloadButton: {
-    backgroundColor: "#10b981",
-    color: "#fff",
-    padding: "8px 16px",
-    borderRadius: "6px",
-    border: "none",
-    fontSize: "14px",
-    fontWeight: 500,
+    backgroundColor: "#ecfdf5",
+    color: "#059669",
+    padding: "7px 14px",
+    borderRadius: "8px",
+    border: "1px solid #a7f3d0",
+    fontSize: "13px",
+    fontWeight: 600,
     cursor: "pointer",
-    transition: "background-color 0.3s ease",
+    transition: "background-color 0.2s ease",
     display: "inline-block",
-    marginTop: "8px",
-    marginBottom: "8px",
   },
   uploadButton: {
     backgroundColor: "#4F46E5",
     color: "#fff",
-    padding: "8px 16px",
-    borderRadius: "6px",
+    padding: "7px 14px",
+    borderRadius: "8px",
     border: "none",
-    fontSize: "14px",
-    fontWeight: 500,
+    fontSize: "13px",
+    fontWeight: 600,
     cursor: "pointer",
-    transition: "background-color 0.3s ease",
+    transition: "background-color 0.2s ease",
     display: "inline-block",
   },
-  uploadButtonHover: {
-    backgroundColor: "#4338ca",
-  },
   warningBanner: {
-    backgroundColor: "#fef3c7",
-    border: "2px solid #f59e0b",
-    borderRadius: "8px",
-    padding: "16px 20px",
-    marginBottom: "20px",
-    textAlign: "center",
+    backgroundColor: "#fffbeb",
+    border: "1px solid #fde68a",
+    borderRadius: "12px",
+    padding: "14px 20px",
+    marginBottom: "24px",
+    textAlign: "center" as const,
   },
   warningText: {
     color: "#92400e",
-    fontSize: "15px",
+    fontSize: "14px",
     margin: 0,
   },
   trainingsGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-    gap: "20px",
-    marginTop: "20px",
+    gap: "16px",
+    marginTop: "16px",
   },
   trainingCard: {
     backgroundColor: "#f9fafb",
     padding: "20px",
     borderRadius: "12px",
     border: "1px solid #e5e7eb",
-    textAlign: "center",
+    textAlign: "center" as const,
   },
   trainingTitle: {
-    fontSize: "15px",
+    fontSize: "14px",
     fontWeight: 600,
-    marginBottom: "15px",
-    color: "#1f2937",
+    marginBottom: "14px",
+    marginTop: 0,
+    color: "#111827",
     lineHeight: "1.4",
   },
   trainingUploaded: {
     display: "flex",
-    flexDirection: "column",
-    gap: "10px",
+    flexDirection: "column" as const,
+    gap: "8px",
     alignItems: "center",
   },
   trainingNotUploaded: {
     display: "flex",
-    flexDirection: "column",
-    gap: "10px",
+    flexDirection: "column" as const,
+    gap: "8px",
     alignItems: "center",
   },
   trainingStatus: {
-    color: "#10b981",
+    display: "inline-block",
+    padding: "3px 10px",
+    borderRadius: "20px",
+    fontSize: "12px",
     fontWeight: 600,
-    fontSize: "14px",
+    backgroundColor: "#ecfdf5",
+    color: "#059669",
+    border: "1px solid #a7f3d0",
   },
   trainingStatusPending: {
+    display: "inline-block",
+    padding: "3px 10px",
+    borderRadius: "20px",
+    fontSize: "12px",
+    fontWeight: 600,
+    backgroundColor: "#f3f4f6",
     color: "#6b7280",
-    fontWeight: 500,
-    fontSize: "14px",
+    border: "1px solid #d1d5db",
   },
 };
 

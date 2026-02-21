@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { API_BASE_URL } from "../utils/env";
 import axios from "axios";
+import { FaArrowLeft } from "react-icons/fa";
 
 
 const Login: React.FC = () => {
@@ -77,7 +78,8 @@ const Login: React.FC = () => {
             : "rgba(255, 255, 255, 0.3)",
         }}
       >
-        ← Back to Home
+        <FaArrowLeft style={{ marginRight: "8px", fontSize: "12px" }} />
+        Back
       </button>
       <div style={styles.overlay}>
         <h1 style={styles.title}>Welcome to the Driver Portal</h1>
@@ -123,9 +125,9 @@ const Login: React.FC = () => {
   );
 };
 
-const styles = {
+const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    position: "relative" as const,
+    position: "relative",
     height: "100vh",
     backgroundImage: `url('/fleet.avif')`,
     backgroundSize: "cover",
@@ -138,71 +140,93 @@ const styles = {
     fontFamily: "Inter, system-ui, sans-serif",
   },
   overlay: {
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
-    padding: "40px",
-    borderRadius: "10px",
-    textAlign: "center" as const,
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
+    backdropFilter: "blur(16px)",
+    padding: "44px 40px",
+    borderRadius: "16px",
+    textAlign: "center",
     color: "#fff",
-    maxWidth: "400px",
-    boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.5)",
+    maxWidth: "420px",
+    width: "100%",
+    border: "1px solid rgba(255, 255, 255, 0.12)",
+    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
   },
   title: {
-    fontSize: "2rem",
-    fontWeight: "bold",
-    marginBottom: "10px",
+    fontSize: "26px",
+    fontWeight: 700,
+    marginBottom: "8px",
+    marginTop: 0,
+    letterSpacing: "-0.3px",
+    lineHeight: "1.2",
   },
   description: {
-    fontSize: "1.2rem",
-    marginBottom: "20px",
+    fontSize: "15px",
+    marginBottom: "28px",
+    color: "rgba(255, 255, 255, 0.75)",
+    fontWeight: 400,
+    lineHeight: "1.5",
   },
   form: {
     display: "flex",
-    flexDirection: "column" as const,
-    gap: "10px",
+    flexDirection: "column",
+    gap: "12px",
   },
   input: {
     width: "92%",
-    padding: "12px 14px",
-    border: "1px solid #D1D5DB",
-    borderRadius: "5px",
-    fontSize: "16px",
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    backgroundColor: "#fff",
-    color: "#111827",
+    padding: "11px 14px",
+    border: "1px solid rgba(255, 255, 255, 0.2)",
+    borderRadius: "8px",
+    fontSize: "14px",
+    fontFamily: "Inter, system-ui, sans-serif",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    color: "#fff",
+    outline: "none",
+    transition: "border-color 0.2s",
   },
   select: {
     width: "100%",
-    padding: "12px 14px",
-    border: "1px solid #D1D5DB",
-    borderRadius: "5px",
-    fontSize: "16px",
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-    backgroundColor: "#fff",
-    color: "#111827",
+    padding: "11px 14px",
+    border: "1px solid rgba(255, 255, 255, 0.2)",
+    borderRadius: "8px",
+    fontSize: "14px",
+    fontFamily: "Inter, system-ui, sans-serif",
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    color: "#fff",
+    outline: "none",
   },
   button: {
     padding: "12px",
     backgroundColor: "#4F46E5",
     color: "#fff",
     border: "none",
-    borderRadius: "5px",
+    borderRadius: "10px",
     cursor: "pointer",
-    fontSize: "18px",
-    transition: "background 0.3s ease",
+    fontSize: "15px",
+    fontWeight: 600,
+    transition: "background 0.2s ease",
+    boxShadow: "0 4px 14px rgba(79, 70, 229, 0.4)",
+    marginTop: "4px",
+    letterSpacing: "0.2px",
   },
   backButton: {
-    position: "absolute" as const,
+    position: "absolute",
     top: "20px",
     left: "20px",
-    padding: "10px 16px",
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    padding: "8px 18px",
+    backgroundColor: "rgba(255, 255, 255, 0.12)",
     color: "#fff",
-    border: "1px solid rgba(255, 255, 255, 0.3)",
-    borderRadius: "5px",
+    border: "1px solid rgba(255, 255, 255, 0.2)",
+    borderRadius: "20px",
     cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: 500,
-    transition: "all 0.3s ease",
+    fontSize: "13px",
+    fontWeight: 600,
+    fontFamily: "Inter, system-ui, sans-serif",
+    letterSpacing: "0.3px",
+    transition: "all 0.2s ease",
+    display: "flex",
+    alignItems: "center",
+    backdropFilter: "blur(8px)",
+    zIndex: 1000,
   },
 };
 

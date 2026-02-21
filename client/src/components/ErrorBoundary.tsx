@@ -25,9 +25,9 @@ class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: "40px", textAlign: "center" }}>
-          <h1>Something went wrong.</h1>
-          <p>{this.state.error?.message}</p>
+        <div style={{ padding: "60px 20px", textAlign: "center", fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#f4f6f8", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#111827", marginBottom: "8px" }}>Something went wrong.</h1>
+          <p style={{ fontSize: "14px", color: "#6b7280" }}>{this.state.error?.message}</p>
         </div>
       );
     }

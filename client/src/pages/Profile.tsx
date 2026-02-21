@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import { useEffect } from "react";
 import axios from "axios";
@@ -7,7 +7,6 @@ import { API_BASE_URL } from "../utils/env";
 
 const Profile: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const driver = location.state?.driver;
   const [timesheets, setTimesheets] = useState<any[]>([]);
 
@@ -69,78 +68,124 @@ const Profile: React.FC = () => {
           </div>
         </div>
 
-        {/* Grouped Sections in Flex Layout */}
+        {/* Sections — full-width single column */}
         <div style={styles.sectionsWrapper}>
-          <div style={styles.leftColumn}>
-            {/* Driver Details */}
-            <div style={styles.driverDetails}>
+          {/* Driver Details + License in a two-column grid */}
+          <div style={styles.twoColRow}>
+            <div style={styles.sectionCard}>
               <h3 style={styles.sectionTitle}>🚗 Driver Details</h3>
-              <p>
-                <strong>Email:</strong> {driver.email}
-              </p>
-              <p>
-                <strong>Username:</strong> {driver.username || "N/A"}
-              </p>
-              <p>
-                <strong>Contact:</strong> {driver.contact}
-              </p>
-              <p>
-                <strong>HST/GST:</strong> {driver.hst_gst || "N/A"}
-              </p>
-              <p>
-                <strong>Business Name:</strong> {driver.business_name || "N/A"}
-              </p>
-              <p>
-                <strong>Backhaul Rate:</strong> ${driver.backhaulRate || "N/A"}
-              </p>
-              <p>
-                <strong>Combo Rate:</strong> ${driver.comboRate || "N/A"}
-              </p>
-              <p>
-                <strong>Extra Sheet/E.W Rate:</strong> $
-                {driver.extraSheetEWRate || "N/A"}
-              </p>
-              <p>
-                <strong>Regular/Banner Rate:</strong> $
-                {driver.regularBannerRate || "N/A"}
-              </p>
-              <p>
-                <strong>Wholesale Rate:</strong> ${driver.wholesaleRate || "N/A"}
-              </p>
-              <p>
-                <strong>Voila Rate:</strong> ${driver.voilaRate || "N/A"}
-              </p>
-              <p>
-                <strong>TCS Linehaul Trenton Rate:</strong> ${driver.tcsLinehaulTrentonRate || "N/A"}
-              </p>
+              <div style={styles.fieldGrid}>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Email</span>
+                  <span style={styles.fieldValue}>{driver.email}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Username</span>
+                  <span style={styles.fieldValue}>{driver.username || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Contact</span>
+                  <span style={styles.fieldValue}>{driver.contact}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>HST/GST</span>
+                  <span style={styles.fieldValue}>{driver.hst_gst || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Business Name</span>
+                  <span style={styles.fieldValue}>{driver.business_name || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Backhaul Rate</span>
+                  <span style={styles.fieldValue}>${driver.backhaulRate || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Combo Rate</span>
+                  <span style={styles.fieldValue}>${driver.comboRate || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Extra Sheet/E.W Rate</span>
+                  <span style={styles.fieldValue}>${driver.extraSheetEWRate || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Regular/Banner Rate</span>
+                  <span style={styles.fieldValue}>${driver.regularBannerRate || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Wholesale Rate</span>
+                  <span style={styles.fieldValue}>${driver.wholesaleRate || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Voila Rate</span>
+                  <span style={styles.fieldValue}>${driver.voilaRate || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>TCS Linehaul Trenton Rate</span>
+                  <span style={styles.fieldValue}>${driver.tcsLinehaulTrentonRate || "N/A"}</span>
+                </div>
+              </div>
             </div>
-            {/* Status */}
-            <div style={styles.statusSection}>
-              <h3 style={styles.sectionTitle}>📌 Status</h3>
-              <p>
-                <strong>Current Status:</strong> {driver.status || "N/A"}
-              </p>
-              <p>
-                <strong>Work Status:</strong> {driver.workStatus || "N/A"}
-              </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <div style={styles.sectionCard}>
+                <h3 style={styles.sectionTitle}>🚘 License Details</h3>
+                <div style={styles.fieldGrid}>
+                  <div style={styles.fieldItem}>
+                    <span style={styles.fieldLabel}>Licence No.</span>
+                    <span style={styles.fieldValue}>{driver.licence || "N/A"}</span>
+                  </div>
+                  <div style={styles.fieldItem}>
+                    <span style={styles.fieldLabel}>Licence Expiry Date</span>
+                    <span style={styles.fieldValue}>{driver.licence_expiry_date ? new Date(driver.licence_expiry_date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={styles.sectionCard}>
+                <h3 style={styles.sectionTitle}>📌 Status</h3>
+                <div style={styles.fieldGrid}>
+                  <div style={styles.fieldItem}>
+                    <span style={styles.fieldLabel}>Current Status</span>
+                    <span style={styles.fieldValue}>{driver.status || "N/A"}</span>
+                  </div>
+                  <div style={styles.fieldItem}>
+                    <span style={styles.fieldLabel}>Work Status</span>
+                    <span style={styles.fieldValue}>{driver.workStatus || "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={styles.sectionCard}>
+                <h3 style={styles.sectionTitle}>💳 Direct Deposit Details</h3>
+                {driver.bankDetails ? (
+                  <div style={styles.fieldGrid}>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>Bank Name</span>
+                      <span style={styles.fieldValue}>{driver.bankDetails.bankName || "N/A"}</span>
+                    </div>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>Account Number</span>
+                      <span style={styles.fieldValue}>{driver.bankDetails.accountNumber || "N/A"}</span>
+                    </div>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>Transit Number</span>
+                      <span style={styles.fieldValue}>{driver.bankDetails.transitNumber || "N/A"}</span>
+                    </div>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>Institution Number</span>
+                      <span style={styles.fieldValue}>{driver.bankDetails.institutionNumber || "N/A"}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p style={{ color: "#6b7280", fontSize: "14px" }}>No Direct Deposit details available.</p>
+                )}
+              </div>
             </div>
-            {/* Direct Deposit Details */}
-            <div style={styles.statusSection}>
-              <h3 style={styles.sectionTitle}>💳 Direct Deposit Details</h3>
-              {driver.bankDetails ? (
-                <>
-                  <p><strong>Bank Name:</strong> {driver.bankDetails.bankName || "N/A"}</p>
-                  <p><strong>Account Number:</strong> {driver.bankDetails.accountNumber || "N/A"}</p>
-                  <p><strong>Transit Number:</strong> {driver.bankDetails.transitNumber || "N/A"}</p>
-                  <p><strong>Institution Number:</strong> {driver.bankDetails.institutionNumber || "N/A"}</p>
-                </>
-              ) : (
-                <p>No Direct Deposit details available.</p>
-              )}
-            </div>
-            {/* Required Documents Section */}
-            <div style={styles.statusSection}>
-              <h3 style={styles.sectionTitle}>📄 Required Documents</h3>
+          </div>
+
+          {/* Required Documents — full width */}
+          <div style={styles.sectionCard}>
+            <h3 style={styles.sectionTitle}>📄 Required Documents</h3>
               <div style={styles.documentsChecklist}>
                 <div style={styles.checklistItem}>
                   <span style={{
@@ -268,22 +313,10 @@ const Profile: React.FC = () => {
                 </p>
               )}
             </div>
-          </div>
-          <div style={styles.rightColumn}>
-            {/* License Details */}
-            <div style={styles.licenseSection}>
-              <h3 style={styles.sectionTitle}>🚘 License Details</h3>
-              <p>
-                <strong>Licence No.:</strong> {driver.licence || "N/A"}
-              </p>
-              <p>
-                <strong>Licence Expiry Date:</strong>{" "}
-                {driver.licence_expiry_date || "N/A"}
-              </p>
-            </div>
-            {/* Trainings Section */}
-            <div style={styles.trainingsSection}>
-              <h3 style={styles.sectionTitle}>📚 Trainings</h3>
+
+          {/* Trainings — full width */}
+          <div style={styles.sectionCard}>
+            <h3 style={styles.sectionTitle}>📚 Trainings</h3>
               <div style={styles.trainingsTracker}>
                 {(() => {
                   // List of all available trainings
@@ -372,9 +405,8 @@ const Profile: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
 
-        <div style={styles.timesheetsSection}>
+        <div style={styles.sectionCard}>
           <h3 style={styles.sectionTitle}>📚 Timesheets</h3>
           {timesheets.length === 0 ? (
             <p>No timesheets available for this driver.</p>
@@ -488,10 +520,6 @@ const Profile: React.FC = () => {
           )}
         </div>
 
-        {/* Go Back Button */}
-        <button style={styles.button} onClick={() => navigate(-1)}>
-          ⬅ Go Back
-        </button>
       </div>
 
     </div>
@@ -501,117 +529,113 @@ const Profile: React.FC = () => {
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     maxWidth: "100%",
-    margin: "60px auto",
-    padding: "20px",
-    backgroundColor: "#fff",
-    borderRadius: "10px",
-    boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
-    fontFamily: "'Arial', sans-serif",
+    margin: "0 auto",
+    padding: "30px 40px",
+    backgroundColor: "#f4f6f8",
+    fontFamily: "Inter, system-ui, sans-serif",
+    minHeight: "100vh",
   },
   sectionsWrapper: {
     display: "flex",
-    gap: "20px",
-    marginBottom: "20px",
-    flexWrap: "wrap",
-  },
-  leftColumn: {
-    flex: 1,
-    minWidth: "300px",
-    display: "flex",
     flexDirection: "column",
     gap: "20px",
+    marginBottom: "24px",
   },
-  rightColumn: {
-    flex: 1,
-    minWidth: "300px",
+  twoColRow: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "20px",
+  },
+  sectionCard: {
+    backgroundColor: "#ffffff",
+    padding: "24px",
+    borderRadius: "12px",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+  },
+  fieldGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: "20px",
+    marginTop: "16px",
+  },
+  fieldItem: {
     display: "flex",
     flexDirection: "column",
-    gap: "20px",
+    gap: "4px",
+  },
+  fieldLabel: {
+    fontSize: "12px",
+    fontWeight: 600,
+    color: "#6b7280",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
+  },
+  fieldValue: {
+    fontSize: "15px",
+    fontWeight: 500,
+    color: "#111827",
   },
   profileHeader: {
     display: "flex",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingBottom: "15px",
-    marginBottom: "20px",
-    borderBottom: "2px solid #ddd",
+    gap: "24px",
+    padding: "24px",
+    marginBottom: "24px",
+    backgroundColor: "#ffffff",
+    borderRadius: "12px",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
   },
   leftSection: {
     display: "flex",
     alignItems: "center",
   },
   profileImage: {
-    width: "120px",
-    height: "120px",
+    width: "90px",
+    height: "90px",
     borderRadius: "50%",
-    border: "3px solid #007bff",
-    marginRight: "20px",
+    border: "3px solid #4F46E5",
+    marginRight: "24px",
+    objectFit: "cover",
   },
   initialsContainer: {
-    width: "120px",
-    height: "120px",
+    width: "90px",
+    height: "90px",
     borderRadius: "50%",
     color: "white",
-    fontSize: "36px",
+    fontSize: "32px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontWeight: "bold",
-    marginRight: "20px",
-    backgroundColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
+    marginRight: "24px",
+    backgroundColor: "#4F46E5",
   },
   driverInfo: {
     textAlign: "left" as const,
   },
   driverName: {
-    fontSize: "24px",
-    fontWeight: "bold",
-    marginBottom: "5px",
+    fontSize: "22px",
+    fontWeight: 700,
+    marginBottom: "4px",
+    color: "#111827",
   },
   driverRole: {
     fontSize: "14px",
-    color: "#777",
+    color: "#6b7280",
+    marginBottom: "2px",
   },
   driverLocation: {
     fontSize: "14px",
-    color: "#555",
-  },
-  driverDetails: {
-    marginBottom: "20px",
-    padding: "15px",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "5px",
-  },
-  licenseSection: {
-    marginBottom: "20px",
-    padding: "15px",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "5px",
-  },
-  statusSection: {
-    backgroundColor: "#f9fafb",
-    padding: "20px",
-    borderRadius: "10px",
-    marginBottom: "20px",
-    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
-  },
-  timesheetsSection: {
-    marginBottom: "20px",
-    padding: "15px",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "5px",
-  },
-  trainingsSection: {
-    marginBottom: "20px",
-    padding: "15px",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "5px",
+    color: "#9ca3af",
   },
   sectionTitle: {
-    fontSize: "20px",
-    fontWeight: "bold",
-    marginBottom: "10px",
-    color: "#2d3748",
+    fontSize: "18px",
+    fontWeight: 700,
+    marginBottom: "4px",
+    marginTop: 0,
+    color: "#1f2937",
   },
   seeAllButton: {
     marginTop: "10px",
@@ -623,14 +647,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: "pointer",
   },
   button: {
-    padding: "12px 20px",
-    backgroundColor: "#007bff",
+    padding: "10px 20px",
+    backgroundColor: "#4F46E5",
     color: "#fff",
     border: "none",
-    borderRadius: "6px",
+    borderRadius: "8px",
     cursor: "pointer",
-    fontSize: "16px",
-    marginTop: "20px",
+    fontSize: "14px",
+    fontWeight: 600,
+    marginTop: "8px",
   },
   modalOverlay: {
     position: "fixed",

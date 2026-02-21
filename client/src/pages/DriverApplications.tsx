@@ -38,6 +38,8 @@ const DriverApplications: React.FC = () => {
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
   const [adminNotes, setAdminNotes] = useState("");
   const [approvalResult, setApprovalResult] = useState<{ username: string; password: string } | null>(null);
+  const [previewFile, setPreviewFile] = useState<{ url: string; title: string } | null>(null);
+  const [previewError, setPreviewError] = useState(false);
 
   const fetchApplications = async () => {
     try {
@@ -264,135 +266,106 @@ const DriverApplications: React.FC = () => {
           <div style={styles.modalOverlay} onClick={() => setIsViewModalOpen(false)}>
             <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
               <div style={styles.modalHeader}>
-                <h2>Application Details</h2>
-                <button style={styles.closeButton} onClick={() => setIsViewModalOpen(false)}>
-                  ×
-                </button>
+                <div>
+                  <h2 style={styles.modalTitle}>Application Details</h2>
+                  <p style={styles.modalSubtitle}>{selectedApplication.name} — {formatDate(selectedApplication.createdAt)}</p>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <span style={{ ...styles.statusBadge, backgroundColor: getStatusColor(selectedApplication.status) }}>
+                    {selectedApplication.status}
+                  </span>
+                  <button style={styles.closeButton} onClick={() => setIsViewModalOpen(false)}>×</button>
+                </div>
               </div>
               <div style={styles.modalBody}>
-                <div style={styles.detailSection}>
-                  <h3>Personal Information</h3>
-                  <div style={styles.detailRow}>
-                    <strong>Name:</strong> {selectedApplication.name}
-                  </div>
-                  <div style={styles.detailRow}>
-                    <strong>Email:</strong> {selectedApplication.email}
-                  </div>
-                  <div style={styles.detailRow}>
-                    <strong>Phone:</strong> {selectedApplication.phone}
-                  </div>
-                  <div style={styles.detailRow}>
-                    <strong>Address:</strong> {selectedApplication.address}
-                  </div>
-                  <div style={styles.detailRow}>
-                    <strong>SIN Number:</strong> {selectedApplication.sinNo}
-                  </div>
-                </div>
-
-                <div style={styles.detailSection}>
-                  <h3>License Information</h3>
-                  <div style={styles.detailRow}>
-                    <strong>License Class:</strong> {selectedApplication.licenseClass}
-                  </div>
-                  <div style={styles.detailRow}>
-                    <strong>Expiry Date:</strong> {formatDate(selectedApplication.licenseExpiryDate)}
-                  </div>
-                  <div style={styles.detailRow}>
-                    <strong>Experience:</strong> {selectedApplication.truckingExperienceYears} years,{" "}
-                    {selectedApplication.truckingExperienceMonths} months
-                  </div>
-                  {selectedApplication.preferredStartLocation && (
-                    <div style={styles.detailRow}>
-                      <strong>Preferred Start Location:</strong> {selectedApplication.preferredStartLocation}
+                <div style={styles.detailCard}>
+                  <h3 style={styles.detailCardTitle}>Personal Information</h3>
+                  <div style={styles.fieldGrid}>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>Name</span>
+                      <span style={styles.fieldValue}>{selectedApplication.name}</span>
                     </div>
-                  )}
-                  <div style={styles.fileLinks}>
-                    <a
-                      href={getFileUrl(selectedApplication.licenseFront)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={styles.fileLink}
-                    >
-                      View License Front
-                    </a>
-                    <a
-                      href={getFileUrl(selectedApplication.licenseBack)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={styles.fileLink}
-                    >
-                      View License Back
-                    </a>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>Email</span>
+                      <span style={styles.fieldValue}>{selectedApplication.email}</span>
+                    </div>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>Phone</span>
+                      <span style={styles.fieldValue}>{selectedApplication.phone}</span>
+                    </div>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>Address</span>
+                      <span style={styles.fieldValue}>{selectedApplication.address}</span>
+                    </div>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>SIN Number</span>
+                      <span style={styles.fieldValue}>{selectedApplication.sinNo}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div style={styles.detailSection}>
-                  <h3>Documents</h3>
-                  <div style={styles.fileLinks}>
-                    <a
-                      href={getFileUrl(selectedApplication.applicationForm)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={styles.fileLink}
-                    >
-                      View Application Form
-                    </a>
+                <div style={styles.detailCard}>
+                  <h3 style={styles.detailCardTitle}>License & Experience</h3>
+                  <div style={styles.fieldGrid}>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>License Class</span>
+                      <span style={styles.fieldValue}>{selectedApplication.licenseClass}</span>
+                    </div>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>Expiry Date</span>
+                      <span style={styles.fieldValue}>{formatDate(selectedApplication.licenseExpiryDate)}</span>
+                    </div>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>Experience</span>
+                      <span style={styles.fieldValue}>{selectedApplication.truckingExperienceYears}y {selectedApplication.truckingExperienceMonths}m</span>
+                    </div>
+                    {selectedApplication.preferredStartLocation && (
+                      <div style={styles.fieldItem}>
+                        <span style={styles.fieldLabel}>Preferred Location</span>
+                        <span style={styles.fieldValue}>{selectedApplication.preferredStartLocation}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div style={styles.fileLinkRow}>
+                    <button onClick={() => { setPreviewError(false); setPreviewFile({ url: getFileUrl(selectedApplication.licenseFront), title: "License Front" }); }} style={styles.fileLinkButton}>
+                      📄 License Front
+                    </button>
+                    <button onClick={() => { setPreviewError(false); setPreviewFile({ url: getFileUrl(selectedApplication.licenseBack), title: "License Back" }); }} style={styles.fileLinkButton}>
+                      📄 License Back
+                    </button>
+                  </div>
+                </div>
+
+                <div style={styles.detailCard}>
+                  <h3 style={styles.detailCardTitle}>Documents</h3>
+                  <div style={styles.fileLinkRow}>
+                    <button onClick={() => { setPreviewError(false); setPreviewFile({ url: getFileUrl(selectedApplication.applicationForm), title: "Application Form" }); }} style={styles.fileLinkButton}>
+                      📄 Application Form
+                    </button>
                     {selectedApplication.pceConsentForm && (
-                      <a
-                        href={getFileUrl(selectedApplication.pceConsentForm)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={styles.fileLink}
-                      >
-                        View PCE Consent Form
-                      </a>
+                      <button onClick={() => { setPreviewError(false); setPreviewFile({ url: getFileUrl(selectedApplication.pceConsentForm!), title: "PCE Consent Form" }); }} style={styles.fileLinkButton}>
+                        📄 PCE Consent Form
+                      </button>
                     )}
                     {selectedApplication.cvor && (
-                      <a
-                        href={getFileUrl(selectedApplication.cvor)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={styles.fileLink}
-                      >
-                        View CVOR
-                      </a>
+                      <button onClick={() => { setPreviewError(false); setPreviewFile({ url: getFileUrl(selectedApplication.cvor!), title: "CVOR" }); }} style={styles.fileLinkButton}>
+                        📄 CVOR
+                      </button>
                     )}
                     {selectedApplication.driversAbstract && (
-                      <a
-                        href={getFileUrl(selectedApplication.driversAbstract)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={styles.fileLink}
-                      >
-                        View Driver's Abstract
-                      </a>
+                      <button onClick={() => { setPreviewError(false); setPreviewFile({ url: getFileUrl(selectedApplication.driversAbstract!), title: "Driver's Abstract" }); }} style={styles.fileLinkButton}>
+                        📄 Driver's Abstract
+                      </button>
                     )}
                   </div>
                 </div>
 
                 {selectedApplication.adminNotes && (
-                  <div style={styles.detailSection}>
-                    <h3>Admin Notes</h3>
-                    <div style={styles.detailRow}>{selectedApplication.adminNotes}</div>
+                  <div style={styles.detailCard}>
+                    <h3 style={styles.detailCardTitle}>Admin Notes</h3>
+                    <p style={styles.notesText}>{selectedApplication.adminNotes}</p>
                   </div>
                 )}
-
-                <div style={styles.detailSection}>
-                  <div style={styles.detailRow}>
-                    <strong>Status:</strong>{" "}
-                    <span
-                      style={{
-                        ...styles.statusBadge,
-                        backgroundColor: getStatusColor(selectedApplication.status),
-                      }}
-                    >
-                      {selectedApplication.status}
-                    </span>
-                  </div>
-                  <div style={styles.detailRow}>
-                    <strong>Submitted:</strong> {formatDate(selectedApplication.createdAt)}
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -478,6 +451,54 @@ const DriverApplications: React.FC = () => {
             </div>
           </div>
         )}
+        {/* File Preview Modal */}
+        {previewFile && (
+          <div style={styles.previewOverlay} onClick={() => setPreviewFile(null)}>
+            <div style={styles.previewContainer} onClick={(e) => e.stopPropagation()}>
+              <div style={styles.previewHeader}>
+                <h2 style={styles.previewTitle}>{previewFile.title}</h2>
+                <button style={styles.closeButton} onClick={() => setPreviewFile(null)}>
+                  ×
+                </button>
+              </div>
+              <div style={styles.previewBody}>
+                {previewError ? (
+                  <div style={styles.previewErrorContainer}>
+                    <div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
+                    <p style={{ fontSize: "16px", fontWeight: 600, color: "#374151", marginBottom: "8px" }}>
+                      Unable to load file
+                    </p>
+                    <p style={{ fontSize: "14px", color: "#6b7280", marginBottom: "20px" }}>
+                      The file could not be found or is unavailable.
+                    </p>
+                    <a
+                      href={previewFile.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.downloadLink}
+                    >
+                      Try opening in new tab ↗
+                    </a>
+                  </div>
+                ) : previewFile.url.match(/\.(pdf)$/i) ? (
+                  <iframe
+                    src={previewFile.url}
+                    style={styles.previewIframe}
+                    title={previewFile.title}
+                    onError={() => setPreviewError(true)}
+                  />
+                ) : (
+                  <img
+                    src={previewFile.url}
+                    alt={previewFile.title}
+                    style={styles.previewImage}
+                    onError={() => setPreviewError(true)}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -486,41 +507,50 @@ const DriverApplications: React.FC = () => {
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     fontFamily: "Inter, system-ui, sans-serif",
-    padding: "40px 20px",
+    padding: "30px 40px",
     backgroundColor: "#f4f6f8",
     minHeight: "100vh",
   },
   title: {
-    fontSize: "28px",
-    fontWeight: "bold",
-    color: "#2c3e50",
-    marginBottom: "20px",
+    fontSize: "26px",
+    fontWeight: 700,
+    color: "#111827",
+    marginBottom: "24px",
+    textAlign: "center",
   },
   filterBar: {
     marginBottom: "20px",
+    display: "flex",
+    justifyContent: "flex-end",
   },
   filterSelect: {
-    padding: "10px 15px",
-    fontSize: "16px",
-    borderRadius: "6px",
-    border: "1px solid #cbd5e0",
+    padding: "8px 14px",
+    fontSize: "13px",
+    borderRadius: "8px",
+    border: "1px solid #d1d5db",
     backgroundColor: "#fff",
+    color: "#374151",
     cursor: "pointer",
+    fontWeight: 500,
+    outline: "none",
   },
   loading: {
     textAlign: "center",
-    padding: "40px",
-    color: "#6b7280",
+    padding: "60px 40px",
+    color: "#9ca3af",
+    fontSize: "15px",
   },
   noData: {
     textAlign: "center",
-    padding: "40px",
-    color: "#6b7280",
+    padding: "60px 40px",
+    color: "#9ca3af",
+    fontSize: "15px",
   },
   tableWrapper: {
     backgroundColor: "#fff",
-    borderRadius: "8px",
-    boxShadow: "0 2px 12px rgba(0, 0, 0, 0.05)",
+    borderRadius: "12px",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
     overflowX: "auto",
   },
   table: {
@@ -528,56 +558,60 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderCollapse: "collapse",
   },
   th: {
-    padding: "14px 16px",
-    fontSize: "13px",
-    fontWeight: 600,
+    padding: "14px 18px",
+    fontSize: "12px",
+    fontWeight: 700,
     textAlign: "left",
-    backgroundColor: "#f3f4f6",
-    color: "#1f2937",
-    borderBottom: "1px solid #e2e8f0",
+    backgroundColor: "#f9fafb",
+    color: "#6b7280",
+    borderBottom: "1px solid #e5e7eb",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
   },
   tr: {
-    borderBottom: "1px solid #e2e8f0",
+    borderBottom: "1px solid #f3f4f6",
+    transition: "background-color 0.15s",
   },
   td: {
-    padding: "12px 16px",
+    padding: "14px 18px",
     fontSize: "14px",
     color: "#374151",
   },
   statusBadge: {
     padding: "4px 12px",
-    borderRadius: "12px",
+    borderRadius: "20px",
     color: "#fff",
     fontSize: "12px",
     fontWeight: 600,
     display: "inline-block",
+    letterSpacing: "0.3px",
   },
   actionButtons: {
     display: "flex",
-    gap: "8px",
+    gap: "6px",
   },
   actionButton: {
-    padding: "8px 12px",
-    borderRadius: "6px",
+    padding: "7px 10px",
+    borderRadius: "8px",
     border: "none",
     cursor: "pointer",
-    fontSize: "14px",
+    fontSize: "13px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    transition: "all 0.2s",
+    transition: "opacity 0.2s",
   },
   viewButton: {
-    backgroundColor: "#3b82f6",
-    color: "#fff",
+    backgroundColor: "#eef2ff",
+    color: "#4F46E5",
   },
   approveButton: {
-    backgroundColor: "#10b981",
-    color: "#fff",
+    backgroundColor: "#ecfdf5",
+    color: "#059669",
   },
   rejectButton: {
-    backgroundColor: "#ef4444",
-    color: "#fff",
+    backgroundColor: "#fef2f2",
+    color: "#dc2626",
   },
   modalOverlay: {
     position: "fixed",
@@ -591,59 +625,116 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: "center",
     zIndex: 1000,
     padding: "20px",
+    backdropFilter: "blur(4px)",
   },
   modalContent: {
     backgroundColor: "#fff",
-    borderRadius: "12px",
-    maxWidth: "700px",
+    borderRadius: "16px",
+    maxWidth: "720px",
     width: "100%",
     maxHeight: "90vh",
     overflowY: "auto",
-    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.3)",
+    boxShadow: "0 24px 48px rgba(0, 0, 0, 0.16)",
   },
   modalHeader: {
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
-    padding: "20px 24px",
-    borderBottom: "1px solid #e2e8f0",
+    alignItems: "flex-start",
+    padding: "24px 28px 20px",
+    borderBottom: "1px solid #e5e7eb",
+  },
+  modalTitle: {
+    fontSize: "20px",
+    fontWeight: 700,
+    color: "#111827",
+    margin: 0,
+  },
+  modalSubtitle: {
+    fontSize: "13px",
+    color: "#9ca3af",
+    margin: "4px 0 0 0",
   },
   closeButton: {
     background: "none",
     border: "none",
-    fontSize: "28px",
+    fontSize: "24px",
     cursor: "pointer",
-    color: "#6b7280",
+    color: "#9ca3af",
     padding: 0,
     width: "32px",
     height: "32px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    borderRadius: "8px",
+    transition: "color 0.2s",
+    flexShrink: 0,
   },
   modalBody: {
-    padding: "24px",
-  },
-  detailSection: {
-    marginBottom: "24px",
-  },
-  detailRow: {
-    marginBottom: "12px",
-    fontSize: "14px",
-    color: "#374151",
-    lineHeight: "1.6",
-  },
-  fileLinks: {
+    padding: "24px 28px",
     display: "flex",
     flexDirection: "column",
-    gap: "8px",
-    marginTop: "12px",
+    gap: "20px",
   },
-  fileLink: {
-    color: "#3b82f6",
-    textDecoration: "underline",
+  detailCard: {
+    backgroundColor: "#f9fafb",
+    borderRadius: "12px",
+    padding: "20px",
+    border: "1px solid #f3f4f6",
+  },
+  detailCardTitle: {
     fontSize: "14px",
+    fontWeight: 700,
+    color: "#374151",
+    margin: "0 0 16px 0",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
+  },
+  fieldGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "16px",
+  },
+  fieldItem: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "3px",
+  },
+  fieldLabel: {
+    fontSize: "11px",
+    fontWeight: 600,
+    color: "#9ca3af",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
+  },
+  fieldValue: {
+    fontSize: "14px",
+    fontWeight: 500,
+    color: "#111827",
+  },
+  fileLinkRow: {
+    display: "flex",
+    flexWrap: "wrap",
+    gap: "8px",
+    marginTop: "16px",
+  },
+  fileLinkButton: {
+    padding: "6px 14px",
+    fontSize: "13px",
+    fontWeight: 500,
+    color: "#4F46E5",
+    backgroundColor: "#eef2ff",
+    border: "1px solid #c7d2fe",
+    borderRadius: "8px",
     cursor: "pointer",
+    fontFamily: "inherit",
+    transition: "background-color 0.2s",
+  },
+  notesText: {
+    fontSize: "14px",
+    color: "#374151",
+    lineHeight: 1.7,
+    margin: 0,
   },
   formGroup: {
     marginBottom: "20px",
@@ -651,7 +742,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   label: {
     display: "block",
     marginBottom: "8px",
-    fontSize: "14px",
+    fontSize: "13px",
     fontWeight: 600,
     color: "#374151",
   },
@@ -659,11 +750,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: "100%",
     padding: "12px",
     fontSize: "14px",
-    borderRadius: "6px",
-    border: "1px solid #cbd5e0",
+    borderRadius: "8px",
+    border: "1px solid #d1d5db",
     minHeight: "100px",
     resize: "vertical",
     fontFamily: "inherit",
+    outline: "none",
+    boxSizing: "border-box",
   },
   modalActions: {
     display: "flex",
@@ -673,8 +766,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   cancelButton: {
     padding: "10px 20px",
-    borderRadius: "6px",
-    border: "1px solid #cbd5e0",
+    borderRadius: "8px",
+    border: "1px solid #d1d5db",
     backgroundColor: "#fff",
     color: "#374151",
     cursor: "pointer",
@@ -683,7 +776,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   confirmButton: {
     padding: "10px 20px",
-    borderRadius: "6px",
+    borderRadius: "8px",
     border: "none",
     backgroundColor: "#4F46E5",
     color: "#fff",
@@ -695,16 +788,100 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: "center",
   },
   credentials: {
-    backgroundColor: "#f3f4f6",
-    padding: "16px",
-    borderRadius: "8px",
+    backgroundColor: "#f0fdf4",
+    padding: "16px 20px",
+    borderRadius: "10px",
     margin: "16px 0",
     fontSize: "14px",
+    border: "1px solid #bbf7d0",
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
   },
   warning: {
-    color: "#f59e0b",
+    color: "#b45309",
     fontSize: "13px",
     marginTop: "16px",
+    backgroundColor: "#fef3c7",
+    padding: "10px 14px",
+    borderRadius: "8px",
+  },
+  previewOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 2000,
+    padding: "20px",
+    backdropFilter: "blur(4px)",
+  },
+  previewContainer: {
+    backgroundColor: "#fff",
+    borderRadius: "16px",
+    maxWidth: "90vw",
+    maxHeight: "90vh",
+    width: "auto",
+    display: "flex",
+    flexDirection: "column",
+    boxShadow: "0 24px 48px rgba(0, 0, 0, 0.4)",
+    overflow: "hidden",
+  },
+  previewHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "16px 24px",
+    borderBottom: "1px solid #e5e7eb",
+    flexShrink: 0,
+  },
+  previewTitle: {
+    fontSize: "18px",
+    fontWeight: 600,
+    color: "#1f2937",
+    margin: 0,
+  },
+  previewBody: {
+    padding: "16px",
+    overflow: "auto",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    maxHeight: "calc(90vh - 70px)",
+  },
+  previewImage: {
+    maxWidth: "100%",
+    maxHeight: "calc(90vh - 110px)",
+    objectFit: "contain" as const,
+    borderRadius: "4px",
+  },
+  previewIframe: {
+    width: "80vw",
+    height: "calc(90vh - 110px)",
+    border: "none",
+    borderRadius: "4px",
+  },
+  previewErrorContainer: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "60px 40px",
+    textAlign: "center",
+  },
+  downloadLink: {
+    color: "#4F46E5",
+    textDecoration: "none",
+    fontSize: "14px",
+    fontWeight: 600,
+    cursor: "pointer",
+    padding: "8px 16px",
+    backgroundColor: "#eef2ff",
+    borderRadius: "8px",
   },
 };
 
