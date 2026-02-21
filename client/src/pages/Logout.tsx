@@ -13,20 +13,20 @@ const Logout: React.FC = () => {
 
   return (
     <div style={styles.container}>
-      <h2>Logging out...</h2>
+      <h2 style={{ fontSize: "18px", fontWeight: 500, margin: 0 }}>Logging out...</h2>
     </div>
   );
 };
 
-// Define Styles
-const styles = {
+const styles: { [key: string]: React.CSSProperties } = {
   container: {
     height: "100vh",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontSize: "1.5rem",
-    color: "#555",
+    fontFamily: "Inter, system-ui, sans-serif",
+    color: "#6b7280",
+    backgroundColor: "#f4f6f8",
   },
 };
 

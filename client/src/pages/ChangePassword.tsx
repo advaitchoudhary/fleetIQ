@@ -135,14 +135,21 @@ const ChangePassword: React.FC = () => {
   };
 
   return (
-    <>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
+      <style>{`
+        @media (max-width: 480px) {
+          [data-cp-form] { padding: 24px 16px !important; }
+          [data-cp-title] { font-size: 20px !important; }
+          [data-cp-input] { width: 100% !important; box-sizing: border-box !important; }
+        }
+      `}</style>
       <Navbar />
       <div style={styles.container}>
-        <div style={styles.formContainer}>
+        <div style={styles.formContainer} data-cp-form>
           <div style={styles.iconCircle}>
-            <FaLock size={28} color="#2563EB" />
+            <FaLock size={24} color="#4F46E5" />
           </div>
-          <h2 style={styles.title}>Change Password</h2>
+          <h2 style={styles.title} data-cp-title>Change Password</h2>
           <p style={styles.description}>
             To change your password, please fill in the fields below. <br />
             Your password must contain at least 8 characters, and must include at least one upper case letter,
@@ -150,22 +157,24 @@ const ChangePassword: React.FC = () => {
           </p>
           {/* Role selection radio (admin only) */}
           {userRole === "admin" && (
-            <div style={{ marginBottom: "20px" }}>
-              <label style={{ marginRight: "10px" }}>
+            <div style={{ display: "flex", gap: "24px", marginBottom: "20px" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", color: "#374151", cursor: "pointer" }}>
                 <input
                   type="radio"
                   value="admin"
                   checked={selectedRole === "admin"}
                   onChange={() => setSelectedRole("admin")}
+                  style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
                 />{" "}
                 Admin
               </label>
-              <label>
+              <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", color: "#374151", cursor: "pointer" }}>
                 <input
                   type="radio"
                   value="driver"
                   checked={selectedRole === "driver"}
                   onChange={() => setSelectedRole("driver")}
+                  style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
                 />{" "}
                 Driver
               </label>
@@ -180,7 +189,7 @@ const ChangePassword: React.FC = () => {
                   const driverId = e.target.value;
                   setSelectedDriver(driverId);
                 }}
-                style={styles.inputs}
+                style={styles.selectInput}
               >
                 <option value="">Select a Driver</option>
                 {drivers
@@ -267,115 +276,134 @@ const ChangePassword: React.FC = () => {
           ) : null}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
-const styles: any = {
+const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    height: "100vh",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f9fafb",
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    padding: "40px 20px",
   },
   formContainer: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     padding: "40px",
-    borderRadius: "12px",
-    boxShadow: "0px 8px 24px rgba(0,0,0,0.08)",
+    borderRadius: "16px",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
     backgroundColor: "#fff",
     width: "100%",
     maxWidth: "450px",
     textAlign: "center",
   },
   iconCircle: {
-    backgroundColor: "#EEF2FF",
+    backgroundColor: "#eef2ff",
     borderRadius: "50%",
-    padding: "15px",
-    marginBottom: "20px",
+    padding: "16px",
+    marginBottom: "16px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
     fontSize: "24px",
-    fontWeight: "bold",
-    marginBottom: "10px",
+    fontWeight: 700,
+    marginBottom: "8px",
+    marginTop: 0,
     color: "#111827",
+    letterSpacing: "-0.3px",
   },
   description: {
-    fontSize: "14px",
-    color: "#6B7280",
-    marginBottom: "20px",
-    lineHeight: "1.5",
+    fontSize: "13px",
+    color: "#6b7280",
+    marginBottom: "24px",
+    lineHeight: "1.6",
   },
   inputWrapper: {
     position: "relative",
     width: "100%",
-    marginBottom: "16px",
+    marginBottom: "14px",
   },
   inputIcon: {
     position: "absolute",
     top: "50%",
-    left: "12px",
+    left: "14px",
     transform: "translateY(-50%)",
-    color: "#9CA3AF",
-    fontSize: "16px",
+    color: "#9ca3af",
+    fontSize: "14px",
   },
   eyeIcon: {
     position: "absolute",
     top: "50%",
-    right: "12px",
+    right: "14px",
     transform: "translateY(-50%)",
     cursor: "pointer",
-    color: "#9CA3AF",
-    fontSize: "16px",
+    color: "#9ca3af",
+    fontSize: "14px",
   },
   input: {
-    width: "82%",
-    padding: "12px 40px 12px 40px",
-    fontSize: "1rem",
-    border: "1px solid #D1D5DB",
-    borderRadius: "8px",
-    outline: "none",
-    transition: "border-color 0.2s",
-  },
-  inputs: {
     width: "100%",
-    padding: "12px 25px 12px 25px",
-    fontSize: "1rem",
-    border: "1px solid #D1D5DB",
+    padding: "10px 40px",
+    fontSize: "14px",
+    border: "1px solid #d1d5db",
     borderRadius: "8px",
     outline: "none",
     transition: "border-color 0.2s",
+    backgroundColor: "#fff",
+    boxSizing: "border-box",
+  },
+  selectInput: {
+    width: "100%",
+    padding: "10px 14px",
+    fontSize: "14px",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    outline: "none",
+    transition: "border-color 0.2s",
+    backgroundColor: "#fff",
   },
   button: {
     width: "100%",
-    padding: "14px",
-    fontSize: "1rem",
+    padding: "12px",
+    fontSize: "15px",
     backgroundColor: "#4F46E5",
     color: "#fff",
-    fontWeight: "600",
+    fontWeight: 600,
     border: "none",
     cursor: "pointer",
-    marginTop: "10px",
+    marginTop: "8px",
     borderRadius: "8px",
-    transition: "background 0.3s",
+    transition: "background 0.2s",
   },
   buttonDisabled: {
-    backgroundColor: "#ccc",
+    backgroundColor: "#d1d5db",
     cursor: "not-allowed",
   },
   error: {
-    color: "red",
-    fontSize: "14px",
-    marginBottom: "10px",
+    color: "#dc2626",
+    fontSize: "13px",
+    marginBottom: "12px",
+    padding: "8px 14px",
+    backgroundColor: "#fef2f2",
+    borderRadius: "8px",
+    border: "1px solid #fecaca",
+    width: "100%",
+    boxSizing: "border-box",
   },
   success: {
-    color: "green",
-    fontSize: "14px",
-    marginBottom: "10px",
+    color: "#059669",
+    fontSize: "13px",
+    marginBottom: "12px",
+    padding: "8px 14px",
+    backgroundColor: "#ecfdf5",
+    borderRadius: "8px",
+    border: "1px solid #a7f3d0",
+    width: "100%",
+    boxSizing: "border-box",
   },
 };
 

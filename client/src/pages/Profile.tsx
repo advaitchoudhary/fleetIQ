@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { FaArrowLeft } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { useEffect } from "react";
 import axios from "axios";
@@ -9,7 +10,6 @@ const Profile: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const driver = location.state?.driver;
-  const [showTrainingsModal, setShowTrainingsModal] = useState(false);
   const [timesheets, setTimesheets] = useState<any[]>([]);
 
   useEffect(() => {
@@ -48,6 +48,9 @@ const Profile: React.FC = () => {
     <div>
       <Navbar />
       <div style={styles.container}>
+        <button onClick={() => navigate(-1)} style={styles.backButton}>
+          <FaArrowLeft size={13} /> Back
+        </button>
         {/* Profile Header */}
         <div style={styles.profileHeader}>
           <div style={styles.leftSection}>
@@ -70,105 +73,345 @@ const Profile: React.FC = () => {
           </div>
         </div>
 
-        {/* Grouped Sections in Flex Layout */}
+        {/* Sections — full-width single column */}
         <div style={styles.sectionsWrapper}>
-          <div style={styles.leftColumn}>
-            {/* Driver Details */}
-            <div style={styles.driverDetails}>
+          {/* Driver Details + License in a two-column grid */}
+          <div style={styles.twoColRow}>
+            <div style={styles.sectionCard}>
               <h3 style={styles.sectionTitle}>🚗 Driver Details</h3>
-              <p>
-                <strong>Email:</strong> {driver.email}
-              </p>
-              <p>
-                <strong>Username:</strong> {driver.username || "N/A"}
-              </p>
-              <p>
-                <strong>Contact:</strong> {driver.contact}
-              </p>
-              <p>
-                <strong>HST/GST:</strong> {driver.hst_gst || "N/A"}
-              </p>
-              <p>
-                <strong>Business Name:</strong> {driver.business_name || "N/A"}
-              </p>
-              <p>
-                <strong>Backhaul Rate:</strong> ${driver.backhaulRate || "N/A"}
-              </p>
-              <p>
-                <strong>Combo Rate:</strong> ${driver.comboRate || "N/A"}
-              </p>
-              <p>
-                <strong>Extra Sheet/E.W Rate:</strong> $
-                {driver.extraSheetEWRate || "N/A"}
-              </p>
-              <p>
-                <strong>Regular/Banner Rate:</strong> $
-                {driver.regularBannerRate || "N/A"}
-              </p>
-              <p>
-                <strong>Wholesale Rate:</strong> ${driver.wholesaleRate || "N/A"}
-              </p>
-              <p>
-                <strong>Voila Rate:</strong> ${driver.voilaRate || "N/A"}
-              </p>
-              <p>
-                <strong>TCS Linehaul Trenton Rate:</strong> ${driver.tcsLinehaulTrentonRate || "N/A"}
-              </p>
+              <div style={styles.fieldGrid}>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Email</span>
+                  <span style={styles.fieldValue}>{driver.email}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Username</span>
+                  <span style={styles.fieldValue}>{driver.username || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Contact</span>
+                  <span style={styles.fieldValue}>{driver.contact}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>HST/GST</span>
+                  <span style={styles.fieldValue}>{driver.hst_gst || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Business Name</span>
+                  <span style={styles.fieldValue}>{driver.business_name || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Backhaul Rate</span>
+                  <span style={styles.fieldValue}>${driver.backhaulRate || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Combo Rate</span>
+                  <span style={styles.fieldValue}>${driver.comboRate || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Extra Sheet/E.W Rate</span>
+                  <span style={styles.fieldValue}>${driver.extraSheetEWRate || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Regular/Banner Rate</span>
+                  <span style={styles.fieldValue}>${driver.regularBannerRate || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Wholesale Rate</span>
+                  <span style={styles.fieldValue}>${driver.wholesaleRate || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>Voila Rate</span>
+                  <span style={styles.fieldValue}>${driver.voilaRate || "N/A"}</span>
+                </div>
+                <div style={styles.fieldItem}>
+                  <span style={styles.fieldLabel}>TCS Linehaul Trenton Rate</span>
+                  <span style={styles.fieldValue}>${driver.tcsLinehaulTrentonRate || "N/A"}</span>
+                </div>
+              </div>
             </div>
-            {/* Status */}
-            <div style={styles.statusSection}>
-              <h3 style={styles.sectionTitle}>📌 Status</h3>
-              <p>
-                <strong>Current Status:</strong> {driver.status || "N/A"}
-              </p>
-              <p>
-                <strong>Work Status:</strong> {driver.workStatus || "N/A"}
-              </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+              <div style={styles.sectionCard}>
+                <h3 style={styles.sectionTitle}>🚘 License Details</h3>
+                <div style={styles.fieldGrid}>
+                  <div style={styles.fieldItem}>
+                    <span style={styles.fieldLabel}>Licence No.</span>
+                    <span style={styles.fieldValue}>{driver.licence || "N/A"}</span>
+                  </div>
+                  <div style={styles.fieldItem}>
+                    <span style={styles.fieldLabel}>Licence Expiry Date</span>
+                    <span style={styles.fieldValue}>{driver.licence_expiry_date ? new Date(driver.licence_expiry_date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={styles.sectionCard}>
+                <h3 style={styles.sectionTitle}>📌 Status</h3>
+                <div style={styles.fieldGrid}>
+                  <div style={styles.fieldItem}>
+                    <span style={styles.fieldLabel}>Current Status</span>
+                    <span style={styles.fieldValue}>{driver.status || "N/A"}</span>
+                  </div>
+                  <div style={styles.fieldItem}>
+                    <span style={styles.fieldLabel}>Work Status</span>
+                    <span style={styles.fieldValue}>{driver.workStatus || "N/A"}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style={styles.sectionCard}>
+                <h3 style={styles.sectionTitle}>💳 Direct Deposit Details</h3>
+                {driver.bankDetails ? (
+                  <div style={styles.fieldGrid}>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>Bank Name</span>
+                      <span style={styles.fieldValue}>{driver.bankDetails.bankName || "N/A"}</span>
+                    </div>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>Account Number</span>
+                      <span style={styles.fieldValue}>{driver.bankDetails.accountNumber || "N/A"}</span>
+                    </div>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>Transit Number</span>
+                      <span style={styles.fieldValue}>{driver.bankDetails.transitNumber || "N/A"}</span>
+                    </div>
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>Institution Number</span>
+                      <span style={styles.fieldValue}>{driver.bankDetails.institutionNumber || "N/A"}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p style={{ color: "#6b7280", fontSize: "14px" }}>No Direct Deposit details available.</p>
+                )}
+              </div>
             </div>
           </div>
-          <div style={styles.rightColumn}>
-            {/* License Details */}
-            <div style={styles.licenseSection}>
-              <h3 style={styles.sectionTitle}>🚘 License Details</h3>
-              <p>
-                <strong>Licence No.:</strong> {driver.licence || "N/A"}
-              </p>
-              <p>
-                <strong>Licence Expiry Date:</strong>{" "}
-                {driver.licence_expiry_date || "N/A"}
-              </p>
-            </div>
-            {/* Trainings Section */}
-            <div style={styles.trainingsSection}>
-              <h3 style={styles.sectionTitle}>📚 Trainings</h3>
-              <p>
-                {driver.trainings ? driver.trainings : "No Trainings Available"}
-              </p>
-              <button
-                style={styles.seeAllButton}
-                onClick={() => setShowTrainingsModal(true)}
-              >
-                See All
-              </button>
-            </div>
-            {/* Direct Deposit Details */}
-            <div style={styles.statusSection}>
-              <h3 style={styles.sectionTitle}>💳 Direct Deposit Details</h3>
-              {driver.bankDetails ? (
-                <>
-                  <p><strong>Bank Name:</strong> {driver.bankDetails.bankName || "N/A"}</p>
-                  <p><strong>Account Number:</strong> {driver.bankDetails.accountNumber || "N/A"}</p>
-                  <p><strong>Transit Number:</strong> {driver.bankDetails.transitNumber || "N/A"}</p>
-                  <p><strong>Institution Number:</strong> {driver.bankDetails.institutionNumber || "N/A"}</p>
-                </>
-              ) : (
-                <p>No Direct Deposit details available.</p>
+
+          {/* Required Documents — full width */}
+          <div style={styles.sectionCard}>
+            <h3 style={styles.sectionTitle}>📄 Required Documents</h3>
+              <div style={styles.documentsChecklist}>
+                <div style={styles.checklistItem}>
+                  <span style={{
+                    ...styles.checkIcon,
+                    color: driver.requiredOnboardingForms?.agencySignOff ? "#10b981" : "#ef4444"
+                  }}>
+                    {driver.requiredOnboardingForms?.agencySignOff ? "✓" : "✗"}
+                  </span>
+                  <span style={styles.checklistLabel}>Agency Sign Off</span>
+                  {driver.requiredOnboardingForms?.agencySignOff && (
+                    <a
+                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.agencySignOff}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.viewDocumentLink}
+                    >
+                      View
+                    </a>
+                  )}
+                </div>
+                <div style={styles.checklistItem}>
+                  <span style={{
+                    ...styles.checkIcon,
+                    color: driver.requiredOnboardingForms?.driverDeliveryExpectations ? "#10b981" : "#ef4444"
+                  }}>
+                    {driver.requiredOnboardingForms?.driverDeliveryExpectations ? "✓" : "✗"}
+                  </span>
+                  <span style={styles.checklistLabel}>Driver Delivery Expectations</span>
+                  {driver.requiredOnboardingForms?.driverDeliveryExpectations && (
+                    <a
+                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.driverDeliveryExpectations}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.viewDocumentLink}
+                    >
+                      View
+                    </a>
+                  )}
+                </div>
+                <div style={styles.checklistItem}>
+                  <span style={{
+                    ...styles.checkIcon,
+                    color: driver.requiredOnboardingForms?.cellPhonePolicy ? "#10b981" : "#ef4444"
+                  }}>
+                    {driver.requiredOnboardingForms?.cellPhonePolicy ? "✓" : "✗"}
+                  </span>
+                  <span style={styles.checklistLabel}>Cell Phone Policy</span>
+                  {driver.requiredOnboardingForms?.cellPhonePolicy && (
+                    <a
+                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.cellPhonePolicy}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.viewDocumentLink}
+                    >
+                      View
+                    </a>
+                  )}
+                </div>
+                <div style={styles.checklistItem}>
+                  <span style={{
+                    ...styles.checkIcon,
+                    color: driver.requiredOnboardingForms?.storeSurvey1 ? "#10b981" : "#ef4444"
+                  }}>
+                    {driver.requiredOnboardingForms?.storeSurvey1 ? "✓" : "✗"}
+                  </span>
+                  <span style={styles.checklistLabel}>Store Survey 1</span>
+                  {driver.requiredOnboardingForms?.storeSurvey1 && (
+                    <a
+                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.storeSurvey1}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.viewDocumentLink}
+                    >
+                      View
+                    </a>
+                  )}
+                </div>
+                <div style={styles.checklistItem}>
+                  <span style={{
+                    ...styles.checkIcon,
+                    color: driver.requiredOnboardingForms?.tobaccoAndLCPValidation ? "#10b981" : "#ef4444"
+                  }}>
+                    {driver.requiredOnboardingForms?.tobaccoAndLCPValidation ? "✓" : "✗"}
+                  </span>
+                  <span style={styles.checklistLabel}>Tobacco and LCP Validation</span>
+                  {driver.requiredOnboardingForms?.tobaccoAndLCPValidation && (
+                    <a
+                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.tobaccoAndLCPValidation}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.viewDocumentLink}
+                    >
+                      View
+                    </a>
+                  )}
+                </div>
+                <div style={styles.checklistItem}>
+                  <span style={{
+                    ...styles.checkIcon,
+                    color: driver.requiredOnboardingForms?.driverSop ? "#10b981" : "#ef4444"
+                  }}>
+                    {driver.requiredOnboardingForms?.driverSop ? "✓" : "✗"}
+                  </span>
+                  <span style={styles.checklistLabel}>Driver SOP</span>
+                  {driver.requiredOnboardingForms?.driverSop && (
+                    <a
+                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.driverSop}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.viewDocumentLink}
+                    >
+                      View
+                    </a>
+                  )}
+                </div>
+              </div>
+              {(!driver.requiredOnboardingForms?.agencySignOff || 
+                !driver.requiredOnboardingForms?.driverDeliveryExpectations || 
+                !driver.requiredOnboardingForms?.cellPhonePolicy ||
+                !driver.requiredOnboardingForms?.storeSurvey1 ||
+                !driver.requiredOnboardingForms?.tobaccoAndLCPValidation ||
+                !driver.requiredOnboardingForms?.driverSop) && (
+                <p style={styles.missingDocsWarning}>
+                  ⚠️ Some required documents are missing
+                </p>
               )}
             </div>
-          </div>
-        </div>
 
-        <div style={styles.timesheetsSection}>
+          {/* Trainings — full width */}
+          <div style={styles.sectionCard}>
+            <h3 style={styles.sectionTitle}>📚 Trainings</h3>
+              <div style={styles.trainingsTracker}>
+                {(() => {
+                  // List of all available trainings
+                  const availableTrainings = [
+                    "Defensive Driving - Tractor-Trailer",
+                    "Distracted Driving",
+                    "Hours of Service: Canadian Regulations",
+                    "Transportation of Dangerous Goods",
+                    "Vehicle Inspections",
+                    "WHMIS",
+                    "Winter Driving",
+                    "Fall Protection for Drivers",
+                    "Pallet Trucks (Walkies and Riders)",
+                    "Practical Cargo Securement for Drivers (Cargo Van)",
+                    "Food Safety for Drivers",
+                    "Lift Truck Operator Skills"
+                  ];
+
+                  // Get completed trainings (with proof documents)
+                  const completedTrainings = driver.trainings?.filter((t: any) => {
+                    const name = typeof t === 'string' ? t : t?.name;
+                    return name && name !== "Adipisci laborum laboriosam" && (typeof t === 'object' ? t.proofDocument : false);
+                  }) || [];
+
+                  // Get pending trainings (in available list but not completed)
+                  const completedTrainingNames = completedTrainings.map((t: any) => typeof t === 'string' ? t : t.name);
+                  const pendingTrainings = availableTrainings.filter(name => !completedTrainingNames.includes(name));
+
+                  return (
+                    <div>
+                      {/* Completed Trainings */}
+                      {completedTrainings.length > 0 && (
+                        <div>
+                          <h4 style={styles.trainingsSubtitle}>Completed Trainings</h4>
+                          <div style={styles.trainingsList}>
+                            {completedTrainings.map((training: any, index: number) => {
+                              const trainingName = typeof training === 'string' ? training : training.name;
+                              return (
+                                <div key={index} style={styles.trainingTrackerItem}>
+                                  <div style={styles.trainingTrackerLeft}>
+                                    <span style={styles.trainingCheckIcon}>✓</span>
+                                    <span style={styles.trainingTrackerName}>{trainingName}</span>
+                                  </div>
+                                  {typeof training === 'object' && training.proofDocument && (
+                                    <a
+                                      href={`${API_BASE_URL.replace("/api", "")}/${training.proofDocument}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      style={styles.viewTrainingProofLink}
+                                    >
+                                      View Proof
+                                    </a>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Pending Trainings */}
+                      {pendingTrainings.length > 0 && (
+                        <div style={{ marginTop: completedTrainings.length > 0 ? "20px" : "0" }}>
+                          <h4 style={styles.trainingsSubtitle}>Pending Trainings</h4>
+                          <div style={styles.trainingsList}>
+                            {pendingTrainings.map((trainingName, index) => (
+                              <div key={index} style={styles.trainingTrackerItem}>
+                                <div style={styles.trainingTrackerLeft}>
+                                  <span style={styles.trainingPendingIcon}>○</span>
+                                  <span style={styles.trainingTrackerNamePending}>{trainingName}</span>
+                                </div>
+                                <span style={styles.pendingLabel}>Pending</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* No Trainings Message */}
+                      {completedTrainings.length === 0 && pendingTrainings.length === 0 && (
+                        <p style={styles.noTrainingsText}>No trainings available</p>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+
+        <div style={styles.sectionCard}>
           <h3 style={styles.sectionTitle}>📚 Timesheets</h3>
           {timesheets.length === 0 ? (
             <p>No timesheets available for this driver.</p>
@@ -282,29 +525,8 @@ const Profile: React.FC = () => {
           )}
         </div>
 
-        {/* Go Back Button */}
-        <button style={styles.button} onClick={() => navigate(-1)}>
-          ⬅ Go Back
-        </button>
       </div>
 
-      {/* Trainings Modal */}
-      {showTrainingsModal && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <h2>All Trainings</h2>
-            <ul style={styles.modalList}>
-              <li>{driver.trainings || "No Trainings Available"}</li>
-            </ul>
-            <button
-              style={styles.modalCloseButton}
-              onClick={() => setShowTrainingsModal(false)}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -312,117 +534,129 @@ const Profile: React.FC = () => {
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     maxWidth: "100%",
-    margin: "60px auto",
-    padding: "20px",
+    margin: "0 auto",
+    padding: "30px 40px",
+    backgroundColor: "#f4f6f8",
+    fontFamily: "Inter, system-ui, sans-serif",
+    minHeight: "100vh",
+  },
+  backButton: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    padding: "8px 16px",
     backgroundColor: "#fff",
-    borderRadius: "10px",
-    boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
-    fontFamily: "'Arial', sans-serif",
+    color: "#374151",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    fontSize: "13px",
+    fontWeight: 600,
+    cursor: "pointer",
+    marginBottom: "20px",
+    transition: "background-color 0.2s, border-color 0.2s",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   sectionsWrapper: {
     display: "flex",
-    gap: "20px",
-    marginBottom: "20px",
-    flexWrap: "wrap",
-  },
-  leftColumn: {
-    flex: 1,
-    minWidth: "300px",
-    display: "flex",
     flexDirection: "column",
     gap: "20px",
+    marginBottom: "24px",
   },
-  rightColumn: {
-    flex: 1,
-    minWidth: "300px",
+  twoColRow: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "20px",
+  },
+  sectionCard: {
+    backgroundColor: "#ffffff",
+    padding: "24px",
+    borderRadius: "12px",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+  },
+  fieldGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr 1fr",
+    gap: "20px",
+    marginTop: "16px",
+  },
+  fieldItem: {
     display: "flex",
     flexDirection: "column",
-    gap: "20px",
+    gap: "4px",
+  },
+  fieldLabel: {
+    fontSize: "12px",
+    fontWeight: 600,
+    color: "#6b7280",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
+  },
+  fieldValue: {
+    fontSize: "15px",
+    fontWeight: 500,
+    color: "#111827",
   },
   profileHeader: {
     display: "flex",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingBottom: "15px",
-    marginBottom: "20px",
-    borderBottom: "2px solid #ddd",
+    gap: "24px",
+    padding: "24px",
+    marginBottom: "24px",
+    backgroundColor: "#ffffff",
+    borderRadius: "12px",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
   },
   leftSection: {
     display: "flex",
     alignItems: "center",
   },
   profileImage: {
-    width: "120px",
-    height: "120px",
+    width: "90px",
+    height: "90px",
     borderRadius: "50%",
-    border: "3px solid #007bff",
-    marginRight: "20px",
+    border: "3px solid #4F46E5",
+    marginRight: "24px",
+    objectFit: "cover",
   },
   initialsContainer: {
-    width: "120px",
-    height: "120px",
+    width: "90px",
+    height: "90px",
     borderRadius: "50%",
     color: "white",
-    fontSize: "36px",
+    fontSize: "32px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontWeight: "bold",
-    marginRight: "20px",
-    backgroundColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
+    marginRight: "24px",
+    backgroundColor: "#4F46E5",
   },
   driverInfo: {
     textAlign: "left" as const,
   },
   driverName: {
-    fontSize: "24px",
-    fontWeight: "bold",
-    marginBottom: "5px",
+    fontSize: "22px",
+    fontWeight: 700,
+    marginBottom: "4px",
+    color: "#111827",
   },
   driverRole: {
     fontSize: "14px",
-    color: "#777",
+    color: "#6b7280",
+    marginBottom: "2px",
   },
   driverLocation: {
     fontSize: "14px",
-    color: "#555",
-  },
-  driverDetails: {
-    marginBottom: "20px",
-    padding: "15px",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "5px",
-  },
-  licenseSection: {
-    marginBottom: "20px",
-    padding: "15px",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "5px",
-  },
-  statusSection: {
-    backgroundColor: "#f9fafb",
-    padding: "20px",
-    borderRadius: "10px",
-    marginBottom: "20px",
-    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
-  },
-  timesheetsSection: {
-    marginBottom: "20px",
-    padding: "15px",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "5px",
-  },
-  trainingsSection: {
-    marginBottom: "20px",
-    padding: "15px",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "5px",
+    color: "#9ca3af",
   },
   sectionTitle: {
-    fontSize: "20px",
-    fontWeight: "bold",
-    marginBottom: "10px",
-    color: "#2d3748",
+    fontSize: "18px",
+    fontWeight: 700,
+    marginBottom: "4px",
+    marginTop: 0,
+    color: "#1f2937",
   },
   seeAllButton: {
     marginTop: "10px",
@@ -434,14 +668,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: "pointer",
   },
   button: {
-    padding: "12px 20px",
-    backgroundColor: "#007bff",
+    padding: "10px 20px",
+    backgroundColor: "#4F46E5",
     color: "#fff",
     border: "none",
-    borderRadius: "6px",
+    borderRadius: "8px",
     cursor: "pointer",
-    fontSize: "16px",
-    marginTop: "20px",
+    fontSize: "14px",
+    fontWeight: 600,
+    marginTop: "8px",
   },
   modalOverlay: {
     position: "fixed",
@@ -501,6 +736,132 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: "left",
     backgroundColor: "#ffffff",
     wordBreak: "break-word",
+  },
+  documentsChecklist: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+    marginTop: "15px",
+  },
+  checklistItem: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    padding: "10px",
+    backgroundColor: "#ffffff",
+    borderRadius: "6px",
+    border: "1px solid #e5e7eb",
+  },
+  checkIcon: {
+    fontSize: "20px",
+    fontWeight: "bold",
+    minWidth: "24px",
+    textAlign: "center",
+  },
+  checklistLabel: {
+    flex: 1,
+    fontSize: "15px",
+    fontWeight: 500,
+    color: "#1f2937",
+  },
+  viewDocumentLink: {
+    color: "#4F46E5",
+    textDecoration: "none",
+    fontSize: "14px",
+    fontWeight: 500,
+    padding: "4px 12px",
+    borderRadius: "4px",
+    backgroundColor: "#eef2ff",
+    transition: "background-color 0.2s",
+  },
+  missingDocsWarning: {
+    marginTop: "15px",
+    padding: "10px",
+    backgroundColor: "#fef3c7",
+    borderRadius: "6px",
+    color: "#92400e",
+    fontSize: "14px",
+    fontWeight: 500,
+    textAlign: "center",
+  },
+  trainingsTracker: {
+    marginTop: "15px",
+  },
+  trainingsList: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "12px",
+  },
+  trainingTrackerItem: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "12px",
+    backgroundColor: "#ffffff",
+    borderRadius: "6px",
+    border: "1px solid #e5e7eb",
+  },
+  trainingTrackerLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    flex: 1,
+  },
+  trainingCheckIcon: {
+    fontSize: "20px",
+    color: "#10b981",
+    fontWeight: "bold",
+    minWidth: "24px",
+    textAlign: "center",
+  },
+  trainingPendingIcon: {
+    fontSize: "20px",
+    color: "#6b7280",
+    fontWeight: "bold",
+    minWidth: "24px",
+    textAlign: "center",
+  },
+  trainingTrackerName: {
+    fontSize: "15px",
+    fontWeight: 500,
+    color: "#1f2937",
+  },
+  trainingTrackerNamePending: {
+    fontSize: "15px",
+    fontWeight: 500,
+    color: "#6b7280",
+  },
+  trainingsSubtitle: {
+    fontSize: "16px",
+    fontWeight: 600,
+    color: "#374151",
+    marginBottom: "12px",
+    marginTop: "0",
+  },
+  pendingLabel: {
+    fontSize: "13px",
+    fontWeight: 500,
+    color: "#f59e0b",
+    padding: "4px 12px",
+    borderRadius: "4px",
+    backgroundColor: "#fef3c7",
+  },
+  viewTrainingProofLink: {
+    color: "#4F46E5",
+    textDecoration: "none",
+    fontSize: "14px",
+    fontWeight: 500,
+    padding: "4px 12px",
+    borderRadius: "4px",
+    backgroundColor: "#eef2ff",
+    transition: "background-color 0.2s",
+  },
+  noTrainingsText: {
+    color: "#6b7280",
+    fontSize: "14px",
+    fontStyle: "italic",
+    textAlign: "center",
+    padding: "20px",
   },
 };
 

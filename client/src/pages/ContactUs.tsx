@@ -46,24 +46,43 @@ const ContactUs: React.FC = () => {
 
   return (
     <div style={styles.container}>
-      <Navbar /> {/* Navbar Component */}
+      <style>{`
+        @media (max-width: 640px) {
+          [data-cu-content] { padding: 24px 16px !important; margin: 16px 12px !important; width: auto !important; }
+          [data-cu-title] { font-size: 20px !important; }
+          [data-cu-info-grid] { grid-template-columns: 1fr !important; }
+          [data-cu-company] { padding: 16px !important; }
+        }
+      `}</style>
+      <Navbar />
 
-      <div style={styles.mainContent}>
-        <h2>Contact Us</h2>
+      <div style={styles.mainContent} data-cu-content>
+        <h2 style={styles.pageTitle} data-cu-title>Contact Us</h2>
         
-        {/* Company Information */}
-        <div style={styles.companyInfo}>
-          <h3> Premier Choice Employment</h3>
-          <p><strong>Address:</strong> UNIT-21 745 CHELTON RD, LONDON, ON N6M 0J1</p>
-          <p><strong>Phone:</strong> +1 (519) 280-1311</p>
-          <p><strong>Email:</strong> admin@premierchoicemployment.ca</p>
-          <p><strong>Business Hours:</strong> Monday - Friday, 9 AM - 5 PM EST</p>
+        <div style={styles.companyInfo} data-cu-company>
+          <h3 style={styles.companyName}>Premier Choice Employment</h3>
+          <div style={styles.infoGrid} data-cu-info-grid>
+            <div style={styles.infoItem}>
+              <span style={styles.infoLabel}>Address</span>
+              <span style={styles.infoValue}>UNIT-21 745 CHELTON RD, LONDON, ON N6M 0J1</span>
+            </div>
+            <div style={styles.infoItem}>
+              <span style={styles.infoLabel}>Phone</span>
+              <span style={styles.infoValue}>+1 (519) 280-1311</span>
+            </div>
+            <div style={styles.infoItem}>
+              <span style={styles.infoLabel}>Email</span>
+              <span style={styles.infoValue}>admin@premierchoicemployment.ca</span>
+            </div>
+            <div style={styles.infoItem}>
+              <span style={styles.infoLabel}>Business Hours</span>
+              <span style={styles.infoValue}>Monday - Friday, 9 AM - 5 PM EST</span>
+            </div>
+          </div>
         </div>
 
-        {/* Contact Form */}
         <form onSubmit={handleSubmit} style={styles.form}>
-          {/* Name Input */}
-          <label style={styles.label}>Name:</label>
+          <label style={styles.label}>Name</label>
           <input
             type="text"
             name="name"
@@ -74,8 +93,7 @@ const ContactUs: React.FC = () => {
             style={styles.input}
           />
 
-          {/* Email Input */}
-          <label style={styles.label}>Email:</label>
+          <label style={styles.label}>Email</label>
           <input
             type="email"
             name="email"
@@ -86,8 +104,7 @@ const ContactUs: React.FC = () => {
             style={styles.input}
           />
 
-          {/* Message Input */}
-          <label style={styles.label}>Message:</label>
+          <label style={styles.label}>Message</label>
           <textarea
             name="message"
             value={formData.message}
@@ -97,7 +114,6 @@ const ContactUs: React.FC = () => {
             style={styles.textarea}
           />
 
-          {/* Submit Button */}
           <button type="submit" style={styles.submitButton}>Send Message</button>
         </form>
       </div>
@@ -105,71 +121,108 @@ const ContactUs: React.FC = () => {
   );
 };
 
-const styles = {
+const styles: { [key: string]: React.CSSProperties } = {
   container: {
     display: "flex",
-    flexDirection: "column" as const,
+    flexDirection: "column",
     minHeight: "100vh",
-    backgroundColor: "#f5f7fa",
-    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    backgroundColor: "#f4f6f8",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   mainContent: {
-    margin: "40px auto",
+    margin: "30px auto",
     padding: "40px",
     width: "90%",
     maxWidth: "640px",
     backgroundColor: "#ffffff",
-    borderRadius: "14px",
-    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.08)",
+    borderRadius: "16px",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+  },
+  pageTitle: {
+    fontSize: "24px",
+    fontWeight: 700,
+    color: "#111827",
+    marginTop: 0,
+    marginBottom: "24px",
+    letterSpacing: "-0.3px",
   },
   companyInfo: {
-    padding: "20px",
-    backgroundColor: "#e2ecf9",
-    borderRadius: "10px",
-    marginBottom: "30px",
-    border: "1px solid #c9daf4",
+    padding: "24px",
+    backgroundColor: "#f9fafb",
+    borderRadius: "12px",
+    marginBottom: "28px",
+    border: "1px solid #e5e7eb",
+  },
+  companyName: {
+    fontSize: "18px",
+    fontWeight: 700,
+    color: "#111827",
+    marginTop: 0,
+    marginBottom: "16px",
+  },
+  infoGrid: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "14px",
+  },
+  infoItem: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "2px",
+  },
+  infoLabel: {
+    fontSize: "12px",
+    fontWeight: 600,
+    color: "#6b7280",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.4px",
+  },
+  infoValue: {
+    fontSize: "14px",
+    color: "#111827",
+    fontWeight: 500,
   },
   form: {
     display: "flex",
-    flexDirection: "column" as const,
-    gap: "18px",
+    flexDirection: "column",
+    gap: "14px",
   },
   label: {
     fontWeight: 600,
-    fontSize: "1rem",
-    marginBottom: "4px",
-    color: "#2d3748",
+    fontSize: "13px",
+    color: "#374151",
   },
   input: {
-    padding: "14px",
-    fontSize: "1rem",
+    padding: "10px 12px",
+    fontSize: "14px",
     borderRadius: "8px",
-    border: "1px solid #cbd5e0",
-    transition: "border-color 0.3s ease",
+    border: "1px solid #d1d5db",
+    backgroundColor: "#fff",
+    transition: "border-color 0.2s ease",
     outline: "none",
   },
   textarea: {
-    padding: "14px",
-    fontSize: "1rem",
+    padding: "10px 12px",
+    fontSize: "14px",
     borderRadius: "8px",
-    border: "1px solid #cbd5e0",
+    border: "1px solid #d1d5db",
     height: "140px",
-    transition: "border-color 0.3s ease",
+    resize: "vertical" as const,
+    transition: "border-color 0.2s ease",
     outline: "none",
   },
-  fileInput: {
-    padding: "6px",
-  },
   submitButton: {
-    backgroundColor: "#2563eb",
+    backgroundColor: "#4F46E5",
     color: "#fff",
-    fontSize: "1rem",
-    padding: "14px",
+    fontSize: "15px",
+    fontWeight: 600,
+    padding: "12px",
     borderRadius: "8px",
     border: "none",
     cursor: "pointer",
-    transition: "background-color 0.3s ease",
-    fontWeight: 600,
+    transition: "background-color 0.2s ease",
+    marginTop: "8px",
   },
 };
 

@@ -343,9 +343,23 @@ const Timesheet: React.FC = () => {
 
   return (
     <div style={styles.container}>
+      <style>{`
+        @media (max-width: 768px) {
+          [data-db-content] { padding: 24px 16px !important; margin: 20px 12px !important; width: auto !important; }
+          [data-db-title] { font-size: 20px !important; }
+          [data-db-duration-row] { flex-direction: column !important; }
+          [data-db-attach] { flex-direction: column !important; align-items: flex-start !important; }
+        }
+        @media (max-width: 480px) {
+          [data-db-content] { padding: 20px 12px !important; margin: 12px 8px !important; border-radius: 12px !important; }
+          [data-db-title] { font-size: 18px !important; }
+          [data-db-delay-row] { flex-direction: column !important; }
+          [data-db-checkbox-row] { flex-direction: column !important; gap: 10px !important; }
+        }
+      `}</style>
       <Navbar />
-      <div style={styles.mainContent}>
-        <h2>Enter Your Timesheet</h2>
+      <div style={styles.mainContent} data-db-content>
+        <h2 style={styles.pageTitle} data-db-title>Enter Your Timesheet</h2>
         <form onSubmit={handleSubmit} style={styles.form}>
           {/* Driver */}
           <label style={styles.label}>Driver Name:</label>
@@ -427,32 +441,34 @@ const Timesheet: React.FC = () => {
   
           {/* Extra Work Sheet radio and conditional duration */}
           <div style={styles.extraWorkWrapper}>
-            <label style={styles.label}>Extra Work Sheet?</label>
-            <div style={{ display: "flex", gap: "20px", marginBottom: "8px" }}>
-              <label>
+            <label style={styles.sectionLabel}>Extra Work Sheet?</label>
+            <div style={{ display: "flex", gap: "24px", marginBottom: "10px", marginTop: "6px" }}>
+              <label style={styles.radioLabel}>
                 <input
                   type="radio"
                   name="extraWorkSheet"
                   value="yes"
                   checked={extraWorkSheet === "yes"}
                   onChange={(e) => setExtraWorkSheet(e.target.value)}
+                  style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
                 />{" "}
                 Yes
               </label>
-              <label>
+              <label style={styles.radioLabel}>
                 <input
                   type="radio"
                   name="extraWorkSheet"
                   value="no"
                   checked={extraWorkSheet === "no"}
                   onChange={(e) => setExtraWorkSheet(e.target.value)}
+                  style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
                 />{" "}
                 No
               </label>
             </div>
             {extraWorkSheet === "yes" && (
               <>
-                <div style={styles.durationContainer}>
+                <div style={styles.durationContainer} data-db-duration-row>
                   <div style={styles.durationField}>
                     <label style={styles.label}>From</label>
                     <input
@@ -517,25 +533,27 @@ const Timesheet: React.FC = () => {
           </div>
 
           <div style={styles.extraWorkWrapper}>
-            <label style={styles.label}>Was there an extra Delay?</label>
-            <div style={{ display: "flex", gap: "20px", marginBottom: "8px" }}>
-              <label>
+            <label style={styles.sectionLabel}>Was there an extra Delay?</label>
+            <div style={{ display: "flex", gap: "24px", marginBottom: "10px", marginTop: "6px" }}>
+              <label style={styles.radioLabel}>
                 <input
                   type="radio"
                   name="extraDelay"
                   value="yes"
                   checked={extraDelayYesNo === "yes"}
                   onChange={(e) => setExtraDelayYesNo(e.target.value)}
+                  style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
                 />{" "}
                 Yes
               </label>
-              <label>
+              <label style={styles.radioLabel}>
                 <input
                   type="radio"
                   name="extraDelay"
                   value="no"
                   checked={extraDelayYesNo === "no"}
                   onChange={(e) => setExtraDelayYesNo(e.target.value)}
+                  style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
                 />{" "}
                 No
               </label>
@@ -543,8 +561,8 @@ const Timesheet: React.FC = () => {
             {extraDelayYesNo === "yes" && (
               <>
                 <label style={styles.label}>Select Delay Types:</label>
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "8px" }}>
-                  <label>
+                <div style={{ display: "flex", flexDirection: "row", gap: "24px", marginBottom: "12px", marginTop: "4px", flexWrap: "wrap" as const }} data-db-checkbox-row>
+                  <label style={styles.radioLabel}>
                     <input
                       type="checkbox"
                       checked={hasDelay.includes("store")}
@@ -553,10 +571,11 @@ const Timesheet: React.FC = () => {
                           e.target.checked ? [...prev, "store"] : prev.filter((d) => d !== "store")
                         )
                       }
+                      style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
                     />{" "}
                     Store Delay
                   </label>
-                  <label>
+                  <label style={styles.radioLabel}>
                     <input
                       type="checkbox"
                       checked={hasDelay.includes("road")}
@@ -565,10 +584,11 @@ const Timesheet: React.FC = () => {
                           e.target.checked ? [...prev, "road"] : prev.filter((d) => d !== "road")
                         )
                       }
+                      style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
                     />{" "}
                     Road Delay
                   </label>
-                  <label>
+                  <label style={styles.radioLabel}>
                     <input
                       type="checkbox"
                       checked={hasDelay.includes("other")}
@@ -577,6 +597,7 @@ const Timesheet: React.FC = () => {
                           e.target.checked ? [...prev, "other"] : prev.filter((d) => d !== "other")
                         )
                       }
+                      style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
                     />{" "}
                     Other Delay
                   </label>
@@ -584,8 +605,8 @@ const Timesheet: React.FC = () => {
 
                 {hasDelay.includes("store") && (
                   <div style={styles.delaySection}>
-                    <h4>Store Delay</h4>
-                    <div style={styles.delayRow}>
+                    <h4 style={styles.delaySectionTitle}>Store Delay</h4>
+                    <div style={styles.delayRow} data-db-delay-row>
                       <div style={styles.delayField}>
                         <label style={styles.delayLabel}>From:</label>
                         <input
@@ -646,8 +667,8 @@ const Timesheet: React.FC = () => {
 
                 {hasDelay.includes("road") && (
                   <div style={styles.delaySection}>
-                    <h4>Road Delay</h4>
-                    <div style={styles.delayRow}>
+                    <h4 style={styles.delaySectionTitle}>Road Delay</h4>
+                    <div style={styles.delayRow} data-db-delay-row>
                       <div style={styles.delayField}>
                         <label style={styles.delayLabel}>From:</label>
                         <input
@@ -708,8 +729,8 @@ const Timesheet: React.FC = () => {
 
                 {hasDelay.includes("other") && (
                   <div style={styles.delaySection}>
-                    <h4>Other Delay</h4>
-                    <div style={styles.delayRow}>
+                    <h4 style={styles.delaySectionTitle}>Other Delay</h4>
+                    <div style={styles.delayRow} data-db-delay-row>
                       <div style={styles.delayField}>
                         <label style={styles.delayLabel}>From:</label>
                         <input
@@ -793,7 +814,7 @@ const Timesheet: React.FC = () => {
 
           {/* Attachments */}
           {[...Array(4)].map((_, i) => (
-            <div key={i} style={{ ...styles.attachmentWrapper, flexDirection: 'row' }}>
+            <div key={i} style={{ ...styles.attachmentWrapper, flexDirection: 'row' }} data-db-attach>
               <label style={styles.label}>Attachment {i + 1}:</label>
               <div style={{ ...styles.customFileInputWrapper, position: 'relative' }}>
                 <label style={styles.customFileLabel}>
@@ -814,7 +835,7 @@ const Timesheet: React.FC = () => {
                   <img
                     src={URL.createObjectURL(timesheet.attachments[i])}
                     alt={`Attachment ${i + 1}`}
-                    style={{ maxHeight: '80px', marginRight: '10px', borderRadius: '4px' }}
+                    style={{ maxHeight: '80px', marginRight: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }}
                   />
                   <button
                     type="button"
@@ -824,15 +845,17 @@ const Timesheet: React.FC = () => {
                       setTimesheet((prev) => ({ ...prev, attachments: updatedAttachments }));
                     }}
                     style={{
-                      backgroundColor: '#e53e3e',
-                      color: '#fff',
-                      border: 'none',
-                      padding: '6px 12px',
-                      borderRadius: '4px',
-                      cursor: 'pointer'
+                      backgroundColor: '#fef2f2',
+                      color: '#dc2626',
+                      border: '1px solid #fecaca',
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '13px',
+                      fontWeight: 600,
                     }}
                   >
-                    Cancel
+                    Remove
                   </button>
                 </div>
               )}
@@ -846,12 +869,12 @@ const Timesheet: React.FC = () => {
         </form>
       </div>
       {showErrorModal && (
-        <div style={{ ...styles.modalBackdrop, position: 'fixed' }}>
-          <div style={styles.modalContent}>
-            <h3>Validation Errors</h3>
-            <ul>
+        <div style={styles.modalBackdrop} onClick={() => setShowErrorModal(false)}>
+          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#111827", marginTop: 0, marginBottom: "16px" }}>Validation Errors</h3>
+            <ul style={{ paddingLeft: "20px", margin: 0 }}>
               {errorMessagesList.map((msg, index) => (
-                <li key={index} style={{ color: "red" }}>{msg}</li>
+                <li key={index} style={{ color: "#dc2626", fontSize: "14px", marginBottom: "6px" }}>{msg}</li>
               ))}
             </ul>
             <button onClick={() => setShowErrorModal(false)} style={styles.modalCloseBtn}>
@@ -878,49 +901,75 @@ const styles: { [key: string]: CSSProperties } = {
     width: "90%",
     maxWidth: "800px",
     backgroundColor: "#ffffff",
-    borderRadius: "12px",
-    boxShadow: "0 6px 16px rgba(0, 0, 0, 0.1)",
+    borderRadius: "16px",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+  },
+  pageTitle: {
+    fontSize: "24px",
+    fontWeight: 700,
+    color: "#111827",
+    marginBottom: "24px",
+    marginTop: 0,
+    letterSpacing: "-0.3px",
   },
   form: {
     display: "flex",
     flexDirection: "column" as const,
-    gap: "18px",
+    gap: "14px",
   },
   label: {
     fontWeight: 600,
-    fontSize: "1rem",
-    color: "#2d3748",
+    fontSize: "13px",
+    color: "#374151",
+  },
+  sectionLabel: {
+    fontWeight: 700,
+    fontSize: "14px",
+    color: "#111827",
+    marginBottom: "4px",
+  },
+  radioLabel: {
+    display: "flex",
+    alignItems: "center",
+    gap: "6px",
+    fontSize: "14px",
+    color: "#374151",
+    cursor: "pointer",
   },
   input: {
-    padding: "12px",
-    fontSize: "1rem",
-    borderRadius: "6px",
-    border: "1px solid #cbd5e0",
+    padding: "10px 12px",
+    fontSize: "14px",
+    borderRadius: "8px",
+    border: "1px solid #d1d5db",
+    backgroundColor: "#fff",
     transition: "border-color 0.2s ease",
   },
   textarea: {
-    padding: "12px",
-    fontSize: "1rem",
-    borderRadius: "6px",
-    border: "1px solid #cbd5e0",
+    padding: "10px 12px",
+    fontSize: "14px",
+    borderRadius: "8px",
+    border: "1px solid #d1d5db",
     height: "100px",
+    resize: "vertical" as const,
     transition: "border-color 0.2s ease",
   },
   fileInput: {
     padding: "6px 0",
   },
   customFileInputWrapper: {
-    position: "relative",
+    position: "relative" as const,
     display: "inline-block",
   },
   customFileLabel: {
     display: "inline-block",
-    padding: "6px 14px",
+    padding: "8px 16px",
     backgroundColor: "#4F46E5",
     color: "#fff",
-    borderRadius: "6px",
+    borderRadius: "8px",
     cursor: "pointer",
-    fontSize: "0.85rem",
+    fontSize: "13px",
+    fontWeight: 600,
     marginTop: "0px",
     border: "none",
     boxShadow: "none",
@@ -929,7 +978,7 @@ const styles: { [key: string]: CSSProperties } = {
   attachmentWrapper: {
     marginBottom: "4px",
     display: "inline-flex",
-    flexDirection: "row",
+    flexDirection: "row" as const,
     alignItems: "center",
     gap: "12px",
   },
@@ -943,16 +992,16 @@ const styles: { [key: string]: CSSProperties } = {
     cursor: "pointer",
   },
   extraWorkWrapper: {
-    border: "1px solid #CBD5E0",
-    borderRadius: "8px",
-    padding: "16px",
-    backgroundColor: "#f9f9f9",
+    border: "1px solid #e5e7eb",
+    borderRadius: "12px",
+    padding: "20px",
+    backgroundColor: "#f9fafb",
   },
   durationContainer: {
     display: "flex",
     flexDirection: "row" as const,
     justifyContent: "space-between",
-    gap: "24px",
+    gap: "16px",
     marginTop: "8px",
   },
   durationField: {
@@ -966,62 +1015,75 @@ const styles: { [key: string]: CSSProperties } = {
     display: "flex",
     flexDirection: "column" as const,
     gap: "6px",
+    marginTop: "8px",
   },
   delaySection: {
-    border: "1px solid #ddd",
-    borderRadius: "8px",
-    padding: "16px",
+    border: "1px solid #e5e7eb",
+    borderRadius: "12px",
+    padding: "20px",
     marginBottom: "16px",
-    backgroundColor: "#fafafa",
+    backgroundColor: "#fff",
+  },
+  delaySectionTitle: {
+    fontSize: "15px",
+    fontWeight: 700,
+    color: "#111827",
+    marginTop: 0,
+    marginBottom: "12px",
   },
   delayRow: {
     display: "flex",
-    flexWrap: "wrap",
+    flexWrap: "wrap" as const,
     gap: "12px",
     marginBottom: "12px",
-    marginTop: "12px",
+    marginTop: "8px",
   },
   delayField: {
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "column" as const,
     flex: "1 1 45%",
     minWidth: "140px",
   },
   delayInput: {
-    padding: "8px",
-    border: "1px solid #ccc",
-    borderRadius: "6px",
-    fontSize: "1rem",
+    padding: "10px 12px",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    fontSize: "14px",
     width: "100%",
-    boxSizing: "border-box",
+    boxSizing: "border-box" as const,
   },
   delayLabel: {
-    fontWeight: "bold",
+    fontWeight: 600,
+    fontSize: "13px",
+    color: "#6b7280",
     marginBottom: "4px",
   },
   submitButton: {
     backgroundColor: "#4F46E5",
     color: "#fff",
-    fontSize: "1rem",
+    fontSize: "15px",
+    fontWeight: 600,
     padding: "12px",
-    borderRadius: "6px",
+    borderRadius: "8px",
     border: "none",
     cursor: "pointer",
-    transition: "background-color 0.3s ease",
+    transition: "background-color 0.2s ease",
+    marginTop: "8px",
   },
   error: {
-    color: "#e53e3e",
-    fontSize: "0.875rem",
-    marginTop: "5px",
+    color: "#dc2626",
+    fontSize: "13px",
+    marginTop: "2px",
     display: "block",
   },
   modalBackdrop: {
-    position: "fixed",
+    position: "fixed" as const,
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backdropFilter: "blur(4px)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -1029,20 +1091,22 @@ const styles: { [key: string]: CSSProperties } = {
   },
   modalContent: {
     backgroundColor: "#fff",
-    padding: "20px",
-    borderRadius: "8px",
+    padding: "28px",
+    borderRadius: "16px",
     width: "80%",
     maxWidth: "500px",
-    boxShadow: "0 0 10px rgba(0,0,0,0.3)",
+    boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
   },
   modalCloseBtn: {
-    marginTop: "15px",
-    padding: "10px 20px",
+    marginTop: "20px",
+    padding: "10px 24px",
     backgroundColor: "#4F46E5",
     color: "#fff",
     border: "none",
-    borderRadius: "4px",
+    borderRadius: "8px",
     cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: 600,
   },
 };
 

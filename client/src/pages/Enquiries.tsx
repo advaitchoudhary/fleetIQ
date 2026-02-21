@@ -24,13 +24,13 @@ const Enquiries: React.FC = () => {
   }, []);
 
   return (
-    <div>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
     <Navbar />
 
     <div style={styles.container}>
       <h2 style={styles.title}>Contact Enquiries</h2>
       {loading ? (
-        <p>Loading enquiries...</p>
+        <p style={{ color: "#6b7280", fontSize: "15px" }}>Loading enquiries...</p>
       ) : (
         <div style={styles.tableWrapper}>
           <table style={styles.table}>
@@ -63,57 +63,56 @@ const Enquiries: React.FC = () => {
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     fontFamily: "Inter, system-ui, sans-serif",
-    padding: "40px 20px",
-    backgroundColor: "#f4f6f8",
+    padding: "32px 40px",
     textAlign: "center",
-    minHeight: "100vh",
   },
   title: {
     fontSize: "26px",
-    fontWeight: "bold",
-    marginBottom: "20px",
-    color: "#2d3748",
-    textAlign: "center",
+    fontWeight: 700,
+    marginBottom: "24px",
+    color: "#111827",
+    letterSpacing: "-0.3px",
   },
   tableWrapper: {
     display: "flex",
     justifyContent: "center",
-    marginTop: "20px",
-    borderRadius: "8px",
-    boxShadow: "0 2px 12px rgba(0, 0, 0, 0.05)",
+    marginTop: "16px",
+    borderRadius: "12px",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
     backgroundColor: "#fff",
-    padding: "10px",
+    padding: "4px",
     overflowX: "auto",
   },
   table: {
     width: "100%",
     borderCollapse: "collapse",
-    boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
-    borderRadius: "8px",
+    borderRadius: "12px",
     overflow: "hidden",
     tableLayout: "auto",
   },
   th: {
-    borderBottom: "1px solid #e2e8f0",
-    padding: "14px 16px",
-    fontSize: "13px",
-    fontWeight: 600,
+    borderBottom: "1px solid #e5e7eb",
+    padding: "14px 18px",
+    fontSize: "11px",
+    fontWeight: 700,
     textAlign: "left",
-    backgroundColor: "#f3f4f6",
-    color: "#1f2937",
+    backgroundColor: "#f9fafb",
+    color: "#6b7280",
+    textTransform: "uppercase",
+    letterSpacing: "0.6px",
     wordBreak: "break-word",
-    whiteSpace: "wrap",
   },
   td: {
-    borderBottom: "1px solid #e2e8f0",
-    padding: "8px 8px",
+    padding: "14px 18px",
     fontSize: "14px",
     textAlign: "left",
-    backgroundColor: "#ffffff",
+    color: "#374151",
+    borderBottom: "1px solid #f3f4f6",
     wordBreak: "break-word",
   },
   row: {
-    backgroundColor: "#f7fafc",
+    backgroundColor: "#f9fafb",
   },
 };
 

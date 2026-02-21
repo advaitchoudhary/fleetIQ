@@ -535,10 +535,10 @@ const AllTimesheets: React.FC = () => {
             <span>Created: {createdAtString}</span>
             {isEdited && (
               <>
-                <span style={{ fontWeight: "bold", color: "orange", marginTop: "4px", fontFamily: "Inter, system-ui, sans-serif" }}>
+                <span style={{ fontWeight: 600, color: "#d97706", marginTop: "4px", fontSize: "12px" }}>
                   Edited
                 </span>
-                <span style={{ color: "#888", fontSize: "12px" }}>
+                <span style={{ color: "#9ca3af", fontSize: "12px" }}>
                   Updated: {updatedAtString}
                 </span>
               </>
@@ -592,11 +592,12 @@ const AllTimesheets: React.FC = () => {
                 src={`${FILE_BASE_URL}/${path}`}
                 alt={`attachment-${index}`}
                 style={{
-                  width: "50px",
-                  height: "50px",
+                  width: "44px",
+                  height: "44px",
                   objectFit: "cover",
-                  borderRadius: "4px",
-                  cursor: "pointer"
+                  borderRadius: "8px",
+                  border: "1px solid #e5e7eb",
+                  cursor: "pointer",
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -646,7 +647,7 @@ const AllTimesheets: React.FC = () => {
     return (
       <div className="modal-overlay">
         <div className="modal-content">
-          <h2>Confirm Delete</h2>
+          <h3>Confirm Delete</h3>
           <p>Are you sure you want to delete this timesheet?</p>
           <div className="modal-actions">
             <button className="cancel-btn" onClick={onClose}>Cancel</button>
@@ -658,26 +659,47 @@ const AllTimesheets: React.FC = () => {
   };
 
   return (
-    <div>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
+      <style>{`
+        @media (max-width: 1024px) {
+          [data-at-container] { padding: 24px 20px !important; }
+          [data-at-filter-row] { flex-direction: column !important; align-items: stretch !important; }
+          [data-at-filter-actions] { margin-left: 0 !important; }
+        }
+        @media (max-width: 640px) {
+          [data-at-container] { padding: 16px 12px !important; }
+          [data-at-title] { font-size: 22px !important; }
+          [data-at-table-wrap] { margin-left: -12px !important; margin-right: -12px !important; border-radius: 0 !important; border-left: none !important; border-right: none !important; }
+          [data-at-search] { width: 100% !important; }
+          [data-at-filter-group] { flex: 1 1 100% !important; }
+        }
+        [data-at-table-wrap] table tr:hover td {
+          background-color: #f0f4ff;
+          transition: background-color 0.2s ease;
+          cursor: pointer;
+        }
+      `}</style>
       <Navbar />
-      <div style={styles.container}>
-        <h1>All Timesheets</h1>
-        <div style={{ ...styles.filterBar, flexWrap: "wrap", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <div style={{ ...styles.searchWrapper, position: "relative" }}>
-              <span style={{ ...styles.searchIcon }}>🔍</span>
+      <div style={styles.container} data-at-container>
+        <h1 style={styles.pageTitle} data-at-title>All Timesheets</h1>
+        <div style={styles.filterBar}>
+          <div style={styles.filterRow}>
+            <div style={styles.searchWrapper}>
+              <span style={styles.searchIcon}>🔍</span>
               <input
                 type="text"
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 style={styles.searchInput}
+                data-at-search
               />
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
-            <div style={styles.filterGroup}>
-              <label>User:</label>
+
+          <div style={styles.filterRow} data-at-filter-row>
+            <div style={styles.filterGroup} data-at-filter-group>
+              <label style={styles.filterLabel}>User:</label>
               <select value={selectedUser} onChange={(e) => handleUserChange(e.target.value)} style={styles.selectInput}>
                 <option value="All">All Users</option>
                 {users.map((driver: Driver) => (
@@ -686,7 +708,7 @@ const AllTimesheets: React.FC = () => {
               </select>
             </div>
             <div style={styles.filterGroup}>
-              <label>Filter:</label>
+              <label style={styles.filterLabel}>Filter:</label>
               <select
                 value={selectedFilter ?? "All"}
                 onChange={e => handleFilterChange(e.target.value as FilterType)}
@@ -700,16 +722,15 @@ const AllTimesheets: React.FC = () => {
               </select>
               {selectedFilter === "Custom" && (
                 <>
-                  <label>From:</label>
+                  <label style={styles.filterLabel}>From:</label>
                   <input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)} style={styles.dateInput} />
-                  <label>To:</label>
+                  <label style={styles.filterLabel}>To:</label>
                   <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} style={styles.dateInput} />
                 </>
               )}
             </div>
-            {/* [2] Add status filter dropdown */}
             <div style={styles.filterGroup}>
-              <label>Status:</label>
+              <label style={styles.filterLabel}>Status:</label>
               <select
                 value={selectedStatus}
                 onChange={e => handleStatusChange(e.target.value)}
@@ -721,29 +742,32 @@ const AllTimesheets: React.FC = () => {
                 <option value="rejected">Rejected</option>
               </select>
             </div>
-            {/* Clear Filters Button */}
+
             {((selectedFilter !== "All") || (selectedUser !== "All") || (selectedStatus !== "All") || searchQuery.trim() || ((selectedFilter as string) === "Custom" && (rangeStart || rangeEnd))) && (
               <button onClick={clearAllFilters} style={styles.clearButton}>
                 Clear Filters ✕
               </button>
             )}
-            <button onClick={handleExport} style={styles.exportButton}>
-              Export Timesheet 📤
-            </button>
-            <button onClick={handleDeleteFilteredTimesheets} style={styles.rejectButton}>
-              Delete Timesheets 🗑️
-            </button>
+
+            <div style={styles.filterActions} data-at-filter-actions>
+              <button onClick={handleExport} style={styles.exportButton}>
+                Export Timesheet 📤
+              </button>
+              <button onClick={handleDeleteFilteredTimesheets} style={styles.deleteButton}>
+                Delete Timesheets 🗑️
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Removed extra export button and exportOptions container */}
         {loading ? (
-          <p>Loading timesheets...</p>
+          <p style={{ color: "#6b7280", fontSize: "15px" }}>Loading timesheets...</p>
         ) : error ? (
           <p style={styles.error}>{error}</p>
         ) : (
           <>
-            <div style={styles.tableWrapper}>
+            <div style={styles.tableWrapper} data-at-table-wrap>
               <table style={styles.table}>
                 <thead>
                   {filteredTable.getHeaderGroups().map((headerGroup) => (
@@ -780,7 +804,7 @@ const AllTimesheets: React.FC = () => {
                         }}
                       >
                         {row.getVisibleCells().map((cell) => (
-                          <td key={cell.id}>
+                          <td key={cell.id} style={styles.td}>
                             {flexRender(cell.column.columnDef.cell, cell.getContext())}
                           </td>
                         ))}
@@ -788,21 +812,12 @@ const AllTimesheets: React.FC = () => {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={columns.length}>No data available</td>
+                      <td colSpan={columns.length} style={{ ...styles.td, textAlign: "center", color: "#9ca3af" }}>No data available</td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
-            <style>
-              {`
-                table tr:hover td {
-                  background-color: #f0f4ff;
-                  transition: background-color 0.2s ease;
-                  cursor: pointer;
-                }
-              `}
-            </style>
             {/* Pagination controls */}
             <div style={styles.pagination}>
               <button
@@ -845,56 +860,54 @@ const AllTimesheets: React.FC = () => {
 
 const styles = {
   container: {
-    textAlign: "center" as const,
-    padding: "40px 20px",
-    backgroundColor: "#f4f6f8",
+    padding: "32px 40px",
     fontFamily: "Inter, system-ui, sans-serif",
   },
+  pageTitle: {
+    fontSize: "26px",
+    fontWeight: 700,
+    color: "#111827",
+    marginBottom: "24px",
+    textAlign: "center" as const,
+  },
   tableWrapper: {
-    display: "flex",
-    justifyContent: "center",
     marginTop: "20px",
-    borderRadius: "8px",
-    boxShadow: "0 2px 12px rgba(0, 0, 0, 0.05)",
+    borderRadius: "12px",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
     backgroundColor: "#fff",
-    padding: "10px",
     overflowX: "auto",
   } as React.CSSProperties,
   table: {
     width: "100%",
     borderCollapse: "collapse" as const,
-    boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
-    borderRadius: "8px",
-    overflow: "hidden",
-    tableLayout: "auto" as const,
   },
   th: {
-    borderBottom: "1px solid #e2e8f0",
-    padding: "14px 16px",
-    fontSize: "13px",
-    fontWeight: 600,
+    padding: "14px 18px",
+    fontSize: "12px",
+    fontWeight: 700,
     textAlign: "left" as const,
-    backgroundColor: "#f3f4f6",
-    color: "#1f2937",
-    wordBreak: "break-word" as const,
-    whiteSpace: "wrap" as const,
+    backgroundColor: "#f9fafb",
+    color: "#6b7280",
+    borderBottom: "1px solid #e5e7eb",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
+    whiteSpace: "nowrap" as const,
   },
   td: {
-    borderBottom: "1px solid #e2e8f0",
-    padding: "8px 8px",
+    borderBottom: "1px solid #f3f4f6",
+    padding: "14px 18px",
     fontSize: "14px",
     textAlign: "left" as const,
-    backgroundColor: "#ffffff",
-    wordBreak: "break-word" as const,
+    color: "#374151",
   },
   actions: {
     display: "flex" as const,
     flexDirection: "column" as const,
     alignItems: "center" as const,
-    gap: "8px",
-    minWidth: "150px",
+    gap: "6px",
+    minWidth: "140px",
   },
-
   pagination: {
     display: "flex",
     justifyContent: "center",
@@ -903,51 +916,59 @@ const styles = {
     marginTop: "24px",
     padding: "12px 0",
     fontSize: "14px",
+    color: "#374151",
   },
   paginationButton: {
-    padding: "6px 14px",
-    border: "1px solid #ccc",
-    borderRadius: "6px",
-    backgroundColor: "#f9fafb",
+    padding: "7px 14px",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    backgroundColor: "#fff",
     cursor: "pointer",
     fontWeight: 500,
+    fontSize: "13px",
+    color: "#374151",
   },
   approveButton: {
     backgroundColor: "#ecfdf5",
-    color: "#047857",
+    color: "#059669",
     padding: "6px 14px",
-    border: "none",
+    border: "1px solid #a7f3d0",
     borderRadius: "8px",
     fontWeight: 600,
-    fontSize: "14px",
+    fontSize: "13px",
     cursor: "pointer",
-    boxShadow: "0 0 0 1px #a7f3d0",
   },
   rejectButton: {
     backgroundColor: "#fef2f2",
-    color: "#b91c1c",
+    color: "#dc2626",
     padding: "6px 14px",
-    border: "none",
+    border: "1px solid #fecaca",
     borderRadius: "8px",
     fontWeight: 600,
-    fontSize: "14px",
+    fontSize: "13px",
     cursor: "pointer",
-    boxShadow: "0 0 0 1px #fecaca",
   },
   readOnly: {
-    color: "gray",
+    color: "#9ca3af",
     fontStyle: "italic",
   },
   error: {
-    color: "red",
-    fontSize: "16px",
+    color: "#dc2626",
+    fontSize: "14px",
+    fontWeight: 600,
     marginTop: "10px",
+    padding: "10px 16px",
+    backgroundColor: "#fef2f2",
+    borderRadius: "8px",
+    border: "1px solid #fecaca",
+    display: "inline-block",
   },
   editIcon: {
     background: "none",
     border: "none",
     cursor: "pointer",
-    fontSize: "18px",
+    fontSize: "16px",
+    color: "#4F46E5",
   },
   modalOverlay: {
     position: "fixed" as const,
@@ -960,43 +981,49 @@ const styles = {
     justifyContent: "center",
     alignItems: "center",
     zIndex: 1000,
+    backdropFilter: "blur(4px)",
   },
   modal: {
-    backgroundColor: "white",
-    padding: "24px",
-    borderRadius: "10px",
+    backgroundColor: "#fff",
+    padding: "28px",
+    borderRadius: "16px",
     width: "600px",
-    maxHeight: "80vh",
+    maxHeight: "85vh",
     overflowY: "auto" as const,
-    boxShadow: "0px 6px 12px rgba(0, 0, 0, 0.15)",
+    boxShadow: "0 24px 48px rgba(0, 0, 0, 0.16)",
   },
   input: {
     width: "100%",
-    padding: "10px",
-    borderRadius: "4px",
-    border: "1px solid #ccc",
+    padding: "10px 12px",
+    borderRadius: "8px",
+    border: "1px solid #d1d5db",
+    backgroundColor: "#f9fafb",
+    fontSize: "14px",
+    color: "#111827",
+    outline: "none",
+    boxSizing: "border-box" as const,
   },
   exportButton: {
-    padding: "10px 20px",
+    padding: "7px 16px",
     backgroundColor: "#4F46E5",
     color: "#fff",
     border: "none",
     borderRadius: "8px",
-    fontSize: "14px",
-    fontWeight: 500,
+    fontSize: "13px",
+    fontWeight: 600,
     cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
+    whiteSpace: "nowrap" as const,
   },
   optionButton: {
     margin: "5px",
     padding: "8px 18px",
-    backgroundColor: "#17a2b8",
-    color: "white",
+    backgroundColor: "#4F46E5",
+    color: "#fff",
     border: "none",
-    borderRadius: "4px",
+    borderRadius: "8px",
     cursor: "pointer",
+    fontSize: "13px",
+    fontWeight: 600,
   },
   exportOptions: {
     textAlign: "center" as const,
@@ -1004,99 +1031,141 @@ const styles = {
   },
   filterBar: {
     display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "16px 24px",
+    flexDirection: "column" as const,
+    gap: "12px",
+    padding: "16px 20px",
     backgroundColor: "#ffffff",
-    border: "1px solid #e0e0e0",
-    borderRadius: "10px",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
-    gap: "16px",
+    border: "1px solid #e5e7eb",
+    borderRadius: "12px",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
+  },
+  filterRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    flexWrap: "wrap" as const,
   },
   filterGroup: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
+    gap: "6px",
     flexWrap: "wrap" as const,
   },
+  filterLabel: {
+    fontSize: "13px",
+    fontWeight: 600,
+    color: "#6b7280",
+    whiteSpace: "nowrap" as const,
+  },
+  filterActions: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    marginLeft: "auto",
+  },
   dateInput: {
-    padding: "6px",
-    borderRadius: "4px",
-    border: "1px solid #ccc",
+    padding: "7px 10px",
+    borderRadius: "8px",
+    border: "1px solid #d1d5db",
+    fontSize: "13px",
+    color: "#374151",
+    backgroundColor: "#f9fafb",
+    outline: "none",
   },
   selectInput: {
-    padding: "8px 14px",
+    padding: "7px 12px",
     borderRadius: "8px",
-    border: "1px solid #ccc",
-    backgroundColor: "#f9f9f9",
-    fontSize: "14px",
+    border: "1px solid #d1d5db",
+    backgroundColor: "#f9fafb",
+    fontSize: "13px",
+    color: "#374151",
+    outline: "none",
+    cursor: "pointer",
   },
   searchWrapper: {
-    position: "relative",
+    position: "relative" as const,
     display: "flex",
     alignItems: "center",
   },
   searchIcon: {
     position: "absolute" as const,
-    left: "12px",
+    left: "10px",
     top: "50%",
     transform: "translateY(-50%)",
-    fontSize: "16px",
-    color: "#888",
+    fontSize: "14px",
+    color: "#9ca3af",
+    pointerEvents: "none" as const,
   },
   searchInput: {
     padding: "8px 14px 8px 32px",
     borderRadius: "8px",
-    border: "1px solid #ccc",
-    backgroundColor: "#fff",
-    fontSize: "14px",
-    width: "250px",
+    border: "1px solid #d1d5db",
+    backgroundColor: "#f9fafb",
+    fontSize: "13px",
+    color: "#374151",
+    width: "220px",
+    outline: "none",
   },
   clearButton: {
-    padding: "8px 14px",
-    backgroundColor: "#e0e0e0",
-    color: "#333",
-    border: "none",
+    padding: "7px 14px",
+    backgroundColor: "#f3f4f6",
+    color: "#4b5563",
+    border: "1px solid #d1d5db",
     borderRadius: "8px",
-    fontSize: "14px",
-    fontWeight: 500,
+    fontSize: "13px",
+    fontWeight: 600,
     cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
+    whiteSpace: "nowrap" as const,
+  },
+  deleteButton: {
+    padding: "7px 16px",
+    backgroundColor: "#fef2f2",
+    color: "#b91c1c",
+    border: "1px solid #fecaca",
+    borderRadius: "8px",
+    fontSize: "13px",
+    fontWeight: 600,
+    cursor: "pointer",
+    whiteSpace: "nowrap" as const,
   },
 };
 
 const statusStyles = {
   approved: {
     backgroundColor: "#ecfdf5",
-    color: "#047857",
+    color: "#059669",
     padding: "4px 12px",
-    borderRadius: "9px",
+    borderRadius: "20px",
     fontWeight: 600,
+    fontSize: "12px",
     display: "inline-block",
-    minWidth: "80px",
+    minWidth: "76px",
     textAlign: "center" as const,
+    letterSpacing: "0.3px",
   },
   rejected: {
     backgroundColor: "#fef2f2",
-    color: "#b91c1c",
+    color: "#dc2626",
     padding: "4px 12px",
-    borderRadius: "9px",
+    borderRadius: "20px",
     fontWeight: 600,
+    fontSize: "12px",
     display: "inline-block",
-    minWidth: "80px",
+    minWidth: "76px",
     textAlign: "center" as const,
+    letterSpacing: "0.3px",
   },
   pending: {
-    backgroundColor: "#fff7ed",
+    backgroundColor: "#fffbeb",
     color: "#b45309",
     padding: "4px 12px",
-    borderRadius: "9px",
+    borderRadius: "20px",
     fontWeight: 600,
+    fontSize: "12px",
     display: "inline-block",
-    minWidth: "80px",
+    minWidth: "76px",
     textAlign: "center" as const,
+    letterSpacing: "0.3px",
   },
 };
 
@@ -1281,25 +1350,32 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
     <div style={{
       position: "fixed",
       top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: "rgba(0,0,0,0.8)",
+      backgroundColor: "rgba(0,0,0,0.7)",
+      backdropFilter: "blur(4px)",
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      zIndex: 2000
+      zIndex: 2000,
     }}>
       <div style={{ position: "relative" }}>
         <button
           onClick={() => setSelectedImageIndex(null)}
           style={{
             position: "absolute",
-            top: "-10px",
-            right: "-10px",
+            top: "-12px",
+            right: "-12px",
             background: "#fff",
             border: "none",
             borderRadius: "50%",
-            padding: "8px 12px",
-            fontSize: "16px",
+            width: "32px",
+            height: "32px",
+            fontSize: "14px",
             cursor: "pointer",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1,
           }}
         >
           ✖
@@ -1312,7 +1388,8 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
               width: "80vw",
               height: "90vh",
               backgroundColor: "white",
-              borderRadius: "8px"
+              borderRadius: "12px",
+              border: "none",
             }}
           />
         ) : (
@@ -1323,7 +1400,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
             style={{
               maxHeight: "90vh",
               maxWidth: "90vw",
-              borderRadius: "8px",
+              borderRadius: "12px",
               transform: `scale(${zoom})`,
               transition: "transform 0.2s ease",
               cursor: zoom > 1 ? "move" : "zoom-in",
@@ -1402,7 +1479,8 @@ const modalCss = `
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1410,31 +1488,49 @@ const modalCss = `
 }
 .modal-content {
   background: white;
-  padding: 24px;
-  border-radius: 10px;
+  padding: 28px;
+  border-radius: 16px;
   max-width: 400px;
   width: 90%;
   text-align: center;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.16);
+  font-family: Inter, system-ui, sans-serif;
+}
+.modal-content h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 8px;
+}
+.modal-content p {
+  font-size: 14px;
+  color: #6b7280;
 }
 .modal-actions {
-  margin-top: 20px;
+  margin-top: 24px;
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
+  gap: 10px;
 }
 .cancel-btn {
-  background-color: #ccc;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
+  background-color: #fff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 10px 20px;
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
 }
 .delete-btn {
-  background-color: #e53935;
+  background-color: #dc2626;
   color: white;
-  padding: 8px 16px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
 }
 `;
 

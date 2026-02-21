@@ -199,10 +199,10 @@ const MyTimesheet: React.FC = () => {
       cell: ({ row }: { row: { original: Timesheet } }) => {
         const attachments = row.original.attachments || [];
         if (attachments.length === 0) {
-          return <span>No Attachments</span>;
+          return <span style={{ color: "#9ca3af", fontSize: "13px" }}>No Attachments</span>;
         }
         return (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
             {attachments.map((path: string, index: number) => (
               <a
                 key={index}
@@ -214,10 +214,11 @@ const MyTimesheet: React.FC = () => {
                   src={`${FILE_BASE_URL}/${path}`}
                   alt={`attachment-${index}`}
                   style={{
-                    width: "50px",
-                    height: "50px",
+                    width: "44px",
+                    height: "44px",
                     objectFit: "cover",
-                    borderRadius: "4px",
+                    borderRadius: "8px",
+                    border: "1px solid #e5e7eb",
                   }}
                 />
               </a>
@@ -232,12 +233,12 @@ const MyTimesheet: React.FC = () => {
       cell: ({ row }: { row: { original: Timesheet } }) => {
         const status = row.original.status;
         return (
-          <span style={statusStyles[status] || styles.pending}>
+          <span style={statusStyles[status] || statusStyles.pending}>
             {status === "approved"
-              ? <span style={{ color: "green" }}>✔️</span>
+              ? "Approved"
               : status === "rejected"
-              ? "❌"
-              : "⏳"}
+              ? "Rejected"
+              : "Pending"}
           </span>
         );
       },
@@ -307,33 +308,47 @@ const MyTimesheet: React.FC = () => {
   });
 
   return (
-    <div>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
+      <style>{`
+        @media (max-width: 1024px) {
+          [data-ts-container] { padding: 24px 20px !important; }
+          [data-ts-controls] { flex-direction: column !important; align-items: stretch !important; }
+          [data-ts-hours] { min-width: unset !important; }
+          [data-ts-filters] { flex-wrap: wrap !important; }
+          [data-ts-filters] input, [data-ts-filters] select { min-width: unset !important; flex: 1 1 140px !important; }
+        }
+        @media (max-width: 640px) {
+          [data-ts-container] { padding: 16px 12px !important; }
+          [data-ts-title] { font-size: 22px !important; }
+          [data-ts-hours-number] { font-size: 22px !important; }
+          [data-ts-driver-name] { font-size: 15px !important; }
+          [data-ts-table-wrap] { margin-left: -12px !important; margin-right: -12px !important; border-radius: 0 !important; border-left: none !important; border-right: none !important; }
+          [data-ts-filters] input, [data-ts-filters] select { flex: 1 1 100% !important; }
+        }
+      `}</style>
       <Navbar />
-      <div style={styles.container}>
-        <h1>My Timesheets</h1>
+      <div style={styles.container} data-ts-container>
+        <h1 style={styles.pageTitle} data-ts-title>My Timesheets</h1>
 
-        {loading && <p>Loading timesheets...</p>}
+        {loading && <p style={{ color: "#6b7280", fontSize: "15px" }}>Loading timesheets...</p>}
         {error && <p style={styles.error}>{error}</p>}
 
-        {/* Hours This Week Display and Search/Filter Controls */}
         {!loading && driverName && (
-          <div style={styles.controlsContainer}>
-            {/* Hours This Week Display */}
-            <div style={styles.hoursCard}>
+          <div style={styles.controlsContainer} data-ts-controls>
+            <div style={styles.hoursCard} data-ts-hours>
               <div style={styles.hoursContent}>
                 <div style={styles.hoursInfo}>
                   <h2 style={styles.hoursTitle}>Hours This Week</h2>
-                  <p style={styles.driverName}>{driverName}</p>
+                  <p style={styles.driverName} data-ts-driver-name>{driverName}</p>
                 </div>
                 <div style={styles.hoursValue}>
-                  <span style={styles.hoursNumber}>{driverHours.toFixed(2)}</span>
+                  <span style={styles.hoursNumber} data-ts-hours-number>{driverHours.toFixed(2)}</span>
                   <span style={styles.hoursUnit}>hours</span>
                 </div>
               </div>
             </div>
 
-            {/* Search and Filter Controls */}
-            <div style={styles.searchFilterContainer}>
+            <div style={styles.searchFilterContainer} data-ts-filters>
               <input
                 type="text"
                 placeholder="Search..."
@@ -373,11 +388,11 @@ const MyTimesheet: React.FC = () => {
         )}
 
         {!loading && !error && timesheets.length === 0 && (
-          <p>No timesheets found for {userEmail}.</p>
+          <p style={{ color: "#6b7280", fontSize: "15px" }}>No timesheets found for {userEmail}.</p>
         )}
 
         {!loading && !error && timesheets.length > 0 && (
-          <div style={styles.tableWrapper}>
+          <div style={styles.tableWrapper} data-ts-table-wrap>
             <table style={styles.table}>
               <thead>
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -418,75 +433,81 @@ const MyTimesheet: React.FC = () => {
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     textAlign: "center",
-    padding: "40px 20px",
-    backgroundColor: "#f4f6f8",
+    padding: "32px 40px",
     fontFamily: "Inter, system-ui, sans-serif",
   },
+  pageTitle: {
+    fontSize: "26px",
+    fontWeight: 700,
+    color: "#111827",
+    marginBottom: "24px",
+    letterSpacing: "-0.3px",
+  },
   tableWrapper: {
-    display: "flex",
-    justifyContent: "center",
     marginTop: "20px",
-    borderRadius: "8px",
-    boxShadow: "0 2px 12px rgba(0, 0, 0, 0.05)",
+    borderRadius: "12px",
+    border: "1px solid #e5e7eb",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
     backgroundColor: "#fff",
-    padding: "10px",
+    padding: "4px",
     overflowX: "auto",
-    maxWidth: "100vw",
+    WebkitOverflowScrolling: "touch",
   },
   table: {
     width: "100%",
     borderCollapse: "collapse" as const,
-    boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.08)",
-    borderRadius: "8px",
+    borderRadius: "12px",
     overflow: "hidden",
     tableLayout: "fixed" as const,
     minWidth: "1200px",
   },
   headerRow: {
-    backgroundColor: "#f3f4f6",
-    borderBottom: "2px solid #e2e8f0",
+    backgroundColor: "#f9fafb",
+    borderBottom: "1px solid #e5e7eb",
   },
   headerCell: {
-    padding: "14px",
-    fontSize: "16px",
-    fontWeight: "bold",
-    color: "#1f2937",
+    padding: "14px 16px",
+    fontSize: "11px",
+    fontWeight: 700,
+    color: "#6b7280",
     textAlign: "center" as const,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.6px",
   },
   row: {
     backgroundColor: "#ffffff",
-    borderBottom: "1px solid #e5e7eb",
+    borderBottom: "1px solid #f3f4f6",
     transition: "background-color 0.2s ease",
   },
   hoveredRow: {
     backgroundColor: "#f9fafb",
   },
   cell: {
-    padding: "14px",
-    borderBottom: "1px solid #e5e7eb",
+    padding: "14px 16px",
     textAlign: "center" as const,
     fontSize: "14px",
-    color: "#2d3748",
+    color: "#374151",
     verticalAlign: "middle",
   },
   error: {
-    color: "#e53e3e",
-    fontSize: "1rem",
-    fontWeight: "bold",
+    color: "#dc2626",
+    fontSize: "14px",
+    fontWeight: 600,
     marginTop: "10px",
-  },
-  pending: {
-    color: "orange",
-    fontSize: "20px",
+    padding: "10px 16px",
+    backgroundColor: "#fef2f2",
+    borderRadius: "8px",
+    border: "1px solid #fecaca",
+    display: "inline-block",
   },
   hoursCard: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#ffffff",
     color: "#374151",
-    borderRadius: "8px",
-    padding: "12px 16px",
+    borderRadius: "12px",
+    padding: "16px 20px",
     display: "flex",
     alignItems: "center",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
     border: "1px solid #e5e7eb",
     minWidth: "25%",
   },
@@ -497,78 +518,117 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: "100%",
   },
   hoursInfo: {
-    textAlign: "left",
+    textAlign: "left" as const,
     display: "flex",
-    flexDirection: "column",
+    flexDirection: "column" as const,
     gap: "2px",
   },
   hoursTitle: {
-    fontSize: "16px",
+    fontSize: "12px",
     marginBottom: "0",
-    fontWeight: "600",
+    fontWeight: 700,
     color: "#6b7280",
     lineHeight: "1.2",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
   },
   driverName: {
-    fontSize: "20px",
-    fontWeight: "500",
-    color: "#374151",
-    lineHeight: "1.2",
-    marginTop: "0",
+    fontSize: "18px",
+    fontWeight: 600,
+    color: "#111827",
+    lineHeight: "1.3",
+    marginTop: "4px",
   },
   hoursValue: {
     display: "flex",
     alignItems: "baseline",
+    gap: "4px",
   },
   hoursNumber: {
-    fontSize: "24px",
-    fontWeight: "600",
+    fontSize: "28px",
+    fontWeight: 700,
     lineHeight: "1",
-    color: "#111827",
+    color: "#4F46E5",
   },
   hoursUnit: {
-    fontSize: "16px",
-    fontWeight: "500",
-    marginLeft: "4px",
+    fontSize: "14px",
+    fontWeight: 500,
     color: "#6b7280",
   },
   controlsContainer: {
     display: "flex",
-    flexDirection: "row",
+    flexDirection: "row" as const,
     justifyContent: "space-between",
     alignItems: "center",
     gap: "20px",
     marginBottom: "20px",
-    flexWrap: "wrap",
+    flexWrap: "wrap" as const,
   },
   searchFilterContainer: {
     display: "flex",
-    flexWrap: "wrap",
-    gap: "12px",
+    flexWrap: "wrap" as const,
+    gap: "10px",
     alignItems: "center",
   },
   searchInput: {
-    padding: "8px",
-    borderRadius: "4px",
-    border: "1px solid #ccc",
+    padding: "10px 14px",
+    borderRadius: "8px",
+    border: "1px solid #d1d5db",
     minWidth: "200px",
+    fontSize: "14px",
+    backgroundColor: "#fff",
+    transition: "border-color 0.2s",
   },
   filterSelect: {
-    padding: "8px",
-    borderRadius: "4px",
-    border: "1px solid #ccc",
+    padding: "10px 14px",
+    borderRadius: "8px",
+    border: "1px solid #d1d5db",
+    fontSize: "14px",
+    backgroundColor: "#fff",
   },
   dateInput: {
-    padding: "6px",
-    borderRadius: "4px",
-    border: "1px solid #ccc",
+    padding: "10px 14px",
+    borderRadius: "8px",
+    border: "1px solid #d1d5db",
+    fontSize: "14px",
+    backgroundColor: "#fff",
   },
 };
 
-const statusStyles: { [key: string]: { color: string; fontSize: string } } = {
-  approved: { color: "green", fontSize: "20px" }, // ✔️ Approved
-  rejected: { color: "red", fontSize: "20px" }, // ❌ Rejected
-  pending: { color: "orange", fontSize: "20px" }, // ⏳ Pending
+const statusStyles: { [key: string]: React.CSSProperties } = {
+  approved: {
+    display: "inline-block",
+    padding: "4px 12px",
+    borderRadius: "20px",
+    fontSize: "12px",
+    fontWeight: 600,
+    letterSpacing: "0.3px",
+    backgroundColor: "#ecfdf5",
+    color: "#059669",
+    border: "1px solid #a7f3d0",
+  },
+  rejected: {
+    display: "inline-block",
+    padding: "4px 12px",
+    borderRadius: "20px",
+    fontSize: "12px",
+    fontWeight: 600,
+    letterSpacing: "0.3px",
+    backgroundColor: "#fef2f2",
+    color: "#dc2626",
+    border: "1px solid #fecaca",
+  },
+  pending: {
+    display: "inline-block",
+    padding: "4px 12px",
+    borderRadius: "20px",
+    fontSize: "12px",
+    fontWeight: 600,
+    letterSpacing: "0.3px",
+    backgroundColor: "#fffbeb",
+    color: "#d97706",
+    border: "1px solid #fde68a",
+  },
 };
 
 export default MyTimesheet;

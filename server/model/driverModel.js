@@ -29,13 +29,24 @@ const driverSchema = new mongoose.Schema(
             enum: ["Active", "Inactive", "Suspended"],
             default: "Active"
         },
-        trainings: [{ type: String, required: false }],
+        trainings: [{
+            name: { type: String, required: true }, // Training name
+            proofDocument: { type: String, required: false } // File path for proof document
+        }],
         username: { type: String, unique: true, required: true },
         password: { type: String, required: true },
         workStatus: { type: String, required: true },
         sinNo: { type: String, required: true },
         plainPassword: { type: String },
-        hoursThisWeek: { type: Number, default: 0 } // New field to track hours this week
+        hoursThisWeek: { type: Number, default: 0 }, // New field to track hours this week
+        requiredOnboardingForms: {
+            agencySignOff: { type: String, required: false }, // File path for Agency Sign Off form
+            driverDeliveryExpectations: { type: String, required: false }, // File path for Driver Delivery Expectations form
+            cellPhonePolicy: { type: String, required: false }, // File path for Cell Phone Policy form
+            storeSurvey1: { type: String, required: false }, // File path for Store Survey 1 form
+            tobaccoAndLCPValidation: { type: String, required: false }, // File path for Tobacco and LCP Validation form
+            driverSop: { type: String, required: false } // File path for Driver SOP form
+        }
     },
     { timestamps: true } // Adds createdAt and updatedAt timestamps
 );

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL, FILE_BASE_URL } from "../utils/env";
 import Navbar from "./Navbar";
+import { FaArrowLeft } from "react-icons/fa";
 
 const DetailedTimesheet: React.FC = () => {
   const { id } = useParams();
@@ -430,59 +431,49 @@ const DetailedTimesheet: React.FC = () => {
     }
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (!timesheet) return <p>No timesheet found.</p>;
+  if (loading) return <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontFamily: "Inter, system-ui, sans-serif", color: "#6b7280", fontSize: "15px" }}>Loading...</div>;
+  if (!timesheet) return <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontFamily: "Inter, system-ui, sans-serif", color: "#6b7280", fontSize: "15px" }}>No timesheet found.</div>;
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
     <Navbar />
-    <div style={{ 
-      padding: "20px 20px 0 20px",
-      display: "flex",
-      alignItems: "center"
-    }}>
+    <div style={{ padding: "24px 40px 0 40px" }}>
       <button
         onClick={handleBackClick}
         title="Go back to timesheets list (or press Escape)"
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "8px",
-          padding: "10px 16px",
-          backgroundColor: "#4F46E5",
-          color: "white",
-          border: "none",
+          gap: "6px",
+          padding: "8px 16px",
+          backgroundColor: "#fff",
+          color: "#374151",
+          border: "1px solid #d1d5db",
           borderRadius: "8px",
-          fontSize: "14px",
-          fontWeight: "500",
+          fontSize: "13px",
+          fontWeight: 600,
           cursor: "pointer",
-          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-          transition: "all 0.2s ease"
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = "#4338CA";
-          e.currentTarget.style.transform = "translateY(-1px)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = "#4F46E5";
-          e.currentTarget.style.transform = "translateY(0)";
+          transition: "background-color 0.2s, border-color 0.2s",
+          fontFamily: "Inter, system-ui, sans-serif",
         }}
       >
-        ← Back to Timesheets
+        <FaArrowLeft size={13} /> Back
       </button>
     </div>
-    <div style={{ display: "flex", padding: "20px", gap: "20px" }}>
-      {/* Left Side: Beautified Details */}
+    <div style={{ display: "flex", padding: "20px 40px", gap: "24px" }}>
+      {/* Left Side: Details */}
       <div style={{
         flex: 1,
-        background: "#f0f0f0",
-        padding: "20px",
-        borderRadius: "8px",
+        background: "#ffffff",
+        padding: "28px",
+        borderRadius: "16px",
+        border: "1px solid #e5e7eb",
+        boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
         height: "150vh",
         overflowY: "auto"
       }}>
-        <h2>Timesheet Details</h2>
-        <div style={{ display: "grid", gap: "10px", fontSize: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, color: "#111827", marginBottom: "20px" }}>Timesheet Details</h2>
+        <div style={{ display: "grid", gap: "8px", fontSize: "14px" }}>
           {(() => {
             let inExtra = false, inDelay = false;
             return Object.entries(timesheet)
@@ -510,19 +501,19 @@ const DetailedTimesheet: React.FC = () => {
 
                 if (key === "extraWorkSheet" && !inExtra) {
                   inExtra = true;
-                  elements.push(<h4 key="extraHeader" style={{ color: "#555", marginTop: "20px" }}>Extra Worksheet</h4>);
+                  elements.push(<h4 key="extraHeader" style={{ color: "#374151", marginTop: "24px", fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>Extra Worksheet</h4>);
                 }
                 if (key === "delayStoreDuration" && !inDelay) {
                   inDelay = true;
-                  elements.push(<h4 key="delayHeader" style={{ color: "#555", marginTop: "20px" }}>Delays</h4>);
+                  elements.push(<h4 key="delayHeader" style={{ color: "#374151", marginTop: "24px", fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>Delays</h4>);
                 }
 
                 elements.push(
-                  <div key={key} style={{ display: "flex" }}>
-                    <strong style={{ width: "180px", color: "#333" }}>
-                      {key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^\w/, c => c.toUpperCase())}:
+                  <div key={key} style={{ display: "flex", padding: "6px 0", borderBottom: "1px solid #f3f4f6" }}>
+                    <strong style={{ width: "180px", color: "#6b7280", fontSize: "13px", fontWeight: 600, flexShrink: 0 }}>
+                      {key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^\w/, c => c.toUpperCase())}
                     </strong>
-                    <span style={{ color: "#555" }}>{String(displayValue)}</span>
+                    <span style={{ color: "#111827", fontSize: "14px" }}>{String(displayValue)}</span>
                   </div>
                 );
 
@@ -531,8 +522,8 @@ const DetailedTimesheet: React.FC = () => {
           })()}
         </div>
         {Array.isArray(timesheet.attachments) && timesheet.attachments.length > 0 && (
-          <div style={{ marginTop: "16px" }}>
-            <h4>Attachments</h4>
+          <div style={{ marginTop: "24px" }}>
+            <h4 style={{ fontSize: "14px", fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "12px" }}>Attachments</h4>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "16px" }}>
               {timesheet.attachments.map((src: string, idx: number) => (
                 <img
@@ -547,10 +538,12 @@ const DetailedTimesheet: React.FC = () => {
                     width: "100%",
                     height: "auto",
                     objectFit: "contain",
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                    borderRadius: "12px",
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.08)",
+                    border: "1px solid #e5e7eb",
                     cursor: "pointer",
-                    display: "block"
+                    display: "block",
+                    transition: "box-shadow 0.2s"
                   }}
                 />
               ))}
@@ -560,8 +553,8 @@ const DetailedTimesheet: React.FC = () => {
       </div>
 
       {/* Right Side: Editable Form */}
-      <div style={{ flex: 1, background: "#fff", padding: "20px", border: "1px solid #ccc", borderRadius: "8px", height: "150vh", overflowY: "auto" }}>
-        <h2>Edit Timesheet</h2>
+      <div style={{ flex: 1, background: "#ffffff", padding: "28px", border: "1px solid #e5e7eb", borderRadius: "16px", boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)", height: "150vh", overflowY: "auto" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, color: "#111827", marginBottom: "20px" }}>Edit Timesheet</h2>
         {
           // Custom fields rendering for form, with new Extra Delay block
           (() => {
@@ -595,21 +588,13 @@ const DetailedTimesheet: React.FC = () => {
                   <React.Fragment key={key}>
                     {/* Section header for Extra Worksheet */}
                     {key === "extraWorkSheet" && !inExtra && (inExtra = true) && (
-                      <h4 style={{ gridColumn: "1 / -1", marginTop: "20px", color: "#555" }}>Extra Worksheet</h4>
+                      <h4 style={{ gridColumn: "1 / -1", marginTop: "24px", color: "#374151", fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>Extra Worksheet</h4>
                     )}
                     {/* Render extra worksheet fields conditionally */}
                     {key === "extraWorkSheet" ? (
                       <>
-                        <div
-                          style={{
-                            marginBottom: "12px",
-                            display: "grid",
-                            gridTemplateColumns: "140px 1fr 30px",
-                            alignItems: "center",
-                            gap: "10px"
-                          }}
-                        >
-                          <label style={{ fontWeight: "bold" }}>
+                        <div style={styles.formRow}>
+                          <label style={styles.formLabel}>
                             {key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^\w/, c => c.toUpperCase())}
                           </label>
                           <select
@@ -617,14 +602,7 @@ const DetailedTimesheet: React.FC = () => {
                             value={formData.extraWorkSheet}
                             onChange={handleInputChange}
                             disabled={correctedFields.has(key)}
-                            style={{
-                              width: "100%",
-                              padding: "8px",
-                              paddingRight: "30px",
-                              fontSize: "14px",
-                              border: "1px solid #ccc",
-                              borderRadius: "4px"
-                            }}
+                            style={styles.formSelect}
                           >
                             <option value="no">No</option>
                             <option value="yes">Yes</option>
@@ -632,13 +610,7 @@ const DetailedTimesheet: React.FC = () => {
                           {!correctedFields.has(key) && (
                             <button
                               onClick={() => setCorrectedFields(prev => new Set(prev).add(key))}
-                              style={{
-                                background: "transparent",
-                                border: "none",
-                                cursor: "pointer",
-                                fontSize: "18px",
-                                color: "green"
-                              }}
+                              style={styles.correctButton}
                               title="Mark as Correct"
                             >
                               ✅
@@ -648,69 +620,33 @@ const DetailedTimesheet: React.FC = () => {
                         {formData.extraWorkSheet === "yes" && (
                           <>
                             {/* Extra Duration: no correct-info icon for duration */}
-                            <div
-                              style={{
-                                marginBottom: "12px",
-                                display: "grid",
-                                gridTemplateColumns: "140px 1fr 30px",
-                                alignItems: "center",
-                                gap: "10px"
-                              }}
-                            >
-                              <label style={{ fontWeight: "bold" }}>Extra Duration</label>
+                            <div style={styles.formRow}>
+                              <label style={styles.formLabel}>Extra Duration</label>
                               <input
                                 type="text"
                                 name="extraDuration"
                                 value={formData.extraDuration}
                                 readOnly
                                 disabled
-                                style={{
-                                  width: "100%",
-                                  padding: "8px",
-                                  fontSize: "14px",
-                                  border: "1px solid #ccc",
-                                  borderRadius: "4px",
-                                  backgroundColor: "#f9f9f9",
-                                  color: "#888"
-                                }}
+                                style={styles.readOnlyInput}
                               />
                               {/* No correct-info icon for duration */}
                             </div>
                             {/* Duration From */}
-                            <div
-                              style={{
-                                marginBottom: "12px",
-                                display: "grid",
-                                gridTemplateColumns: "140px 1fr 30px",
-                                alignItems: "center",
-                                gap: "10px"
-                              }}
-                            >
-                              <label style={{ fontWeight: "bold" }}>Duration From</label>
+                            <div style={styles.formRow}>
+                              <label style={styles.formLabel}>Duration From</label>
                               <input
                                 type="time"
                                 name="durationFrom"
                                 value={formData.durationFrom}
                                 onChange={handleInputChange}
                                 disabled={correctedFields.has("durationFrom")}
-                                style={{
-                                  width: "100%",
-                                  padding: "8px",
-                                  fontSize: "14px",
-                                  border: "1px solid #ccc",
-                                  borderRadius: "4px"
-                                }}
+                                style={styles.formInput}
                               />
                               {!correctedFields.has("durationFrom") && (
                                 <button
                                   onClick={() => setCorrectedFields(prev => new Set(prev).add("durationFrom"))}
-                                  style={{
-                                    background: "transparent",
-                                    border: "none",
-                                    cursor: "pointer",
-                                    fontSize: "18px",
-                                    color: "green"
-                                  }}
+                                  style={styles.correctButton}
                                   title="Mark as Correct"
                                 >
                                   ✅
@@ -718,40 +654,20 @@ const DetailedTimesheet: React.FC = () => {
                               )}
                             </div>
                             {/* Duration To */}
-                            <div
-                              style={{
-                                marginBottom: "12px",
-                                display: "grid",
-                                gridTemplateColumns: "140px 1fr 30px",
-                                alignItems: "center",
-                                gap: "10px"
-                              }}
-                            >
-                              <label style={{ fontWeight: "bold" }}>Duration To</label>
+                            <div style={styles.formRow}>
+                              <label style={styles.formLabel}>Duration To</label>
                               <input
                                 type="time"
                                 name="durationTo"
                                 value={formData.durationTo}
                                 onChange={handleInputChange}
                                 disabled={correctedFields.has("durationTo")}
-                                style={{
-                                  width: "100%",
-                                  padding: "8px",
-                                  fontSize: "14px",
-                                  border: "1px solid #ccc",
-                                  borderRadius: "4px"
-                                }}
+                                style={styles.formInput}
                               />
                               {!correctedFields.has("durationTo") && (
                                 <button
                                   onClick={() => setCorrectedFields(prev => new Set(prev).add("durationTo"))}
-                                  style={{
-                                    background: "transparent",
-                                    border: "none",
-                                    cursor: "pointer",
-                                    fontSize: "18px",
-                                    color: "green"
-                                  }}
+                                  style={styles.correctButton}
                                   title="Mark as Correct"
                                 >
                                   ✅
@@ -759,40 +675,20 @@ const DetailedTimesheet: React.FC = () => {
                               )}
                             </div>
                             {/* Extra Work Sheet Comments */}
-                            <div
-                              style={{
-                                marginBottom: "12px",
-                                display: "grid",
-                                gridTemplateColumns: "140px 1fr 30px",
-                                alignItems: "center",
-                                gap: "10px"
-                              }}
-                            >
-                              <label style={{ fontWeight: "bold" }}>Extra Work Sheet Comments</label>
+                            <div style={styles.formRow}>
+                              <label style={styles.formLabel}>Extra Work Sheet Comments</label>
                               <textarea
                                 name="extraWorkSheetComments"
                                 value={formData.extraWorkSheetComments}
                                 onChange={handleInputChange}
                                 rows={3}
-                                style={{
-                                  width: "100%",
-                                  padding: "8px",
-                                  fontSize: "14px",
-                                  border: "1px solid #ccc",
-                                  borderRadius: "4px"
-                                }}
+                                style={styles.formTextarea}
                                 disabled={correctedFields.has("extraWorkSheetComments")}
                               />
                               {!correctedFields.has("extraWorkSheetComments") && (
                                 <button
                                   onClick={() => setCorrectedFields(prev => new Set(prev).add("extraWorkSheetComments"))}
-                                  style={{
-                                    background: "transparent",
-                                    border: "none",
-                                    cursor: "pointer",
-                                    fontSize: "18px",
-                                    color: "green"
-                                  }}
+                                  style={styles.correctButton}
                                   title="Mark as Correct"
                                 >
                                   ✅
@@ -803,16 +699,8 @@ const DetailedTimesheet: React.FC = () => {
                         )}
                       </>
                     ) : key === "category" ? (
-                      <div
-                        style={{
-                          marginBottom: "12px",
-                          display: "grid",
-                          gridTemplateColumns: "140px 1fr 30px",
-                          alignItems: "center",
-                          gap: "10px"
-                        }}
-                      >
-                        <label style={{ fontWeight: "bold" }}>
+                      <div style={styles.formRow}>
+                        <label style={styles.formLabel}>
                           {key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^\w/, c => c.toUpperCase())}
                         </label>
                         <select
@@ -820,14 +708,7 @@ const DetailedTimesheet: React.FC = () => {
                           value={String(value)}
                           onChange={handleInputChange}
                           disabled={correctedFields.has(key)}
-                          style={{
-                            width: "100%",
-                            padding: "8px",
-                            paddingRight: "30px",
-                            fontSize: "14px",
-                            border: "1px solid #ccc",
-                            borderRadius: "4px"
-                          }}
+                          style={styles.formSelect}
                         >
                           <option value="">Select Category</option>
                           {categoryOptions.map(opt => (
@@ -837,13 +718,7 @@ const DetailedTimesheet: React.FC = () => {
                         {!correctedFields.has(key) && (
                           <button
                             onClick={() => setCorrectedFields(prev => new Set(prev).add(key))}
-                            style={{
-                              background: "transparent",
-                              border: "none",
-                              cursor: "pointer",
-                              fontSize: "18px",
-                              color: "green"
-                            }}
+                            style={styles.correctButton}
                             title="Mark as Correct"
                           >
                             ✅
@@ -851,16 +726,8 @@ const DetailedTimesheet: React.FC = () => {
                         )}
                       </div>
                     ) : key === "comments" || key.toLowerCase().includes("comment") ? (
-                      <div
-                        style={{
-                          marginBottom: "12px",
-                          display: "grid",
-                          gridTemplateColumns: "140px 1fr 30px",
-                          alignItems: "center",
-                          gap: "10px"
-                        }}
-                      >
-                        <label style={{ fontWeight: "bold" }}>
+                      <div style={styles.formRow}>
+                        <label style={styles.formLabel}>
                           {key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^\w/, c => c.toUpperCase())}
                         </label>
                         <textarea
@@ -868,26 +735,13 @@ const DetailedTimesheet: React.FC = () => {
                           value={value as string}
                           onChange={handleInputChange}
                           rows={3}
-                          style={{
-                            width: "100%",
-                            padding: "8px",
-                            paddingRight: "30px",
-                            fontSize: "14px",
-                            border: "1px solid #ccc",
-                            borderRadius: "4px"
-                          }}
+                          style={styles.formTextarea}
                           disabled={correctedFields.has(key)}
                         />
                         {!correctedFields.has(key) && (
                           <button
                             onClick={() => setCorrectedFields(prev => new Set(prev).add(key))}
-                            style={{
-                              background: "transparent",
-                              border: "none",
-                              cursor: "pointer",
-                              fontSize: "18px",
-                              color: "green"
-                            }}
+                            style={styles.correctButton}
                             title="Mark as Correct"
                           >
                             ✅
@@ -895,16 +749,8 @@ const DetailedTimesheet: React.FC = () => {
                         )}
                       </div>
                     ) : (
-                      <div
-                        style={{
-                          marginBottom: "12px",
-                          display: "grid",
-                          gridTemplateColumns: "140px 1fr 30px",
-                          alignItems: "center",
-                          gap: "10px"
-                        }}
-                      >
-                        <label style={{ fontWeight: "bold" }}>
+                      <div style={styles.formRow}>
+                        <label style={styles.formLabel}>
                           {key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^\w/, c => c.toUpperCase())}
                         </label>
                         <input
@@ -918,25 +764,12 @@ const DetailedTimesheet: React.FC = () => {
                           onChange={handleInputChange}
                           readOnly={key === "customer"}
                           disabled={correctedFields.has(key)}
-                          style={{
-                            width: "100%",
-                            padding: "8px",
-                            paddingRight: "30px",
-                            fontSize: "14px",
-                            border: "1px solid #ccc",
-                            borderRadius: "4px"
-                          }}
+                          style={styles.formInput}
                         />
                         {!correctedFields.has(key) && (
                           <button
                             onClick={() => setCorrectedFields(prev => new Set(prev).add(key))}
-                            style={{
-                              background: "transparent",
-                              border: "none",
-                              cursor: "pointer",
-                              fontSize: "18px",
-                              color: "green"
-                            }}
+                            style={styles.correctButton}
                             title="Mark as Correct"
                           >
                             ✅
@@ -947,18 +780,10 @@ const DetailedTimesheet: React.FC = () => {
                   </React.Fragment>
                 ))}
                 {/* --- Extra Delay Custom Block (dropdown + checkboxes + forms) --- */}
-                <h4 style={{ gridColumn: "1 / -1", marginTop: "20px", color: "#555" }}>Delays</h4>
+                <h4 style={{ gridColumn: "1 / -1", marginTop: "24px", color: "#374151", fontSize: "14px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>Delays</h4>
                 {/* Improved "Was there an Extra Delay?" field - standardized dropdown + check icon */}
-                <div
-                  style={{
-                    marginBottom: "12px",
-                    display: "grid",
-                    gridTemplateColumns: "200px 1fr 30px",
-                    alignItems: "center",
-                    gap: "10px"
-                  }}
-                >
-                  <label style={{ fontWeight: "bold" }}>
+                <div style={styles.formRowWide}>
+                  <label style={styles.formLabel}>
                     Was there an Extra Delay?
                   </label>
                   <select
@@ -966,15 +791,7 @@ const DetailedTimesheet: React.FC = () => {
                     value={formData.extraDelay || ""}
                     onChange={handleInputChange}
                     disabled={correctedFields.has("extraDelay")}
-                    className="form-select"
-                    style={{
-                      width: "100%",
-                      padding: "8px",
-                      paddingRight: "30px",
-                      fontSize: "14px",
-                      border: "1px solid #ccc",
-                      borderRadius: "4px"
-                    }}
+                    style={styles.formSelect}
                   >
                     <option value="">Select</option>
                     <option value="yes">Yes</option>
@@ -983,13 +800,7 @@ const DetailedTimesheet: React.FC = () => {
                   {!correctedFields.has("extraDelay") && (
                     <button
                       onClick={() => setCorrectedFields(prev => new Set(prev).add("extraDelay"))}
-                      style={{
-                        background: "transparent",
-                        border: "none",
-                        cursor: "pointer",
-                        fontSize: "18px",
-                        color: "green"
-                      }}
+                      style={styles.correctButton}
                       title="Mark as Correct"
                     >
                       ✅
@@ -998,13 +809,13 @@ const DetailedTimesheet: React.FC = () => {
                 </div>
                 {/* Delay Types Checkboxes */}
                 {(formData.extraDelay === "yes") && (
-                  <div style={{ marginBottom: "16px", marginLeft: 20 }}>
-                    <label style={{ fontWeight: "bold" }}>
-                      <strong>Select Delay Types:</strong>
+                  <div style={{ marginBottom: "16px", marginLeft: 4, padding: "12px 16px", background: "#f9fafb", borderRadius: "10px", border: "1px solid #e5e7eb" }}>
+                    <label style={{ fontSize: "13px", fontWeight: 600, color: "#374151" }}>
+                      Select Delay Types:
                     </label>
-                    <div style={{ display: "flex", flexDirection: "row", gap: "24px", marginTop: "8px" }}>
+                    <div style={{ display: "flex", flexDirection: "row", gap: "24px", marginTop: "10px" }}>
                       {["Store Delay", "Road Delay", "Other Delay"].map((type) => (
-                        <label key={type} style={{ marginRight: "10px" }}>
+                        <label key={type} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", color: "#374151", cursor: "pointer" }}>
                           <input
                             type="checkbox"
                             checked={selectedDelayTypes.includes(type)}
@@ -1014,6 +825,7 @@ const DetailedTimesheet: React.FC = () => {
                                 : selectedDelayTypes.filter((t) => t !== type);
                               setSelectedDelayTypes(updated);
                             }}
+                            style={{ width: "16px", height: "16px", accentColor: "#4F46E5" }}
                           />
                           {type}
                         </label>
@@ -1023,16 +835,10 @@ const DetailedTimesheet: React.FC = () => {
                 )}
                 {/* Delay Forms */}
                 {(formData.extraDelay === "yes") && selectedDelayTypes.includes("Store Delay") && (
-                  <div className="delay-section" style={{
-                    border: "1px solid #ccc",
-                    borderRadius: "8px",
-                    padding: "16px",
-                    marginBottom: "16px",
-                    backgroundColor: "#f9f9f9"
-                  }}>
-                    <h4>Store Delay</h4>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                      <label style={{ minWidth: 60 }}>From:</label>
+                  <div style={styles.delaySectionCard}>
+                    <h4 style={styles.delaySectionTitle}>Store Delay</h4>
+                    <div style={styles.delayFieldRow}>
+                      <label style={styles.delayLabel}>From:</label>
                       <input
                         type="time"
                         value={formData.delayDetails?.store?.from || ""}
@@ -1043,21 +849,15 @@ const DetailedTimesheet: React.FC = () => {
                       {!correctedFields.has("delayStoreFrom") && (
                         <button
                           onClick={() => setCorrectedFields(prev => new Set(prev).add("delayStoreFrom"))}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            fontSize: "18px",
-                            color: "green"
-                          }}
+                          style={styles.correctButton}
                           title="Mark as Correct"
                         >
                           ✅
                         </button>
                       )}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                      <label style={{ minWidth: 60 }}>To:</label>
+                    <div style={styles.delayFieldRow}>
+                      <label style={styles.delayLabel}>To:</label>
                       <input
                         type="time"
                         value={formData.delayDetails?.store?.to || ""}
@@ -1068,21 +868,15 @@ const DetailedTimesheet: React.FC = () => {
                       {!correctedFields.has("delayStoreTo") && (
                         <button
                           onClick={() => setCorrectedFields(prev => new Set(prev).add("delayStoreTo"))}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            fontSize: "18px",
-                            color: "green"
-                          }}
+                          style={styles.correctButton}
                           title="Mark as Correct"
                         >
                           ✅
                         </button>
                       )}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                      <label style={{ minWidth: 60 }}>Duration:</label>
+                    <div style={styles.delayFieldRow}>
+                      <label style={styles.delayLabel}>Duration:</label>
                       <input
                         type="text"
                         value={formData.delayDetails?.store?.duration || ""}
@@ -1096,24 +890,18 @@ const DetailedTimesheet: React.FC = () => {
                       />
                       {/* No correct-info icon for duration */}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <label style={{ minWidth: 60 }}>Reason:</label>
+                    <div style={styles.delayFieldRow}>
+                      <label style={styles.delayLabel}>Reason:</label>
                       <textarea
                         value={formData.delayDetails?.store?.reason || ""}
                         onChange={e => handleStoreDelayField("reason", e.target.value)}
                         disabled={correctedFields.has("delayStoreReason")}
-                        style={{ ...styles.input, resize: "vertical", minHeight: "60px" }}
+                        style={{ ...styles.input, resize: "vertical" as const, minHeight: "60px" }}
                       />
                       {!correctedFields.has("delayStoreReason") && (
                         <button
                           onClick={() => setCorrectedFields(prev => new Set(prev).add("delayStoreReason"))}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            fontSize: "18px",
-                            color: "green"
-                          }}
+                          style={styles.correctButton}
                           title="Mark as Correct"
                         >
                           ✅
@@ -1123,16 +911,10 @@ const DetailedTimesheet: React.FC = () => {
                   </div>
                 )}
                 {(formData.extraDelay === "yes") && selectedDelayTypes.includes("Road Delay") && (
-                  <div className="delay-section" style={{
-                    border: "1px solid #ccc",
-                    borderRadius: "8px",
-                    padding: "16px",
-                    marginBottom: "16px",
-                    backgroundColor: "#f9f9f9"
-                  }}>
-                    <h4>Road Delay</h4>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                      <label style={{ minWidth: 60 }}>From:</label>
+                  <div style={styles.delaySectionCard}>
+                    <h4 style={styles.delaySectionTitle}>Road Delay</h4>
+                    <div style={styles.delayFieldRow}>
+                      <label style={styles.delayLabel}>From:</label>
                       <input
                         type="time"
                         value={formData.delayDetails?.road?.from || ""}
@@ -1143,21 +925,15 @@ const DetailedTimesheet: React.FC = () => {
                       {!correctedFields.has("delayRoadFrom") && (
                         <button
                           onClick={() => setCorrectedFields(prev => new Set(prev).add("delayRoadFrom"))}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            fontSize: "18px",
-                            color: "green"
-                          }}
+                          style={styles.correctButton}
                           title="Mark as Correct"
                         >
                           ✅
                         </button>
                       )}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                      <label style={{ minWidth: 60 }}>To:</label>
+                    <div style={styles.delayFieldRow}>
+                      <label style={styles.delayLabel}>To:</label>
                       <input
                         type="time"
                         value={formData.delayDetails?.road?.to || ""}
@@ -1168,21 +944,15 @@ const DetailedTimesheet: React.FC = () => {
                       {!correctedFields.has("delayRoadTo") && (
                         <button
                           onClick={() => setCorrectedFields(prev => new Set(prev).add("delayRoadTo"))}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            fontSize: "18px",
-                            color: "green"
-                          }}
+                          style={styles.correctButton}
                           title="Mark as Correct"
                         >
                           ✅
                         </button>
                       )}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
-                      <label style={{ minWidth: 60 }}>Duration:</label>
+                    <div style={styles.delayFieldRow}>
+                      <label style={styles.delayLabel}>Duration:</label>
                       <input
                         type="text"
                         value={formData.delayDetails?.road?.duration || ""}
@@ -1196,24 +966,18 @@ const DetailedTimesheet: React.FC = () => {
                       />
                       {/* No correct-info icon for duration */}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <label style={{ minWidth: 60 }}>Reason:</label>
+                    <div style={styles.delayFieldRow}>
+                      <label style={styles.delayLabel}>Reason:</label>
                       <textarea
                         value={formData.delayDetails?.road?.reason || ""}
                         onChange={e => handleRoadDelayField("reason", e.target.value)}
                         disabled={correctedFields.has("delayRoadReason")}
-                        style={{ ...styles.input, resize: "vertical", minHeight: "60px" }}
+                        style={{ ...styles.input, resize: "vertical" as const, minHeight: "60px" }}
                       />
                       {!correctedFields.has("delayRoadReason") && (
                         <button
                           onClick={() => setCorrectedFields(prev => new Set(prev).add("delayRoadReason"))}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            fontSize: "18px",
-                            color: "green"
-                          }}
+                          style={styles.correctButton}
                           title="Mark as Correct"
                         >
                           ✅
@@ -1223,17 +987,11 @@ const DetailedTimesheet: React.FC = () => {
                   </div>
                 )}
                 {(formData.extraDelay === "yes") && selectedDelayTypes.includes("Other Delay") && (
-                  <div className="delay-section" style={{
-                    border: "1px solid #ccc",
-                    borderRadius: "8px",
-                    padding: "16px",
-                    marginBottom: "16px",
-                    backgroundColor: "#f9f9f9"
-                  }}>
-                    <h4>Other Delay</h4>
+                  <div style={styles.delaySectionCard}>
+                    <h4 style={styles.delaySectionTitle}>Other Delay</h4>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <label>From:</label>
+                        <label style={styles.delayLabel}>From:</label>
                         <input
                           type="time"
                           value={formData.delayDetails?.other?.from || ""}
@@ -1244,13 +1002,7 @@ const DetailedTimesheet: React.FC = () => {
                         {!correctedFields.has("delayOtherFrom") && (
                           <button
                             onClick={() => setCorrectedFields(prev => new Set(prev).add("delayOtherFrom"))}
-                            style={{
-                              background: "transparent",
-                              border: "none",
-                              cursor: "pointer",
-                              fontSize: "18px",
-                              color: "green"
-                            }}
+                            style={styles.correctButton}
                             title="Mark as Correct"
                           >
                             ✅
@@ -1258,7 +1010,7 @@ const DetailedTimesheet: React.FC = () => {
                         )}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <label>To:</label>
+                        <label style={styles.delayLabel}>To:</label>
                         <input
                           type="time"
                           value={formData.delayDetails?.other?.to || ""}
@@ -1269,13 +1021,7 @@ const DetailedTimesheet: React.FC = () => {
                         {!correctedFields.has("delayOtherTo") && (
                           <button
                             onClick={() => setCorrectedFields(prev => new Set(prev).add("delayOtherTo"))}
-                            style={{
-                              background: "transparent",
-                              border: "none",
-                              cursor: "pointer",
-                              fontSize: "18px",
-                              color: "green"
-                            }}
+                            style={styles.correctButton}
                             title="Mark as Correct"
                           >
                             ✅
@@ -1283,7 +1029,7 @@ const DetailedTimesheet: React.FC = () => {
                         )}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <label>Duration:</label>
+                        <label style={styles.delayLabel}>Duration:</label>
                         <input
                           type="text"
                           value={formData.delayDetails?.other?.duration || ""}
@@ -1294,23 +1040,17 @@ const DetailedTimesheet: React.FC = () => {
                         {/* No correct-info icon for duration */}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <label>Reason:</label>
+                        <label style={styles.delayLabel}>Reason:</label>
                         <textarea
                           value={formData.delayDetails?.other?.reason || ""}
                           onChange={e => handleDelayChange("Other Delay", "reason", e.target.value)}
                           disabled={correctedFields.has("delayOtherReason")}
-                          style={{ ...styles.input, resize: "vertical", minHeight: "60px" }}
+                          style={{ ...styles.input, resize: "vertical" as const, minHeight: "60px" }}
                         />
                         {!correctedFields.has("delayOtherReason") && (
                           <button
                             onClick={() => setCorrectedFields(prev => new Set(prev).add("delayOtherReason"))}
-                            style={{
-                              background: "transparent",
-                              border: "none",
-                              cursor: "pointer",
-                              fontSize: "18px",
-                              color: "green"
-                            }}
+                            style={styles.correctButton}
                             title="Mark as Correct"
                           >
                             ✅
@@ -1327,22 +1067,18 @@ const DetailedTimesheet: React.FC = () => {
         {/* Reset All Corrections Button */}
         <button
           onClick={() => setCorrectedFields(new Set())}
-          style={resetHover ? {
-            marginTop: "10px",
-            marginBottom: "20px",
-            padding: "8px 12px",
-            borderRadius: "5px",
-            border: "1px solid #ccc",
-            background: "#e0e0e0",
-            cursor: "pointer"
-          } : {
-            marginTop: "10px",
-            marginBottom: "20px",
-            padding: "8px 12px",
-            borderRadius: "5px",
-            border: "1px solid #ccc",
-            background: "#f5f5f5",
-            cursor: "pointer"
+          style={{
+            marginTop: "16px",
+            marginBottom: "24px",
+            padding: "8px 16px",
+            borderRadius: "8px",
+            border: "1px solid #d1d5db",
+            background: resetHover ? "#f3f4f6" : "#fff",
+            cursor: "pointer",
+            fontSize: "13px",
+            fontWeight: 600,
+            color: "#374151",
+            transition: "background 0.2s"
           }}
           onMouseEnter={() => setResetHover(true)}
           onMouseLeave={() => setResetHover(false)}
@@ -1407,11 +1143,13 @@ const DetailedTimesheet: React.FC = () => {
                       !roadDelaySelected &&
                       !otherDelaySelected
                     )
-                  ) ? "#aaa" : "green",
+                  ) ? "#d1d5db" : "#059669",
                   color: "white",
-                  padding: "10px",
+                  padding: "10px 20px",
                   border: "none",
-                  borderRadius: "5px",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: 600,
                   cursor: (
                     isApproveDisabled ||
                     (
@@ -1434,7 +1172,7 @@ const DetailedTimesheet: React.FC = () => {
                     alert("Failed to reject timesheet.");
                   }
                 }}
-                style={{ backgroundColor: "red", color: "white", padding: "10px", border: "none", borderRadius: "5px" }}
+                style={{ backgroundColor: "#dc2626", color: "white", padding: "10px 20px", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 600, cursor: "pointer" }}
               >
                 Reject
               </button>
@@ -1444,28 +1182,37 @@ const DetailedTimesheet: React.FC = () => {
       </div>
       {/* Image Modal */}
       {selectedImageIndex !== null && (
-        <div style={{
-          position: "fixed",
-          top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: "rgba(0,0,0,0.8)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 2000
-        }}>
-          <div style={{ position: "relative" }}>
+        <div
+          onClick={() => setSelectedImageIndex(null)}
+          style={{
+            position: "fixed",
+            top: 0, left: 0, right: 0, bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.7)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2000
+          }}
+        >
+          <div style={{ position: "relative" }} onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setSelectedImageIndex(null)}
               style={{
                 position: "absolute",
-                top: "-10px",
-                right: "-10px",
+                top: "-12px",
+                right: "-12px",
                 background: "#fff",
                 border: "none",
                 borderRadius: "50%",
-                padding: "8px 12px",
-                fontSize: "16px",
+                width: "32px",
+                height: "32px",
+                fontSize: "14px",
                 cursor: "pointer",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center"
               }}
             >
               ✖
@@ -1476,7 +1223,7 @@ const DetailedTimesheet: React.FC = () => {
               style={{
                 maxHeight: "95vh",
                 maxWidth: "90vw",
-                borderRadius: "8px",
+                borderRadius: "12px",
                 background: "#fff"
               }}
             />
@@ -1488,12 +1235,99 @@ const DetailedTimesheet: React.FC = () => {
   );
 };
 
-const styles = {
+const styles: Record<string, React.CSSProperties> = {
   section: { margin: "16px 0" },
-  label: { fontWeight: "bold" },
-  select: { padding: "8px", borderRadius: "4px", border: "1px solid #ccc" },
+  label: { fontWeight: "bold" as const },
+  select: { padding: "10px 12px", borderRadius: "8px", border: "1px solid #d1d5db", fontSize: "14px", backgroundColor: "#fff" },
   supportingFields: { marginTop: "10px" },
-  input: { padding: "8px", marginBottom: "8px", borderRadius: "4px", border: "1px solid #ccc" },
+  input: { padding: "10px 12px", marginBottom: "8px", borderRadius: "8px", border: "1px solid #d1d5db", fontSize: "14px" },
+  formLabel: {
+    fontWeight: 600,
+    fontSize: "13px",
+    color: "#374151",
+  },
+  formInput: {
+    width: "100%",
+    padding: "10px 12px",
+    fontSize: "14px",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    backgroundColor: "#fff",
+    transition: "border-color 0.2s",
+  },
+  formSelect: {
+    width: "100%",
+    padding: "10px 12px",
+    paddingRight: "30px",
+    fontSize: "14px",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    backgroundColor: "#fff",
+  },
+  formTextarea: {
+    width: "100%",
+    padding: "10px 12px",
+    fontSize: "14px",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    resize: "vertical" as const,
+  },
+  formRow: {
+    marginBottom: "12px",
+    display: "grid",
+    gridTemplateColumns: "140px 1fr 30px",
+    alignItems: "center",
+    gap: "10px",
+  },
+  formRowWide: {
+    marginBottom: "12px",
+    display: "grid",
+    gridTemplateColumns: "200px 1fr 30px",
+    alignItems: "center",
+    gap: "10px",
+  },
+  correctButton: {
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "18px",
+    color: "green",
+  },
+  readOnlyInput: {
+    width: "100%",
+    padding: "10px 12px",
+    fontSize: "14px",
+    border: "1px solid #d1d5db",
+    borderRadius: "8px",
+    backgroundColor: "#f9fafb",
+    color: "#6b7280",
+  },
+  delaySectionCard: {
+    border: "1px solid #e5e7eb",
+    borderRadius: "12px",
+    padding: "20px",
+    marginBottom: "16px",
+    backgroundColor: "#f9fafb",
+  },
+  delaySectionTitle: {
+    fontSize: "15px",
+    fontWeight: 700,
+    color: "#111827",
+    marginTop: 0,
+    marginBottom: "16px",
+  },
+  delayFieldRow: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    marginBottom: "10px",
+  },
+  delayLabel: {
+    minWidth: 60,
+    fontSize: "13px",
+    fontWeight: 600,
+    color: "#6b7280",
+  },
 };
 
 export default DetailedTimesheet;

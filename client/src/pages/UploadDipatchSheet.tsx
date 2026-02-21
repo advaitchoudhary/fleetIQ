@@ -63,10 +63,10 @@ const UploadDispatchSheet: React.FC = () => {
     // }, []);
 
     return (
-      <div>
+      <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
         <Navbar />
-        <div style={{ padding: "60px", textAlign: "center", fontSize: "24px", fontWeight: "bold", color: "#555" }}>
-          🚧 Coming Soon
+        <div style={{ padding: "80px 20px", textAlign: "center" }}>
+          <p style={{ fontSize: "18px", fontWeight: 600, color: "#6b7280" }}>Coming Soon</p>
         </div>
       </div>
     );
