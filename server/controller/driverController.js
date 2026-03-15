@@ -6,6 +6,7 @@ const asyncHandler = require("express-async-handler");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const { getOrgFilter } = require("../middleware/authMiddleware.js");
 
 // Utility function to calculate hours from start and end times
 const calculateHours = (startTime, endTime) => {
@@ -102,8 +103,9 @@ const updateDriverHours = async (driverEmail) => {
 // Function to update hours for all drivers
 const updateAllDriversHours = async (req, res) => {
   try {
-    const drivers = await Driver.find({}, 'email');
-    
+    const orgFilter = getOrgFilter(req);
+    const drivers = await Driver.find(orgFilter, 'email');
+
     for (const driver of drivers) {
       await updateDriverHours(driver.email);
     }
@@ -119,24 +121,26 @@ const updateAllDriversHours = async (req, res) => {
 const create = asyncHandler(async (req, res) => {
   const { email } = req.body;
 
-  const driverExist = await Driver.findOne({ email });
+  const orgFilter = getOrgFilter(req);
+  const driverExist = await Driver.findOne({ email, ...orgFilter });
   if (driverExist) {
     res.status(400).json({ message: "Driver already exists" });
     return;
   }
   const newDriver = new Driver({
     ...req.body,
-    plainPassword: req.body.password // save plainPassword too
+    organizationId: req.organizationId || null,
+    plainPassword: req.body.password,
   });
   const savedData = await newDriver.save();
-  // Exclude password and plainPassword from response
   const savedDataObj = savedData.toObject();
   const { password, plainPassword, ...driverWithoutPassword } = savedDataObj;
   res.status(201).json(driverWithoutPassword);
 });
 
 const getAllDrivers = asyncHandler(async (req, res) => {
-  const drivers = await Driver.find().lean(); // lean() for faster read
+  const orgFilter = getOrgFilter(req);
+  const drivers = await Driver.find(orgFilter).lean(); // lean() for faster read
 
   const enhancedDrivers = drivers.map(driver => {
     // Exclude password and plainPassword from response
@@ -207,9 +211,9 @@ const driverLogin = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: driver._id, role: "driver" },
+      { id: driver._id, role: "driver", organizationId: driver.organizationId || null },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "8h" }
     );
 
     res.json({
@@ -219,7 +223,8 @@ const driverLogin = async (req, res) => {
         username: driver.username,
         name: driver.name,
         email: driver.email,
-        role: "driver"
+        role: "driver",
+        organizationId: driver.organizationId || null,
       }
     });
   } catch (error) {

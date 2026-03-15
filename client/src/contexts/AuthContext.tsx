@@ -6,7 +6,9 @@ import { API_BASE_URL } from "../utils/env";// Update as per your backend URL
 
 interface User {
   email: string;
-  role: "admin" | "driver" | null;
+  name?: string;
+  role: "admin" | "company_admin" | "super_admin" | "dispatcher" | "driver" | null;
+  organizationId?: string | null;
 }
 
 interface AuthContextType {
@@ -45,7 +47,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(user);
 
       // Navigate based on role
-      if (user.role === "admin") {
+      const adminRoles = ["admin", "company_admin", "super_admin", "dispatcher"];
+      if (adminRoles.includes(user.role)) {
         navigate("/users");
       } else if (user.role === "driver") {
         navigate("/dashboard");

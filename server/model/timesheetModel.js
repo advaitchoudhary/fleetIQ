@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const timesheetSchema = new mongoose.Schema(
   {
+    organizationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Organization",
+      default: null,
+    },
     date: { type: String, required: true },
     driver: { type: String },
     driverName: { type: String },

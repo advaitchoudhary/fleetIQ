@@ -6,9 +6,18 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role: { type: String, enum: ["user", "admin", "driver"], default: "user" }
+    role: {
+      type: String,
+      enum: ["user", "admin", "driver", "super_admin", "company_admin", "dispatcher"],
+      default: "company_admin"
+    },
+    organizationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Organization",
+      default: null, // null = super_admin (platform level)
+    },
   },
-  { timestamps: true } // ✅ Correct placement for timestamps
+  { timestamps: true }
 );
 
 // 🔍 Hash password before saving (ONLY once)

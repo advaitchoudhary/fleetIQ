@@ -2,6 +2,11 @@ const mongoose = require("mongoose");
 
 const driverApplicationSchema = new mongoose.Schema(
     {
+        organizationId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Organization",
+            default: null,
+        },
         // Personal Information
         name: { type: String, required: true },
         email: { type: String, required: true },

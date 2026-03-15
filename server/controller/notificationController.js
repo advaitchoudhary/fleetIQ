@@ -2,6 +2,7 @@
 
 const Notification = require("../model/notificationModel.js");
 const asyncHandler = require("express-async-handler");
+const { getOrgFilter } = require("../middleware/authMiddleware.js");
 
 // 1. Create a new notification
 const createNotification = asyncHandler(async (req, res) => {
@@ -13,6 +14,7 @@ const createNotification = asyncHandler(async (req, res) => {
   }
 
   const notification = new Notification({
+    organizationId: req.organizationId || null,
     message,
     email,
     field,
@@ -64,7 +66,8 @@ const markNotificationAsRead = asyncHandler(async (req, res) => {
 });
 
 const markAllNotificationsAsRead = asyncHandler(async (req, res) => {
-    await Notification.updateMany({ read: false }, { $set: { read: true } });
+    const orgFilter = getOrgFilter(req);
+    await Notification.updateMany({ read: false, ...orgFilter }, { $set: { read: true } });
     res.status(200).json({ message: "All notifications marked as read" });
   });
 
@@ -87,12 +90,13 @@ const deleteNotification = asyncHandler(async (req, res) => {
 
 const getNotifications = asyncHandler(async (req, res) => {
     const email = req.query.email;
-    let filter = {};
+    const orgFilter = getOrgFilter(req);
+    let filter = { ...orgFilter };
     if (email) filter.email = email;
     if (typeof req.query.read !== "undefined") {
       filter.read = req.query.read === "true";
     }
-  
+
     const notifications = await Notification.find(filter).sort({ createdAt: -1 });
     res.status(200).json(notifications);
   });

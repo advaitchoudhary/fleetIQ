@@ -5,6 +5,7 @@ const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
 const PDFDocument = require("pdfkit");
+const { getOrgFilter } = require("../middleware/authMiddleware.js");
 
 // Import the updateDriverHours function from driverController
 const { updateDriverHours } = require("./driverController.js");
@@ -118,7 +119,8 @@ const createTimesheet = async (req, res) => {
 
     // Create new timesheet (leave driverName blank initially)
     const newTimesheet = new Timesheet({
-      ...timesheetData
+      ...timesheetData,
+      organizationId: req.organizationId || null,
     });
     const savedTimesheet = await newTimesheet.save();
 
@@ -150,9 +152,9 @@ const getAllTimesheets = async (req, res) => {
     const rangeEnd = req.query.rangeEnd;
     const selectedStatus = req.query.status;
 
-    // Build query object for filtering
-    let query = {};
-    
+    // Build query object for filtering — always scope to caller's org
+    let query = { ...getOrgFilter(req) };
+
     // User filter
     if (selectedUser && selectedUser !== "All") {
       query.driver = selectedUser;
@@ -210,7 +212,7 @@ const getAllTimesheets = async (req, res) => {
       Timesheet.countDocuments(query)
     ]);
 
-    const emailToNameMap = await buildEmailToNameUsernameMap();
+    const emailToNameMap = await buildEmailToNameUsernameMap(req.organizationId);
     const enrichedTimesheets = timesheets.map(t => normalizeTimesheet(t, emailToNameMap));
 
     return res.status(200).json({
@@ -224,10 +226,11 @@ const getAllTimesheets = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch timesheets" });
   }
 };
-const buildEmailToNameUsernameMap = async () => {
+const buildEmailToNameUsernameMap = async (organizationId = null) => {
+  const orgFilter = organizationId ? { organizationId } : {};
   const [users, drivers] = await Promise.all([
-    User.find({}, "email name"),
-    Driver.find({}, "email name username")
+    User.find(orgFilter, "email name"),
+    Driver.find(orgFilter, "email name username")
   ]);
 
   const emailMap = {};
@@ -256,11 +259,12 @@ const buildEmailToNameUsernameMap = async () => {
 const getTimesheetById = async (req, res) => {
   try {
     const id = req.params.id;
-    const timesheet = await Timesheet.findById(id);
+    const orgFilter = getOrgFilter(req);
+    const timesheet = await Timesheet.findOne({ _id: id, ...orgFilter });
     if (!timesheet) {
       return res.status(404).json({ message: "Timesheet not found" });
     }
-    const emailToNameMap = await buildEmailToNameUsernameMap();
+    const emailToNameMap = await buildEmailToNameUsernameMap(req.organizationId);
     res.status(200).json(normalizeTimesheet(timesheet, emailToNameMap));
   } catch (error) {
     res.status(500).json({ errorMessage: error.message });
@@ -275,13 +279,14 @@ const updateTimesheetById = async (req, res) => {
       return res.status(400).json({ message: "No data provided for update" });
     }
 
+    const orgFilter = getOrgFilter(req);
     // Get the original timesheet to get the driver email
-    const originalTimesheet = await Timesheet.findById(id);
+    const originalTimesheet = await Timesheet.findOne({ _id: id, ...orgFilter });
     if (!originalTimesheet) {
       return res.status(404).json({ message: "Timesheet not found" });
     }
 
-    const updatedTimesheet = await Timesheet.findByIdAndUpdate(id, req.body, {
+    const updatedTimesheet = await Timesheet.findOneAndUpdate({ _id: id, ...orgFilter }, req.body, {
       new: true,
       runValidators: true,
     });
@@ -303,7 +308,8 @@ const updateTimesheetById = async (req, res) => {
 const deleteTimesheetById = async (req, res) => {
   try {
     const id = req.params.id;
-    const deletedTimesheet = await Timesheet.findByIdAndDelete(id);
+    const orgFilter = getOrgFilter(req);
+    const deletedTimesheet = await Timesheet.findOneAndDelete({ _id: id, ...orgFilter });
 
     if (!deletedTimesheet) {
       return res.status(404).json({ message: "Timesheet not found" });
@@ -338,8 +344,9 @@ const updateTimesheetStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid status value" });
     }
 
-    const updatedTimesheet = await Timesheet.findByIdAndUpdate(
-      id,
+    const orgFilter = getOrgFilter(req);
+    const updatedTimesheet = await Timesheet.findOneAndUpdate(
+      { _id: id, ...orgFilter },
       { status },
       { new: true, runValidators: true }
     );

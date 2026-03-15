@@ -54,7 +54,8 @@ const login = async (req, res) => {
 
     console.log("✅ User found:", user.email, "with role:", user.role);
 
-    if (user.role !== "admin") {
+    const allowedRoles = ["admin", "company_admin", "super_admin", "dispatcher"];
+    if (!allowedRoles.includes(user.role)) {
       return res.status(403).json({ error: "Access denied. Not an admin user." });
     }
     console.log("🔐 Checking password for user:", user.email);
@@ -65,15 +66,20 @@ const login = async (req, res) => {
     console.log("✅ Password matched. Signing token...");
 
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      { id: user._id, role: user.role, organizationId: user.organizationId || null },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "8h" }
     );
 
     res.json({
       message: "Login successful",
       token,
-      user: { name: user.name, email: user.email, role: user.role }
+      user: {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        organizationId: user.organizationId || null,
+      },
     });
   } catch (error) {
     console.error("🔥 Login Error:", error);

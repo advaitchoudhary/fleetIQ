@@ -3,6 +3,11 @@ const mongoose = require("mongoose");
 // Main schema for driver information including nested rate schema
 const driverSchema = new mongoose.Schema(
     {
+        organizationId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Organization",
+            default: null,
+        },
         name: { type: String, required: true },
         email: { type: String, required: true, unique: true },
         contact: { type: String, required: true },
@@ -40,13 +45,16 @@ const driverSchema = new mongoose.Schema(
         plainPassword: { type: String },
         hoursThisWeek: { type: Number, default: 0 }, // New field to track hours this week
         requiredOnboardingForms: {
-            agencySignOff: { type: String, required: false }, // File path for Agency Sign Off form
-            driverDeliveryExpectations: { type: String, required: false }, // File path for Driver Delivery Expectations form
-            cellPhonePolicy: { type: String, required: false }, // File path for Cell Phone Policy form
-            storeSurvey1: { type: String, required: false }, // File path for Store Survey 1 form
-            tobaccoAndLCPValidation: { type: String, required: false }, // File path for Tobacco and LCP Validation form
-            driverSop: { type: String, required: false } // File path for Driver SOP form
-        }
+            agencySignOff: { type: String, required: false },
+            driverDeliveryExpectations: { type: String, required: false },
+            cellPhonePolicy: { type: String, required: false },
+            storeSurvey1: { type: String, required: false },
+            tobaccoAndLCPValidation: { type: String, required: false },
+            driverSop: { type: String, required: false }
+        },
+        // Stripe Connect fields for direct payouts
+        stripeAccountId: { type: String, default: null },
+        stripeOnboardingComplete: { type: Boolean, default: false },
     },
     { timestamps: true } // Adds createdAt and updatedAt timestamps
 );

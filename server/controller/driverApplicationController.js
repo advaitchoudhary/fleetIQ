@@ -6,6 +6,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const nodemailer = require("nodemailer");
+const { getOrgFilter } = require("../middleware/authMiddleware.js");
 
 // Configure multer for multiple file uploads
 const UPLOADS_DIR = "uploads/driver-applications/";
@@ -99,6 +100,7 @@ const submitDriverApplication = asyncHandler(async (req, res) => {
 
     // Create new driver application
     const driverApplication = new DriverApplication({
+      organizationId: req.organizationId || null,
       name,
       email,
       phone,
@@ -134,8 +136,9 @@ const submitDriverApplication = asyncHandler(async (req, res) => {
 const getAllDriverApplications = asyncHandler(async (req, res) => {
   try {
     const { status } = req.query;
-    const query = status ? { status } : {};
-    
+    const orgFilter = getOrgFilter(req);
+    const query = status ? { status, ...orgFilter } : { ...orgFilter };
+
     const applications = await DriverApplication.find(query).sort({ createdAt: -1 });
     res.status(200).json(applications);
   } catch (error) {
@@ -360,8 +363,9 @@ const approveDriverApplication = asyncHandler(async (req, res) => {
     const defaultPassword = `Driver${Date.now()}`;
     const hashedPassword = await bcrypt.hash(defaultPassword, 10);
 
-    // Create driver from application
+    // Create driver from application — inherit the org from the application
     const newDriver = new Driver({
+      organizationId: application.organizationId || null,
       name: application.name,
       email: application.email,
       contact: application.phone,

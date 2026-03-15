@@ -3,6 +3,11 @@ const mongoose = require("mongoose");
 // Define schema for Dispatch Sheet
 const dispatchSchema = new mongoose.Schema(
   {
+    organizationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Organization",
+      default: null,
+    },
     route: String,
     loadId: String,
     trailerType: String,

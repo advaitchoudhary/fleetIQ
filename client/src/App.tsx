@@ -17,6 +17,15 @@ import UploadDispatchSheet from "./pages/UploadDipatchSheet";
 import Logout from "./pages/Logout";
 import ChangePassword from "./pages/ChangePassword";
 import DriverApplications from "./pages/DriverApplications";
+import Vehicles from "./pages/Vehicles";
+import Maintenance from "./pages/Maintenance";
+import Inspections from "./pages/Inspections";
+import FuelLogs from "./pages/FuelLogs";
+import DriverPayments from "./pages/DriverPayments";
+import PaymentHistory from "./pages/PaymentHistory";
+import Subscription from "./pages/Subscription";
+import Pricing from "./pages/Pricing";
+import CompanyRegister from "./pages/CompanyRegister";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -136,6 +145,72 @@ const App: React.FC = () => {
             </ProtectedRoute>
           }
         />
+
+        {/* Vehicle Management Routes */}
+        <Route
+          path="/vehicles"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Vehicles />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/maintenance"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Maintenance />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inspections"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Inspections />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/fuel-logs"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <FuelLogs />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Phase 3 — Driver Payments */}
+        <Route
+          path="/payments"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <DriverPayments />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment-history"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <PaymentHistory />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Phase 4 — Subscription & Billing */}
+        <Route
+          path="/subscription"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <Subscription />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Public SaaS pages */}
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/register" element={<CompanyRegister />} />
 
         {/* Logout Route */}
         <Route

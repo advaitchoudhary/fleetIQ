@@ -11,6 +11,8 @@ const protect = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
+    // Attach organizationId directly for convenience in controllers
+    req.organizationId = decoded.organizationId || null;
     next();
   } catch (error) {
     console.error("JWT verification failed in protect:", error);
@@ -42,7 +44,15 @@ const authorizeRoles = (...roles) => {
   };
 };
 
+// Build a Mongoose filter scoped to the caller's org.
+// super_admin with no org → empty filter (sees all orgs).
+const getOrgFilter = (req) => {
+  if (req.user.role === "super_admin" && !req.organizationId) return {};
+  return { organizationId: req.organizationId };
+};
+
 module.exports = {
   protect,
-  authorizeRoles
+  authorizeRoles,
+  getOrgFilter,
 };

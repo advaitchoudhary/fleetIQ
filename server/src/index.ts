@@ -1,8 +1,10 @@
+import dotenv from "dotenv"
+dotenv.config();
+
 import express from "express"
 import cors from "cors";
 import mongoose from "mongoose"
 import bodyParser from "body-parser"
-import dotenv from "dotenv"
 // @ts-ignore
 import authRoutes from "../routes/authRoute.js";
 // @ts-ignore
@@ -17,9 +19,26 @@ import contactRoutes from "../routes/contactRoute";
 import notificationRoutes from "../routes/notificationRoute.js";
 // @ts-ignore
 import driverApplicationRoutes from "../routes/driverApplicationRoute.js";
+// @ts-ignore
+import organizationRoutes from "../routes/organizationRoute.js";
+// @ts-ignore
+import vehicleRoutes from "../routes/vehicleRoute.js";
+// @ts-ignore
+import maintenanceRoutes from "../routes/maintenanceRoute.js";
+// @ts-ignore
+import inspectionRoutes from "../routes/inspectionRoute.js";
+// @ts-ignore
+import fuelLogRoutes from "../routes/fuelLogRoute.js";
+// @ts-ignore
+import paymentRoutes from "../routes/paymentRoute.js";
+// @ts-ignore
+import subscriptionRoutes from "../routes/subscriptionRoute.js";
 
 
 const app = express();
+
+// Stripe webhooks require raw body — must be registered BEFORE bodyParser.json
+// These are handled inside the route files using express.raw() per-route
 
 app.options("*", cors({
     origin: (origin, callback) => {
@@ -70,7 +89,6 @@ app.use(cors({
     credentials: true
   }));
 app.use(bodyParser.json());
-dotenv.config();
 
 const PORT = process.env.PORT || 7000;
 const MONGOURL = process.env.MONGO_URL as string;
@@ -107,6 +125,7 @@ mongoose
     });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/organizations", organizationRoutes);
 app.use("/api/drivers", driverRoute);
 app.use("/api/timesheets", timesheetRoutes);
 app.use("/api/timesheet", timesheetRoutes);
@@ -114,3 +133,12 @@ app.use("/api/uploads", uploadRoutes);
 app.use("/api/contacts", contactRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/driver-applications", driverApplicationRoutes);
+// Phase 2 — Vehicle Management
+app.use("/api/vehicles", vehicleRoutes);
+app.use("/api/maintenance", maintenanceRoutes);
+app.use("/api/inspections", inspectionRoutes);
+app.use("/api/fuel-logs", fuelLogRoutes);
+// Phase 3 — Driver Payments (Stripe Connect)
+app.use("/api/payments", paymentRoutes);
+// Phase 4 — Subscriptions (Stripe Billing)
+app.use("/api/subscriptions", subscriptionRoutes);

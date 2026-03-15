@@ -10,9 +10,18 @@ import {
   FaPhoneAlt,
   FaBell,
   FaLock,
+  FaTruck,
+  FaWrench,
+  FaCheckSquare,
+  FaGasPump,
+  FaDollarSign,
+  FaHistory,
+  FaCreditCard,
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md"; // Material Dashboard Icon
 import { useAuth } from "../contexts/AuthContext";
+
+const ADMIN_ROLES = ["admin", "company_admin", "super_admin", "dispatcher"];
 import { API_BASE_URL } from "../utils/env";
 import MenuImage from "../assets/logo.png";
 
@@ -103,14 +112,14 @@ const Navbar: React.FC = () => {
           </button>
           <h1
             style={{ ...styles.title, cursor: "pointer" }}
-            onClick={() => navigate(user?.role === "admin" ? "/users" : "/dashboard")}
+            onClick={() => navigate(ADMIN_ROLES.includes(user?.role ?? "") ? "/users" : "/dashboard")}
             data-nav-title
           >
             Premier Choice
           </h1>
         </div>
         <div style={styles.authButtons} data-nav-auth>
-          {user?.role === "admin" && (
+          {ADMIN_ROLES.includes(user?.role ?? "") && (
             <div style={styles.notificationIconWrapper}>
               <div style={styles.notificationBell}>
                 <FaBell
@@ -253,7 +262,7 @@ const Navbar: React.FC = () => {
             </>
           )}
 
-          {user?.role === "admin" && (
+          {ADMIN_ROLES.includes(user?.role ?? "") && (
             <>
               <li style={styles.navItem}>
                 <Link to="/users" style={styles.navLink}>
@@ -283,6 +292,51 @@ const Navbar: React.FC = () => {
               <li style={styles.navItem}>
                 <Link to="/uploadDispatchDetails" style={styles.navLink}>
                   <MdDashboard size={20} /> Upload Dispatch Details
+                </Link>
+              </li>
+              <li style={{ ...styles.navItem, borderTop: "1px solid rgba(255,255,255,0.15)", marginTop: "8px", paddingTop: "8px" }}>
+                <span style={{ ...styles.navLink, color: "#9ca3af", fontSize: "11px", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.8px", cursor: "default", paddingBottom: "4px" }}>
+                  Vehicle Management
+                </span>
+              </li>
+              <li style={styles.navItem}>
+                <Link to="/vehicles" style={styles.navLink}>
+                  <FaTruck size={18} /> Vehicles
+                </Link>
+              </li>
+              <li style={styles.navItem}>
+                <Link to="/maintenance" style={styles.navLink}>
+                  <FaWrench size={18} /> Maintenance
+                </Link>
+              </li>
+              <li style={styles.navItem}>
+                <Link to="/inspections" style={styles.navLink}>
+                  <FaCheckSquare size={18} /> Inspections
+                </Link>
+              </li>
+              <li style={styles.navItem}>
+                <Link to="/fuel-logs" style={styles.navLink}>
+                  <FaGasPump size={18} /> Fuel Logs
+                </Link>
+              </li>
+              <li style={{ ...styles.navItem, borderTop: "1px solid rgba(255,255,255,0.15)", marginTop: "8px", paddingTop: "8px" }}>
+                <span style={{ ...styles.navLink, color: "#9ca3af", fontSize: "11px", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.8px", cursor: "default", paddingBottom: "4px" }}>
+                  Payments & Billing
+                </span>
+              </li>
+              <li style={styles.navItem}>
+                <Link to="/payments" style={styles.navLink}>
+                  <FaDollarSign size={18} /> Driver Payments
+                </Link>
+              </li>
+              <li style={styles.navItem}>
+                <Link to="/payment-history" style={styles.navLink}>
+                  <FaHistory size={18} /> Payment History
+                </Link>
+              </li>
+              <li style={styles.navItem}>
+                <Link to="/subscription" style={styles.navLink}>
+                  <FaCreditCard size={18} /> Subscription
                 </Link>
               </li>
             </>
