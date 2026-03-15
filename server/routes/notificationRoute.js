@@ -8,12 +8,14 @@ const {
   deleteNotification,
 } = require("../controller/notificationController.js");
 
+const { protect } = require("../middleware/authMiddleware.js");
+
 const route = express.Router();
 
-route.post("/", createNotification);
-route.get("/", getNotifications);
-route.post("/markAllRead", markAllNotificationsAsRead);
-route.post("/:id/markRead", markNotificationAsRead);
-route.delete("/:id", deleteNotification);
+route.post("/", protect, createNotification);
+route.get("/", protect, getNotifications);
+route.post("/markAllRead", protect, markAllNotificationsAsRead);
+route.post("/:id/markRead", protect, markNotificationAsRead);
+route.delete("/:id", protect, deleteNotification);
 
 module.exports = route;

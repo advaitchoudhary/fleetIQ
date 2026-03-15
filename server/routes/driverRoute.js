@@ -20,12 +20,12 @@ const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
 
 const route = express.Router();
 
-route.post("/", create);
-route.get("/", getAllDrivers);
-route.put("/:id", updateDriverById);
-route.delete("/:id", deleteDriverById);
+route.post("/", protect, authorizeRoles("admin", "company_admin", "dispatcher"), create);
+route.get("/", protect, getAllDrivers);
+route.put("/:id", protect, authorizeRoles("admin", "company_admin", "dispatcher"), updateDriverById);
+route.delete("/:id", protect, authorizeRoles("admin", "company_admin"), deleteDriverById);
 route.get("/check", checkUsername);
-route.get("/:id", getDriverById);
+route.get("/:id", protect, getDriverById);
 route.post(
   "/change-password",
   protect,

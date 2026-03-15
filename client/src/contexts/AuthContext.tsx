@@ -28,6 +28,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const navigate = useNavigate();
 
+  // Keep axios Authorization header in sync with token on every render
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    } else {
+      delete axios.defaults.headers.common["Authorization"];
+    }
+  });
+
   useEffect(() => {
     // Store user in localStorage whenever it changes
     if (user) {
@@ -44,6 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       setUser(user);
 
       // Navigate based on role
@@ -65,6 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    delete axios.defaults.headers.common["Authorization"];
     navigate("/");
   };
 
