@@ -9,7 +9,9 @@ export default defineConfig({
     strictPort: true,      // fail if 5173 is busy
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        // In Docker: VITE_BACKEND_URL=http://backend:8000
+        // Locally:   falls back to http://localhost:8000
+        target: process.env.VITE_BACKEND_URL || 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
       }
