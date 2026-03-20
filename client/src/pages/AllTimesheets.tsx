@@ -681,56 +681,78 @@ const AllTimesheets: React.FC = () => {
       `}</style>
       <Navbar />
       <div style={styles.container} data-at-container>
-        <h1 style={styles.pageTitle} data-at-title>All Timesheets</h1>
+
+        {/* ── Page header: title + action buttons ── */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
+          <h1 style={styles.pageTitle} data-at-title>All Timesheets</h1>
+          <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+            <button onClick={handleExport} style={styles.exportButton}>
+              Export 📤
+            </button>
+            <button onClick={handleDeleteFilteredTimesheets} style={styles.deleteButton}>
+              Delete 🗑️
+            </button>
+          </div>
+        </div>
+
+        {/* ── Filter bar: all filters in one row ── */}
         <div style={styles.filterBar}>
-          <div style={styles.filterRow}>
-            <div style={styles.searchWrapper}>
+          <div style={styles.filterRow} data-at-filter-row>
+
+            {/* Search */}
+            <div style={styles.searchWrapper} data-at-search>
               <span style={styles.searchIcon}>🔍</span>
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search driver, load ID..."
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 style={styles.searchInput}
-                data-at-search
               />
             </div>
-          </div>
 
-          <div style={styles.filterRow} data-at-filter-row>
+            {/* Divider */}
+            <div style={{ width: "1px", height: "28px", background: "#e5e7eb", flexShrink: 0 }} />
+
+            {/* Driver */}
             <div style={styles.filterGroup} data-at-filter-group>
-              <label style={styles.filterLabel}>User:</label>
+              <label style={styles.filterLabel}>Driver</label>
               <select value={selectedUser} onChange={(e) => handleUserChange(e.target.value)} style={styles.selectInput}>
-                <option value="All">All Users</option>
+                <option value="All">All Drivers</option>
                 {users.map((driver: Driver) => (
                   <option key={driver._id} value={driver.email}>{driver.name} ({driver.username})</option>
                 ))}
               </select>
             </div>
+
+            {/* Period */}
             <div style={styles.filterGroup}>
-              <label style={styles.filterLabel}>Filter:</label>
+              <label style={styles.filterLabel}>Period</label>
               <select
                 value={selectedFilter ?? "All"}
                 onChange={e => handleFilterChange(e.target.value as FilterType)}
                 style={styles.selectInput}
               >
+                <option value="All">All Time</option>
                 <option value="Today">Today</option>
-                <option value="All">All</option>
                 <option value="This Week">This Week</option>
                 <option value="This Month">This Month</option>
                 <option value="Custom">Custom Range</option>
               </select>
-              {selectedFilter === "Custom" && (
-                <>
-                  <label style={styles.filterLabel}>From:</label>
-                  <input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)} style={styles.dateInput} />
-                  <label style={styles.filterLabel}>To:</label>
-                  <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} style={styles.dateInput} />
-                </>
-              )}
             </div>
+
+            {/* Custom date range — only shown when Custom is selected */}
+            {selectedFilter === "Custom" && (
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)} style={styles.dateInput} />
+                <span style={{ fontSize: "12px", color: "#9ca3af" }}>→</span>
+                <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} style={styles.dateInput} />
+              </div>
+            )}
+
+            {/* Status */}
             <div style={styles.filterGroup}>
-              <label style={styles.filterLabel}>Status:</label>
+              <label style={styles.filterLabel}>Status</label>
               <select
                 value={selectedStatus}
                 onChange={e => handleStatusChange(e.target.value)}
@@ -743,20 +765,12 @@ const AllTimesheets: React.FC = () => {
               </select>
             </div>
 
+            {/* Clear — only shown when any filter is active */}
             {((selectedFilter !== "All") || (selectedUser !== "All") || (selectedStatus !== "All") || searchQuery.trim() || ((selectedFilter as string) === "Custom" && (rangeStart || rangeEnd))) && (
               <button onClick={clearAllFilters} style={styles.clearButton}>
-                Clear Filters ✕
+                Clear ✕
               </button>
             )}
-
-            <div style={styles.filterActions} data-at-filter-actions>
-              <button onClick={handleExport} style={styles.exportButton}>
-                Export Timesheet 📤
-              </button>
-              <button onClick={handleDeleteFilteredTimesheets} style={styles.deleteButton}>
-                Delete Timesheets 🗑️
-              </button>
-            </div>
           </div>
         </div>
 
@@ -868,10 +882,9 @@ const styles = {
     fontSize: "24px",
     fontWeight: 700,
     color: "#111827",
-    marginBottom: "24px",
+    margin: 0,
   },
   tableWrapper: {
-    marginTop: "20px",
     borderRadius: "12px",
     border: "1px solid #e5e7eb",
     boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
@@ -1030,32 +1043,31 @@ const styles = {
     padding: "10px 0",
   },
   filterBar: {
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "12px",
-    padding: "16px 20px",
+    padding: "12px 16px",
     backgroundColor: "#ffffff",
     border: "1px solid #e5e7eb",
     borderRadius: "12px",
     boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
+    marginBottom: "20px",
   },
   filterRow: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
+    gap: "10px",
     flexWrap: "wrap" as const,
   },
   filterGroup: {
     display: "flex",
     alignItems: "center",
     gap: "6px",
-    flexWrap: "wrap" as const,
   },
   filterLabel: {
-    fontSize: "13px",
+    fontSize: "12px",
     fontWeight: 600,
     color: "#6b7280",
     whiteSpace: "nowrap" as const,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.4px",
   },
   filterActions: {
     display: "flex",
@@ -1103,7 +1115,7 @@ const styles = {
     backgroundColor: "#f9fafb",
     fontSize: "13px",
     color: "#374151",
-    width: "220px",
+    width: "240px",
     outline: "none",
   },
   clearButton: {
