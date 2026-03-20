@@ -45,7 +45,7 @@ const Profile: React.FC = () => {
   };
 
   return (
-    <div>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
       <Navbar />
       <div style={styles.container}>
         <button onClick={() => navigate(-1)} style={styles.backButton}>
@@ -533,12 +533,9 @@ const Profile: React.FC = () => {
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    maxWidth: "100%",
+    maxWidth: "1200px",
     margin: "0 auto",
-    padding: "30px 40px",
-    backgroundColor: "#f4f6f8",
-    fontFamily: "Inter, system-ui, sans-serif",
-    minHeight: "100vh",
+    padding: "24px",
   },
   backButton: {
     display: "flex",
@@ -652,11 +649,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: "#9ca3af",
   },
   sectionTitle: {
-    fontSize: "18px",
+    fontSize: "15px",
     fontWeight: 700,
     marginBottom: "4px",
     marginTop: 0,
-    color: "#1f2937",
+    color: "#111827",
   },
   seeAllButton: {
     marginTop: "10px",
@@ -719,23 +716,24 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: "50px",
   },
   th: {
-    borderBottom: "1px solid #e2e8f0",
-    padding: "14px 16px",
-    fontSize: "13px",
+    borderBottom: "1px solid #e5e7eb",
+    padding: "12px 16px",
+    fontSize: "12px",
     fontWeight: 600,
     textAlign: "left",
-    backgroundColor: "#f3f4f6",
-    color: "#1f2937",
-    wordBreak: "break-word",
-    whiteSpace: "wrap",
+    background: "#f9fafb",
+    color: "#6b7280",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
+    whiteSpace: "nowrap" as const,
   },
   td: {
-    borderBottom: "1px solid #e2e8f0",
-    padding: "8px 8px",
+    borderBottom: "1px solid #e5e7eb",
+    padding: "14px 16px",
     fontSize: "14px",
     textAlign: "left",
-    backgroundColor: "#ffffff",
-    wordBreak: "break-word",
+    color: "#374151",
+    verticalAlign: "middle" as const,
   },
   documentsChecklist: {
     display: "flex",

@@ -60,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Navigate based on role
       const adminRoles = ["admin", "company_admin", "super_admin", "dispatcher"];
       if (adminRoles.includes(user.role)) {
-        navigate("/users");
+        navigate("/admin-home");
       } else if (user.role === "driver") {
         navigate("/dashboard");
       } else {

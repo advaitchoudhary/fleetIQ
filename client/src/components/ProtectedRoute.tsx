@@ -22,7 +22,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
     return <Navigate to="/dashboard" />;
   }
   if (requiredRole === "driver" && user.role !== "driver") {
-    return <Navigate to="/users" />;
+    return <Navigate to="/admin-home" />;
   }
 
   return children;

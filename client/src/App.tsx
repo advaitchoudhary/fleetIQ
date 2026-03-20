@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import FileDriverApplication from "./pages/FileDriverApplication";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Drivers";
+import AdminHome from "./pages/AdminHome";
 import Profile from "./pages/Profile";
 import Enquiries from "./pages/Enquiries";
 import ContactUs from "./pages/ContactUs";
@@ -13,7 +14,6 @@ import Applications from "./pages/AllTimesheets";
 import MyInfo from "./pages/MyInfo";
 import MyTimesheet from "./pages/MyTimesheet";
 import DetailedTimesheet from "./pages/DetailedTimesheet";
-import UploadDispatchSheet from "./pages/UploadDipatchSheet";
 import Logout from "./pages/Logout";
 import ChangePassword from "./pages/ChangePassword";
 import DriverApplications from "./pages/DriverApplications";
@@ -22,6 +22,12 @@ import Maintenance from "./pages/Maintenance";
 import Inspections from "./pages/Inspections";
 import FuelLogs from "./pages/FuelLogs";
 import DriverPayments from "./pages/DriverPayments";
+import Parts from "./pages/Parts";
+import Warranties from "./pages/Warranties";
+import ServiceHistory from "./pages/ServiceHistory";
+import CostTracking from "./pages/CostTracking";
+import PreventiveMaintenance from "./pages/PreventiveMaintenance";
+import Scheduling from "./pages/Scheduling";
 import PaymentHistory from "./pages/PaymentHistory";
 import Subscription from "./pages/Subscription";
 import Pricing from "./pages/Pricing";
@@ -67,6 +73,14 @@ const App: React.FC = () => {
         />
 
         {/* Admin Role Routes */}
+        <Route
+          path="/admin-home"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminHome />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/users"
           element={
@@ -128,14 +142,6 @@ const App: React.FC = () => {
           }
         />
 
-        <Route
-          path="/uploadDispatchDetails"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <UploadDispatchSheet />
-            </ProtectedRoute>
-          }
-        />
 
         <Route
           path="/timesheet/:id"
@@ -179,6 +185,14 @@ const App: React.FC = () => {
             </ProtectedRoute>
           }
         />
+
+        {/* Phase 5 — Fleet Operations */}
+        <Route path="/parts" element={<ProtectedRoute requiredRole="admin"><Parts /></ProtectedRoute>} />
+        <Route path="/warranties" element={<ProtectedRoute requiredRole="admin"><Warranties /></ProtectedRoute>} />
+        <Route path="/service-history" element={<ProtectedRoute requiredRole="admin"><ServiceHistory /></ProtectedRoute>} />
+        <Route path="/cost-tracking" element={<ProtectedRoute requiredRole="admin"><CostTracking /></ProtectedRoute>} />
+        <Route path="/preventive-maintenance" element={<ProtectedRoute requiredRole="admin"><PreventiveMaintenance /></ProtectedRoute>} />
+        <Route path="/scheduling" element={<ProtectedRoute requiredRole="admin"><Scheduling /></ProtectedRoute>} />
 
         {/* Phase 3 — Driver Payments */}
         <Route

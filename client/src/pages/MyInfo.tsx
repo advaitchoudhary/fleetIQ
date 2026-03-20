@@ -225,7 +225,7 @@ const MyInfo: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
       <style>{`
         @media (max-width: 1024px) {
           [data-mi-container] { padding: 24px 20px !important; }
@@ -752,9 +752,9 @@ const MyInfo: React.FC = () => {
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    textAlign: "center",
-    padding: "32px 40px",
-    fontFamily: "Inter, system-ui, sans-serif",
+    maxWidth: "1200px",
+    margin: "0 auto",
+    padding: "24px",
   },
   button: {
     backgroundColor: "#4F46E5",
@@ -841,7 +841,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
   },
   sectionTitle: {
-    fontSize: "18px",
+    fontSize: "15px",
     marginBottom: "8px",
     marginTop: 0,
     borderBottom: "1px solid #e5e7eb",

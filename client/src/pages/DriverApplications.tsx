@@ -165,10 +165,13 @@ const DriverApplications: React.FC = () => {
   };
 
   return (
-    <div>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
       <Navbar />
       <div style={styles.container}>
-        <h1 style={styles.title}>Driver Applications</h1>
+        <div style={{ marginBottom: "24px" }}>
+          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "#111827" }}>Driver Applications</h1>
+          <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "14px" }}>Review and manage incoming driver applications</p>
+        </div>
 
         {/* Filter Bar */}
         <div style={styles.filterBar}>
@@ -506,17 +509,9 @@ const DriverApplications: React.FC = () => {
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    fontFamily: "Inter, system-ui, sans-serif",
-    padding: "30px 40px",
-    backgroundColor: "#f4f6f8",
-    minHeight: "100vh",
-  },
-  title: {
-    fontSize: "26px",
-    fontWeight: 700,
-    color: "#111827",
-    marginBottom: "24px",
-    textAlign: "center",
+    maxWidth: "1200px",
+    margin: "0 auto",
+    padding: "24px",
   },
   filterBar: {
     marginBottom: "20px",
@@ -558,15 +553,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderCollapse: "collapse",
   },
   th: {
-    padding: "14px 18px",
+    padding: "12px 16px",
     fontSize: "12px",
-    fontWeight: 700,
+    fontWeight: 600,
     textAlign: "left",
     backgroundColor: "#f9fafb",
     color: "#6b7280",
     borderBottom: "1px solid #e5e7eb",
     textTransform: "uppercase" as const,
     letterSpacing: "0.5px",
+    whiteSpace: "nowrap" as const,
   },
   tr: {
     borderBottom: "1px solid #f3f4f6",

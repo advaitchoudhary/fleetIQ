@@ -2,14 +2,15 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FaClock,
-  FaSignOutAlt,
   FaUser,
   FaUsers,
+  FaThLarge,
   FaFileInvoice,
   FaClipboardList,
   FaPhoneAlt,
   FaBell,
-  FaLock,
+  FaKey,
+  FaPowerOff,
   FaTruck,
   FaWrench,
   FaCheckSquare,
@@ -17,13 +18,17 @@ import {
   FaDollarSign,
   FaHistory,
   FaCreditCard,
+  FaBox,
+  FaShieldAlt,
+  FaCalendarAlt,
+  FaChartBar,
+  FaCheckSquare as FaCheckSquareIcon,
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md"; // Material Dashboard Icon
 import { useAuth } from "../contexts/AuthContext";
 
 const ADMIN_ROLES = ["admin", "company_admin", "super_admin", "dispatcher"];
 import { API_BASE_URL } from "../utils/env";
-import MenuImage from "../assets/logo.png";
 
 const Navbar: React.FC = () => {
   const [isNavOpen, setIsNavOpen] = useState(false);
@@ -94,29 +99,17 @@ const Navbar: React.FC = () => {
       {/* Header */}
       <header style={styles.header} data-nav-header>
         <div style={styles.rowDiv}>
-          <button
+
+          <div
+            style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
             onClick={() => setIsNavOpen(!isNavOpen)}
-            style={styles.menuButton}
-          >
-            <img
-              src={MenuImage}
-              alt="Menu"
-              style={{
-                height: "32px",
-                width: "32px",
-                objectFit: "contain",
-                display: "inline-block",
-                verticalAlign: "middle",
-              }}
-            />
-          </button>
-          <h1
-            style={{ ...styles.title, cursor: "pointer" }}
-            onClick={() => navigate(ADMIN_ROLES.includes(user?.role ?? "") ? "/users" : "/dashboard")}
             data-nav-title
           >
-            Premier Choice
-          </h1>
+            <FaTruck size={20} style={{ color: "#818CF8" }} />
+            <span style={styles.title}>
+              Fleet<span style={{ color: "#818CF8" }}>IQ</span>
+            </span>
+          </div>
         </div>
         <div style={styles.authButtons} data-nav-auth>
           {ADMIN_ROLES.includes(user?.role ?? "") && (
@@ -214,7 +207,7 @@ const Navbar: React.FC = () => {
             onClick={() => navigate("/change-password")}
             style={styles.changePasswordButton}
           >
-            <FaLock size={20} /><span className="hide-on-mobile"> Change Password</span>
+            <FaKey size={18} /><span className="hide-on-mobile"> Change Password</span>
           </button>
           <button
             onClick={() => {
@@ -223,7 +216,7 @@ const Navbar: React.FC = () => {
             }}
             style={styles.logoutButton}
           >
-            <FaSignOutAlt size={20} /><span className="hide-on-mobile"> Logout</span>
+            <FaPowerOff size={16} /><span className="hide-on-mobile"> Logout</span>
           </button>
         </div>
       </header>
@@ -231,8 +224,15 @@ const Navbar: React.FC = () => {
       {/* Sidebar Navigation */}
       <nav
         ref={sidebarRef}
-        style={{ ...styles.sidebar, left: isNavOpen ? "0px" : "-250px" }}
+        style={{ ...styles.sidebar, left: isNavOpen ? "0px" : "-260px" }}
       >
+        {/* Sidebar logo */}
+        <div style={styles.sidebarLogo}>
+          <FaTruck size={20} style={{ color: "#818CF8" }} />
+          <span style={{ fontSize: "18px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
+            Fleet<span style={{ color: "#818CF8" }}>IQ</span>
+          </span>
+        </div>
         <ul style={styles.navList}>
           {user?.role === "driver" && (
             <>
@@ -265,6 +265,11 @@ const Navbar: React.FC = () => {
           {ADMIN_ROLES.includes(user?.role ?? "") && (
             <>
               <li style={styles.navItem}>
+                <Link to="/admin-home" style={styles.navLink}>
+                  <FaThLarge size={18} /> Home
+                </Link>
+              </li>
+              <li style={styles.navItem}>
                 <Link to="/users" style={styles.navLink}>
                   <FaUsers size={20} /> Users
                 </Link>
@@ -289,13 +294,8 @@ const Navbar: React.FC = () => {
                   <FaClipboardList size={20} /> Driver Applications
                 </Link>
               </li>
-              <li style={styles.navItem}>
-                <Link to="/uploadDispatchDetails" style={styles.navLink}>
-                  <MdDashboard size={20} /> Upload Dispatch Details
-                </Link>
-              </li>
-              <li style={{ ...styles.navItem, borderTop: "1px solid rgba(255,255,255,0.15)", marginTop: "8px", paddingTop: "8px" }}>
-                <span style={{ ...styles.navLink, color: "#9ca3af", fontSize: "11px", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.8px", cursor: "default", paddingBottom: "4px" }}>
+              <li style={{ ...styles.navItem, marginTop: "12px" }}>
+                <span style={{ display: "block", padding: "6px 24px 4px", fontSize: "10px", fontWeight: 700, color: "#4b5563", textTransform: "uppercase" as const, letterSpacing: "1px" }}>
                   Vehicle Management
                 </span>
               </li>
@@ -319,8 +319,43 @@ const Navbar: React.FC = () => {
                   <FaGasPump size={18} /> Fuel Logs
                 </Link>
               </li>
-              <li style={{ ...styles.navItem, borderTop: "1px solid rgba(255,255,255,0.15)", marginTop: "8px", paddingTop: "8px" }}>
-                <span style={{ ...styles.navLink, color: "#9ca3af", fontSize: "11px", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.8px", cursor: "default", paddingBottom: "4px" }}>
+              <li style={{ ...styles.navItem, marginTop: "12px" }}>
+                <span style={{ display: "block", padding: "6px 24px 4px", fontSize: "10px", fontWeight: 700, color: "#4b5563", textTransform: "uppercase" as const, letterSpacing: "1px" }}>
+                  Fleet Operations
+                </span>
+              </li>
+              <li style={styles.navItem}>
+                <Link to="/parts" style={styles.navLink}>
+                  <FaBox size={18} /> Parts Inventory
+                </Link>
+              </li>
+              <li style={styles.navItem}>
+                <Link to="/warranties" style={styles.navLink}>
+                  <FaShieldAlt size={18} /> Warranties
+                </Link>
+              </li>
+              <li style={styles.navItem}>
+                <Link to="/service-history" style={styles.navLink}>
+                  <FaHistory size={18} /> Service History
+                </Link>
+              </li>
+              <li style={styles.navItem}>
+                <Link to="/cost-tracking" style={styles.navLink}>
+                  <FaChartBar size={18} /> Cost Tracking
+                </Link>
+              </li>
+              <li style={styles.navItem}>
+                <Link to="/preventive-maintenance" style={styles.navLink}>
+                  <FaCheckSquareIcon size={18} /> Preventive Maint.
+                </Link>
+              </li>
+              <li style={styles.navItem}>
+                <Link to="/scheduling" style={styles.navLink}>
+                  <FaCalendarAlt size={18} /> Scheduling
+                </Link>
+              </li>
+              <li style={{ ...styles.navItem, marginTop: "12px" }}>
+                <span style={{ display: "block", padding: "6px 24px 4px", fontSize: "10px", fontWeight: 700, color: "#4b5563", textTransform: "uppercase" as const, letterSpacing: "1px" }}>
                   Payments & Billing
                 </span>
               </li>
@@ -352,16 +387,20 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "12px 24px",
+    padding: "0 24px",
+    height: "56px",
     background: "#111827",
     color: "#fff",
     fontFamily: "Inter, system-ui, sans-serif",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.12)",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+    position: "sticky",
+    top: 0,
+    zIndex: 900,
   },
   rowDiv: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
+    gap: "12px",
     flexWrap: "nowrap",
   },
   title: {
@@ -369,19 +408,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: 0,
     padding: 0,
     lineHeight: "1",
-    fontWeight: 700,
-    letterSpacing: "-0.2px",
-  },
-  menuButton: {
-    background: "none",
-    border: "none",
-    padding: "4px",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: "8px",
-    transition: "background 0.2s ease-in-out",
+    fontWeight: 800,
+    letterSpacing: "-0.3px",
+    color: "#fff",
   },
   notificationIconWrapper: {
     position: "relative",
@@ -540,39 +569,47 @@ const styles: { [key: string]: React.CSSProperties } = {
   sidebar: {
     position: "fixed" as const,
     top: "0",
-    left: "-250px",
-    width: "250px",
+    left: "-260px",
+    width: "260px",
     height: "100%",
-    backgroundColor: "#1f2937",
+    overflowY: "auto",
+    backgroundColor: "#111827",
     color: "#fff",
-    paddingTop: "60px",
     transition: "left 0.3s ease",
     zIndex: 1000,
     fontFamily: "Inter, system-ui, sans-serif",
-    boxShadow: "2px 0 8px rgba(0,0,0,0.15)",
+    boxShadow: "4px 0 16px rgba(0,0,0,0.3)",
+  },
+  sidebarLogo: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    padding: "20px 24px 16px",
+    borderBottom: "1px solid rgba(255,255,255,0.08)",
+    marginBottom: "8px",
   },
   navList: {
     listStyleType: "none",
-    padding: "0",
+    padding: "0 0 24px",
     margin: "0",
   },
   navItem: {
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
     listStyle: "none",
   },
   navLink: {
-    color: "#d1d5db",
+    color: "#9ca3af",
     textDecoration: "none",
     display: "flex",
     alignItems: "center",
     gap: "12px",
     fontSize: "14px",
     fontWeight: 500,
-    padding: "14px 24px",
+    padding: "11px 24px",
     cursor: "pointer",
     width: "100%",
     boxSizing: "border-box",
-    transition: "color 0.2s, background 0.2s",
+    transition: "color 0.15s, background 0.15s",
+    borderRadius: "0",
   },
 };
 
@@ -589,7 +626,7 @@ style.innerHTML = `
 
 @media (max-width: 480px) {
   [data-nav-header] {
-    padding: 10px 12px !important;
+    padding: 0 12px !important;
   }
   [data-nav-title] {
     font-size: 15px !important;
@@ -607,13 +644,14 @@ style.innerHTML = `
   }
 }
 
-nav ul li:hover {
-  background-color: rgba(255,255,255,0.06);
-}
-
 nav ul li a:hover {
+  background-color: rgba(255,255,255,0.07) !important;
   color: #fff !important;
   text-decoration: none;
+}
+
+nav ul li a:hover svg {
+  color: #818CF8 !important;
 }
 `;
 if (typeof document !== "undefined" && !document.getElementById("hide-on-mobile-style")) {

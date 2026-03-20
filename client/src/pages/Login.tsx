@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { API_BASE_URL } from "../utils/env";
 import axios from "axios";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaTruck } from "react-icons/fa";
 
 
 const Login: React.FC = () => {
@@ -52,7 +52,7 @@ const Login: React.FC = () => {
         }
         else {
           // Redirect admin to admin dashboard
-          window.location.href = "/users";
+          window.location.href = "/admin-home";
         }
       }
     } catch (error) {
@@ -63,6 +63,10 @@ const Login: React.FC = () => {
 
   return (
     <div style={styles.container}>
+      {/* Decorative background orbs */}
+      <div style={{ position: "absolute", top: "-120px", right: "-120px", width: "480px", height: "480px", borderRadius: "50%", background: "radial-gradient(circle, rgba(79,70,229,0.18) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", bottom: "-100px", left: "-100px", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(129,140,248,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", top: "40%", left: "15%", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(circle, rgba(79,70,229,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
       <style>{`
         @keyframes loginFadeIn {
           from { opacity: 0; transform: translateY(20px) scale(0.97); }
@@ -135,7 +139,13 @@ const Login: React.FC = () => {
         Back
       </button>
       <div style={styles.overlay} data-login-card>
-        <h1 style={styles.title} data-login-title>Welcome to the Driver Portal</h1>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "20px" }}>
+          <FaTruck size={24} style={{ color: "#818CF8" }} />
+          <span style={{ fontSize: "22px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
+            Fleet<span style={{ color: "#818CF8" }}>IQ</span>
+          </span>
+        </div>
+        <h1 style={styles.title} data-login-title>Welcome back</h1>
         <p style={styles.description} data-login-desc>
           Manage your trips, track your hours, and stay updated with important information.
         </p>
@@ -185,27 +195,24 @@ const styles: { [key: string]: React.CSSProperties } = {
   container: {
     position: "relative",
     height: "100vh",
-    backgroundImage: `url('/fleet.avif')`,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat",
-    backgroundAttachment: "fixed",
+    background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 60%, #0F172A 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     fontFamily: "Inter, system-ui, sans-serif",
+    overflow: "hidden",
   },
   overlay: {
-    backgroundColor: "rgba(0, 0, 0, 0.45)",
-    backdropFilter: "blur(16px)",
+    backgroundColor: "rgba(255, 255, 255, 0.04)",
+    backdropFilter: "blur(20px)",
     padding: "44px 40px",
-    borderRadius: "16px",
+    borderRadius: "20px",
     textAlign: "center",
     color: "#fff",
     maxWidth: "420px",
     width: "100%",
-    border: "1px solid rgba(255, 255, 255, 0.12)",
-    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    boxShadow: "0 24px 64px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(129, 140, 248, 0.08)",
   },
   title: {
     fontSize: "26px",

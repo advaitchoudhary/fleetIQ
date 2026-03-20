@@ -612,15 +612,16 @@ const generatePDF = () => {
 
 const styles: { [key: string]: CSSProperties } = {
   container: {
-    backgroundColor: "#f4f6f8",
-    padding: "30px 40px",
+    background: "#f9fafb",
+    padding: "24px",
+    maxWidth: "1200px",
+    margin: "0 auto",
     fontFamily: "Inter, system-ui, sans-serif",
     minHeight: "100vh",
   },
   title: {
-    fontSize: "26px",
+    fontSize: "24px",
     fontWeight: 700,
-    textAlign: "center" as const,
     marginBottom: "24px",
     color: "#111827",
   },

@@ -659,7 +659,7 @@ const AllTimesheets: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
       <style>{`
         @media (max-width: 1024px) {
           [data-at-container] { padding: 24px 20px !important; }
@@ -860,15 +860,15 @@ const AllTimesheets: React.FC = () => {
 
 const styles = {
   container: {
-    padding: "32px 40px",
-    fontFamily: "Inter, system-ui, sans-serif",
+    maxWidth: "1200px",
+    margin: "0 auto",
+    padding: "24px",
   },
   pageTitle: {
-    fontSize: "26px",
+    fontSize: "24px",
     fontWeight: 700,
     color: "#111827",
     marginBottom: "24px",
-    textAlign: "center" as const,
   },
   tableWrapper: {
     marginTop: "20px",
@@ -883,9 +883,9 @@ const styles = {
     borderCollapse: "collapse" as const,
   },
   th: {
-    padding: "14px 18px",
+    padding: "12px 16px",
     fontSize: "12px",
-    fontWeight: 700,
+    fontWeight: 600,
     textAlign: "left" as const,
     backgroundColor: "#f9fafb",
     color: "#6b7280",

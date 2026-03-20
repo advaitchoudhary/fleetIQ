@@ -24,11 +24,14 @@ const Enquiries: React.FC = () => {
   }, []);
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
     <Navbar />
 
     <div style={styles.container}>
-      <h2 style={styles.title}>Contact Enquiries</h2>
+      <div style={{ marginBottom: "24px" }}>
+        <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "#111827" }}>Contact Enquiries</h1>
+        <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "14px" }}>Messages submitted through the contact form</p>
+      </div>
       {loading ? (
         <p style={{ color: "#6b7280", fontSize: "15px" }}>Loading enquiries...</p>
       ) : (
@@ -62,54 +65,40 @@ const Enquiries: React.FC = () => {
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    fontFamily: "Inter, system-ui, sans-serif",
-    padding: "32px 40px",
-    textAlign: "center",
-  },
-  title: {
-    fontSize: "26px",
-    fontWeight: 700,
-    marginBottom: "24px",
-    color: "#111827",
-    letterSpacing: "-0.3px",
+    maxWidth: "1200px",
+    margin: "0 auto",
+    padding: "24px",
   },
   tableWrapper: {
-    display: "flex",
-    justifyContent: "center",
-    marginTop: "16px",
     borderRadius: "12px",
     border: "1px solid #e5e7eb",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
     backgroundColor: "#fff",
-    padding: "4px",
     overflowX: "auto",
   },
   table: {
     width: "100%",
     borderCollapse: "collapse",
-    borderRadius: "12px",
-    overflow: "hidden",
-    tableLayout: "auto",
+    fontSize: "14px",
   },
   th: {
     borderBottom: "1px solid #e5e7eb",
-    padding: "14px 18px",
-    fontSize: "11px",
-    fontWeight: 700,
+    padding: "12px 16px",
+    fontSize: "12px",
+    fontWeight: 600,
     textAlign: "left",
     backgroundColor: "#f9fafb",
     color: "#6b7280",
     textTransform: "uppercase",
-    letterSpacing: "0.6px",
-    wordBreak: "break-word",
+    letterSpacing: "0.5px",
+    whiteSpace: "nowrap",
   },
   td: {
-    padding: "14px 18px",
+    padding: "14px 16px",
     fontSize: "14px",
     textAlign: "left",
     color: "#374151",
     borderBottom: "1px solid #f3f4f6",
-    wordBreak: "break-word",
   },
   row: {
     backgroundColor: "#f9fafb",

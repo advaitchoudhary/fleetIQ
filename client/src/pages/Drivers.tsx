@@ -299,7 +299,7 @@ const Drivers: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", minHeight: "100vh", background: "linear-gradient(180deg, #eef2ff 0%, #f4f6f8 40%, #f4f6f8 100%)" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", minHeight: "100vh", background: "#f9fafb" }}>
       <Navbar />
       <div style={styles.container}>
       <h1 style={styles.pageTitle}>All Drivers</h1>
@@ -956,15 +956,15 @@ import { CSSProperties } from "react";
 
 const styles: { [key: string]: CSSProperties } = {
   container: {
-    fontFamily: "Inter, system-ui, sans-serif",
-    padding: "30px 40px",
+    maxWidth: "1200px",
+    margin: "0 auto",
+    padding: "24px",
   },
   pageTitle: {
-    fontSize: "26px",
+    fontSize: "24px",
     fontWeight: 700,
     color: "#111827",
     marginBottom: "24px",
-    textAlign: "center",
   },
   headerWrapper: {
     marginBottom: "20px",
@@ -1027,9 +1027,9 @@ const styles: { [key: string]: CSSProperties } = {
     borderCollapse: "collapse",
   },
   th: {
-    padding: "14px 18px",
+    padding: "12px 16px",
     fontSize: "12px",
-    fontWeight: 700,
+    fontWeight: 600,
     textAlign: "left",
     backgroundColor: "#f9fafb",
     color: "#6b7280",
