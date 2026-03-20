@@ -22,6 +22,34 @@ const emptyScheduleForm = {
   vehicleId: "", templateId: "", lastCompletedDate: "", lastCompletedOdometer: "", notes: "",
 };
 
+const DEMO_VEHICLES_PM = [
+  { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth", model: "T680" },
+  { _id: "demo-v2", unitNumber: "U-102", make: "Freightliner", model: "Cascadia" },
+  { _id: "demo-v3", unitNumber: "U-103", make: "Ford", model: "Transit 350" },
+  { _id: "demo-v5", unitNumber: "U-105", make: "Ram", model: "1500 Classic" },
+];
+
+const DEMO_PM_TEMPLATES = [
+  { _id: "demo-t1", name: "Engine Oil & Filter Change", description: "Full sump drain and refill with 15W-40 synthetic. Replace oil filter.", maintenanceType: "oil_change", intervalKm: 25000, intervalDays: 180, estimatedCost: 185, estimatedDuration: 90, vendor: "FleetPro Service Centre", applicableVehicleTypes: ["truck"], notes: "Use API CK-4 spec oil." },
+  { _id: "demo-t2", name: "Annual Safety Inspection (CVIP)", description: "MTO commercial vehicle inspection program. Mandatory for all commercial vehicles.", maintenanceType: "inspection", intervalKm: null, intervalDays: 365, estimatedCost: 250, estimatedDuration: 180, vendor: "Certified Truck Inspections Ltd.", applicableVehicleTypes: ["truck", "trailer", "van", "pickup"], notes: "Book at least 30 days in advance." },
+  { _id: "demo-t3", name: "Air Filter Replacement", description: "Replace primary and safety air filter elements. Inspect air intake piping.", maintenanceType: "preventive", intervalKm: 50000, intervalDays: 365, estimatedCost: 95, estimatedDuration: 45, vendor: "FleetPro Service Centre", applicableVehicleTypes: ["truck"], notes: "Check air restriction indicator first." },
+  { _id: "demo-t4", name: "Tire Rotation & Balance", description: "Rotate tires per manufacturer pattern. Dynamically balance all wheels.", maintenanceType: "tire", intervalKm: 40000, intervalDays: 270, estimatedCost: 280, estimatedDuration: 120, vendor: "Kal Tire Commercial", applicableVehicleTypes: ["truck", "van", "pickup"], notes: "Also check lug nut torque to spec." },
+  { _id: "demo-t5", name: "Coolant System Service", description: "Drain, flush, and refill with OAT extended-life coolant. Pressure test hoses.", maintenanceType: "preventive", intervalKm: null, intervalDays: 730, estimatedCost: 320, estimatedDuration: 120, vendor: "FleetPro Service Centre", applicableVehicleTypes: ["truck"], notes: "Replace thermostat if over 500k km." },
+];
+
+const DEMO_PM_SCHEDULES = [
+  { _id: "demo-s1", vehicleId: "demo-v1", templateId: { _id: "demo-t1", name: "Engine Oil & Filter Change", maintenanceType: "oil_change", intervalKm: 25000, intervalDays: 180 }, lastCompletedDate: "2026-02-10", lastCompletedOdometer: 155000, nextDueDate: "2026-08-10", nextDueOdometer: 180000, status: "on_track", notes: "" },
+  { _id: "demo-s2", vehicleId: "demo-v1", templateId: { _id: "demo-t2", name: "Annual Safety Inspection (CVIP)", maintenanceType: "inspection", intervalKm: null, intervalDays: 365 }, lastCompletedDate: "2025-04-10", lastCompletedOdometer: 142000, nextDueDate: "2026-04-05", nextDueOdometer: null, status: "due_soon", notes: "Book appointment." },
+  { _id: "demo-s3", vehicleId: "demo-v2", templateId: { _id: "demo-t1", name: "Engine Oil & Filter Change", maintenanceType: "oil_change", intervalKm: 25000, intervalDays: 180 }, lastCompletedDate: "2026-01-22", lastCompletedOdometer: 198400, nextDueDate: "2026-07-22", nextDueOdometer: 223400, status: "on_track", notes: "" },
+  { _id: "demo-s4", vehicleId: "demo-v2", templateId: { _id: "demo-t3", name: "Air Filter Replacement", maintenanceType: "preventive", intervalKm: 50000, intervalDays: 365 }, lastCompletedDate: "2024-09-15", lastCompletedOdometer: 160000, nextDueDate: "2025-09-15", nextDueOdometer: 210000, status: "overdue", notes: "Past due — schedule immediately." },
+  { _id: "demo-s5", vehicleId: "demo-v3", templateId: { _id: "demo-t4", name: "Tire Rotation & Balance", maintenanceType: "tire", intervalKm: 40000, intervalDays: 270 }, lastCompletedDate: "2025-10-01", lastCompletedOdometer: 18000, nextDueDate: "2026-06-28", nextDueOdometer: 58000, status: "on_track", notes: "" },
+];
+
+const DEMO_PM_DUE = [
+  { _id: "demo-s2", vehicleId: "demo-v1", templateId: { _id: "demo-t2", name: "Annual Safety Inspection (CVIP)", maintenanceType: "inspection" }, nextDueDate: "2026-04-05", status: "due_soon" },
+  { _id: "demo-s4", vehicleId: "demo-v2", templateId: { _id: "demo-t3", name: "Air Filter Replacement", maintenanceType: "preventive" }, nextDueDate: "2025-09-15", status: "overdue" },
+];
+
 const PreventiveMaintenance: React.FC = () => {
   const [templates, setTemplates] = useState<any[]>([]);
   const [schedules, setSchedules] = useState<any[]>([]);
@@ -55,12 +83,17 @@ const PreventiveMaintenance: React.FC = () => {
         fetch(`${API_BASE_URL}/pm/schedules/due`, { headers }),
       ]);
       const [t, s, v, d] = await Promise.all([tRes.json(), sRes.json(), vRes.json(), dRes.json()]);
-      setTemplates(Array.isArray(t) ? t : []);
-      setSchedules(Array.isArray(s) ? s : []);
-      setVehicles(Array.isArray(v) ? v : []);
-      setDueSchedules(Array.isArray(d) ? d : []);
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
+      setTemplates(Array.isArray(t) && t.length > 0 ? t : DEMO_PM_TEMPLATES);
+      setSchedules(Array.isArray(s) && s.length > 0 ? s : DEMO_PM_SCHEDULES);
+      setVehicles(Array.isArray(v) && v.length > 0 ? v : DEMO_VEHICLES_PM);
+      setDueSchedules(Array.isArray(d) && d.length > 0 ? d : DEMO_PM_DUE);
+    } catch (err) {
+      console.error(err);
+      setTemplates(DEMO_PM_TEMPLATES);
+      setSchedules(DEMO_PM_SCHEDULES);
+      setVehicles(DEMO_VEHICLES_PM);
+      setDueSchedules(DEMO_PM_DUE);
+    } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);

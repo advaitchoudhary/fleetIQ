@@ -25,6 +25,81 @@ const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   out_of_service: { bg: "#fee2e2", color: "#991b1b" },
 };
 
+const DEMO_FLEET_SUMMARY = [
+  {
+    vehicle: { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth", model: "T680", year: 2022 },
+    totalEvents: 8,
+    lastMaintenance: { scheduledDate: "2026-02-10", completedDate: "2026-02-10", title: "Engine Oil & Filter Change" },
+    lastInspection: { date: "2026-03-20", status: "satisfactory" },
+  },
+  {
+    vehicle: { _id: "demo-v2", unitNumber: "U-102", make: "Freightliner", model: "Cascadia", year: 2021 },
+    totalEvents: 6,
+    lastMaintenance: { scheduledDate: "2026-03-18", completedDate: "", title: "Front Brake Pad Replacement" },
+    lastInspection: { date: "2026-03-19", status: "defects_noted" },
+  },
+  {
+    vehicle: { _id: "demo-v3", unitNumber: "U-103", make: "Ford", model: "Transit 350", year: 2023 },
+    totalEvents: 4,
+    lastMaintenance: { scheduledDate: "2026-04-12", completedDate: "", title: "Tire Rotation & Balance" },
+    lastInspection: { date: "2026-03-18", status: "satisfactory" },
+  },
+  {
+    vehicle: { _id: "demo-v5", unitNumber: "U-105", make: "Ram", model: "1500 Classic", year: 2022 },
+    totalEvents: 3,
+    lastMaintenance: { scheduledDate: "2026-03-02", completedDate: "2026-03-02", title: "Post-Incident Inspection" },
+    lastInspection: null,
+  },
+];
+
+const DEMO_VEHICLE_HISTORIES: Record<string, { vehicle: any; events: any[]; summary: any }> = {
+  "demo-v1": {
+    vehicle: { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth", model: "T680", year: 2022, odometer: 156340, licensePlate: "ON-TRK-101" },
+    summary: { totalMaintenanceCost: 435, totalFuelCost: 1917.70, totalCost: 2352.70, totalEvents: 8 },
+    events: [
+      { eventType: "maintenance", title: "Annual Safety Inspection (CVIP)", status: "scheduled", cost: 250, date: "2026-04-05", odometer: 156340, detail: "Vendor: Certified Truck Inspections Ltd.", notes: "" },
+      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 642.18, date: "2026-03-15", odometer: 156340, detail: "420 L · $1.529/L · Petro-Canada, Toronto ON", notes: "" },
+      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 611.56, date: "2026-03-08", odometer: 155120, detail: "395 L · $1.549/L · Esso, London ON", notes: "Long-haul Windsor run." },
+      { eventType: "inspection", title: "Pre-Trip Inspection", status: "satisfactory", cost: 0, date: "2026-03-20", odometer: 156340, detail: "Type: Pre-Trip · Driver: D001", notes: "All systems checked and operational." },
+      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 663.96, date: "2026-02-20", odometer: 153600, detail: "440 L · $1.509/L · Husky, Kitchener ON", notes: "Full tank before weekend." },
+      { eventType: "maintenance", title: "Engine Oil & Filter Change", status: "completed", cost: 185, date: "2026-02-10", odometer: 155000, detail: "Vendor: FleetPro Service Centre", notes: "15W-40 Rotella T6, 10L. Oil filter replaced." },
+      { eventType: "inspection", title: "Annual Safety Inspection (CVIP)", status: "satisfactory", cost: 0, date: "2025-04-10", odometer: 142000, detail: "Type: Annual", notes: "MTO annual CVIP — passed with no defects." },
+      { eventType: "maintenance", title: "Coolant System Flush", status: "completed", cost: 0, date: "2025-01-22", odometer: 130000, detail: "Vendor: FleetPro Service Centre", notes: "OAT extended-life coolant used." },
+    ],
+  },
+  "demo-v2": {
+    vehicle: { _id: "demo-v2", unitNumber: "U-102", make: "Freightliner", model: "Cascadia", year: 2021, odometer: 204780, licensePlate: "ON-TRK-102" },
+    summary: { totalMaintenanceCost: 860, totalFuelCost: 1199.41, totalCost: 2059.41, totalEvents: 6 },
+    events: [
+      { eventType: "maintenance", title: "Front Brake Pad Replacement", status: "in_progress", cost: 540, date: "2026-03-18", odometer: 204780, detail: "Vendor: TruckStop Auto", notes: "Parts ordered — vehicle grounded until complete." },
+      { eventType: "inspection", title: "Pre-Trip Inspection", status: "defects_noted", cost: 0, date: "2026-03-19", odometer: 204780, detail: "Type: Pre-Trip · Driver: D003", notes: "Front brake pad thickness below minimum. Replacement ordered." },
+      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 584.82, date: "2026-03-14", odometer: 204780, detail: "385 L · $1.519/L · Pilot Flying J, Mississauga ON", notes: "" },
+      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 614.59, date: "2026-02-28", odometer: 203900, detail: "410 L · $1.499/L · Love's Travel Stop, Hamilton ON", notes: "" },
+      { eventType: "maintenance", title: "Coolant System Flush", status: "completed", cost: 320, date: "2026-01-22", odometer: 198400, detail: "Vendor: FleetPro Service Centre", notes: "Full drain and refill with OAT coolant. Windshield fluid topped up." },
+      { eventType: "maintenance", title: "Air Filter Replacement", status: "completed", cost: 0, date: "2025-09-15", odometer: 160000, detail: "Vendor: FleetPro Service Centre", notes: "Primary and safety elements replaced." },
+    ],
+  },
+  "demo-v3": {
+    vehicle: { _id: "demo-v3", unitNumber: "U-103", make: "Ford", model: "Transit 350", year: 2023, odometer: 34560, licensePlate: "ON-VAN-103" },
+    summary: { totalMaintenanceCost: 120, totalFuelCost: 187.56, totalCost: 307.56, totalEvents: 4 },
+    events: [
+      { eventType: "maintenance", title: "Tire Rotation & Balance", status: "scheduled", cost: 120, date: "2026-04-12", odometer: 34560, detail: "Vendor: Kal Tire", notes: "" },
+      { eventType: "inspection", title: "Post-Trip Inspection", status: "satisfactory", cost: 0, date: "2026-03-18", odometer: 34560, detail: "Type: Post-Trip · Driver: D005", notes: "No issues noted on return." },
+      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 97.97, date: "2026-03-13", odometer: 34560, detail: "58 L · $1.689/L · Shell, Brampton ON", notes: "" },
+      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 89.59, date: "2026-02-25", odometer: 33880, detail: "54 L · $1.659/L · Canadian Tire Gas+, Mississauga ON", notes: "" },
+    ],
+  },
+  "demo-v5": {
+    vehicle: { _id: "demo-v5", unitNumber: "U-105", make: "Ram", model: "1500 Classic", year: 2022, odometer: 67890, licensePlate: "ON-PCK-105" },
+    summary: { totalMaintenanceCost: 0, totalFuelCost: 122.33, totalCost: 122.33, totalEvents: 3 },
+    events: [
+      { eventType: "maintenance", title: "Post-Incident Inspection", status: "completed", cost: 0, date: "2026-03-02", odometer: 67890, detail: "Vendor: Internal", notes: "Minor fender contact in parking lot. No structural damage found." },
+      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 122.33, date: "2026-03-07", odometer: 67890, detail: "72 L · $1.699/L · Petro-Canada, Oakville ON", notes: "" },
+      { eventType: "inspection", title: "Annual Safety Inspection (CVIP)", status: "satisfactory", cost: 0, date: "2025-12-15", odometer: 58000, detail: "Type: Annual", notes: "Passed with no defects." },
+    ],
+  },
+};
+
 const ServiceHistory: React.FC = () => {
   const [fleetSummary, setFleetSummary] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -49,10 +124,13 @@ const ServiceHistory: React.FC = () => {
         fetch(`${API_BASE_URL}/vehicles`, { headers }),
       ]);
       const [s, v] = await Promise.all([summaryRes.json(), vehiclesRes.json()]);
-      setFleetSummary(Array.isArray(s) ? s : []);
-      setVehicles(Array.isArray(v) ? v : []);
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
+      setFleetSummary(Array.isArray(s) && s.length > 0 ? s : DEMO_FLEET_SUMMARY);
+      setVehicles(Array.isArray(v) && v.length > 0 ? v : DEMO_FLEET_SUMMARY.map((d) => d.vehicle));
+    } catch (err) {
+      console.error(err);
+      setFleetSummary(DEMO_FLEET_SUMMARY);
+      setVehicles(DEMO_FLEET_SUMMARY.map((d) => d.vehicle));
+    } finally { setLoading(false); }
   }, []);
 
   useEffect(() => { fetchFleetSummary(); }, [fetchFleetSummary]);
@@ -61,6 +139,14 @@ const ServiceHistory: React.FC = () => {
     if (!vehicleId) return;
     setHistoryLoading(true);
     try {
+      if (DEMO_VEHICLE_HISTORIES[vehicleId]) {
+        const demo = DEMO_VEHICLE_HISTORIES[vehicleId];
+        setVehicleInfo(demo.vehicle);
+        setEvents(demo.events);
+        setSummary(demo.summary);
+        setHistoryLoading(false);
+        return;
+      }
       const params = new URLSearchParams();
       if (dateFrom) params.append("from", dateFrom);
       if (dateTo) params.append("to", dateTo);
@@ -69,8 +155,11 @@ const ServiceHistory: React.FC = () => {
       setVehicleInfo(data.vehicle);
       setEvents(data.events || []);
       setSummary(data.summary);
-    } catch (err) { console.error(err); }
-    finally { setHistoryLoading(false); }
+    } catch (err) {
+      console.error(err);
+      const demo = DEMO_VEHICLE_HISTORIES[vehicleId];
+      if (demo) { setVehicleInfo(demo.vehicle); setEvents(demo.events); setSummary(demo.summary); }
+    } finally { setHistoryLoading(false); }
   };
 
   const handleVehicleChange = (id: string) => {

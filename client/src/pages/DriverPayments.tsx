@@ -4,6 +4,20 @@ import { FaDollarSign, FaStripe, FaCheckCircle, FaClock, FaExternalLinkAlt } fro
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
+const DEMO_DRIVERS_PAY = [
+  { _id: "demo-d1", name: "Marcus Webb", email: "m.webb@fleetmail.ca", stripeAccountId: "acct_demo1", backhaulRate: 220, comboRate: 270, regularBannerRate: 240 },
+  { _id: "demo-d2", name: "Priya Sehgal", email: "p.sehgal@fleetmail.ca", stripeAccountId: null, backhaulRate: 190, comboRate: 230, regularBannerRate: 205 },
+  { _id: "demo-d3", name: "Tyler Osei", email: "t.osei@fleetmail.ca", stripeAccountId: "acct_demo3", backhaulRate: 230, comboRate: 285, regularBannerRate: 250 },
+  { _id: "demo-d5", name: "James Kowalski", email: "j.kowalski@fleetmail.ca", stripeAccountId: "acct_demo5", backhaulRate: 215, comboRate: 265, regularBannerRate: 235 },
+];
+
+const DEMO_ONBOARD_STATUSES: Record<string, any> = {
+  "demo-d1": { id: "demo-d1", onboarded: true, chargesEnabled: true, payoutsEnabled: true },
+  "demo-d2": { id: "demo-d2", onboarded: false },
+  "demo-d3": { id: "demo-d3", onboarded: true, chargesEnabled: true, payoutsEnabled: true },
+  "demo-d5": { id: "demo-d5", onboarded: true, chargesEnabled: true, payoutsEnabled: false },
+};
+
 const DriverPayments: React.FC = () => {
   const [drivers, setDrivers] = useState<any[]>([]);
   const [onboardStatuses, setOnboardStatuses] = useState<Record<string, any>>({});
@@ -24,14 +38,17 @@ const DriverPayments: React.FC = () => {
     const fetchDrivers = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/drivers`, { headers });
-        setDrivers(res.data);
+        const driverList = res.data.length > 0 ? res.data : DEMO_DRIVERS_PAY;
+        setDrivers(driverList);
         // Fetch onboard statuses for all drivers in parallel
         const statuses = await Promise.all(
-          res.data.map((d: any) =>
-            axios
-              .get(`${API_BASE_URL}/payments/onboard-status/${d._id}`, { headers })
-              .then((r) => ({ id: d._id, ...r.data }))
-              .catch(() => ({ id: d._id, onboarded: false }))
+          driverList.map((d: any) =>
+            d._id.startsWith("demo-")
+              ? Promise.resolve(DEMO_ONBOARD_STATUSES[d._id] || { id: d._id, onboarded: false })
+              : axios
+                  .get(`${API_BASE_URL}/payments/onboard-status/${d._id}`, { headers })
+                  .then((r) => ({ id: d._id, ...r.data }))
+                  .catch(() => ({ id: d._id, onboarded: false }))
           )
         );
         const map: Record<string, any> = {};
@@ -39,6 +56,8 @@ const DriverPayments: React.FC = () => {
         setOnboardStatuses(map);
       } catch (err) {
         console.error("Failed to fetch drivers", err);
+        setDrivers(DEMO_DRIVERS_PAY);
+        setOnboardStatuses(DEMO_ONBOARD_STATUSES);
       } finally {
         setLoading(false);
       }

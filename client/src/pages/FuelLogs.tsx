@@ -16,6 +16,31 @@ const emptyForm = {
   notes: "",
 };
 
+const DEMO_VEHICLES_FUEL = [
+  { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth", model: "T680" },
+  { _id: "demo-v2", unitNumber: "U-102", make: "Freightliner", model: "Cascadia" },
+  { _id: "demo-v3", unitNumber: "U-103", make: "Ford", model: "Transit 350" },
+  { _id: "demo-v5", unitNumber: "U-105", make: "Ram", model: "1500 Classic" },
+];
+
+const DEMO_FUEL_LOGS = [
+  { _id: "demo-f1", vehicleId: "demo-v1", date: "2026-03-15", odometer: 156340, litres: 420, pricePerLitre: 1.529, fuelType: "diesel", fuelStation: "Petro-Canada", city: "Toronto, ON", totalCost: 642.18, notes: "" },
+  { _id: "demo-f2", vehicleId: "demo-v2", date: "2026-03-14", odometer: 204780, litres: 385, pricePerLitre: 1.519, fuelType: "diesel", fuelStation: "Pilot Flying J", city: "Mississauga, ON", totalCost: 584.82, notes: "" },
+  { _id: "demo-f3", vehicleId: "demo-v3", date: "2026-03-13", odometer: 34560, litres: 58, pricePerLitre: 1.689, fuelType: "gasoline", fuelStation: "Shell", city: "Brampton, ON", totalCost: 97.97, notes: "" },
+  { _id: "demo-f4", vehicleId: "demo-v1", date: "2026-03-08", odometer: 155120, litres: 395, pricePerLitre: 1.549, fuelType: "diesel", fuelStation: "Esso", city: "London, ON", totalCost: 611.56, notes: "Long-haul Windsor run." },
+  { _id: "demo-f5", vehicleId: "demo-v5", date: "2026-03-07", odometer: 67890, litres: 72, pricePerLitre: 1.699, fuelType: "gasoline", fuelStation: "Petro-Canada", city: "Oakville, ON", totalCost: 122.33, notes: "" },
+  { _id: "demo-f6", vehicleId: "demo-v2", date: "2026-02-28", odometer: 203900, litres: 410, pricePerLitre: 1.499, fuelType: "diesel", fuelStation: "Love's Travel Stop", city: "Hamilton, ON", totalCost: 614.59, notes: "" },
+  { _id: "demo-f7", vehicleId: "demo-v3", date: "2026-02-25", odometer: 33880, litres: 54, pricePerLitre: 1.659, fuelType: "gasoline", fuelStation: "Canadian Tire Gas+", city: "Mississauga, ON", totalCost: 89.59, notes: "" },
+  { _id: "demo-f8", vehicleId: "demo-v1", date: "2026-02-20", odometer: 153600, litres: 440, pricePerLitre: 1.509, fuelType: "diesel", fuelStation: "Husky", city: "Kitchener, ON", totalCost: 663.96, notes: "Full tank before weekend." },
+];
+
+const DEMO_FUEL_STATS = [
+  { vehicleId: "demo-v1", totalFillUps: 3, totalLitres: 1255, totalCost: 1917.70, avgL100km: 38.2 },
+  { vehicleId: "demo-v2", totalFillUps: 2, totalLitres: 795, totalCost: 1199.41, avgL100km: 37.4 },
+  { vehicleId: "demo-v3", totalFillUps: 2, totalLitres: 112, totalCost: 187.56, avgL100km: 16.4 },
+  { vehicleId: "demo-v5", totalFillUps: 1, totalLitres: 72, totalCost: 122.33, avgL100km: 14.1 },
+];
+
 const FuelLogs: React.FC = () => {
   const [logs, setLogs] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -41,11 +66,14 @@ const FuelLogs: React.FC = () => {
         axios.get(`${API_BASE_URL}/vehicles`, { headers }),
         axios.get(`${API_BASE_URL}/fuel-logs/stats`, { headers }),
       ]);
-      setLogs(logsRes.data);
-      setVehicles(vehRes.data);
-      setStats(statsRes.data);
+      setLogs(logsRes.data.length > 0 ? logsRes.data : DEMO_FUEL_LOGS);
+      setVehicles(vehRes.data.length > 0 ? vehRes.data : DEMO_VEHICLES_FUEL);
+      setStats(statsRes.data.length > 0 ? statsRes.data : DEMO_FUEL_STATS);
     } catch (err) {
       console.error("Failed to fetch fuel logs", err);
+      setLogs(DEMO_FUEL_LOGS);
+      setVehicles(DEMO_VEHICLES_FUEL);
+      setStats(DEMO_FUEL_STATS);
     } finally {
       setLoading(false);
     }

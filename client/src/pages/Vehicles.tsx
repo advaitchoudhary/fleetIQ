@@ -36,6 +36,14 @@ const emptyForm = {
   notes: "",
 };
 
+const DEMO_VEHICLES = [
+  { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth", model: "T680", year: 2022, vin: "1XKYD49X5NJ123456", licensePlate: "ON-TRK-101", type: "truck", status: "active", odometer: 156340, ownership: "owned", fuelType: "diesel", insuranceExpiry: "2026-08-15", registrationExpiry: "2026-06-30", notes: "Primary long-haul unit. Runs Windsor–Toronto corridor." },
+  { _id: "demo-v2", unitNumber: "U-102", make: "Freightliner", model: "Cascadia", year: 2021, vin: "1FUJGLDR4MLHX2390", licensePlate: "ON-TRK-102", type: "truck", status: "in_maintenance", odometer: 204780, ownership: "owned", fuelType: "diesel", insuranceExpiry: "2026-09-20", registrationExpiry: "2026-07-15", notes: "Brake service in progress. Grounded until complete." },
+  { _id: "demo-v3", unitNumber: "U-103", make: "Ford", model: "Transit 350", year: 2023, vin: "1FTBR1Y80PKA44321", licensePlate: "ON-VAN-103", type: "van", status: "active", odometer: 34560, ownership: "leased", fuelType: "gasoline", insuranceExpiry: "2026-12-01", registrationExpiry: "2026-11-30", notes: "City delivery van. Leased through Ford Fleet." },
+  { _id: "demo-v4", unitNumber: "U-104", make: "Utility", model: "4000D-X 53'", year: 2020, vin: "1UYVS2539LU842107", licensePlate: "ON-TRL-104", type: "trailer", status: "active", odometer: 0, ownership: "owned", fuelType: "other", insuranceExpiry: "2026-10-05", registrationExpiry: "2026-09-30", notes: "Refrigerated dry van trailer. Pool use." },
+  { _id: "demo-v5", unitNumber: "U-105", make: "Ram", model: "1500 Classic", year: 2022, vin: "1C6RR7FT4NS152836", licensePlate: "ON-PCK-105", type: "pickup", status: "active", odometer: 67890, ownership: "owned", fuelType: "gasoline", insuranceExpiry: "2026-07-25", registrationExpiry: "2026-06-15", notes: "Supervisor / site inspection truck." },
+];
+
 const Vehicles: React.FC = () => {
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,9 +62,10 @@ const Vehicles: React.FC = () => {
     setLoading(true);
     try {
       const res = await axios.get(`${API_BASE_URL}/vehicles`, { headers });
-      setVehicles(res.data);
+      setVehicles(res.data.length > 0 ? res.data : DEMO_VEHICLES);
     } catch (err) {
       console.error("Failed to fetch vehicles", err);
+      setVehicles(DEMO_VEHICLES);
     } finally {
       setLoading(false);
     }

@@ -34,6 +34,28 @@ const emptyForm = {
   notes: "",
 };
 
+const DEMO_VEHICLES_MAINT = [
+  { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth", model: "T680" },
+  { _id: "demo-v2", unitNumber: "U-102", make: "Freightliner", model: "Cascadia" },
+  { _id: "demo-v3", unitNumber: "U-103", make: "Ford", model: "Transit 350" },
+  { _id: "demo-v4", unitNumber: "U-104", make: "Utility", model: "4000D-X 53'" },
+  { _id: "demo-v5", unitNumber: "U-105", make: "Ram", model: "1500 Classic" },
+];
+
+const DEMO_MAINTENANCE = [
+  { _id: "demo-m1", vehicleId: "demo-v1", type: "oil_change", title: "Engine Oil & Filter Change", description: "15W-40 Rotella T6, 10L. Replaced oil filter and drained sump.", status: "completed", scheduledDate: "2026-02-10", completedDate: "2026-02-10", odometer: 155000, cost: 185, vendor: "FleetPro Service Centre", notes: "" },
+  { _id: "demo-m2", vehicleId: "demo-v2", type: "corrective", title: "Front Brake Pad Replacement", description: "Worn front brake pads detected during pre-trip. Replaced with OEM pads.", status: "in_progress", scheduledDate: "2026-03-18", completedDate: "", odometer: 204780, cost: 540, vendor: "TruckStop Auto", notes: "Parts ordered — vehicle grounded until complete." },
+  { _id: "demo-m3", vehicleId: "demo-v1", type: "preventive", title: "Annual Safety Inspection (CVIP)", description: "MTO mandated annual commercial vehicle inspection.", status: "scheduled", scheduledDate: "2026-04-05", completedDate: "", odometer: 156340, cost: 250, vendor: "Certified Truck Inspections Ltd.", notes: "" },
+  { _id: "demo-m4", vehicleId: "demo-v3", type: "tire", title: "Tire Rotation & Balance", description: "Rotate all 4 tires front-to-rear and dynamic balance.", status: "scheduled", scheduledDate: "2026-04-12", completedDate: "", odometer: 34560, cost: 120, vendor: "Kal Tire", notes: "" },
+  { _id: "demo-m5", vehicleId: "demo-v2", type: "preventive", title: "Coolant System Flush", description: "Full coolant drain and refill with OAT extended-life coolant.", status: "completed", scheduledDate: "2026-01-20", completedDate: "2026-01-22", odometer: 198400, cost: 320, vendor: "FleetPro Service Centre", notes: "Also topped up windshield washer fluid." },
+  { _id: "demo-m6", vehicleId: "demo-v5", type: "inspection", title: "Post-Incident Inspection", description: "Minor fender contact in parking lot. Inspected frame, lights, and bumper. No structural damage found.", status: "completed", scheduledDate: "2026-03-02", completedDate: "2026-03-02", odometer: 67890, cost: 0, vendor: "Internal", notes: "Photos on file. Insurance claim not required." },
+];
+
+const DEMO_DUE_ALERTS = [
+  { vehicleId: "demo-v1", title: "Annual Safety Inspection (CVIP)", scheduledDate: "2026-04-05" },
+  { vehicleId: "demo-v3", title: "Tire Rotation & Balance", scheduledDate: "2026-04-12" },
+];
+
 const Maintenance: React.FC = () => {
   const [records, setRecords] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -60,11 +82,14 @@ const Maintenance: React.FC = () => {
         axios.get(`${API_BASE_URL}/vehicles`, { headers }),
         axios.get(`${API_BASE_URL}/maintenance/due-alerts`, { headers }),
       ]);
-      setRecords(recRes.data);
-      setVehicles(vehRes.data);
-      setDueAlerts(alertRes.data);
+      setRecords(recRes.data.length > 0 ? recRes.data : DEMO_MAINTENANCE);
+      setVehicles(vehRes.data.length > 0 ? vehRes.data : DEMO_VEHICLES_MAINT);
+      setDueAlerts(alertRes.data.length > 0 ? alertRes.data : DEMO_DUE_ALERTS);
     } catch (err) {
       console.error("Failed to fetch maintenance data", err);
+      setRecords(DEMO_MAINTENANCE);
+      setVehicles(DEMO_VEHICLES_MAINT);
+      setDueAlerts(DEMO_DUE_ALERTS);
     } finally {
       setLoading(false);
     }

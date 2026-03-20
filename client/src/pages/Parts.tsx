@@ -19,6 +19,27 @@ const emptyForm = {
 
 const emptyUseForm = { vehicleId: "", maintenanceId: "", quantityUsed: "1", notes: "" };
 
+const DEMO_VEHICLES_PARTS = [
+  { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth", model: "T680" },
+  { _id: "demo-v2", unitNumber: "U-102", make: "Freightliner", model: "Cascadia" },
+  { _id: "demo-v3", unitNumber: "U-103", make: "Ford", model: "Transit 350" },
+  { _id: "demo-v4", unitNumber: "U-104", make: "Utility", model: "4000D-X 53'" },
+  { _id: "demo-v5", unitNumber: "U-105", make: "Ram", model: "1500 Classic" },
+];
+
+const DEMO_PARTS = [
+  { _id: "demo-p1", name: "Engine Oil Filter", partNumber: "OF-5293", category: "filters", description: "Spin-on oil filter for Detroit DD15 and PACCAR MX-13 engines.", quantity: 12, minimumQuantity: 3, unitCost: 8.99, supplier: "FleetParts Canada", location: "Shelf A-2", compatibleVehicles: ["demo-v1", "demo-v2"], notes: "Order in batches of 12." },
+  { _id: "demo-p2", name: "Front Brake Pads (Axle Set)", partNumber: "BP-1047", category: "brakes", description: "OEM-spec front brake pad set for Class 8 trucks.", quantity: 6, minimumQuantity: 4, unitCost: 45.00, supplier: "TruckStop Auto", location: "Shelf B-1", compatibleVehicles: ["demo-v1", "demo-v2"], notes: "Replace in axle sets only." },
+  { _id: "demo-p3", name: "Air Filter (Primary)", partNumber: "AF-8831", category: "filters", description: "Primary air filter element for Kenworth and Freightliner cab-over filters.", quantity: 5, minimumQuantity: 2, unitCost: 22.50, supplier: "FleetParts Canada", location: "Shelf A-3", compatibleVehicles: ["demo-v1", "demo-v2"], notes: "" },
+  { _id: "demo-p4", name: "275/70R22.5 Drive Tire", partNumber: "TI-2272", category: "tires", description: "Michelin X Line Energy D2 all-position drive tire.", quantity: 4, minimumQuantity: 2, unitCost: 380.00, supplier: "Kal Tire Commercial", location: "Tire Bay", compatibleVehicles: ["demo-v1", "demo-v2"], notes: "Check tread depth at 200k km intervals." },
+  { _id: "demo-p5", name: "Windshield Wiper Blade 26\"", partNumber: "WB-2600", category: "body", description: "26\" beam-style wiper blade for Kenworth and Freightliner.", quantity: 2, minimumQuantity: 4, unitCost: 14.00, supplier: "AutoValue", location: "Shelf C-1", compatibleVehicles: ["demo-v1", "demo-v2", "demo-v3"], notes: "REORDER — stock below minimum." },
+  { _id: "demo-p6", name: "DEF Fluid 2.5 Gal", partNumber: "DF-2500", category: "fluids", description: "Diesel Exhaust Fluid (ISO 22241) for SCR emission systems.", quantity: 14, minimumQuantity: 5, unitCost: 18.00, supplier: "Petro-Canada Fleet", location: "Fluid Rack", compatibleVehicles: ["demo-v1", "demo-v2"], notes: "Top up at every other fuel stop." },
+];
+
+const DEMO_LOW_STOCK = [
+  { _id: "demo-p5", name: "Windshield Wiper Blade 26\"", partNumber: "WB-2600", quantity: 2, minimumQuantity: 4 },
+];
+
 const Parts: React.FC = () => {
   const [parts, setParts] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -48,11 +69,14 @@ const Parts: React.FC = () => {
         fetch(`${API_BASE_URL}/parts/low-stock`, { headers }),
       ]);
       const [p, v, a] = await Promise.all([partsRes.json(), vehiclesRes.json(), alertsRes.json()]);
-      setParts(Array.isArray(p) ? p : []);
-      setVehicles(Array.isArray(v) ? v : []);
-      setLowStockAlerts(Array.isArray(a) ? a : []);
+      setParts(Array.isArray(p) && p.length > 0 ? p : DEMO_PARTS);
+      setVehicles(Array.isArray(v) && v.length > 0 ? v : DEMO_VEHICLES_PARTS);
+      setLowStockAlerts(Array.isArray(a) && a.length > 0 ? a : DEMO_LOW_STOCK);
     } catch (err) {
       console.error(err);
+      setParts(DEMO_PARTS);
+      setVehicles(DEMO_VEHICLES_PARTS);
+      setLowStockAlerts(DEMO_LOW_STOCK);
     } finally {
       setLoading(false);
     }

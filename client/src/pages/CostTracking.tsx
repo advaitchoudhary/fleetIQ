@@ -5,6 +5,40 @@ import { API_BASE_URL } from "../utils/env";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+const DEMO_VEHICLES_COST = [
+  { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth", model: "T680" },
+  { _id: "demo-v2", unitNumber: "U-102", make: "Freightliner", model: "Cascadia" },
+  { _id: "demo-v3", unitNumber: "U-103", make: "Ford", model: "Transit 350" },
+  { _id: "demo-v5", unitNumber: "U-105", make: "Ram", model: "1500 Classic" },
+];
+
+const DEMO_SUMMARY = {
+  vehicleCount: 4,
+  totals: { maintenanceCost: 1615, fuelCost: 3426.60, totalCost: 5041.60 },
+  rows: [
+    { vehicleId: "demo-v1", vehicle: { unitNumber: "U-101", make: "Kenworth", model: "T680" },    maintenanceCost: 1065, fuelCost: 1917.70, totalCost: 2982.70, jobCount: 3, litres: 1255.0 },
+    { vehicleId: "demo-v2", vehicle: { unitNumber: "U-102", make: "Freightliner", model: "Cascadia" }, maintenanceCost: 540,  fuelCost: 1199.41, totalCost: 1739.41, jobCount: 2, litres: 795.0  },
+    { vehicleId: "demo-v3", vehicle: { unitNumber: "U-103", make: "Ford", model: "Transit 350" },  maintenanceCost: 0,    fuelCost: 187.56,  totalCost: 187.56,  jobCount: 0, litres: 112.0  },
+    { vehicleId: "demo-v5", vehicle: { unitNumber: "U-105", make: "Ram", model: "1500 Classic" },  maintenanceCost: 10,   fuelCost: 122.33,  totalCost: 132.33,  jobCount: 1, litres: 72.0   },
+  ],
+};
+
+const DEMO_TREND = [
+  { label: "Oct",  maintenanceCost: 320,  fuelCost: 1240.50, totalCost: 1560.50, jobCount: 2 },
+  { label: "Nov",  maintenanceCost: 0,    fuelCost: 980.20,  totalCost: 980.20,  jobCount: 0 },
+  { label: "Dec",  maintenanceCost: 185,  fuelCost: 1105.80, totalCost: 1290.80, jobCount: 1 },
+  { label: "Jan",  maintenanceCost: 505,  fuelCost: 1380.00, totalCost: 1885.00, jobCount: 3 },
+  { label: "Feb",  maintenanceCost: 185,  fuelCost: 1460.75, totalCost: 1645.75, jobCount: 2 },
+  { label: "Mar",  maintenanceCost: 1065, fuelCost: 1610.40, totalCost: 2675.40, jobCount: 4 },
+];
+
+const DEMO_BY_CATEGORY = [
+  { _id: "oil_change",  totalCost: 185,  count: 1 },
+  { _id: "corrective",  totalCost: 540,  count: 1 },
+  { _id: "preventive",  totalCost: 640,  count: 2 },
+  { _id: "inspection",  totalCost: 250,  count: 1 },
+];
+
 const CostTracking: React.FC = () => {
   const [summary, setSummary] = useState<any>(null);
   const [trend, setTrend] = useState<any[]>([]);
@@ -34,12 +68,17 @@ const CostTracking: React.FC = () => {
         fetch(`${API_BASE_URL}/vehicles`, { headers }),
       ]);
       const [s, t, c, v] = await Promise.all([summaryRes.json(), trendRes.json(), catRes.json(), vehiclesRes.json()]);
-      setSummary(s);
-      setTrend(Array.isArray(t) ? t : []);
-      setByCategory(Array.isArray(c) ? c : []);
-      setVehicles(Array.isArray(v) ? v : []);
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
+      setSummary(s?.totals ? s : DEMO_SUMMARY);
+      setTrend(Array.isArray(t) && t.length > 0 ? t : DEMO_TREND);
+      setByCategory(Array.isArray(c) && c.length > 0 ? c : DEMO_BY_CATEGORY);
+      setVehicles(Array.isArray(v) && v.length > 0 ? v : DEMO_VEHICLES_COST);
+    } catch (err) {
+      console.error(err);
+      setSummary(DEMO_SUMMARY);
+      setTrend(DEMO_TREND);
+      setByCategory(DEMO_BY_CATEGORY);
+      setVehicles(DEMO_VEHICLES_COST);
+    } finally { setLoading(false); }
   }, [dateFrom, dateTo, selectedVehicle]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
