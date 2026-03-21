@@ -26,11 +26,11 @@ router.put(
   updateOrganizationProfile
 );
 
-// Super admin — list all organizations
+// Platform admin — list all organizations
 router.get(
   "/",
   protect,
-  authorizeRoles("super_admin"),
+  authorizeRoles("admin"),
   getAllOrganizations
 );
 

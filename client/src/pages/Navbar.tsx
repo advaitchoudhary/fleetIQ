@@ -27,7 +27,7 @@ import {
 import { MdDashboard } from "react-icons/md"; // Material Dashboard Icon
 import { useAuth } from "../contexts/AuthContext";
 
-const ADMIN_ROLES = ["admin", "company_admin", "super_admin", "dispatcher"];
+const ADMIN_ROLES = ["admin", "company_admin", "dispatcher"];
 import { API_BASE_URL } from "../utils/env";
 
 const Navbar: React.FC = () => {
@@ -67,7 +67,7 @@ const Navbar: React.FC = () => {
       console.error("Error marking notifications as read", error);
     }
   }, [notifications]);
-  const { user, logout } = useAuth();
+  const { user, logout, isInsideOrg, activeOrgName, exitOrg } = useAuth();
   const navigate = useNavigate();
   const sidebarRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
@@ -96,6 +96,19 @@ const Navbar: React.FC = () => {
 
   return (
     <>
+      {/* Super-admin org context banner */}
+      {isInsideOrg && (
+        <div style={{ background: "#4F46E5", color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 24px", fontSize: "13px", fontWeight: 500, position: "sticky", top: 0, zIndex: 950 }}>
+          <span>Viewing: <strong>{activeOrgName}</strong></span>
+          <button
+            onClick={exitOrg}
+            style={{ background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", color: "#fff", borderRadius: "6px", padding: "4px 12px", cursor: "pointer", fontSize: "12px", fontWeight: 600 }}
+          >
+            ← Back to Org List
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <header style={styles.header} data-nav-header>
         <div style={styles.rowDiv}>

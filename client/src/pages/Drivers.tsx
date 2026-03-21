@@ -888,16 +888,6 @@ const Drivers: React.FC = () => {
               </select>
             </div>
 
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Trainings:</label>
-              <input
-                type="text"
-                defaultValue={selectedDriver?.trainings}
-                style={styles.input}
-                onChange={(e) => handleInputChange("trainings", e.target.value)}
-              />
-            </div>
-
             <div style={styles.buttonGroup}>
               <button
                 style={styles.editButton}

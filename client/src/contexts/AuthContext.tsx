@@ -7,15 +7,20 @@ import { API_BASE_URL } from "../utils/env";// Update as per your backend URL
 interface User {
   email: string;
   name?: string;
-  role: "admin" | "company_admin" | "super_admin" | "dispatcher" | "driver" | null;
+  role: "admin" | "company_admin" | "dispatcher" | "driver" | null;
   organizationId?: string | null;
 }
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
+  loginDirect: (token: string, user: User) => Promise<void>;
   logout: () => void;
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
+  switchOrg: (orgId: string, orgName: string) => Promise<void>;
+  exitOrg: () => void;
+  isInsideOrg: boolean;
+  activeOrgName: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,19 +52,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user]);
 
+  const loginDirect = async (token: string, userData: User) => {
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(userData));
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    setUser(userData);
+  };
+
   const login = async (email: string, password: string) => {
     try {
       const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
       const { token, user } = response.data;
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      setUser(user);
+      await loginDirect(token, user);
 
       // Navigate based on role
-      const adminRoles = ["admin", "company_admin", "super_admin", "dispatcher"];
-      if (adminRoles.includes(user.role)) {
+      if (user.role === "admin") {
+        navigate("/select-org");
+      } else if (["company_admin", "dispatcher"].includes(user.role)) {
         navigate("/admin-home");
       } else if (user.role === "driver") {
         navigate("/dashboard");
@@ -76,6 +86,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("superadmin_token");
+    localStorage.removeItem("active_org_name");
     delete axios.defaults.headers.common["Authorization"];
     navigate("/");
   };
@@ -103,8 +115,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const switchOrg = async (orgId: string, orgName: string) => {
+    localStorage.setItem("superadmin_token", localStorage.getItem("token")!);
+    const res = await axios.post(`${API_BASE_URL}/auth/switch-org`, { orgId });
+    const { token } = res.data;
+    localStorage.setItem("token", token);
+    localStorage.setItem("active_org_name", orgName);
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    setUser((u) => ({ ...u!, organizationId: orgId }));
+    navigate("/admin-home");
+  };
+
+  const exitOrg = () => {
+    const orig = localStorage.getItem("superadmin_token")!;
+    localStorage.setItem("token", orig);
+    localStorage.removeItem("superadmin_token");
+    localStorage.removeItem("active_org_name");
+    axios.defaults.headers.common["Authorization"] = `Bearer ${orig}`;
+    setUser((u) => ({ ...u!, organizationId: undefined }));
+    navigate("/select-org");
+  };
+
+  const isInsideOrg = !!localStorage.getItem("superadmin_token");
+  const activeOrgName = localStorage.getItem("active_org_name");
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, changePassword }}>
+    <AuthContext.Provider value={{ user, login, loginDirect, logout, changePassword, switchOrg, exitOrg, isInsideOrg, activeOrgName }}>
       {children}
     </AuthContext.Provider>
   );

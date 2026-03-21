@@ -12,8 +12,8 @@ const Organization = require("../model/organizationModel.js");
  * Subscription statuses that allow access: "trialing" | "active"
  */
 const checkFeature = (requiredPlan) => async (req, res, next) => {
-  // super_admin bypasses all gates
-  if (req.user?.role === "super_admin") return next();
+  // admin bypasses all gates
+  if (req.user?.role === "admin") return next();
 
   const orgId = req.organizationId;
   if (!orgId) {

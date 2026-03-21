@@ -2,60 +2,37 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Debug Backend Server",
+      // Best for stepping through code on a single request.
+      // Launches the server fresh via ts-node — breakpoints hit .ts files directly.
+      // No hot-reload; restart the debugger after file changes.
+      "name": "Debug Backend (ts-node)",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/server/dist/index.js",
+      "runtimeExecutable": "${workspaceFolder}/server/node_modules/.bin/ts-node",
+      "args": ["src/index.ts"],
       "cwd": "${workspaceFolder}/server",
-      "env": {
-        "NODE_ENV": "development"
-      },
       "envFile": "${workspaceFolder}/server/.env",
-      "console": "integratedTerminal",
-      "restart": true,
-      "runtimeExecutable": "node",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "outputCapture": "std"
+      "sourceMaps": true,
+      "smartStep": true,
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": ["<node_internals>/**", "node_modules/**"],
+      "outFiles": ["${workspaceFolder}/server/dist/**/*.js"]
     },
     {
-      "name": "Debug Backend Server (TypeScript)",
+      // Best for iterative development + debugging at the same time.
+      // Run `npm run debug` in the server directory first, then attach.
+      // Automatically reconnects on every nodemon restart.
+      "name": "Attach to Nodemon",
       "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/server/src/index.ts",
-      "cwd": "${workspaceFolder}/server",
-      "env": {
-        "NODE_ENV": "development"
-      },
-      "envFile": "${workspaceFolder}/server/.env",
-      "console": "integratedTerminal",
+      "request": "attach",
+      "port": 9229,
       "restart": true,
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["ts-node"],
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "outputCapture": "std"
-    },
-    {
-      "name": "Debug Backend Server (Nodemon)",
-      "type": "node",
-      "request": "launch",
-      "program": "${workspaceFolder}/server/node_modules/.bin/nodemon",
-      "args": ["${workspaceFolder}/server/src/index.ts"],
-      "cwd": "${workspaceFolder}/server",
-      "env": {
-        "NODE_ENV": "development"
-      },
-      "envFile": "${workspaceFolder}/server/.env",
-      "console": "integratedTerminal",
-      "restart": false,
-      "runtimeExecutable": "node",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "outputCapture": "std"
+      "localRoot": "${workspaceFolder}/server",
+      "remoteRoot": "${workspaceFolder}/server",
+      "sourceMaps": true,
+      "smartStep": true,
+      "skipFiles": ["<node_internals>/**", "node_modules/**"],
+      "outFiles": ["${workspaceFolder}/server/dist/**/*.js"]
     }
   ]
 }

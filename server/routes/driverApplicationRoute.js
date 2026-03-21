@@ -18,7 +18,7 @@ router.post("/submit", uploadFields, submitDriverApplication);
 router.get(
   "/",
   protect,
-  authorizeRoles("admin"),
+  authorizeRoles("admin", "company_admin"),
   getAllDriverApplications
 );
 
@@ -26,7 +26,7 @@ router.get(
 router.get(
   "/:id",
   protect,
-  authorizeRoles("admin"),
+  authorizeRoles("admin", "company_admin"),
   getDriverApplicationById
 );
 
@@ -34,7 +34,7 @@ router.get(
 router.put(
   "/:id/approve",
   protect,
-  authorizeRoles("admin"),
+  authorizeRoles("admin", "company_admin"),
   approveDriverApplication
 );
 
@@ -42,7 +42,7 @@ router.put(
 router.put(
   "/:id/reject",
   protect,
-  authorizeRoles("admin"),
+  authorizeRoles("admin", "company_admin"),
   rejectDriverApplication
 );
 

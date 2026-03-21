@@ -2,7 +2,9 @@ const jwt = require("jsonwebtoken");
 
 const protect = (req, res, next) => {
   const JWT_SECRET = process.env.JWT_SECRET;
-  const token = req.header("Authorization")?.split(" ")[1];
+  const token =
+    req.header("Authorization")?.split(" ")[1] ||
+    req.cookies?.admin_token;
 
   if (!token) {
     return res.status(401).json({ message: "No token, authorization denied" });
@@ -45,9 +47,9 @@ const authorizeRoles = (...roles) => {
 };
 
 // Build a Mongoose filter scoped to the caller's org.
-// super_admin with no org → empty filter (sees all orgs).
+// admin with no org → empty filter (sees all orgs).
 const getOrgFilter = (req) => {
-  if (req.user.role === "super_admin" && !req.organizationId) return {};
+  if (req.user.role === "admin" && !req.organizationId) return {};
   return { organizationId: req.organizationId };
 };
 

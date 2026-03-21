@@ -5,6 +5,7 @@ import express from "express"
 import cors from "cors";
 import mongoose from "mongoose"
 import bodyParser from "body-parser"
+import cookieParser from "cookie-parser"
 // @ts-ignore
 import authRoutes from "../routes/authRoute.js";
 // @ts-ignore
@@ -88,6 +89,7 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
   }));
+app.use(cookieParser());
 app.use(bodyParser.json());
 
 const PORT = process.env.PORT || 7000;

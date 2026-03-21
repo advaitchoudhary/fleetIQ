@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { FaTruck, FaCheckCircle } from "react-icons/fa";
 import { API_BASE_URL } from "../utils/env";
+import { useAuth } from "../contexts/AuthContext";
 
 const PLAN_NAMES: Record<string, string> = {
   driver: "Driver Management — $49/month",
@@ -12,6 +13,7 @@ const PLAN_NAMES: Record<string, string> = {
 
 const CompanyRegister: React.FC = () => {
   const navigate = useNavigate();
+  const { loginDirect } = useAuth();
   const [searchParams] = useSearchParams();
   const planFromUrl = searchParams.get("plan") || "bundle";
   const billingFromUrl = searchParams.get("billing") || "monthly";
@@ -28,7 +30,6 @@ const CompanyRegister: React.FC = () => {
     billing: billingFromUrl,
   });
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<"register" | "checkout">("register");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,20 +55,9 @@ const CompanyRegister: React.FC = () => {
         plan: form.plan,
       });
 
-      // Save token
-      const { token } = regRes.data;
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(regRes.data.user));
-
-      // Step 2: Create Stripe Checkout session
-      const checkoutRes = await axios.post(
-        `${API_BASE_URL}/subscriptions/create-checkout`,
-        { plan: form.plan, billing: form.billing },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      // Redirect to Stripe Checkout
-      window.location.href = checkoutRes.data.url;
+      const { token, user } = regRes.data;
+      await loginDirect(token, user);
+      navigate("/admin-home");
     } catch (err: any) {
       alert(err.response?.data?.message || "Registration failed. Please try again.");
       setLoading(false);
@@ -183,7 +173,7 @@ const CompanyRegister: React.FC = () => {
                 disabled={loading}
                 style={{ marginTop: "8px", padding: "14px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", fontSize: "15px", fontWeight: 700, cursor: "pointer", width: "100%" }}
               >
-                {loading ? "Setting up your account..." : "Create Account & Continue to Checkout →"}
+                {loading ? "Setting up your account..." : "Create Account & Start Free Trial →"}
               </button>
 
               <p style={{ textAlign: "center", margin: 0, fontSize: "12px", color: "#9ca3af" }}>

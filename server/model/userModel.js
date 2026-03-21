@@ -8,13 +8,13 @@ const userSchema = new mongoose.Schema(
     password: { type: String, required: true },
     role: {
       type: String,
-      enum: ["user", "admin", "driver", "super_admin", "company_admin", "dispatcher"],
+      enum: ["user", "admin", "driver", "company_admin", "dispatcher"],
       default: "company_admin"
     },
     organizationId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Organization",
-      default: null, // null = super_admin (platform level)
+      default: null, // null = admin (platform level)
     },
   },
   { timestamps: true }

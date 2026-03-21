@@ -31,62 +31,6 @@ const emptyClaimForm = {
   description: "", claimAmount: "", claimNumber: "", notes: "",
 };
 
-const DEMO_VEHICLES_WAR = [
-  { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth", model: "T680" },
-  { _id: "demo-v2", unitNumber: "U-102", make: "Freightliner", model: "Cascadia" },
-  { _id: "demo-v3", unitNumber: "U-103", make: "Ford", model: "Transit 350" },
-  { _id: "demo-v5", unitNumber: "U-105", make: "Ram", model: "1500 Classic" },
-];
-
-const DEMO_WARRANTIES = [
-  {
-    _id: "demo-w1",
-    vehicleId: { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth", model: "T680" },
-    title: "Kenworth T680 Factory Powertrain Warranty",
-    type: "manufacturer", provider: "Kenworth Truck Co.", policyNumber: "KW-2022-789456",
-    startDate: "2022-05-01", expiryDate: "2027-05-01",
-    mileageLimit: 500000, currentMileage: 156340,
-    coverageDetails: "Covers engine, transmission, drive axles, and frame. Excludes wear items and driver abuse. Claims processed via authorized Kenworth dealer network.",
-    status: "active", claims: [],
-  },
-  {
-    _id: "demo-w2",
-    vehicleId: { _id: "demo-v2", unitNumber: "U-102", make: "Freightliner", model: "Cascadia" },
-    title: "Freightliner Extended Service Agreement",
-    type: "extended", provider: "Daimler Trucks NA", policyNumber: "FTL-ESA-334871",
-    startDate: "2021-03-15", expiryDate: "2026-03-15",
-    mileageLimit: 600000, currentMileage: 204780,
-    coverageDetails: "Covers all OEM-specified major components including fuel system, electrical, cooling, and drivetrain. $500 deductible applies per approved claim. Roadside assistance included.",
-    status: "active",
-    claims: [
-      { _id: "demo-c1", claimDate: "2025-11-10", description: "Faulty DPF sensor triggered limp mode at highway speed. Unit towed to authorized dealer for diagnosis and repair.", claimAmount: 1850, approvedAmount: 1350, claimNumber: "CLM-2025-0044", status: "approved", notes: "$500 deductible applied. Repair completed in 2 business days." },
-    ],
-  },
-  {
-    _id: "demo-w3",
-    vehicleId: { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth", model: "T680" },
-    title: "Rear Drive Axle Component Warranty",
-    type: "part", provider: "Meritor Inc.", policyNumber: "MER-AX-662109",
-    startDate: "2022-05-01", expiryDate: "2026-04-10",
-    mileageLimit: 300000, currentMileage: 156340,
-    coverageDetails: "Covers ring & pinion gears, differential housing, bearing cups and cones, and wheel-end assemblies. Does not cover lubricant-related failures or improper load ratings.",
-    status: "active", claims: [],
-  },
-  {
-    _id: "demo-w4",
-    vehicleId: { _id: "demo-v3", unitNumber: "U-103", make: "Ford", model: "Transit 350" },
-    title: "Ford Transit Bumper-to-Bumper Coverage",
-    type: "manufacturer", provider: "Ford Motor Company", policyNumber: "FORD-B2B-T350-441",
-    startDate: "2023-02-01", expiryDate: "2026-02-01",
-    mileageLimit: 60000, currentMileage: 34560,
-    coverageDetails: "Full factory bumper-to-bumper coverage for 3 years or 60,000 km, whichever comes first. Includes roadside assistance, towing, and rental reimbursement. Claim at any authorized Ford dealer.",
-    status: "expired", claims: [],
-  },
-];
-
-const DEMO_EXPIRY_ALERTS = [
-  { _id: "demo-w3", vehicleId: { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth" }, title: "Rear Drive Axle Component Warranty", expiryDate: "2026-04-10", daysUntilExpiry: 21 },
-];
 
 const Warranties: React.FC = () => {
   const [warranties, setWarranties] = useState<any[]>([]);
@@ -117,14 +61,14 @@ const Warranties: React.FC = () => {
         fetch(`${API_BASE_URL}/warranties/expiry-alerts`, { headers }),
       ]);
       const [w, v, a] = await Promise.all([wRes.json(), vRes.json(), aRes.json()]);
-      setWarranties(Array.isArray(w) && w.length > 0 ? w : DEMO_WARRANTIES);
-      setVehicles(Array.isArray(v) && v.length > 0 ? v : DEMO_VEHICLES_WAR);
-      setExpiryAlerts(Array.isArray(a) && a.length > 0 ? a : DEMO_EXPIRY_ALERTS);
+      setWarranties(Array.isArray(w) ? w : []);
+      setVehicles(Array.isArray(v) ? v : []);
+      setExpiryAlerts(Array.isArray(a) ? a : []);
     } catch (err) {
       console.error(err);
-      setWarranties(DEMO_WARRANTIES);
-      setVehicles(DEMO_VEHICLES_WAR);
-      setExpiryAlerts(DEMO_EXPIRY_ALERTS);
+      setWarranties([]);
+      setVehicles([]);
+      setExpiryAlerts([]);
     } finally { setLoading(false); }
   }, []);
 

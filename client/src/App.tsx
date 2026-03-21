@@ -32,6 +32,7 @@ import PaymentHistory from "./pages/PaymentHistory";
 import Subscription from "./pages/Subscription";
 import Pricing from "./pages/Pricing";
 import CompanyRegister from "./pages/CompanyRegister";
+import OrgSelector from "./pages/OrgSelector";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -218,6 +219,16 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute requiredRole="admin">
               <Subscription />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Super-admin org selector */}
+        <Route
+          path="/select-org"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <OrgSelector />
             </ProtectedRoute>
           }
         />

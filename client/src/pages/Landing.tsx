@@ -396,8 +396,11 @@ const Landing: React.FC = () => {
             FleetIQ unifies driver management, vehicle operations, timesheets, and Stripe-powered payouts — in one purpose-built platform for modern fleet operators.
           </p>
           <div className="land-hero-btns" style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}>
-            <button className="land-hero-btn-primary" onClick={() => navigate("/login")}>
-              Get Started <FaArrowRight size={13} />
+            <button className="land-hero-btn-primary" onClick={() => navigate("/register")}>
+              Onboard Your Organisation <FaArrowRight size={13} />
+            </button>
+            <button className="land-hero-btn-outline" onClick={() => navigate("/login")}>
+              Login
             </button>
             <button className="land-hero-btn-outline" onClick={() => navigate("/file-application")}>
               File Driver Application

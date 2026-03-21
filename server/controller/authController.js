@@ -1,5 +1,6 @@
 const Driver = require("../model/driverModel.js");
 const User = require("../model/userModel.js");
+const Organization = require("../model/organizationModel.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
@@ -54,7 +55,7 @@ const login = async (req, res) => {
 
     console.log("✅ User found:", user.email, "with role:", user.role);
 
-    const allowedRoles = ["admin", "company_admin", "super_admin", "dispatcher"];
+    const allowedRoles = ["admin", "company_admin", "dispatcher"];
     if (!allowedRoles.includes(user.role)) {
       return res.status(403).json({ error: "Access denied. Not an admin user." });
     }
@@ -70,6 +71,13 @@ const login = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "8h" }
     );
+
+    res.cookie("admin_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 8 * 60 * 60 * 1000, // 8 hours, matches JWT expiry
+    });
 
     res.json({
       message: "Login successful",
@@ -89,6 +97,7 @@ const login = async (req, res) => {
 
 // Logout user
 const logout = (req, res) => {
+    res.clearCookie("admin_token");
     res.json({ message: "Logout successful" });
 };
 
@@ -137,9 +146,28 @@ const getUserProfile = async (req, res) => {
     }
 };
 
+// Switch org context for super_admin
+const switchOrg = async (req, res) => {
+  try {
+    const { orgId } = req.body;
+    const org = await Organization.findById(orgId);
+    if (!org) return res.status(404).json({ error: "Organisation not found" });
+    const token = jwt.sign(
+      { id: req.user.id, role: "admin", organizationId: org._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "8h" }
+    );
+    res.json({ token, organization: { _id: org._id, name: org.name } });
+  } catch (error) {
+    console.error("switchOrg error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 module.exports = {
     register,
     login,
     getUserProfile,
-    changePassword
+    changePassword,
+    switchOrg,
 };
