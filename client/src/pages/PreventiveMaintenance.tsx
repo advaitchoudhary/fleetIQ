@@ -127,6 +127,10 @@ const PreventiveMaintenance: React.FC = () => {
   };
 
   const handleSaveTemplate = async () => {
+    if (!templateForm.name.trim()) {
+      alert("Template name is required.");
+      return;
+    }
     setSaving(true);
     try {
       const body = {
@@ -137,14 +141,28 @@ const PreventiveMaintenance: React.FC = () => {
         estimatedDuration: templateForm.estimatedDuration ? Number(templateForm.estimatedDuration) : undefined,
       };
       const url = editingTemplate ? `${API_BASE_URL}/pm/templates/${editingTemplate._id}` : `${API_BASE_URL}/pm/templates`;
-      await fetch(url, { method: editingTemplate ? "PUT" : "POST", headers, body: JSON.stringify(body) });
+      const res = await fetch(url, { method: editingTemplate ? "PUT" : "POST", headers, body: JSON.stringify(body) });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to save template.");
+        setSaving(false);
+        return;
+      }
       setIsTemplateModalOpen(false);
       fetchAll();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
     setSaving(false);
   };
 
   const handleSaveSchedule = async () => {
+    if (!scheduleForm.vehicleId) {
+      alert("Please select a vehicle.");
+      return;
+    }
+    if (!scheduleForm.templateId) {
+      alert("Please select a PM template.");
+      return;
+    }
     setSaving(true);
     try {
       const body = {
@@ -152,10 +170,16 @@ const PreventiveMaintenance: React.FC = () => {
         lastCompletedOdometer: scheduleForm.lastCompletedOdometer ? Number(scheduleForm.lastCompletedOdometer) : undefined,
       };
       const url = editingSchedule ? `${API_BASE_URL}/pm/schedules/${editingSchedule._id}` : `${API_BASE_URL}/pm/schedules`;
-      await fetch(url, { method: editingSchedule ? "PUT" : "POST", headers, body: JSON.stringify(body) });
+      const res = await fetch(url, { method: editingSchedule ? "PUT" : "POST", headers, body: JSON.stringify(body) });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to save schedule.");
+        setSaving(false);
+        return;
+      }
       setIsScheduleModalOpen(false);
       fetchAll();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
     setSaving(false);
   };
 
@@ -164,17 +188,29 @@ const PreventiveMaintenance: React.FC = () => {
     const url = deleteType === "template"
       ? `${API_BASE_URL}/pm/templates/${selectedItem._id}`
       : `${API_BASE_URL}/pm/schedules/${selectedItem._id}`;
-    await fetch(url, { method: "DELETE", headers });
-    setIsDeleteModalOpen(false);
-    fetchAll();
+    try {
+      const res = await fetch(url, { method: "DELETE", headers });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to delete.");
+        return;
+      }
+      setIsDeleteModalOpen(false);
+      fetchAll();
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
   };
 
   const handleGenerate = async (scheduleId: string) => {
     setGenerating(scheduleId);
     try {
-      await fetch(`${API_BASE_URL}/pm/schedules/${scheduleId}/generate`, { method: "POST", headers });
-      fetchAll();
-    } catch (err) { console.error(err); }
+      const res = await fetch(`${API_BASE_URL}/pm/schedules/${scheduleId}/generate`, { method: "POST", headers });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to generate work order.");
+      } else {
+        fetchAll();
+      }
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
     setGenerating(null);
   };
 

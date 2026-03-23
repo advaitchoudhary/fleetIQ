@@ -2,6 +2,7 @@ import React, { useState, useEffect, CSSProperties } from "react";
 import Navbar from "./Navbar";
 import axios from "axios";
 import imageCompression from "browser-image-compression";
+import { useAuth } from "../contexts/AuthContext";
 
 import { API_BASE_URL } from "../utils/env";
 
@@ -53,8 +54,11 @@ const Timesheet: React.FC = () => {
   const customerOptions = ["Sobeys Capital Inc."];
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessagesList, setErrorMessagesList] = useState<string[]>([]);
+  const { user } = useAuth();
   const [driverName, setDriverName] = useState("");
-  const [driverUsername, setDriverUsername] = useState("");
+  const [driverIdDisplay, setDriverIdDisplay] = useState("");
+  const [orgName, setOrgName] = useState("");
+  const [driverStatus, setDriverStatus] = useState("Active");
   const [totalHours, setTotalHours] = useState("0");
   // Extra Work Sheet state
   const [extraWorkSheet, setExtraWorkSheet] = useState("");
@@ -89,14 +93,34 @@ const Timesheet: React.FC = () => {
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
-      const user = JSON.parse(storedUser);
-      if (user.role === "driver") {
-        setTimesheet(getEmptyTimesheet(user.email));
-        setDriverName(user.name); 
-        setDriverUsername(user.username); 
+      const stored = JSON.parse(storedUser);
+      if (stored.role === "driver") {
+        setTimesheet(getEmptyTimesheet(stored.email));
+        setDriverName(stored.name);
+        // Use cached driverId/orgName from login; refresh from API if we have the driver id
+        if (stored.driverId) setDriverIdDisplay(stored.driverId);
+        if (stored.orgName) setOrgName(stored.orgName);
       }
     }
-  }, []);
+    // Fetch full driver record to get up-to-date driverId, org, status
+    const fetchDriverInfo = async () => {
+      const driverId = user?.id;
+      if (!driverId) return;
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`${API_BASE_URL}/drivers/${driverId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const d = res.data;
+        if (d.driverId) setDriverIdDisplay(d.driverId);
+        if (d.organizationId?.name) setOrgName(d.organizationId.name);
+        if (d.status) setDriverStatus(d.status);
+      } catch {
+        // non-critical — cached values already set above
+      }
+    };
+    fetchDriverInfo();
+  }, [user?.id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -264,7 +288,10 @@ const Timesheet: React.FC = () => {
         console.log("📄 Payload to send:", payload);
 
         response = await axios.post(`${API_BASE_URL}/timesheet`, payload, {
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         });
       } else {
         console.log("📤 Attachments detected. Sending FormData payload...");
@@ -313,7 +340,10 @@ const Timesheet: React.FC = () => {
         console.log("📄 FormData ready to submit.");
 
         response = await axios.post(`${API_BASE_URL}/timesheet`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         });
       }
 
@@ -358,86 +388,119 @@ const Timesheet: React.FC = () => {
         }
       `}</style>
       <Navbar />
+
+      {/* ── Driver Profile Card ─────────────────────────────────────────── */}
+      <div style={profileCard}>
+        <div style={avatarCircle}>
+          {(driverName || "D").charAt(0).toUpperCase()}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={profileName}>{driverName || "Driver"}</div>
+          <div style={badgeRow}>
+            {driverIdDisplay && (
+              <span style={idBadge}>🪪 {driverIdDisplay}</span>
+            )}
+            {orgName && (
+              <span style={orgBadge}>🏢 {orgName}</span>
+            )}
+            <span style={driverStatus === "Active" ? activeBadge : inactiveBadge}>
+              ● {driverStatus}
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div style={styles.mainContent} data-db-content>
         <h2 style={styles.pageTitle} data-db-title>Enter Your Timesheet</h2>
         <form onSubmit={handleSubmit} style={styles.form}>
-          {/* Driver */}
-          <label style={styles.label}>Driver Name:</label>
-          <input
-            type="text"
-            name="driver"
-            value={driverName || timesheet.driver}
-            disabled
-            style={styles.input}
-          />
 
-          {/* Driver Username */}
-          <label style={styles.label}>ID:</label>
-          <input
-            type="text"
-            name="driverUsername"
-            value={driverUsername || ""}
-            disabled
-            style={styles.input}
-          />
+          {/* ── Trip Info Section ──────────────────────────────────────── */}
+          <div style={formSectionCard}>
+          <div style={sectionDivider}>Trip Information</div>
+          <div style={twoCol}>
+            <div>
+              <label style={styles.label}>Driver Name</label>
+              <input type="text" name="driver" value={driverName || timesheet.driver} disabled style={{ ...styles.input, backgroundColor: "#f9fafb" }} />
+            </div>
+            <div>
+              <label style={styles.label}>Driver ID</label>
+              <input type="text" value={driverIdDisplay || "—"} disabled style={{ ...styles.input, backgroundColor: "#f9fafb", fontFamily: "monospace", fontSize: "13px" }} />
+            </div>
+          </div>
   
-          {/* Customer */}
-          <label style={styles.label}>Customer:</label>
-          <select name="customer" value={timesheet.customer} onChange={handleChange} style={styles.input}>
-            <option value="">Select Customer</option>
-            {customerOptions.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-          {errors.customer && <span style={styles.error}>{errors.customer}</span>}
-  
-          {/* Start Date and End Date inputs removed */}
-  
-          {/* Date */}
-          <label style={styles.label}>Trip Date:</label>
-          <input type="date" name="date" value={timesheet.date} onChange={handleChange} style={styles.input} />
-  
-          {/* Start & End Time */}
-          <label style={styles.label}>Start Time:</label>
-          <input type="time" name="startTime" value={timesheet.startTime} onChange={handleChange} style={styles.input} />
-  
-          {/* End Time */}
-          <label style={styles.label}>End Time:</label>
-          <input type="time" name="endTime" value={timesheet.endTime} onChange={handleChange} style={styles.input} />
-  
-          <label style={styles.label}>Total Hours:</label>
-          <input
-            type="text"
-            name="totalHours"
-            value={totalHours}
-            disabled
-            style={styles.input}
-          />
-          {/* Category */}
-          <label style={styles.label}>Category:</label>
-          <select name="category" value={timesheet.category} onChange={handleChange} style={styles.input}>
-            {categoryOptions.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-          {errors.category && <span style={styles.error}>{errors.category}</span>}
-  
-          {/* Trip Number & Load ID */}
-          <label style={styles.label}>Trip Number:</label>
-          <input type="text" name="tripNumber" value={timesheet.tripNumber} onChange={handleChange} style={styles.input} />
-          {errors.tripNumber && <span style={styles.error}>{errors.tripNumber}</span>}
-  
-          <label style={styles.label}>Load ID:</label>
-          <input type="text" name="loadID" value={timesheet.loadID} onChange={handleChange} style={styles.input} />
-          {errors.loadID && <span style={styles.error}>{errors.loadID}</span>}
-  
-          <label style={styles.label}>Gate Out Time:</label>
-          <input type="time" name="gateOutTime" value={timesheet.gateOutTime} onChange={handleChange} style={styles.input} />
-          {errors.gateOutTime && <span style={styles.error}>{errors.gateOutTime}</span>}
-  
-          <label style={styles.label}>Gate In Time:</label>
-          <input type="time" name="gateInTime" value={timesheet.gateInTime} onChange={handleChange} style={styles.input} />
-          {errors.gateInTime && <span style={styles.error}>{errors.gateInTime}</span>}
+          <div style={twoCol}>
+            <div>
+              <label style={styles.label}>Customer</label>
+              <select name="customer" value={timesheet.customer} onChange={handleChange} style={styles.input}>
+                <option value="">Select Customer</option>
+                {customerOptions.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+              {errors.customer && <span style={styles.error}>{errors.customer}</span>}
+            </div>
+            <div>
+              <label style={styles.label}>Category</label>
+              <select name="category" value={timesheet.category} onChange={handleChange} style={styles.input}>
+                <option value="">Select Category</option>
+                {categoryOptions.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+              {errors.category && <span style={styles.error}>{errors.category}</span>}
+            </div>
+          </div>
+
+          <div style={twoCol}>
+            <div>
+              <label style={styles.label}>Trip Number</label>
+              <input type="text" name="tripNumber" value={timesheet.tripNumber} onChange={handleChange} style={styles.input} />
+              {errors.tripNumber && <span style={styles.error}>{errors.tripNumber}</span>}
+            </div>
+            <div>
+              <label style={styles.label}>Load ID</label>
+              <input type="text" name="loadID" value={timesheet.loadID} onChange={handleChange} style={styles.input} />
+              {errors.loadID && <span style={styles.error}>{errors.loadID}</span>}
+            </div>
+          </div>
+
+          </div>{/* end Trip Info card */}
+
+          {/* ── Timing Section ────────────────────────────────────────── */}
+          <div style={formSectionCard}>
+          <div style={sectionDivider}>Timing</div>
+          <div style={twoCol}>
+            <div>
+              <label style={styles.label}>Trip Date</label>
+              <input type="date" name="date" value={timesheet.date} onChange={handleChange} style={styles.input} />
+            </div>
+            <div>
+              <label style={styles.label}>Total Hours</label>
+              <input type="text" value={totalHours} disabled style={{ ...styles.input, backgroundColor: "#f9fafb", fontWeight: 600, color: "#4F46E5" }} />
+            </div>
+          </div>
+          <div style={twoCol}>
+            <div>
+              <label style={styles.label}>Start Time</label>
+              <input type="time" name="startTime" value={timesheet.startTime} onChange={handleChange} style={styles.input} />
+            </div>
+            <div>
+              <label style={styles.label}>End Time</label>
+              <input type="time" name="endTime" value={timesheet.endTime} onChange={handleChange} style={styles.input} />
+            </div>
+          </div>
+          <div style={twoCol}>
+            <div>
+              <label style={styles.label}>Gate Out Time</label>
+              <input type="time" name="gateOutTime" value={timesheet.gateOutTime} onChange={handleChange} style={styles.input} />
+              {errors.gateOutTime && <span style={styles.error}>{errors.gateOutTime}</span>}
+            </div>
+            <div>
+              <label style={styles.label}>Gate In Time</label>
+              <input type="time" name="gateInTime" value={timesheet.gateInTime} onChange={handleChange} style={styles.input} />
+              {errors.gateInTime && <span style={styles.error}>{errors.gateInTime}</span>}
+            </div>
+          </div>
   
           {/* Extra Work Sheet radio and conditional duration */}
           <div style={styles.extraWorkWrapper}>
@@ -792,25 +855,41 @@ const Timesheet: React.FC = () => {
             )}
           </div>
 
-          {/* Planned Work */}
-          <label style={styles.label}>Planned Hours:</label>
-          <input type="text" name="plannedHours" value={timesheet.plannedHours} onChange={handleChange} style={styles.input} />
+          </div>{/* end Timing card */}
 
-          {/* Comments */}
-          <label style={styles.label}>Comments:</label>
+          {/* ── Distance Section ─────────────────────────────────────── */}
+          <div style={formSectionCard}>
+          <div style={sectionDivider}>Distance & Planning</div>
+          <div style={twoCol}>
+            <div>
+              <label style={styles.label}>Start KM</label>
+              <input type="number" name="startKM" value={timesheet.startKM} onChange={handleChange} style={styles.input} />
+              {errors.startKM && <span style={styles.error}>{errors.startKM}</span>}
+            </div>
+            <div>
+              <label style={styles.label}>End KM</label>
+              <input type="number" name="endKM" value={timesheet.endKM} onChange={handleChange} style={styles.input} />
+              {errors.endKM && <span style={styles.error}>{errors.endKM}</span>}
+            </div>
+          </div>
+          <div style={twoCol}>
+            <div>
+              <label style={styles.label}>Planned Hours</label>
+              <input type="text" name="plannedHours" value={timesheet.plannedHours} onChange={handleChange} style={styles.input} />
+            </div>
+            <div>
+              <label style={styles.label}>Planned KM</label>
+              <input type="text" name="plannedKM" value={timesheet.plannedKM} onChange={handleChange} style={styles.input} />
+            </div>
+          </div>
+
+          </div>{/* end Distance card */}
+
+          {/* ── Notes & Attachments Section ───────────────────────────── */}
+          <div style={formSectionCard}>
+          <div style={sectionDivider}>Notes</div>
+          <label style={styles.label}>Comments</label>
           <textarea name="comments" value={timesheet.comments} onChange={handleChange} style={styles.textarea} placeholder="Enter comments..."></textarea>
-
-          <label style={styles.label}>Planned KM:</label>
-          <input type="text" name="plannedKM" value={timesheet.plannedKM} onChange={handleChange} style={styles.input} />
-
-          {/* Start & End KM */}
-          <label style={styles.label}>Start KM:</label>
-          <input type="number" name="startKM" value={timesheet.startKM} onChange={handleChange} style={styles.input} />
-          {errors.startKM && <span style={styles.error}>{errors.startKM}</span>}
-
-          <label style={styles.label}>End KM:</label>
-          <input type="number" name="endKM" value={timesheet.endKM} onChange={handleChange} style={styles.input} />
-          {errors.endKM && <span style={styles.error}>{errors.endKM}</span>}
 
           {/* Attachments */}
           {[...Array(4)].map((_, i) => (
@@ -861,7 +940,9 @@ const Timesheet: React.FC = () => {
               )}
             </div>
           ))}
-  
+
+          </div>{/* end Notes card */}
+
           {/* Submit Button */}
           <button type="submit" style={styles.submitButton} disabled={loading}>
             {loading ? "Submitting..." : "Submit Timesheet"}
@@ -887,31 +968,133 @@ const Timesheet: React.FC = () => {
   );
 };
 
+// ── Profile card inline styles (outside the styles object for easy reference) ──
+const profileCard: CSSProperties = {
+  margin: "24px auto 0",
+  width: "90%",
+  maxWidth: "800px",
+  background: "linear-gradient(135deg, #4F46E5 0%, #6366f1 100%)",
+  borderRadius: "16px",
+  padding: "24px 28px",
+  display: "flex",
+  alignItems: "center",
+  gap: "20px",
+  boxShadow: "0 4px 20px rgba(79,70,229,0.25)",
+};
+const avatarCircle: CSSProperties = {
+  width: "60px",
+  height: "60px",
+  borderRadius: "50%",
+  background: "rgba(255,255,255,0.2)",
+  border: "2px solid rgba(255,255,255,0.4)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "26px",
+  fontWeight: 700,
+  color: "#fff",
+  flexShrink: 0,
+};
+const profileName: CSSProperties = {
+  fontSize: "20px",
+  fontWeight: 700,
+  color: "#fff",
+  marginBottom: "10px",
+  letterSpacing: "-0.3px",
+};
+const badgeRow: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap" as const,
+  gap: "8px",
+};
+const idBadge: CSSProperties = {
+  background: "rgba(255,255,255,0.15)",
+  color: "#fff",
+  border: "1px solid rgba(255,255,255,0.3)",
+  borderRadius: "20px",
+  padding: "3px 12px",
+  fontSize: "12px",
+  fontFamily: "monospace",
+  fontWeight: 600,
+  letterSpacing: "0.5px",
+};
+const orgBadge: CSSProperties = {
+  background: "rgba(255,255,255,0.15)",
+  color: "#fff",
+  border: "1px solid rgba(255,255,255,0.3)",
+  borderRadius: "20px",
+  padding: "3px 12px",
+  fontSize: "12px",
+  fontWeight: 600,
+};
+const activeBadge: CSSProperties = {
+  background: "rgba(52,211,153,0.25)",
+  color: "#6ee7b7",
+  border: "1px solid rgba(52,211,153,0.4)",
+  borderRadius: "20px",
+  padding: "3px 12px",
+  fontSize: "12px",
+  fontWeight: 600,
+};
+const inactiveBadge: CSSProperties = {
+  background: "rgba(239,68,68,0.2)",
+  color: "#fca5a5",
+  border: "1px solid rgba(239,68,68,0.3)",
+  borderRadius: "20px",
+  padding: "3px 12px",
+  fontSize: "12px",
+  fontWeight: 600,
+};
+const sectionDivider: CSSProperties = {
+  fontSize: "11px",
+  fontWeight: 700,
+  color: "#6b7280",
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.8px",
+  borderBottom: "1px solid #e5e7eb",
+  paddingBottom: "6px",
+  marginTop: "6px",
+};
+const twoCol: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "1fr 1fr",
+  gap: "20px",
+  alignItems: "start",
+};
+
+const formSectionCard: CSSProperties = {
+  background: "#fff",
+  borderRadius: "14px",
+  border: "1px solid #e0e7ff",
+  padding: "20px 22px",
+  boxShadow: "0 1px 6px rgba(79,70,229,0.05)",
+};
+
 const styles: { [key: string]: CSSProperties } = {
   container: {
     display: "flex",
     flexDirection: "column" as const,
     minHeight: "100vh",
-    backgroundColor: "#f4f6f8",
+    backgroundColor: "#f0f4ff",
     fontFamily: "Inter, system-ui, sans-serif",
   },
   mainContent: {
-    margin: "30px auto",
-    padding: "40px",
+    margin: "28px auto",
+    padding: "32px 36px",
     width: "90%",
-    maxWidth: "800px",
-    backgroundColor: "#ffffff",
-    borderRadius: "16px",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+    maxWidth: "820px",
+    backgroundColor: "#f0f4ff",
+    borderRadius: "0",
+    border: "none",
+    boxShadow: "none",
   },
   pageTitle: {
-    fontSize: "24px",
-    fontWeight: 700,
-    color: "#111827",
-    marginBottom: "24px",
+    fontSize: "22px",
+    fontWeight: 800,
+    color: "#1e1b4b",
+    marginBottom: "20px",
     marginTop: 0,
-    letterSpacing: "-0.3px",
+    letterSpacing: "-0.4px",
   },
   form: {
     display: "flex",
@@ -919,9 +1102,11 @@ const styles: { [key: string]: CSSProperties } = {
     gap: "14px",
   },
   label: {
+    display: "block",
     fontWeight: 600,
     fontSize: "13px",
     color: "#374151",
+    marginBottom: "6px",
   },
   sectionLabel: {
     fontWeight: 700,
@@ -938,6 +1123,9 @@ const styles: { [key: string]: CSSProperties } = {
     cursor: "pointer",
   },
   input: {
+    display: "block",
+    width: "100%",
+    boxSizing: "border-box" as const,
     padding: "10px 12px",
     fontSize: "14px",
     borderRadius: "8px",
@@ -946,6 +1134,9 @@ const styles: { [key: string]: CSSProperties } = {
     transition: "border-color 0.2s ease",
   },
   textarea: {
+    display: "block",
+    width: "100%",
+    boxSizing: "border-box" as const,
     padding: "10px 12px",
     fontSize: "14px",
     borderRadius: "8px",
@@ -1059,16 +1250,18 @@ const styles: { [key: string]: CSSProperties } = {
     marginBottom: "4px",
   },
   submitButton: {
-    backgroundColor: "#4F46E5",
+    background: "linear-gradient(135deg, #4F46E5 0%, #6366f1 100%)",
     color: "#fff",
     fontSize: "15px",
-    fontWeight: 600,
-    padding: "12px",
-    borderRadius: "8px",
+    fontWeight: 700,
+    padding: "14px",
+    borderRadius: "12px",
     border: "none",
     cursor: "pointer",
-    transition: "background-color 0.2s ease",
-    marginTop: "8px",
+    boxShadow: "0 4px 14px rgba(79,70,229,0.35)",
+    letterSpacing: "0.2px",
+    marginTop: "4px",
+    width: "100%",
   },
   error: {
     color: "#dc2626",

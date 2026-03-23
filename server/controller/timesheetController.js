@@ -96,8 +96,9 @@ const createTimesheet = async (req, res) => {
       extraDuration: extraWorkSheetDetails.duration,
       durationFrom: extraWorkSheetDetails.from,
       durationTo: extraWorkSheetDetails.to,
-      extraWorkComments: extraWorkSheetDetails.comments || "",
-      extraWorkSheetComments: req.body.extraWorkSheetComments,
+      // Bug fix: duplicate key — merge both sources; prefer the parsed JSON details,
+      // fall back to the raw body field.
+      extraWorkSheetComments: req.body.extraWorkSheetComments || extraWorkSheetDetails.comments || "",
 
       // Delay sections from frontend
       extraDelay,
@@ -141,9 +142,10 @@ const createTimesheet = async (req, res) => {
 // **2. Get All Timesheets (with Pagination and Filtering)**
 const getAllTimesheets = async (req, res) => {
   try {
+    const noPagination = req.query.noPagination === "true";
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
-    
+
     // Filter parameters from query string
     const filter = req.query.filter;
     const selectedUser = req.query.user;
@@ -155,8 +157,12 @@ const getAllTimesheets = async (req, res) => {
     // Build query object for filtering — always scope to caller's org
     let query = { ...getOrgFilter(req) };
 
-    // User filter
-    if (selectedUser && selectedUser !== "All") {
+    // Driver role: JWT has no email field, so look up the driver record by id.
+    if (req.user && req.user.role === "driver") {
+      const driverDoc = await Driver.findById(req.user.id, "email").lean();
+      query.driver = driverDoc?.email || "__no_match__";
+    } else if (selectedUser && selectedUser !== "All") {
+      // Admin/company_admin/dispatcher can filter by a specific driver
       query.driver = selectedUser;
     }
     
@@ -206,9 +212,13 @@ const getAllTimesheets = async (req, res) => {
       ];
     }
 
+    // Bug fix: when noPagination=true (used by driver's MyTimesheet view),
+    // return all matching documents without skip/limit.
     const skip = (page - 1) * limit;
     const [timesheets, total] = await Promise.all([
-      Timesheet.find(query).skip(skip).limit(limit).lean(),
+      noPagination
+        ? Timesheet.find(query).sort({ date: -1 }).lean()
+        : Timesheet.find(query).sort({ date: -1 }).skip(skip).limit(limit).lean(),
       Timesheet.countDocuments(query)
     ]);
 
@@ -490,7 +500,7 @@ function normalizeTimesheet(timesheet, driverInfoMap = null) {
       duration: obj.extraDuration || "",
       from: obj.durationFrom || "",
       to: obj.durationTo || "",
-      comments: obj.extraWorkComments || obj.extraWorkSheetComments || ""
+      comments: obj.extraWorkSheetComments || ""
     },
     storeDelay: {
       duration: obj.delayStoreDuration || "",

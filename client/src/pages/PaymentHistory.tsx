@@ -165,7 +165,7 @@ const PaymentHistory: React.FC = () => {
                       </td>
                       <td style={styles.td}>
                         {p.periodFrom && p.periodTo
-                          ? `${new Date(p.periodFrom).toLocaleDateString()} — ${new Date(p.periodTo).toLocaleDateString()}`
+                          ? `${new Date(p.periodFrom).toLocaleDateString(undefined, { timeZone: "UTC" })} — ${new Date(p.periodTo).toLocaleDateString(undefined, { timeZone: "UTC" })}`
                           : "—"}
                       </td>
                       <td style={styles.td}>{p.timesheetIds?.length || 0}</td>

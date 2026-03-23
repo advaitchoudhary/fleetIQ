@@ -5,10 +5,13 @@ import axios from "axios";
 import { API_BASE_URL } from "../utils/env";// Update as per your backend URL
 
 interface User {
+  id?: string;
   email: string;
   name?: string;
   role: "admin" | "company_admin" | "dispatcher" | "driver" | null;
   organizationId?: string | null;
+  driverId?: string | null;
+  orgName?: string | null;
 }
 
 interface AuthContextType {
@@ -31,9 +34,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
+  // Reactive org-context state so Navbar re-renders when switchOrg/exitOrg is called
+  const [isInsideOrg, setIsInsideOrg] = useState<boolean>(
+    () => !!localStorage.getItem("superadmin_token")
+  );
+  const [activeOrgName, setActiveOrgName] = useState<string | null>(
+    () => localStorage.getItem("active_org_name")
+  );
+
   const navigate = useNavigate();
 
-  // Keep axios Authorization header in sync with token on every render
+  // Keep axios Authorization header in sync with token — only re-runs when user changes
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -41,7 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else {
       delete axios.defaults.headers.common["Authorization"];
     }
-  });
+  }, [user]);
 
   useEffect(() => {
     // Store user in localStorage whenever it changes
@@ -78,18 +89,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("Invalid email or password");
+      // Re-throw so the calling component (Login.tsx) can handle the error display
+      throw error;
     }
   };
 
   const logout = () => {
     setUser(null);
+    setIsInsideOrg(false);
+    setActiveOrgName(null);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("superadmin_token");
     localStorage.removeItem("active_org_name");
     delete axios.defaults.headers.common["Authorization"];
-    navigate("/");
+    // Navigation is handled by the Logout page component after calling this function.
+    // Do not call navigate() here to avoid a double-navigation race condition.
   };
 
   const changePassword = async (oldPassword: string, newPassword: string) => {
@@ -116,28 +131,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const switchOrg = async (orgId: string, orgName: string) => {
-    localStorage.setItem("superadmin_token", localStorage.getItem("token")!);
+    const currentToken = localStorage.getItem("token");
+    if (!currentToken) throw new Error("No active session token to switch org");
+    localStorage.setItem("superadmin_token", currentToken);
     const res = await axios.post(`${API_BASE_URL}/auth/switch-org`, { orgId });
     const { token } = res.data;
     localStorage.setItem("token", token);
     localStorage.setItem("active_org_name", orgName);
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     setUser((u) => ({ ...u!, organizationId: orgId }));
+    setIsInsideOrg(true);
+    setActiveOrgName(orgName);
     navigate("/admin-home");
   };
 
   const exitOrg = () => {
-    const orig = localStorage.getItem("superadmin_token")!;
+    const orig = localStorage.getItem("superadmin_token");
+    if (!orig) {
+      // No superadmin token means we're not inside an org — just navigate back
+      navigate("/select-org");
+      return;
+    }
     localStorage.setItem("token", orig);
     localStorage.removeItem("superadmin_token");
     localStorage.removeItem("active_org_name");
     axios.defaults.headers.common["Authorization"] = `Bearer ${orig}`;
     setUser((u) => ({ ...u!, organizationId: undefined }));
+    setIsInsideOrg(false);
+    setActiveOrgName(null);
     navigate("/select-org");
   };
-
-  const isInsideOrg = !!localStorage.getItem("superadmin_token");
-  const activeOrgName = localStorage.getItem("active_org_name");
 
   return (
     <AuthContext.Provider value={{ user, login, loginDirect, logout, changePassword, switchOrg, exitOrg, isInsideOrg, activeOrgName }}>

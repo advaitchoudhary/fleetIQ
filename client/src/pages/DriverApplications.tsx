@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Navbar from "./Navbar";
-import { API_BASE_URL } from "../utils/env";
+import { API_BASE_URL, FILE_BASE_URL } from "../utils/env";
 import { FaCheck, FaTimes, FaEye } from "react-icons/fa";
 
 interface DriverApplication {
@@ -99,6 +99,10 @@ const DriverApplications: React.FC = () => {
 
   const handleReject = async () => {
     if (!selectedApplication) return;
+    if (!adminNotes.trim()) {
+      alert("Please provide a reason for rejection.");
+      return;
+    }
 
     try {
       const token = localStorage.getItem("token");
@@ -157,9 +161,9 @@ const DriverApplications: React.FC = () => {
 
   const getFileUrl = (filePath: string) => {
     if (!filePath) return "";
-    // If file path starts with uploads/, make it accessible via the API
+    // If file path starts with uploads/, make it accessible via the static file server
     if (filePath.startsWith("uploads/")) {
-      return `${API_BASE_URL.replace("/api", "")}/${filePath}`;
+      return `${FILE_BASE_URL}/${filePath}`;
     }
     return filePath;
   };
@@ -441,7 +445,9 @@ const DriverApplications: React.FC = () => {
                       </button>
                       <button
                         style={
-                          actionType === "approve" ? styles.approveButton : styles.rejectButton
+                          actionType === "approve"
+                            ? styles.approveModalButton
+                            : styles.rejectModalButton
                         }
                         onClick={actionType === "approve" ? handleApprove : handleReject}
                       >
@@ -766,6 +772,26 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: "1px solid #d1d5db",
     backgroundColor: "#fff",
     color: "#374151",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: 600,
+  },
+  approveModalButton: {
+    padding: "10px 20px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#059669",
+    color: "#fff",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: 600,
+  },
+  rejectModalButton: {
+    padding: "10px 20px",
+    borderRadius: "8px",
+    border: "none",
+    backgroundColor: "#dc2626",
+    color: "#fff",
     cursor: "pointer",
     fontSize: "14px",
     fontWeight: 600,

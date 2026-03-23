@@ -6,6 +6,7 @@ import cors from "cors";
 import mongoose from "mongoose"
 import bodyParser from "body-parser"
 import cookieParser from "cookie-parser"
+import path from "path"
 // @ts-ignore
 import authRoutes from "../routes/authRoute.js";
 // @ts-ignore
@@ -31,9 +32,21 @@ import inspectionRoutes from "../routes/inspectionRoute.js";
 // @ts-ignore
 import fuelLogRoutes from "../routes/fuelLogRoute.js";
 // @ts-ignore
+import costTrackingRoutes from "../routes/costTrackingRoute.js";
+// @ts-ignore
 import paymentRoutes from "../routes/paymentRoute.js";
 // @ts-ignore
 import subscriptionRoutes from "../routes/subscriptionRoute.js";
+// @ts-ignore
+import schedulingRoutes from "../routes/schedulingRoute.js";
+// @ts-ignore
+import partRoutes from "../routes/partRoute.js";
+// @ts-ignore
+import warrantyRoutes from "../routes/warrantyRoute.js";
+// @ts-ignore
+import serviceHistoryRoutes from "../routes/serviceHistoryRoute.js";
+// @ts-ignore
+import pmRoutes from "../routes/pmRoute.js";
 
 
 const app = express();
@@ -65,7 +78,7 @@ app.options("*", cors({
     credentials: true
 }));
 
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
 app.use(cors({
     origin: (origin, callback) => {
        const allowedOrigins = [
@@ -90,9 +103,17 @@ app.use(cors({
     credentials: true
   }));
 app.use(cookieParser());
+
+// Stripe webhook routes MUST be mounted before bodyParser.json() so that
+// their per-route express.raw() middleware receives the raw body buffer.
+// bodyParser.json() would otherwise consume and discard the raw body first,
+// causing stripe.webhooks.constructEvent() to throw a signature error.
+app.use("/api/payments", paymentRoutes);
+app.use("/api/subscriptions", subscriptionRoutes);
+
 app.use(bodyParser.json());
 
-const PORT = process.env.PORT || 7000;
+const PORT = process.env.PORT || 8000;
 const MONGOURL = process.env.MONGO_URL as string;
 
 if (!MONGOURL) {
@@ -140,7 +161,11 @@ app.use("/api/vehicles", vehicleRoutes);
 app.use("/api/maintenance", maintenanceRoutes);
 app.use("/api/inspections", inspectionRoutes);
 app.use("/api/fuel-logs", fuelLogRoutes);
-// Phase 3 — Driver Payments (Stripe Connect)
-app.use("/api/payments", paymentRoutes);
-// Phase 4 — Subscriptions (Stripe Billing)
-app.use("/api/subscriptions", subscriptionRoutes);
+app.use("/api/costs", costTrackingRoutes);
+app.use("/api/scheduling", schedulingRoutes);
+app.use("/api/parts", partRoutes);
+app.use("/api/warranties", warrantyRoutes);
+app.use("/api/service-history", serviceHistoryRoutes);
+app.use("/api/pm", pmRoutes);
+// Phase 3 — Driver Payments (Stripe Connect) and Phase 4 — Subscriptions are
+// mounted before bodyParser.json() above so Stripe webhooks receive raw body.

@@ -167,7 +167,10 @@ const Invoice: React.FC = () => {
     const fetchDriverTimesheets = async () => {
       if (!selectedDriver?.email) return;
       try {
-        const response = await axios.get(`${API_BASE_URL}/timesheets?noPagination=true`);
+        const token = localStorage.getItem("token");
+        const response = await axios.get(`${API_BASE_URL}/timesheets?noPagination=true`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const driverTimesheets = response.data.data.filter(
           (t: any) => t.driver === selectedDriver.email
         );
@@ -197,7 +200,10 @@ const Invoice: React.FC = () => {
   
   const fetchDrivers = async (): Promise<Driver[]> => {
     try {
-      const response = await axios.get<Driver[]>(`${API_BASE_URL}/drivers`);
+      const token = localStorage.getItem("token");
+      const response = await axios.get<Driver[]>(`${API_BASE_URL}/drivers`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       return response.data;
     } catch (error) {
       console.error("Error fetching drivers:", error);
@@ -323,24 +329,31 @@ const generatePDF = () => {
     doc.setFont("helvetica", "normal");
     doc.text(attention, 60, 100);
   
-    // Correctly formatting and calculating the timesheet entries
+    // Format timesheet entries using hours-based calculation (same as generatePDF)
     const formattedTimesheets = timesheets.map(t => {
       const rate = categoryRates[t.category] || 0;
-      const quantity = t.endKM - t.startKM || 0;  // Ensuring quantity is defined
-      const subtotal = (quantity * rate).toFixed(2);
+      let start = new Date(`1970-01-01T${t.startTime}`);
+      let end = new Date(`1970-01-01T${t.endTime}`);
+      if (end <= start) {
+        end.setDate(end.getDate() + 1);
+      }
+      const hoursWorked = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+      const subtotal = (hoursWorked * rate).toFixed(2);
       return [
-        t.date, 
-        t.category, 
-        `${quantity}`, // Correctly formatted
-        `$${rate.toFixed(2)}`, 
-        `$${subtotal}`
+        t.date,
+        t.category,
+        `${hoursWorked.toFixed(2)} hrs`,
+        `$${rate.toFixed(2)}`,
+        `$${subtotal}`,
+        t.status,
       ];
     });
-  
+    const approvedTimesheets = formattedTimesheets.filter(row => row[5] === "approved").map(row => row.slice(0, 5));
+
     (doc as any).autoTable({
       startY: 115,
-      head: [["Date", "Category", "Total KMs", "Rate", "Subtotal"]],
-      body: formattedTimesheets,
+      head: [["Date", "Category", "Total Hours", "Rate", "Subtotal"]],
+      body: approvedTimesheets,
       theme: "grid"
     });
   
@@ -371,7 +384,10 @@ const generatePDF = () => {
 
   const fetchCategoryRates = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/drivers`);
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_BASE_URL}/drivers`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const allDrivers = response.data;
       setData(allDrivers); // So dropdown still works
   
@@ -518,7 +534,7 @@ const generatePDF = () => {
 
       {/* Timesheets Table */}
       <div style={styles.timesheetsSection}>
-        <h3 style={styles.sectionTitle}>📚 Timesheets</h3>
+        <h3 style={styles.sectionTitle}>Timesheets</h3>
         {timesheets.length === 0 ? (
           <p>No timesheets available for this driver.</p>
         ) : (
@@ -600,6 +616,7 @@ const generatePDF = () => {
               backgroundColor: isGenerateDisabled ? "#ccc" : "#007bff",
               cursor: isGenerateDisabled ? "not-allowed" : "pointer",
             }}
+            disabled={isGenerateDisabled}
           >
             Send Invoice as Email
           </button>

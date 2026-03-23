@@ -1,6 +1,5 @@
 const Organization = require("../model/organizationModel.js");
 const User = require("../model/userModel.js");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 // POST /api/organizations/register
@@ -8,10 +7,12 @@ const jwt = require("jsonwebtoken");
 // Creates an Organization + a company_admin User in one step.
 const registerOrganization = async (req, res) => {
   try {
-    const { companyName, email, password, phone, address, dotNumber, adminName } = req.body;
+    // Accept both `name` (frontend field) and legacy `companyName`
+    const { name, companyName, email, password, phone, address, dotNumber, plan } = req.body;
+    const orgName = name || companyName;
 
-    if (!companyName || !email || !password || !adminName) {
-      return res.status(400).json({ error: "companyName, adminName, email and password are required" });
+    if (!orgName || !email || !password) {
+      return res.status(400).json({ error: "name, email and password are required" });
     }
 
     // Check for duplicate email in both Organization and User collections
@@ -24,22 +25,29 @@ const registerOrganization = async (req, res) => {
       return res.status(400).json({ error: "An account with this email already exists" });
     }
 
+    // Validate plan; fall back to "bundle" if not provided or invalid
+    const validPlans = ["driver", "vehicle", "bundle"];
+    const selectedPlan = validPlans.includes(plan) ? plan : "bundle";
+
     // Create organization first (14-day trial starts automatically via schema default)
     const organization = new Organization({
-      name: companyName,
+      name: orgName,
       email,
       phone: phone || "",
       address: address || "",
       dotNumber: dotNumber || "",
+      subscription: {
+        plan: selectedPlan,
+        status: "trialing",
+      },
     });
     await organization.save();
 
-    // Hash password and create company_admin user
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Create company_admin user — password hashing is handled by the userModel pre-save hook
     const adminUser = new User({
-      name: adminName,
+      name: orgName,
       email,
-      password: hashedPassword,
+      password,
       role: "company_admin",
       organizationId: organization._id,
     });
@@ -55,7 +63,7 @@ const registerOrganization = async (req, res) => {
     res.status(201).json({
       message: "Organization registered successfully. 14-day trial started.",
       token,
-      user: { name: adminUser.name, email: adminUser.email, role: "company_admin" },
+      user: { name: adminUser.name, email: adminUser.email, role: "company_admin", organizationId: organization._id },
       organization: {
         id: organization._id,
         name: organization.name,

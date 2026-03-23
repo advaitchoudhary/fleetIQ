@@ -788,7 +788,7 @@ const Landing: React.FC = () => {
                     boxShadow: plan.highlight ? "0 4px 14px rgba(79,70,229,0.35)" : "none",
                     marginTop: "12px",
                   }}
-                  onClick={() => navigate("/company-register")}
+                  onClick={() => navigate("/register")}
                 >
                   {plan.cta}
                 </button>
@@ -855,7 +855,7 @@ const Landing: React.FC = () => {
             Join fleet operators who manage drivers, vehicles, and payments without the chaos. Start your free trial today.
           </p>
           <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
-            <button className="land-cta-btn-primary" onClick={() => navigate("/company-register")}>
+            <button className="land-cta-btn-primary" onClick={() => navigate("/register")}>
               Start Free Trial
             </button>
             <button className="land-cta-btn-outline" onClick={() => navigate("/login")}>

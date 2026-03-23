@@ -8,13 +8,6 @@ import axios from "axios";
 import Navbar from "./Navbar";
 import { FILE_BASE_URL, API_BASE_URL } from "../utils/env";
 
-interface Driver {
-  _id: string;
-  name: string;
-  email: string;
-  hoursThisWeek: number;
-}
-
 interface Timesheet {
   _id: string;
   driver: string;
@@ -40,7 +33,6 @@ const MyTimesheet: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [userEmail, setUserEmail] = useState("");
-  const [driverHours, setDriverHours] = useState<number>(0);
   const [driverName, setDriverName] = useState<string>("");
 
   const [selectedFilter, setSelectedFilter] = useState<string>("All");
@@ -55,28 +47,11 @@ const MyTimesheet: React.FC = () => {
         if (storedUser) {
           const user = JSON.parse(storedUser);
           setUserEmail(user.email);
+          setDriverName(user.name || "");
 
-          // Fetch timesheets and driver info in parallel
-          const [timesheetsResponse, driversResponse] = await Promise.all([
-            axios.get(`${API_BASE_URL}/timesheets?noPagination=true`),
-            axios.get(`${API_BASE_URL}/drivers`)
-          ]);
-
-          const allTimesheets = timesheetsResponse.data.data;
-          const drivers = driversResponse.data;
-
-          // Filter timesheets for the logged-in driver
-          const userTimesheets = allTimesheets.filter(
-            (timesheet: Timesheet) => timesheet.driver === user.email
-          );
-          setTimesheets(userTimesheets);
-
-          // Find the current driver and get their hours
-          const currentDriver = drivers.find((driver: Driver) => driver.email === user.email);
-          if (currentDriver) {
-            setDriverHours(currentDriver.hoursThisWeek || 0);
-            setDriverName(currentDriver.name);
-          }
+          const timesheetsResponse = await axios.get(`${API_BASE_URL}/timesheets?noPagination=true`);
+          const allTimesheets = timesheetsResponse.data.data || timesheetsResponse.data;
+          setTimesheets(Array.isArray(allTimesheets) ? allTimesheets : []);
         } else {
           setError("User not found in localStorage.");
         }
@@ -105,27 +80,27 @@ const MyTimesheet: React.FC = () => {
       header: "End Time",
     },
     {
-      accessorKey: "totalHours",
+      // Bug fix: use `id` instead of `accessorKey` to avoid returning raw DB value
+      // when a custom cell renderer is provided. The cell recalculates hours from
+      // startTime/endTime so overnight shifts are handled correctly.
+      id: "totalHours",
       header: "Total Hours",
       cell: ({ row }: { row: { original: Timesheet } }) => {
+        // Prefer the DB-stored totalHours value; fall back to computing from times
+        if (row.original.totalHours) {
+          return row.original.totalHours;
+        }
         const start = row.original.startTime;
         const end = row.original.endTime;
         if (start && end) {
           const [startH, startM] = start.split(":").map(Number);
           const [endH, endM] = end.split(":").map(Number);
 
-          const startDate = new Date();
-          startDate.setHours(startH, startM, 0, 0);
+          if (isNaN(startH) || isNaN(startM) || isNaN(endH) || isNaN(endM)) return "N/A";
 
-          const endDate = new Date();
-          endDate.setHours(endH, endM, 0, 0);
+          let totalMinutes = (endH * 60 + endM) - (startH * 60 + startM);
+          if (totalMinutes < 0) totalMinutes += 24 * 60; // handle overnight shift
 
-          if (endDate < startDate) {
-            endDate.setDate(endDate.getDate() + 1); // handle overnight
-          }
-
-          const diffMs = endDate.getTime() - startDate.getTime();
-          const totalMinutes = Math.floor(diffMs / (1000 * 60));
           const hr = Math.floor(totalMinutes / 60);
           const min = totalMinutes % 60;
 
@@ -301,6 +276,37 @@ const MyTimesheet: React.FC = () => {
     return result;
   }, [timesheets, selectedFilter, rangeStart, rangeEnd, searchQuery]);
 
+  const approvedCount = useMemo(() => timesheets.filter(t => t.status === "approved").length, [timesheets]);
+  const pendingCount  = useMemo(() => timesheets.filter(t => !t.status || t.status === "pending").length, [timesheets]);
+
+  const driverHours = useMemo(() => {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    return timesheets
+      .filter(ts => {
+        const d = new Date(ts.date);
+        return d >= startOfWeek && d <= endOfWeek;
+      })
+      .reduce((sum, ts) => {
+        if (ts.startTime && ts.endTime) {
+          const [sh, sm] = ts.startTime.split(":").map(Number);
+          const [eh, em] = ts.endTime.split(":").map(Number);
+          if (!isNaN(sh) && !isNaN(sm) && !isNaN(eh) && !isNaN(em)) {
+            let mins = (eh * 60 + em) - (sh * 60 + sm);
+            if (mins < 0) mins += 24 * 60;
+            return sum + mins / 60;
+          }
+        }
+        return sum;
+      }, 0);
+  }, [timesheets]);
+
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -308,121 +314,142 @@ const MyTimesheet: React.FC = () => {
   });
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#f0f4ff", minHeight: "100vh" }}>
       <style>{`
+        [data-ts-stat] { transition: transform 0.2s ease, box-shadow 0.2s ease; cursor: default; }
+        [data-ts-stat]:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(0,0,0,0.25) !important; }
+        [data-ts-row]:hover td { background-color: #f5f3ff !important; }
+        [data-ts-pill] { transition: all 0.15s ease; }
+        [data-ts-pill]:hover { background: #4F46E5 !important; color: #fff !important; border-color: #4F46E5 !important; }
         @media (max-width: 1024px) {
-          [data-ts-container] { padding: 24px 20px !important; }
-          [data-ts-controls] { flex-direction: column !important; align-items: stretch !important; }
-          [data-ts-hours] { min-width: unset !important; }
-          [data-ts-filters] { flex-wrap: wrap !important; }
-          [data-ts-filters] input, [data-ts-filters] select { min-width: unset !important; flex: 1 1 140px !important; }
+          [data-ts-hero-inner] { flex-direction: column !important; gap: 24px !important; }
+          [data-ts-stats] { grid-template-columns: repeat(2,1fr) !important; }
+          [data-ts-content] { padding: 24px 20px !important; }
         }
         @media (max-width: 640px) {
-          [data-ts-container] { padding: 16px 12px !important; }
-          [data-ts-title] { font-size: 22px !important; }
-          [data-ts-hours-number] { font-size: 22px !important; }
-          [data-ts-driver-name] { font-size: 15px !important; }
-          [data-ts-table-wrap] { margin-left: -12px !important; margin-right: -12px !important; border-radius: 0 !important; border-left: none !important; border-right: none !important; }
-          [data-ts-filters] input, [data-ts-filters] select { flex: 1 1 100% !important; }
+          [data-ts-hero] { padding: 24px 16px !important; }
+          [data-ts-stats] { grid-template-columns: repeat(2,1fr) !important; gap: 8px !important; }
+          [data-ts-filter-bar] { flex-direction: column !important; align-items: stretch !important; }
+          [data-ts-pills] { flex-wrap: wrap !important; }
+          [data-ts-content] { padding: 16px 12px !important; }
         }
       `}</style>
       <Navbar />
-      <div style={styles.container} data-ts-container>
-        <h1 style={styles.pageTitle} data-ts-title>My Timesheets</h1>
 
-        {loading && <p style={{ color: "#6b7280", fontSize: "15px" }}>Loading timesheets...</p>}
-        {error && <p style={styles.error}>{error}</p>}
-
-        {!loading && driverName && (
-          <div style={styles.controlsContainer} data-ts-controls>
-            <div style={styles.hoursCard} data-ts-hours>
-              <div style={styles.hoursContent}>
-                <div style={styles.hoursInfo}>
-                  <h2 style={styles.hoursTitle}>Hours This Week</h2>
-                  <p style={styles.driverName} data-ts-driver-name>{driverName}</p>
-                </div>
-                <div style={styles.hoursValue}>
-                  <span style={styles.hoursNumber} data-ts-hours-number>{driverHours.toFixed(2)}</span>
-                  <span style={styles.hoursUnit}>hours</span>
-                </div>
-              </div>
+      {/* ── Hero ─────────────────────────────────────────────────────── */}
+      <div style={tsHero} data-ts-hero>
+        <div style={tsHeroInner} data-ts-hero-inner>
+          {/* Left: avatar + title */}
+          <div style={{ display: "flex", alignItems: "center", gap: "18px", flexShrink: 0 }}>
+            <div style={tsAvatar}>{(driverName || "D").charAt(0).toUpperCase()}</div>
+            <div>
+              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "1.2px" }}>Driver Portal</p>
+              <h1 style={{ margin: "4px 0 0", fontSize: "28px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>My Timesheets</h1>
+              {driverName && <p style={{ margin: "6px 0 0", fontSize: "14px", color: "rgba(255,255,255,0.65)", fontWeight: 500 }}>{driverName}</p>}
             </div>
+          </div>
+          {/* Right: stat cards */}
+          <div style={tsStatsGrid} data-ts-stats>
+            <div style={tsStatCard} data-ts-stat>
+              <div style={tsStatNum}>{driverHours.toFixed(1)}</div>
+              <div style={tsStatLbl}>Hrs This Week</div>
+            </div>
+            <div style={tsStatCard} data-ts-stat>
+              <div style={{ ...tsStatNum, color: "#a5b4fc" }}>{timesheets.length}</div>
+              <div style={tsStatLbl}>Total Entries</div>
+            </div>
+            <div style={{ ...tsStatCard, borderTop: "3px solid #10b981" }} data-ts-stat>
+              <div style={{ ...tsStatNum, color: "#6ee7b7" }}>{approvedCount}</div>
+              <div style={tsStatLbl}>Approved</div>
+            </div>
+            <div style={{ ...tsStatCard, borderTop: "3px solid #f59e0b" }} data-ts-stat>
+              <div style={{ ...tsStatNum, color: "#fde68a" }}>{pendingCount}</div>
+              <div style={tsStatLbl}>Pending</div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-            <div style={styles.searchFilterContainer} data-ts-filters>
+      {/* ── Content ──────────────────────────────────────────────────── */}
+      <div style={tsContent} data-ts-content>
+        {loading && (
+          <div style={{ textAlign: "center", padding: "60px", color: "#6b7280", fontSize: "15px" }}>Loading timesheets…</div>
+        )}
+        {error && (
+          <div style={{ marginBottom: "20px", padding: "12px 16px", backgroundColor: "#fef2f2", borderRadius: "10px", border: "1px solid #fecaca", color: "#dc2626", fontSize: "14px", fontWeight: 600 }}>{error}</div>
+        )}
+
+        {!loading && !error && (
+          /* ── Filter Bar ──────────────────────────────────────────── */
+          <div style={tsFilterBar} data-ts-filter-bar>
+            <div style={tsSearchBox}>
+              <svg width="15" height="15" fill="none" stroke="#9ca3af" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder="Search trips, load IDs, comments…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={styles.searchInput}
+                style={{ border: "none", outline: "none", fontSize: "14px", width: "100%", color: "#374151", background: "transparent" }}
               />
-              <select 
-                value={selectedFilter} 
-                onChange={e => setSelectedFilter(e.target.value)} 
-                style={styles.filterSelect}
-              >
-                <option value="All">All</option>
-                <option value="Today">Today</option>
-                <option value="This Week">This Week</option>
-                <option value="This Month">This Month</option>
-                <option value="Custom">Custom Range</option>
-              </select>
-              {selectedFilter === "Custom" && (
-                <>
-                  <input 
-                    type="date" 
-                    value={rangeStart} 
-                    onChange={e => setRangeStart(e.target.value)} 
-                    style={styles.dateInput} 
-                  />
-                  <input 
-                    type="date" 
-                    value={rangeEnd} 
-                    onChange={e => setRangeEnd(e.target.value)} 
-                    style={styles.dateInput} 
-                  />
-                </>
-              )}
             </div>
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }} data-ts-pills>
+              {["All", "Today", "This Week", "This Month", "Custom"].map(f => (
+                <button
+                  key={f}
+                  onClick={() => setSelectedFilter(f)}
+                  style={selectedFilter === f ? tsActivePill : tsPill}
+                  data-ts-pill
+                >{f}</button>
+              ))}
+            </div>
+            {selectedFilter === "Custom" && (
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)} style={tsDateInput} />
+                <span style={{ color: "#9ca3af", fontSize: "13px", fontWeight: 600 }}>→</span>
+                <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} style={tsDateInput} />
+              </div>
+            )}
           </div>
         )}
 
         {!loading && !error && timesheets.length === 0 && (
-          <p style={{ color: "#6b7280", fontSize: "15px" }}>No timesheets found for {userEmail}.</p>
+          <div style={{ textAlign: "center", padding: "80px 20px" }}>
+            <div style={{ fontSize: "52px", marginBottom: "16px" }}>📋</div>
+            <p style={{ color: "#6b7280", fontSize: "15px", fontWeight: 500, margin: 0 }}>No timesheets found yet.</p>
+          </div>
         )}
 
         {!loading && !error && timesheets.length > 0 && (
-          <div style={styles.tableWrapper} data-ts-table-wrap>
-            <table style={styles.table}>
-              <thead>
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <tr key={headerGroup.id} style={styles.headerRow}>
-                    {headerGroup.headers.map((header) => (
-                      <th key={header.id} style={styles.headerCell}>
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                      </th>
-                    ))}
-                  </tr>
-                ))}
-              </thead>
-              <tbody>
-                {table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} style={styles.row}>
-                    {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} style={styles.cell}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div style={tsTableCard}>
+            <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" as any }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: "1200px", tableLayout: "fixed" as const }}>
+                <thead>
+                  {table.getHeaderGroups().map((hg) => (
+                    <tr key={hg.id} style={{ background: "#f5f3ff", borderBottom: "2px solid #e0e7ff" }}>
+                      {hg.headers.map((h) => (
+                        <th key={h.id} style={{ padding: "13px 16px", fontSize: "10px", fontWeight: 700, color: "#6366f1", textAlign: "center", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" }}>
+                          {flexRender(h.column.columnDef.header, h.getContext())}
+                        </th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+                <tbody>
+                  {table.getRowModel().rows.map((row, i) => (
+                    <tr key={row.id} data-ts-row style={{ backgroundColor: i % 2 === 0 ? "#fff" : "#fafbff", borderBottom: "1px solid #f0f0ff" }}>
+                      {row.getVisibleCells().map((cell) => (
+                        <td key={cell.id} style={{ padding: "13px 16px", textAlign: "center", fontSize: "13px", color: "#374151", verticalAlign: "middle" }}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div style={{ padding: "12px 20px", borderTop: "1px solid #e0e7ff", fontSize: "12px", color: "#9ca3af", fontWeight: 500 }}>
+              Showing {filteredData.length} of {timesheets.length} entries
+            </div>
           </div>
         )}
       </div>
@@ -430,169 +457,117 @@ const MyTimesheet: React.FC = () => {
   );
 };
 
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    textAlign: "center",
-    padding: "32px 40px",
-    fontFamily: "Inter, system-ui, sans-serif",
-  },
-  pageTitle: {
-    fontSize: "26px",
-    fontWeight: 700,
-    color: "#111827",
-    marginBottom: "24px",
-    letterSpacing: "-0.3px",
-  },
-  tableWrapper: {
-    marginTop: "20px",
-    borderRadius: "12px",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
-    backgroundColor: "#fff",
-    padding: "4px",
-    overflowX: "auto",
-    WebkitOverflowScrolling: "touch",
-  },
-  table: {
-    width: "100%",
-    borderCollapse: "collapse" as const,
-    borderRadius: "12px",
-    overflow: "hidden",
-    tableLayout: "fixed" as const,
-    minWidth: "1200px",
-  },
-  headerRow: {
-    backgroundColor: "#f9fafb",
-    borderBottom: "1px solid #e5e7eb",
-  },
-  headerCell: {
-    padding: "14px 16px",
-    fontSize: "11px",
-    fontWeight: 700,
-    color: "#6b7280",
-    textAlign: "center" as const,
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.6px",
-  },
-  row: {
-    backgroundColor: "#ffffff",
-    borderBottom: "1px solid #f3f4f6",
-    transition: "background-color 0.2s ease",
-  },
-  hoveredRow: {
-    backgroundColor: "#f9fafb",
-  },
-  cell: {
-    padding: "14px 16px",
-    textAlign: "center" as const,
-    fontSize: "14px",
-    color: "#374151",
-    verticalAlign: "middle",
-  },
-  error: {
-    color: "#dc2626",
-    fontSize: "14px",
-    fontWeight: 600,
-    marginTop: "10px",
-    padding: "10px 16px",
-    backgroundColor: "#fef2f2",
-    borderRadius: "8px",
-    border: "1px solid #fecaca",
-    display: "inline-block",
-  },
-  hoursCard: {
-    backgroundColor: "#ffffff",
-    color: "#374151",
-    borderRadius: "12px",
-    padding: "16px 20px",
-    display: "flex",
-    alignItems: "center",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
-    border: "1px solid #e5e7eb",
-    minWidth: "25%",
-  },
-  hoursContent: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-  },
-  hoursInfo: {
-    textAlign: "left" as const,
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "2px",
-  },
-  hoursTitle: {
-    fontSize: "12px",
-    marginBottom: "0",
-    fontWeight: 700,
-    color: "#6b7280",
-    lineHeight: "1.2",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
-  },
-  driverName: {
-    fontSize: "18px",
-    fontWeight: 600,
-    color: "#111827",
-    lineHeight: "1.3",
-    marginTop: "4px",
-  },
-  hoursValue: {
-    display: "flex",
-    alignItems: "baseline",
-    gap: "4px",
-  },
-  hoursNumber: {
-    fontSize: "28px",
-    fontWeight: 700,
-    lineHeight: "1",
-    color: "#4F46E5",
-  },
-  hoursUnit: {
-    fontSize: "14px",
-    fontWeight: 500,
-    color: "#6b7280",
-  },
-  controlsContainer: {
-    display: "flex",
-    flexDirection: "row" as const,
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "20px",
-    marginBottom: "20px",
-    flexWrap: "wrap" as const,
-  },
-  searchFilterContainer: {
-    display: "flex",
-    flexWrap: "wrap" as const,
-    gap: "10px",
-    alignItems: "center",
-  },
-  searchInput: {
-    padding: "10px 14px",
-    borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    minWidth: "200px",
-    fontSize: "14px",
-    backgroundColor: "#fff",
-    transition: "border-color 0.2s",
-  },
-  filterSelect: {
-    padding: "10px 14px",
-    borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    fontSize: "14px",
-    backgroundColor: "#fff",
-  },
-  dateInput: {
-    padding: "10px 14px",
-    borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    fontSize: "14px",
-    backgroundColor: "#fff",
-  },
+// ── MyTimesheet style constants ───────────────────────────────────────
+const tsHero: React.CSSProperties = {
+  background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)",
+  padding: "36px 40px",
+};
+const tsHeroInner: React.CSSProperties = {
+  maxWidth: "1240px",
+  margin: "0 auto",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: "28px",
+};
+const tsAvatar: React.CSSProperties = {
+  width: "58px",
+  height: "58px",
+  borderRadius: "50%",
+  background: "rgba(255,255,255,0.15)",
+  border: "2px solid rgba(255,255,255,0.3)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: "24px",
+  fontWeight: 800,
+  color: "#fff",
+  flexShrink: 0,
+};
+const tsStatsGrid: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(4,1fr)",
+  gap: "12px",
+};
+const tsStatCard: React.CSSProperties = {
+  background: "rgba(255,255,255,0.08)",
+  border: "1px solid rgba(255,255,255,0.12)",
+  borderRadius: "12px",
+  padding: "14px 18px",
+  minWidth: "90px",
+};
+const tsStatNum: React.CSSProperties = {
+  fontSize: "26px",
+  fontWeight: 800,
+  color: "#fff",
+  lineHeight: 1,
+  marginBottom: "4px",
+};
+const tsStatLbl: React.CSSProperties = {
+  fontSize: "11px",
+  fontWeight: 600,
+  color: "rgba(255,255,255,0.5)",
+  textTransform: "uppercase",
+  letterSpacing: "0.6px",
+};
+const tsContent: React.CSSProperties = {
+  maxWidth: "1300px",
+  margin: "0 auto",
+  padding: "28px 40px",
+};
+const tsFilterBar: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "12px",
+  marginBottom: "20px",
+  flexWrap: "wrap",
+};
+const tsSearchBox: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "10px",
+  background: "#fff",
+  border: "1px solid #e0e7ff",
+  borderRadius: "10px",
+  padding: "10px 14px",
+  flex: 1,
+  minWidth: "220px",
+  boxShadow: "0 1px 4px rgba(79,70,229,0.06)",
+};
+const tsPill: React.CSSProperties = {
+  padding: "8px 15px",
+  borderRadius: "20px",
+  border: "1px solid #e0e7ff",
+  background: "#fff",
+  fontSize: "13px",
+  fontWeight: 500,
+  color: "#6b7280",
+  cursor: "pointer",
+};
+const tsActivePill: React.CSSProperties = {
+  padding: "8px 15px",
+  borderRadius: "20px",
+  border: "1px solid #4F46E5",
+  background: "#4F46E5",
+  fontSize: "13px",
+  fontWeight: 600,
+  color: "#fff",
+  cursor: "pointer",
+};
+const tsDateInput: React.CSSProperties = {
+  padding: "9px 12px",
+  borderRadius: "10px",
+  border: "1px solid #e0e7ff",
+  fontSize: "13px",
+  background: "#fff",
+  color: "#374151",
+};
+const tsTableCard: React.CSSProperties = {
+  background: "#fff",
+  borderRadius: "16px",
+  border: "1px solid #e0e7ff",
+  boxShadow: "0 2px 16px rgba(79,70,229,0.07)",
+  overflow: "hidden",
 };
 
 const statusStyles: { [key: string]: React.CSSProperties } = {

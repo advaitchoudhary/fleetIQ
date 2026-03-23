@@ -23,52 +23,66 @@ const PRICE_IDS = {
  * Body: { plan: 'driver'|'vehicle'|'bundle', billing: 'monthly'|'annual' }
  */
 const createCheckout = async (req, res) => {
-  const { plan, billing = "monthly" } = req.body;
+  try {
+    const { plan, billing = "monthly" } = req.body;
 
-  const priceId = PRICE_IDS[plan]?.[billing];
-  if (!priceId || priceId.startsWith("price_REPLACE")) {
-    return res.status(400).json({
-      message: `Stripe price ID for ${plan} (${billing}) is not configured. Set STRIPE_PRICE_${plan.toUpperCase()}_${billing.toUpperCase()} in your .env file.`,
-    });
-  }
+    if (!plan || !PRICE_IDS[plan]) {
+      return res.status(400).json({ message: `Invalid plan: "${plan}". Must be driver, vehicle, or bundle.` });
+    }
 
-  const org = await Organization.findById(req.organizationId);
-  if (!org) return res.status(404).json({ message: "Organization not found" });
+    const priceId = PRICE_IDS[plan]?.[billing];
+    if (!priceId || priceId.startsWith("price_REPLACE")) {
+      return res.status(400).json({
+        message: `Stripe price ID for ${plan} (${billing}) is not configured. Set STRIPE_PRICE_${plan.toUpperCase()}_${billing.toUpperCase()} in your .env file.`,
+      });
+    }
 
-  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    // admin without an org context cannot create a checkout — require org scope
+    if (!req.organizationId) {
+      return res.status(400).json({ message: "Organization context required. Switch into an org first." });
+    }
 
-  // Create or retrieve Stripe customer
-  let customerId = org.subscription?.stripeCustomerId;
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: org.email,
-      name: org.name,
-      metadata: { organizationId: org._id.toString() },
-    });
-    customerId = customer.id;
-    await Organization.findByIdAndUpdate(org._id, {
-      "subscription.stripeCustomerId": customerId,
-    });
-  }
+    const org = await Organization.findById(req.organizationId);
+    if (!org) return res.status(404).json({ message: "Organization not found" });
 
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    payment_method_types: ["card"],
-    mode: "subscription",
-    line_items: [{ price: priceId, quantity: 1 }],
-    subscription_data: {
-      trial_period_days: 14,
-      metadata: {
-        organizationId: org._id.toString(),
-        plan,
-        billing,
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+
+    // Create or retrieve Stripe customer
+    let customerId = org.subscription?.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: org.email,
+        name: org.name,
+        metadata: { organizationId: org._id.toString() },
+      });
+      customerId = customer.id;
+      await Organization.findByIdAndUpdate(org._id, {
+        "subscription.stripeCustomerId": customerId,
+      });
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      payment_method_types: ["card"],
+      mode: "subscription",
+      line_items: [{ price: priceId, quantity: 1 }],
+      subscription_data: {
+        trial_period_days: 14,
+        metadata: {
+          organizationId: org._id.toString(),
+          plan,
+          billing,
+        },
       },
-    },
-    success_url: `${clientUrl}/subscription?checkout=success`,
-    cancel_url: `${clientUrl}/subscription?checkout=cancel`,
-  });
+      success_url: `${clientUrl}/subscription?checkout=success`,
+      cancel_url: `${clientUrl}/subscription?checkout=cancel`,
+    });
 
-  res.json({ url: session.url, sessionId: session.id });
+    res.json({ url: session.url, sessionId: session.id });
+  } catch (err) {
+    console.error("createCheckout error:", err);
+    res.status(500).json({ message: err.message || "Failed to create checkout session" });
+  }
 };
 
 /**
@@ -76,18 +90,35 @@ const createCheckout = async (req, res) => {
  * Authenticated: Get current subscription details.
  */
 const getCurrentSubscription = async (req, res) => {
-  const org = await Organization.findById(req.organizationId).select("subscription name email").lean();
-  if (!org) return res.status(404).json({ message: "Organization not found" });
+  try {
+    if (!req.organizationId) {
+      return res.status(400).json({ message: "Organization context required." });
+    }
 
-  const sub = org.subscription || {};
-  res.json({
-    plan: sub.plan || null,
-    status: sub.status || "inactive",
-    trialEndsAt: sub.trialEndsAt || null,
-    currentPeriodEnd: sub.currentPeriodEnd || null,
-    stripeCustomerId: sub.stripeCustomerId || null,
-    stripeSubscriptionId: sub.stripeSubscriptionId || null,
-  });
+    const org = await Organization.findById(req.organizationId).select("subscription name email").lean();
+    if (!org) return res.status(404).json({ message: "Organization not found" });
+
+    const sub = org.subscription || {};
+
+    // Derive effective status: if org has no Stripe subscription and the trial
+    // period has passed, report as inactive rather than the stale "trialing".
+    let status = sub.status || "inactive";
+    if (status === "trialing" && sub.trialEndsAt && new Date(sub.trialEndsAt) < new Date()) {
+      status = "inactive";
+    }
+
+    res.json({
+      plan: sub.plan || null,
+      status,
+      trialEndsAt: sub.trialEndsAt || null,
+      currentPeriodEnd: sub.currentPeriodEnd || null,
+      stripeCustomerId: sub.stripeCustomerId || null,
+      stripeSubscriptionId: sub.stripeSubscriptionId || null,
+    });
+  } catch (err) {
+    console.error("getCurrentSubscription error:", err);
+    res.status(500).json({ message: err.message || "Failed to fetch subscription" });
+  }
 };
 
 /**
@@ -95,139 +126,173 @@ const getCurrentSubscription = async (req, res) => {
  * Authenticated: Return Stripe Billing Portal URL so admin can manage their subscription.
  */
 const createBillingPortal = async (req, res) => {
-  const org = await Organization.findById(req.organizationId).select("subscription email").lean();
-  if (!org) return res.status(404).json({ message: "Organization not found" });
+  try {
+    if (!req.organizationId) {
+      return res.status(400).json({ message: "Organization context required." });
+    }
 
-  const customerId = org.subscription?.stripeCustomerId;
-  if (!customerId) {
-    return res.status(400).json({
-      message: "No Stripe customer found. Please complete checkout first.",
+    const org = await Organization.findById(req.organizationId).select("subscription email").lean();
+    if (!org) return res.status(404).json({ message: "Organization not found" });
+
+    const customerId = org.subscription?.stripeCustomerId;
+    if (!customerId) {
+      return res.status(400).json({
+        message: "No Stripe customer found. Please complete checkout first.",
+      });
+    }
+
+    const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${clientUrl}/subscription`,
     });
+
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error("createBillingPortal error:", err);
+    res.status(500).json({ message: err.message || "Failed to create billing portal session" });
   }
-
-  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
-  const session = await stripe.billingPortal.sessions.create({
-    customer: customerId,
-    return_url: `${clientUrl}/subscription`,
-  });
-
-  res.json({ url: session.url });
 };
 
 /**
  * POST /api/subscriptions/webhook
  * Stripe webhook — handles subscription lifecycle events.
- * NOTE: This route uses raw body (set in route file).
+ * NOTE: This route uses raw body (set in route file), mounted before bodyParser.json().
  */
 const handleWebhook = async (req, res) => {
   const sig = req.headers["stripe-signature"];
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
+  if (!webhookSecret) {
+    console.error("STRIPE_WEBHOOK_SECRET is not set");
+    return res.status(500).send("Webhook secret not configured");
+  }
+
   let event;
   try {
     event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
   } catch (err) {
-    console.error("Stripe subscription webhook error:", err.message);
-    return res.status(400).json({ message: `Webhook Error: ${err.message}` });
+    console.error("Stripe subscription webhook signature error:", err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  const getOrgId = (obj) =>
-    obj.metadata?.organizationId ||
-    obj.subscription_data?.metadata?.organizationId;
+  const statusMap = {
+    trialing: "trialing",
+    active: "active",
+    past_due: "past_due",
+    canceled: "cancelled",
+    unpaid: "past_due",
+  };
 
-  switch (event.type) {
-    case "customer.subscription.created":
-    case "customer.subscription.updated": {
-      const sub = event.data.object;
-      const orgId = sub.metadata?.organizationId;
-      if (!orgId) break;
-
-      const plan = sub.metadata?.plan;
-      const statusMap = {
-        trialing: "trialing",
-        active: "active",
-        past_due: "past_due",
-        canceled: "cancelled",
-        unpaid: "past_due",
-      };
-
-      await Organization.findByIdAndUpdate(orgId, {
-        "subscription.plan": plan,
-        "subscription.status": statusMap[sub.status] || sub.status,
-        "subscription.stripeSubscriptionId": sub.id,
-        "subscription.trialEndsAt": sub.trial_end ? new Date(sub.trial_end * 1000) : undefined,
-        "subscription.currentPeriodEnd": new Date(sub.current_period_end * 1000),
-      });
-      break;
-    }
-
-    case "customer.subscription.deleted": {
-      const sub = event.data.object;
-      const orgId = sub.metadata?.organizationId;
-      if (!orgId) break;
-
-      await Organization.findByIdAndUpdate(orgId, {
-        "subscription.status": "cancelled",
-      });
-      break;
-    }
-
-    case "invoice.payment_succeeded": {
-      const invoice = event.data.object;
-      // Keep subscription active
-      if (invoice.subscription) {
-        const sub = await stripe.subscriptions.retrieve(invoice.subscription);
+  try {
+    switch (event.type) {
+      case "customer.subscription.created":
+      case "customer.subscription.updated": {
+        const sub = event.data.object;
         const orgId = sub.metadata?.organizationId;
-        if (orgId) {
-          await Organization.findByIdAndUpdate(orgId, {
-            "subscription.status": "active",
-            "subscription.currentPeriodEnd": new Date(sub.current_period_end * 1000),
-          });
+        if (!orgId) {
+          console.warn(`subscription event ${event.type} missing organizationId in metadata`);
+          break;
         }
-      }
-      break;
-    }
 
-    case "invoice.payment_failed": {
-      const invoice = event.data.object;
-      if (invoice.subscription) {
-        const sub = await stripe.subscriptions.retrieve(invoice.subscription);
-        const orgId = sub.metadata?.organizationId;
-        if (orgId) {
-          await Organization.findByIdAndUpdate(orgId, {
-            "subscription.status": "past_due",
-          });
-        }
-      }
-      break;
-    }
-
-    case "checkout.session.completed": {
-      const session = event.data.object;
-      // If subscription was created via checkout, sync org
-      if (session.subscription && session.customer) {
-        const sub = await stripe.subscriptions.retrieve(session.subscription);
-        const orgId = sub.metadata?.organizationId;
         const plan = sub.metadata?.plan;
-        if (orgId) {
-          await Organization.findByIdAndUpdate(orgId, {
-            "subscription.plan": plan,
-            "subscription.status": sub.status === "trialing" ? "trialing" : "active",
+        if (!plan) {
+          console.warn(`subscription event ${event.type} missing plan in metadata for org ${orgId}`);
+        }
+
+        const update = {
+          "subscription.status": statusMap[sub.status] || sub.status,
+          "subscription.stripeSubscriptionId": sub.id,
+          "subscription.currentPeriodEnd": new Date(sub.current_period_end * 1000),
+        };
+        if (plan) update["subscription.plan"] = plan;
+        if (sub.trial_end) update["subscription.trialEndsAt"] = new Date(sub.trial_end * 1000);
+
+        await Organization.findByIdAndUpdate(orgId, update);
+        break;
+      }
+
+      case "customer.subscription.deleted": {
+        const sub = event.data.object;
+        const orgId = sub.metadata?.organizationId;
+        if (!orgId) break;
+
+        await Organization.findByIdAndUpdate(orgId, {
+          "subscription.status": "cancelled",
+        });
+        break;
+      }
+
+      case "invoice.payment_succeeded": {
+        const invoice = event.data.object;
+        // Keep subscription active after successful renewal
+        if (invoice.subscription) {
+          const sub = await stripe.subscriptions.retrieve(invoice.subscription);
+          const orgId = sub.metadata?.organizationId;
+          if (orgId) {
+            await Organization.findByIdAndUpdate(orgId, {
+              "subscription.status": "active",
+              "subscription.currentPeriodEnd": new Date(sub.current_period_end * 1000),
+            });
+          }
+        }
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        const invoice = event.data.object;
+        if (invoice.subscription) {
+          const sub = await stripe.subscriptions.retrieve(invoice.subscription);
+          const orgId = sub.metadata?.organizationId;
+          if (orgId) {
+            await Organization.findByIdAndUpdate(orgId, {
+              "subscription.status": "past_due",
+            });
+          }
+        }
+        break;
+      }
+
+      case "checkout.session.completed": {
+        const session = event.data.object;
+        // Sync org after a successful checkout that created a subscription
+        if (session.subscription && session.customer) {
+          const sub = await stripe.subscriptions.retrieve(session.subscription);
+          const orgId = sub.metadata?.organizationId;
+          const plan = sub.metadata?.plan;
+
+          if (!orgId) {
+            console.warn("checkout.session.completed: missing organizationId in subscription metadata");
+            break;
+          }
+          if (!plan) {
+            console.warn(`checkout.session.completed: missing plan in subscription metadata for org ${orgId}`);
+          }
+
+          const update = {
+            "subscription.status": statusMap[sub.status] || (sub.status === "trialing" ? "trialing" : "active"),
             "subscription.stripeCustomerId": session.customer,
             "subscription.stripeSubscriptionId": sub.id,
-            "subscription.trialEndsAt": sub.trial_end ? new Date(sub.trial_end * 1000) : undefined,
             "subscription.currentPeriodEnd": new Date(sub.current_period_end * 1000),
-          });
-        }
-      }
-      break;
-    }
+          };
+          if (plan) update["subscription.plan"] = plan;
+          if (sub.trial_end) update["subscription.trialEndsAt"] = new Date(sub.trial_end * 1000);
 
-    default:
-      break;
+          await Organization.findByIdAndUpdate(orgId, update);
+        }
+        break;
+      }
+
+      default:
+        break;
+    }
+  } catch (err) {
+    console.error(`Error processing webhook event ${event.type}:`, err);
+    // Still return 200 to Stripe to avoid retries for processing errors
+    return res.status(200).json({ received: true, error: err.message });
   }
 
-  res.json({ received: true });
+  res.status(200).json({ received: true });
 };
 
 module.exports = {

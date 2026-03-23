@@ -160,13 +160,14 @@ const initiatePayout = async (req, res) => {
     if (periodFrom) dateFilter.$gte = new Date(periodFrom);
     if (periodTo) dateFilter.$lte = new Date(periodTo);
 
-    const timesheets = await Timesheet.find({
+    const timesheetQuery = {
       ...orgFilter,
-      _id: { $in: resolvedTimesheetIds.length > 0 ? resolvedTimesheetIds : undefined },
       driverEmail: driver.email,
       status: "approved",
+      ...(resolvedTimesheetIds.length > 0 ? { _id: { $in: resolvedTimesheetIds } } : {}),
       ...(Object.keys(dateFilter).length > 0 ? { date: dateFilter } : {}),
-    }).lean();
+    };
+    const timesheets = await Timesheet.find(timesheetQuery).lean();
 
     resolvedTimesheetIds = timesheets.map((ts) => ts._id);
     amountCad = timesheets.reduce((sum, ts) => sum + (ts.totalAmount || ts.totalPay || 0), 0);

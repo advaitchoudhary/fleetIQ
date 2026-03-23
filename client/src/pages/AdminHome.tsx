@@ -41,20 +41,30 @@ const VEHICLE_FEATURES = [
   { icon: <FaCalendarAlt size={20} />, title: "Scheduling",          desc: "Calendar view of all upcoming fleet events",   path: "/scheduling",          color: "#0891b2" },
 ];
 
+interface FleetStats {
+  vehicles: number;
+  drivers: number;
+  pendingTimesheets: number;
+}
+
 const AdminHome: React.FC = () => {
   const navigate = useNavigate();
   const [subscription, setSubscription] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<FleetStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const adminName = user?.name || user?.email?.split("@")[0] || "Admin";
 
   useEffect(() => {
-    const fetch = async () => {
+    const authHeader = { Authorization: `Bearer ${token}` };
+
+    const fetchSubscription = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/subscriptions/current`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: authHeader,
         });
         setSubscription(res.data);
       } catch {
@@ -63,7 +73,32 @@ const AdminHome: React.FC = () => {
         setLoading(false);
       }
     };
-    fetch();
+
+    const fetchStats = async () => {
+      try {
+        const [vehiclesRes, driversRes, timesheetsRes] = await Promise.allSettled([
+          axios.get(`${API_BASE_URL}/vehicles`, { headers: authHeader }),
+          axios.get(`${API_BASE_URL}/drivers`, { headers: authHeader }),
+          axios.get(`${API_BASE_URL}/timesheets?status=pending`, { headers: authHeader }),
+        ]);
+
+        const vehicles = vehiclesRes.status === "fulfilled"
+          ? (Array.isArray(vehiclesRes.value.data) ? vehiclesRes.value.data.length : 0) : 0;
+        const drivers = driversRes.status === "fulfilled"
+          ? (Array.isArray(driversRes.value.data) ? driversRes.value.data.length : 0) : 0;
+        const pendingTimesheets = timesheetsRes.status === "fulfilled"
+          ? (Array.isArray(timesheetsRes.value.data) ? timesheetsRes.value.data.length : 0) : 0;
+
+        setStats({ vehicles, drivers, pendingTimesheets });
+      } catch {
+        setStats(null);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchSubscription();
+    fetchStats();
   }, []);
 
   const plan   = subscription?.plan || "inactive";
@@ -127,6 +162,41 @@ const AdminHome: React.FC = () => {
             Manage Subscription <FaArrowRight size={11} />
           </button>
         </div>
+
+        {/* ── Fleet Stats Summary ── */}
+        {!statsLoading && stats && (
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+            gap: "14px",
+            marginBottom: "28px",
+          }}>
+            {[
+              { label: "Total Vehicles", value: stats.vehicles, icon: <FaTruck size={18} />, color: "#0891b2", bg: "#e0f2fe" },
+              { label: "Total Drivers",  value: stats.drivers,  icon: <FaUsers size={18} />, color: "#4F46E5", bg: "#eef2ff" },
+              { label: "Pending Timesheets", value: stats.pendingTimesheets, icon: <FaFileAlt size={18} />, color: "#d97706", bg: "#fef3c7" },
+            ].map((s) => (
+              <div key={s.label} style={{
+                background: "#fff",
+                border: "1px solid #e5e7eb",
+                borderRadius: "12px",
+                padding: "20px",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                display: "flex",
+                alignItems: "center",
+                gap: "14px",
+              }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: s.bg, display: "flex", alignItems: "center", justifyContent: "center", color: s.color, flexShrink: 0 }}>
+                  {s.icon}
+                </div>
+                <div>
+                  <div style={{ fontSize: "22px", fontWeight: 800, color: "#111827", lineHeight: 1 }}>{s.value}</div>
+                  <div style={{ fontSize: "12px", color: "#6b7280", marginTop: "4px", fontWeight: 500 }}>{s.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* ── Past-due warning ── */}
         {status === "past_due" && (

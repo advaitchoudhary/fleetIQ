@@ -67,7 +67,7 @@ const App: React.FC = () => {
         <Route
           path="/contact-us"
           element={
-            <ProtectedRoute requiredRole="driver">
+            <ProtectedRoute>
               <ContactUs />
             </ProtectedRoute>
           }

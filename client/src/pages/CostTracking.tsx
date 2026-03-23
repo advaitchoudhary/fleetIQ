@@ -62,11 +62,14 @@ const CostTracking: React.FC = () => {
       if (selectedVehicle) params.append("vehicleId", selectedVehicle);
 
       const [summaryRes, trendRes, catRes, vehiclesRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/costs/summary?${params}`, { headers }),
-        fetch(`${API_BASE_URL}/costs/trend?${new URLSearchParams({ ...(selectedVehicle ? { vehicleId: selectedVehicle } : {}), months: "6" })}`, { headers }),
-        fetch(`${API_BASE_URL}/costs/by-category?${params}`, { headers }),
-        fetch(`${API_BASE_URL}/vehicles`, { headers }),
+        fetch(`${API_BASE_URL}/costs/summary?${params}`, { headers: headers as Record<string, string> }),
+        fetch(`${API_BASE_URL}/costs/trend?${new URLSearchParams({ ...(selectedVehicle ? { vehicleId: selectedVehicle } : {}), months: "6" })}`, { headers: headers as Record<string, string> }),
+        fetch(`${API_BASE_URL}/costs/by-category?${params}`, { headers: headers as Record<string, string> }),
+        fetch(`${API_BASE_URL}/vehicles`, { headers: headers as Record<string, string> }),
       ]);
+      if (!summaryRes.ok || !trendRes.ok || !catRes.ok || !vehiclesRes.ok) {
+        throw new Error(`HTTP error fetching cost data`);
+      }
       const [s, t, c, v] = await Promise.all([summaryRes.json(), trendRes.json(), catRes.json(), vehiclesRes.json()]);
       setSummary(s?.totals ? s : DEMO_SUMMARY);
       setTrend(Array.isArray(t) && t.length > 0 ? t : DEMO_TREND);

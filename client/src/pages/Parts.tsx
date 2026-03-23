@@ -107,6 +107,10 @@ const Parts: React.FC = () => {
   };
 
   const handleSave = async () => {
+    if (!form.name.trim()) {
+      alert("Part name is required.");
+      return;
+    }
     setSaving(true);
     try {
       const body = {
@@ -117,36 +121,64 @@ const Parts: React.FC = () => {
       };
       const url = editingPart ? `${API_BASE_URL}/parts/${editingPart._id}` : `${API_BASE_URL}/parts`;
       const method = editingPart ? "PUT" : "POST";
-      await fetch(url, { method, headers, body: JSON.stringify(body) });
+      const res = await fetch(url, { method, headers, body: JSON.stringify(body) });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to save part.");
+        setSaving(false);
+        return;
+      }
       setIsModalOpen(false);
       fetchAll();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
     setSaving(false);
   };
 
   const handleDelete = async () => {
     if (!selectedPart) return;
-    await fetch(`${API_BASE_URL}/parts/${selectedPart._id}`, { method: "DELETE", headers });
-    setIsDeleteModalOpen(false);
-    fetchAll();
+    try {
+      const res = await fetch(`${API_BASE_URL}/parts/${selectedPart._id}`, { method: "DELETE", headers });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to delete part.");
+        return;
+      }
+      setIsDeleteModalOpen(false);
+      fetchAll();
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
   };
 
   const handleUsePart = async () => {
     if (!selectedPart) return;
+    const qty = Number(useForm.quantityUsed);
+    if (!qty || qty <= 0) {
+      alert("Quantity used must be greater than 0.");
+      return;
+    }
+    if (qty > selectedPart.quantity) {
+      alert(`Only ${selectedPart.quantity} units in stock.`);
+      return;
+    }
     setSaving(true);
     try {
-      await fetch(`${API_BASE_URL}/parts/${selectedPart._id}/use`, {
+      const res = await fetch(`${API_BASE_URL}/parts/${selectedPart._id}/use`, {
         method: "POST", headers,
         body: JSON.stringify({
           vehicleId: useForm.vehicleId || undefined,
           maintenanceId: useForm.maintenanceId || undefined,
-          quantityUsed: Number(useForm.quantityUsed),
+          quantityUsed: qty,
           notes: useForm.notes,
         }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to record part usage.");
+        setSaving(false);
+        return;
+      }
       setIsUseModalOpen(false);
       fetchAll();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
     setSaving(false);
   };
 

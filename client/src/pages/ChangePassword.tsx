@@ -24,7 +24,7 @@ const ChangePassword: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   // Role selection logic
   const [selectedRole, setSelectedRole] = useState(
-    userRole === "admin" ? "admin" : "driver"
+    userRole === "driver" ? "driver" : "admin"
   );
   const [selectedDriver, setSelectedDriver] = useState("");
   const [drivers, setDrivers] = useState<any[]>([]);
@@ -37,30 +37,13 @@ const ChangePassword: React.FC = () => {
   }, [selectedRole]);
 
   useEffect(() => {
-    if (selectedRole === "driver" && selectedDriver) {
-      const driver = drivers.find((d: any) => d._id === selectedDriver);
-
-      let passwordToUse = "";
-
-      if (driver) {
-        if (driver.plainPassword) {
-          passwordToUse = driver.plainPassword;
-        } else if (driver.password && !driver.password.startsWith("$2b$")) {
-          passwordToUse = driver.password;
-        } else {
-          // If hashed password is present but no plain password is known → fallback to username (to assist admin)
-          passwordToUse = driver.username || "";
-        }
-      }
-
-      setOldPassword(passwordToUse);
-    } else {
-      setOldPassword("");
-    }
-
+    // Always clear all password fields when the driver selection or role changes.
+    // Never auto-fill oldPassword from driver data — exposing or transmitting
+    // plaintext passwords client-side is a security risk.
+    setOldPassword("");
     setNewPassword("");
     setConfirmPassword("");
-  }, [selectedRole, selectedDriver, drivers]);
+  }, [selectedRole, selectedDriver]);
 
   const fetchDrivers = async () => {
     try {
@@ -86,6 +69,11 @@ const ChangePassword: React.FC = () => {
       return;
     }
 
+    if (newPassword.trim().length < 8) {
+      setError("New password must be at least 8 characters long");
+      return;
+    }
+
     if (newPassword.trim() !== confirmPassword.trim()) {
       setError("New passwords do not match");
       return;
@@ -100,7 +88,7 @@ const ChangePassword: React.FC = () => {
           : `${API_BASE_URL}/auth/change-password`;
 
           const payload =
-          selectedRole === "driver" && userRole === "admin"
+          selectedRole === "driver" && userRole !== "driver"
             ? {
                 oldPassword,
                 newPassword: newPassword.trim(),
@@ -126,7 +114,14 @@ const ChangePassword: React.FC = () => {
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setTimeout(() => navigate("/"), 2000);
+      // Redirect back to dashboard; admin goes to /admin-home, drivers to /dashboard
+      setTimeout(() => {
+        if (userRole === "driver") {
+          navigate("/dashboard");
+        } else {
+          navigate("/admin-home");
+        }
+      }, 2000);
     } catch (err) {
       setError((err as any).response?.data?.error || "Failed to change password");
     } finally {
@@ -155,8 +150,8 @@ const ChangePassword: React.FC = () => {
             Your password must contain at least 8 characters, and must include at least one upper case letter,
             one lower case letter, one number and one special character.
           </p>
-          {/* Role selection radio (admin only) */}
-          {userRole === "admin" && (
+          {/* Role selection radio (admin and company_admin only — dispatcher can only change own password) */}
+          {(userRole === "admin" || userRole === "company_admin") && (
             <div style={{ display: "flex", gap: "24px", marginBottom: "20px" }}>
               <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", color: "#374151", cursor: "pointer" }}>
                 <input

@@ -135,6 +135,25 @@ const Subscription: React.FC = () => {
   const sc = STATUS_COLORS[currentStatus] || STATUS_COLORS.inactive;
   const isActive = ["trialing", "active"].includes(currentStatus);
 
+  const trialDaysLeft = (() => {
+    if (currentStatus !== "trialing" || !subscription?.trialEndsAt) return null;
+    const msLeft = new Date(subscription.trialEndsAt).getTime() - Date.now();
+    return Math.max(0, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
+  })();
+
+  if (loading) {
+    return (
+      <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
+        <Navbar />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", flexDirection: "column", gap: "12px" }}>
+          <div style={{ width: "40px", height: "40px", border: "4px solid #e5e7eb", borderTop: "4px solid #4F46E5", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+          <p style={{ color: "#6b7280", fontSize: "14px" }}>Loading subscription details...</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
       <Navbar />
@@ -161,8 +180,10 @@ const Subscription: React.FC = () => {
                 </span>
               </div>
               {subscription?.trialEndsAt && currentStatus === "trialing" && (
-                <div style={{ fontSize: "13px", color: "#6b7280", marginTop: "4px" }}>
-                  Trial ends {new Date(subscription.trialEndsAt).toLocaleDateString()}
+                <div style={{ fontSize: "13px", color: trialDaysLeft !== null && trialDaysLeft <= 3 ? "#b45309" : "#6b7280", marginTop: "4px" }}>
+                  {trialDaysLeft !== null && trialDaysLeft > 0
+                    ? `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in trial (ends ${new Date(subscription.trialEndsAt).toLocaleDateString()})`
+                    : `Trial ended ${new Date(subscription.trialEndsAt).toLocaleDateString()}`}
                 </div>
               )}
               {subscription?.currentPeriodEnd && currentStatus === "active" && (
@@ -258,7 +279,9 @@ const Subscription: React.FC = () => {
                   >
                     {redirecting === plan.key ? "Redirecting..." : (
                       <>
-                        {currentPlan ? <><FaArrowUp size={12} /> Switch to {plan.name}</> : `Start Free Trial`}
+                        {subscription?.stripeSubscriptionId
+                          ? <><FaArrowUp size={12} /> Switch to {plan.name}</>
+                          : `Start Free Trial`}
                       </>
                     )}
                   </button>

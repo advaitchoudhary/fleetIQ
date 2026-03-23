@@ -251,10 +251,10 @@ const Inspections: React.FC = () => {
                   const defectCount = (i.checklistItems || []).filter((c: any) => c.status === "defect").length;
                   return (
                     <tr key={i._id} style={styles.tr}>
-                      <td style={styles.td}>{i.date ? new Date(i.date).toLocaleDateString() : "—"}</td>
+                      <td style={styles.td}>{i.date ? new Date(i.date).toLocaleDateString(undefined, { timeZone: "UTC" }) : "—"}</td>
                       <td style={{ ...styles.td, fontWeight: 600, color: "#111827" }}>{vehicleMap[vId] || "—"}</td>
                       <td style={styles.td}>{TYPE_LABELS[i.type] || i.type}</td>
-                      <td style={styles.td}>{i.driverId?.name || "—"}</td>
+                      <td style={styles.td}>{i.driverId?.name || (typeof i.driverId === "string" ? i.driverId : "—")}</td>
                       <td style={styles.td}>{i.odometer != null ? `${i.odometer.toLocaleString()} km` : "—"}</td>
                       <td style={styles.td}>
                         {defectCount > 0 ? (
@@ -373,7 +373,7 @@ const Inspections: React.FC = () => {
               <div>
                 <h2 style={{ ...styles.modalTitle, margin: 0 }}>Inspection Report</h2>
                 <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "13px" }}>
-                  {TYPE_LABELS[viewingInspection.type]} — {viewingInspection.date ? new Date(viewingInspection.date).toLocaleDateString() : ""}
+                  {TYPE_LABELS[viewingInspection.type]} — {viewingInspection.date ? new Date(viewingInspection.date).toLocaleDateString(undefined, { timeZone: "UTC" }) : ""}
                 </p>
               </div>
               <span style={{ ...styles.badge, ...STATUS_COLORS[viewingInspection.status], fontSize: "13px", padding: "4px 12px" }}>
@@ -406,6 +406,13 @@ const Inspections: React.FC = () => {
                 ))}
               </div>
             ))}
+
+            {viewingInspection.notes && (
+              <div style={{ marginTop: "16px", padding: "12px 16px", background: "#f9fafb", borderRadius: "8px", border: "1px solid #e5e7eb" }}>
+                <div style={{ fontSize: "12px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Additional Notes</div>
+                <p style={{ margin: 0, fontSize: "13px", color: "#374151" }}>{viewingInspection.notes}</p>
+              </div>
+            )}
 
             <div style={styles.modalActions}>
               <button onClick={() => setViewingInspection(null)} style={styles.secondaryBtn}>Close</button>

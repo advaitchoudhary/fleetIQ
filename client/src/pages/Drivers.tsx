@@ -100,13 +100,21 @@ const Drivers: React.FC = () => {
     const fetchDrivers = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_BASE_URL}/drivers`);
+        const token = localStorage.getItem("token");
+        const response = await axios.get(`${API_BASE_URL}/drivers`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         const drivers = response.data;
         setData(drivers.length > 0 ? drivers : DEMO_DRIVERS);
         setLoading(false);
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
-        setData(DEMO_DRIVERS);
+        // 404 means no drivers yet — show empty state, not demo data in production
+        if (err.response?.status === 404) {
+          setData([]);
+        } else {
+          setData(DEMO_DRIVERS);
+        }
         setLoading(false);
       }
     };
@@ -115,49 +123,49 @@ const Drivers: React.FC = () => {
 
     const createDriver = async (newDriver: any) => {
     try {
-      // Step 1: Create the driver in the drivers table
-      const response = await axios.post(`${API_BASE_URL}/drivers`, newDriver);
-    
+      const token = localStorage.getItem("token");
+      // Create the driver record (backend hashes the password and creates the driver)
+      const response = await axios.post(`${API_BASE_URL}/drivers`, newDriver, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
       if (response.status === 201 || response.status === 200) {
-          const { name, email, password } = newDriver;
-    
-          // Step 2: Create a user entry in the users table
-        await axios.post(`${API_BASE_URL}/auth/register`, {
-            name,
-            email,
-            password,  // Ensure password is stored securely (hashed in backend)
-            role: "driver",  // Assign role as "driver"
-        });
-    
         fetchDrivers();
         setIsAddModalOpen(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating driver:", error);
+      alert(error.response?.data?.message || "Failed to create driver");
     }
   };
 
     const updateDriver = async (updatedDriver: any) => {
-      console.log(updatedDriver);
     try {
-      await axios.put(`${API_BASE_URL}/drivers/${updatedDriver._id}`, updatedDriver);
+      const token = localStorage.getItem("token");
+      await axios.put(`${API_BASE_URL}/drivers/${updatedDriver._id}`, updatedDriver, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        fetchDrivers(); // Refresh list
+      fetchDrivers(); // Refresh list
       setIsEditModalOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating driver:", error);
+      alert(error.response?.data?.message || "Failed to update driver");
     }
   };
 
   const deleteDriver = async () => {
     try {
-      // await axios.delete(`${API_BASE_URL}/delete/drivers/${selectedDriver._id}`);
-      await axios.delete(`${API_BASE_URL}/drivers/${selectedDriver._id}`);
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_BASE_URL}/drivers/${selectedDriver._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-        fetchDrivers(); // Refresh list
+      fetchDrivers(); // Refresh list
       setIsDeleteModalOpen(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting driver:", error);
+      alert(error.response?.data?.message || "Failed to delete driver");
     }
   };
 
@@ -206,9 +214,9 @@ const Drivers: React.FC = () => {
   // Filtering and sorting logic for search and hours sort
   const filteredData = useMemo(() => {
     let result = data.filter((driver) =>
-      driver.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      driver.email.toLowerCase().includes(searchText.toLowerCase()) ||
-      driver.contact.toLowerCase().includes(searchText.toLowerCase())
+      (driver.name || "").toLowerCase().includes(searchText.toLowerCase()) ||
+      (driver.email || "").toLowerCase().includes(searchText.toLowerCase()) ||
+      (driver.contact || "").toLowerCase().includes(searchText.toLowerCase())
     );
 
     if (sortOrder !== "none") {

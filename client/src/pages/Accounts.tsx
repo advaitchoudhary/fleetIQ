@@ -1,10 +1,14 @@
 import React from "react";
+import Navbar from "./Navbar";
 
 const Accounts: React.FC = () => {
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Accounts Page</h1>
-      <p style={styles.description}>Manage financial accounts and billing details here.</p>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
+      <Navbar />
+      <div style={styles.container}>
+        <h1 style={styles.title}>Accounts Page</h1>
+        <p style={styles.description}>Manage financial accounts and billing details here.</p>
+      </div>
     </div>
   );
 };

@@ -168,7 +168,7 @@ const Pricing: React.FC = () => {
           })}
         </div>
         {billing === "annual" && (
-          <p style={{ textAlign: "center", fontSize: "13px", color: "#9ca3af", marginTop: "-40px", marginBottom: "48px" }}>
+          <p style={{ textAlign: "center", fontSize: "13px", color: "#9ca3af", marginTop: "8px", marginBottom: "48px" }}>
             *Annual pricing billed as one payment. Monthly rates shown for comparison.
           </p>
         )}

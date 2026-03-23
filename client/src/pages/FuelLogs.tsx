@@ -200,7 +200,7 @@ const FuelLogs: React.FC = () => {
                 <div key={s.vehicleId} style={{ background: "#f9fafb", borderRadius: "8px", padding: "14px", border: "1px solid #e5e7eb" }}>
                   <div style={{ fontWeight: 700, fontSize: "14px", color: "#111827", marginBottom: "8px" }}>{vehicleMap[s.vehicleId] || s.vehicleId}</div>
                   <div style={{ fontSize: "12px", color: "#6b7280", display: "flex", flexDirection: "column", gap: "3px" }}>
-                    <span>Fill-ups: {s.totalFillUps}</span>
+                    <span>Fill-ups: {s.fillUps ?? s.totalFillUps}</span>
                     <span>Total: {s.totalLitres?.toFixed(1)} L</span>
                     <span>Spent: ${s.totalCost?.toFixed(2)}</span>
                     {s.avgL100km > 0 && <span style={{ color: "#4F46E5", fontWeight: 600 }}>{s.avgL100km?.toFixed(1)} L/100km</span>}
@@ -245,7 +245,7 @@ const FuelLogs: React.FC = () => {
                   const vId = l.vehicleId?._id || l.vehicleId;
                   return (
                     <tr key={l._id} style={styles.tr}>
-                      <td style={styles.td}>{l.date ? new Date(l.date).toLocaleDateString() : "—"}</td>
+                      <td style={styles.td}>{l.date ? new Date(l.date).toLocaleDateString(undefined, { timeZone: "UTC" }) : "—"}</td>
                       <td style={{ ...styles.td, fontWeight: 600, color: "#111827" }}>{vehicleMap[vId] || "—"}</td>
                       <td style={styles.td}>{l.odometer != null ? `${l.odometer.toLocaleString()} km` : "—"}</td>
                       <td style={styles.td}>{l.litres?.toFixed(1)} L</td>
@@ -340,7 +340,7 @@ const FuelLogs: React.FC = () => {
           <div style={{ ...styles.modal, maxWidth: "420px" }}>
             <h2 style={styles.modalTitle}>Delete Fuel Log</h2>
             <p style={{ color: "#374151", marginBottom: "24px" }}>
-              Delete this fuel entry for <strong>{vehicleMap[selectedLog.vehicleId?._id || selectedLog.vehicleId]}</strong> on {selectedLog.date ? new Date(selectedLog.date).toLocaleDateString() : ""}?
+              Delete this fuel entry for <strong>{vehicleMap[selectedLog.vehicleId?._id || selectedLog.vehicleId]}</strong> on {selectedLog.date ? new Date(selectedLog.date).toLocaleDateString(undefined, { timeZone: "UTC" }) : ""}?
             </p>
             <div style={styles.modalActions}>
               <button onClick={() => setIsDeleteModalOpen(false)} style={styles.secondaryBtn}>Cancel</button>

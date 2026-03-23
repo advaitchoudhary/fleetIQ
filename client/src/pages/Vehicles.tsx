@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { FaTruck, FaPlus, FaEdit, FaTrashAlt, FaSearch } from "react-icons/fa";
 import Navbar from "./Navbar";
@@ -47,26 +47,27 @@ const Vehicles: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
   const [form, setForm] = useState({ ...emptyForm });
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  const token = localStorage.getItem("token");
-  const headers = { Authorization: `Bearer ${token}` };
+  // Build headers fresh on each call so a re-login token is always picked up
+  const getHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
 
-  const fetchVehicles = async () => {
+  const fetchVehicles = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE_URL}/vehicles`, { headers });
-      setVehicles(res.data);
+      const res = await axios.get(`${API_BASE_URL}/vehicles`, { headers: getHeaders() });
+      setVehicles(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Failed to fetch vehicles", err);
       setVehicles([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchVehicles();
-  }, []);
+  }, [fetchVehicles]);
 
   const openAddModal = () => {
     setEditingVehicle(null);
@@ -105,14 +106,14 @@ const Vehicles: React.FC = () => {
       const payload = {
         ...form,
         year: form.year ? Number(form.year) : undefined,
-        odometer: form.odometer ? Number(form.odometer) : undefined,
+        odometer: form.odometer !== "" ? Number(form.odometer) : undefined,
         insuranceExpiry: form.insuranceExpiry || undefined,
         registrationExpiry: form.registrationExpiry || undefined,
       };
       if (editingVehicle) {
-        await axios.put(`${API_BASE_URL}/vehicles/${editingVehicle._id}`, payload, { headers });
+        await axios.put(`${API_BASE_URL}/vehicles/${editingVehicle._id}`, payload, { headers: getHeaders() });
       } else {
-        await axios.post(`${API_BASE_URL}/vehicles`, payload, { headers });
+        await axios.post(`${API_BASE_URL}/vehicles`, payload, { headers: getHeaders() });
       }
       setIsModalOpen(false);
       fetchVehicles();
@@ -124,13 +125,17 @@ const Vehicles: React.FC = () => {
   };
 
   const handleDelete = async () => {
+    if (deleting) return;
+    setDeleting(true);
     try {
-      await axios.delete(`${API_BASE_URL}/vehicles/${selectedVehicle._id}`, { headers });
+      await axios.delete(`${API_BASE_URL}/vehicles/${selectedVehicle._id}`, { headers: getHeaders() });
       setIsDeleteModalOpen(false);
       setSelectedVehicle(null);
       fetchVehicles();
-    } catch (err) {
-      alert("Failed to delete vehicle");
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to delete vehicle");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -328,10 +333,10 @@ const Vehicles: React.FC = () => {
                 <label style={styles.label}>Registration Expiry</label>
                 <input style={styles.input} type="date" value={form.registrationExpiry} onChange={(e) => setForm({ ...form, registrationExpiry: e.target.value })} />
               </div>
-            </div>
-            <div style={{ gridColumn: "1 / -1" }}>
-              <label style={styles.label}>Notes</label>
-              <textarea style={{ ...styles.input, height: "72px", resize: "vertical" }} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              <div style={{ gridColumn: "1 / -1" }}>
+                <label style={styles.label}>Notes</label>
+                <textarea style={{ ...styles.input, height: "72px", resize: "vertical" }} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              </div>
             </div>
             <div style={styles.modalActions}>
               <button onClick={() => setIsModalOpen(false)} style={styles.secondaryBtn}>Cancel</button>
@@ -352,8 +357,10 @@ const Vehicles: React.FC = () => {
               Are you sure you want to delete <strong>{selectedVehicle.unitNumber}</strong>? This action cannot be undone.
             </p>
             <div style={styles.modalActions}>
-              <button onClick={() => setIsDeleteModalOpen(false)} style={styles.secondaryBtn}>Cancel</button>
-              <button onClick={handleDelete} style={{ ...styles.primaryBtn, background: "#dc2626" }}>Delete</button>
+              <button onClick={() => setIsDeleteModalOpen(false)} style={styles.secondaryBtn} disabled={deleting}>Cancel</button>
+              <button onClick={handleDelete} style={{ ...styles.primaryBtn, background: "#dc2626" }} disabled={deleting}>
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
             </div>
           </div>
         </div>

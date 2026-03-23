@@ -39,7 +39,11 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/notifications`);
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_BASE_URL}/notifications`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!res.ok) return; // Silently skip if unauthorized or server error
         const data = await res.json();
         setNotifications(data);
         setUnreadCount(data.filter((n: any) => !n.read).length);
@@ -54,8 +58,10 @@ const Navbar: React.FC = () => {
 
   const handleMarkAllRead = useCallback(async () => {
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(`${API_BASE_URL}/notifications/markAllRead`, {
         method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
       if (!response.ok) throw new Error("Failed to mark all as read");
@@ -110,7 +116,7 @@ const Navbar: React.FC = () => {
       )}
 
       {/* Header */}
-      <header style={styles.header} data-nav-header>
+      <header style={{ ...styles.header, top: isInsideOrg ? "33px" : "0" }} data-nav-header>
         <div style={styles.rowDiv}>
 
           <div
@@ -163,8 +169,11 @@ const Navbar: React.FC = () => {
                             key={index}
                             onClick={async () => {
                               try {
+                                const token = localStorage.getItem("token");
+                                const authHeaders: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
                                 await fetch(`${API_BASE_URL}/notifications/${notification._id}/markRead`, {
                                   method: "POST",
+                                  headers: authHeaders,
                                 });
                                 const updatedNotifications = notifications.map((n, i) =>
                                   i === index ? { ...n, read: true } : n
@@ -191,11 +200,15 @@ const Navbar: React.FC = () => {
                                 onClick={async (e) => {
                                   e.stopPropagation(); // Prevent row click from firing
                                   try {
+                                    const token = localStorage.getItem("token");
+                                    const authHeaders: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
                                     await fetch(`${API_BASE_URL}/notifications/${notification._id}/markRead`, {
                                       method: "POST",
+                                      headers: authHeaders,
                                     });
                                     await fetch(`${API_BASE_URL}/notifications/${notification._id}`, {
                                       method: "DELETE",
+                                      headers: authHeaders,
                                     });
                                     const filtered = notifications.filter((_, i) => i !== index);
                                     setNotifications(filtered);
@@ -246,30 +259,49 @@ const Navbar: React.FC = () => {
             Fleet<span style={{ color: "#818CF8" }}>IQ</span>
           </span>
         </div>
+
+        {/* Driver profile block */}
+        {user?.role === "driver" && (
+          <div style={styles.driverProfile}>
+            <div style={styles.driverAvatar}>
+              {(user.name || "D").charAt(0).toUpperCase()}
+            </div>
+            <div style={styles.driverProfileInfo}>
+              <div style={styles.driverProfileName}>{user.name || "Driver"}</div>
+              {(user as any).driverId && (
+                <div style={styles.driverIdBadge}>{(user as any).driverId}</div>
+              )}
+              {(user as any).orgName && (
+                <div style={styles.driverOrgBadge}>{(user as any).orgName}</div>
+              )}
+            </div>
+          </div>
+        )}
+
         <ul style={styles.navList}>
           {user?.role === "driver" && (
             <>
               <li style={styles.navItem}>
-                <Link to="/dashboard" style={styles.navLink}>
-                  <MdDashboard size={20} /> Dashboard
+                <Link to="/dashboard" style={styles.driverNavLink}>
+                  <MdDashboard size={18} /> Dashboard
                 </Link>
               </li>
 
               <li style={styles.navItem}>
-                <Link to="/my-timesheet" style={styles.navLink}>
-                  <FaClock size={20} /> My Timesheet
+                <Link to="/my-timesheet" style={styles.driverNavLink}>
+                  <FaClock size={18} /> My Timesheet
                 </Link>
               </li>
 
               <li style={styles.navItem}>
-                <Link to="/my-info" style={styles.navLink}>
-                  <FaUser size={20} /> My Info
+                <Link to="/my-info" style={styles.driverNavLink}>
+                  <FaUser size={18} /> My Info
                 </Link>
               </li>
 
               <li style={styles.navItem}>
-                <Link to="/contact-us" style={styles.navLink}>
-                  <FaPhoneAlt size={20} /> Contact Us
+                <Link to="/contact-us" style={styles.driverNavLink}>
+                  <FaPhoneAlt size={18} /> Contact Us
                 </Link>
               </li>
             </>
@@ -624,6 +656,86 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: "color 0.15s, background 0.15s",
     borderRadius: "0",
   },
+  driverProfile: {
+    display: "flex",
+    alignItems: "center",
+    gap: "14px",
+    padding: "18px 20px",
+    margin: "8px 12px 4px",
+    background: "linear-gradient(135deg, rgba(79,70,229,0.25) 0%, rgba(99,102,241,0.15) 100%)",
+    border: "1px solid rgba(129,140,248,0.25)",
+    borderRadius: "12px",
+  },
+  driverAvatar: {
+    width: "44px",
+    height: "44px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg, #4F46E5, #818CF8)",
+    border: "2px solid rgba(129,140,248,0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "20px",
+    fontWeight: 700,
+    color: "#fff",
+    flexShrink: 0,
+  },
+  driverProfileInfo: {
+    flex: 1,
+    minWidth: 0,
+    overflow: "hidden",
+  },
+  driverProfileName: {
+    fontSize: "14px",
+    fontWeight: 700,
+    color: "#f9fafb",
+    whiteSpace: "nowrap" as const,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    marginBottom: "4px",
+  },
+  driverIdBadge: {
+    fontSize: "10px",
+    fontWeight: 600,
+    color: "#a5b4fc",
+    background: "rgba(79,70,229,0.3)",
+    borderRadius: "4px",
+    padding: "2px 6px",
+    display: "inline-block",
+    marginBottom: "3px",
+    whiteSpace: "nowrap" as const,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: "100%",
+  },
+  driverOrgBadge: {
+    fontSize: "10px",
+    fontWeight: 600,
+    color: "#6ee7b7",
+    background: "rgba(16,185,129,0.15)",
+    borderRadius: "4px",
+    padding: "2px 6px",
+    display: "inline-block",
+    whiteSpace: "nowrap" as const,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: "100%",
+  },
+  driverNavLink: {
+    color: "#c7d2fe",
+    textDecoration: "none",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    fontSize: "14px",
+    fontWeight: 500,
+    padding: "11px 24px",
+    cursor: "pointer",
+    width: "100%",
+    boxSizing: "border-box",
+    transition: "color 0.15s, background 0.15s",
+    borderRadius: "0",
+  },
 };
 
 export default Navbar;
@@ -665,6 +777,15 @@ nav ul li a:hover {
 
 nav ul li a:hover svg {
   color: #818CF8 !important;
+}
+
+/* Driver nav links get an indigo tinted hover */
+nav ul li a[href="/dashboard"]:hover,
+nav ul li a[href="/my-timesheet"]:hover,
+nav ul li a[href="/my-info"]:hover,
+nav ul li a[href="/contact-us"]:hover {
+  background-color: rgba(79,70,229,0.15) !important;
+  color: #e0e7ff !important;
 }
 `;
 if (typeof document !== "undefined" && !document.getElementById("hide-on-mobile-style")) {

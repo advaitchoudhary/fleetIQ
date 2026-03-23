@@ -31,14 +31,17 @@ const DriverPayments: React.FC = () => {
   const [onboarding, setOnboarding] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
 
-  const token = localStorage.getItem("token");
-  const headers = { Authorization: `Bearer ${token}` };
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    return { Authorization: `Bearer ${token}` };
+  };
 
   useEffect(() => {
     const fetchDrivers = async () => {
       try {
+        const headers = getAuthHeaders();
         const res = await axios.get(`${API_BASE_URL}/drivers`, { headers });
-        const driverList = res.data.length > 0 ? res.data : DEMO_DRIVERS_PAY;
+        const driverList = Array.isArray(res.data) && res.data.length > 0 ? res.data : DEMO_DRIVERS_PAY;
         setDrivers(driverList);
         // Fetch onboard statuses for all drivers in parallel
         const statuses = await Promise.all(
@@ -71,7 +74,7 @@ const DriverPayments: React.FC = () => {
       const res = await axios.post(
         `${API_BASE_URL}/payments/onboard/${driver._id}`,
         {},
-        { headers }
+        { headers: getAuthHeaders() }
       );
       window.open(res.data.url, "_blank");
     } catch (err: any) {
@@ -83,13 +86,14 @@ const DriverPayments: React.FC = () => {
 
   const handleCalculate = async () => {
     if (!selectedDriver) { alert("Select a driver first."); return; }
+    if (!periodFrom || !periodTo) { alert("Please select both a start and end date."); return; }
     setCalculating(true);
     setPreview(null);
     try {
       const res = await axios.post(
         `${API_BASE_URL}/payments/calculate`,
         { driverId: selectedDriver._id, periodFrom, periodTo },
-        { headers }
+        { headers: getAuthHeaders() }
       );
       setPreview(res.data);
     } catch (err: any) {
@@ -120,7 +124,7 @@ const DriverPayments: React.FC = () => {
           timesheetIds: preview.timesheets.map((t: any) => t._id),
           notes,
         },
-        { headers }
+        { headers: getAuthHeaders() }
       );
       alert(`✅ Payout of $${preview.totalAmount.toFixed(2)} CAD sent to ${selectedDriver.name}!\nTransfer ID: ${res.data.transferId}`);
       setPreview(null);

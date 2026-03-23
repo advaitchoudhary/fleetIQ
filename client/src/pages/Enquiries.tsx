@@ -10,7 +10,10 @@ const Enquiries: React.FC = () => {
   useEffect(() => {
     const fetchEnquiries = async () => {
       try {
-        const response = await axios.get(`${API_BASE_URL}/contacts`);
+        const token = localStorage.getItem("token");
+        const response = await axios.get(`${API_BASE_URL}/contacts`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setEnquiries(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
         console.error("Error fetching enquiries:", error);
@@ -19,7 +22,7 @@ const Enquiries: React.FC = () => {
         setLoading(false);
       }
     };
-  
+
     fetchEnquiries();
   }, []);
 
@@ -34,6 +37,8 @@ const Enquiries: React.FC = () => {
       </div>
       {loading ? (
         <p style={{ color: "#6b7280", fontSize: "15px" }}>Loading enquiries...</p>
+      ) : enquiries.length === 0 ? (
+        <p style={{ color: "#6b7280", fontSize: "15px" }}>No enquiries yet.</p>
       ) : (
         <div style={styles.tableWrapper}>
           <table style={styles.table}>
@@ -47,7 +52,7 @@ const Enquiries: React.FC = () => {
             </thead>
             <tbody>
               {enquiries.map((entry, index) => (
-                <tr key={index} style={index % 2 === 0 ? undefined : styles.row}>
+                <tr key={entry._id || index} style={index % 2 === 0 ? undefined : styles.row}>
                   <td style={styles.td}>{entry.name}</td>
                   <td style={styles.td}>{entry.email}</td>
                   <td style={styles.td}>{entry.message}</td>

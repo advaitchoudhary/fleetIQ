@@ -70,14 +70,26 @@ const getVehicleById = asyncHandler(async (req, res) => {
 const createVehicle = asyncHandler(async (req, res) => {
   const orgFilter = getOrgFilter(req);
 
+  // Non-admin users must have an org context
+  if (!req.organizationId && req.user?.role !== "admin") {
+    return res.status(400).json({ message: "Organization context required" });
+  }
+
+  if (!req.body.unitNumber?.trim()) {
+    return res.status(400).json({ message: "Unit number is required" });
+  }
+
   // Enforce unique unitNumber within org
   const existing = await Vehicle.findOne({ unitNumber: req.body.unitNumber, ...orgFilter });
   if (existing) {
     return res.status(400).json({ message: `Unit number "${req.body.unitNumber}" already exists` });
   }
 
+  // Strip any client-supplied organizationId to prevent spoofing
+  const { organizationId: _ignored, ...safeBody } = req.body;
+
   const vehicle = new Vehicle({
-    ...req.body,
+    ...safeBody,
     organizationId: req.organizationId,
     photos: req.files?.map((f) => f.path) || [],
   });
@@ -90,9 +102,12 @@ const createVehicle = asyncHandler(async (req, res) => {
 const updateVehicle = asyncHandler(async (req, res) => {
   const orgFilter = getOrgFilter(req);
 
+  // Strip organizationId and _id from the update payload to prevent spoofing
+  const { organizationId: _org, _id: _id, ...safeBody } = req.body;
+
   const vehicle = await Vehicle.findOneAndUpdate(
     { _id: req.params.id, ...orgFilter },
-    req.body,
+    { $set: safeBody },
     { new: true, runValidators: true }
   );
   if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
@@ -144,8 +159,8 @@ const getVehicleStats = asyncHandler(async (req, res) => {
   const Maintenance = require("../model/maintenanceModel.js");
 
   const [fuelLogs, maintenanceRecords] = await Promise.all([
-    FuelLog.find({ vehicleId: req.params.id, organizationId: req.organizationId }).lean(),
-    Maintenance.find({ vehicleId: req.params.id, organizationId: req.organizationId, status: "completed" }).lean(),
+    FuelLog.find({ vehicleId: req.params.id, ...orgFilter }).lean(),
+    Maintenance.find({ vehicleId: req.params.id, ...orgFilter, status: "completed" }).lean(),
   ]);
 
   const totalFuelCost = fuelLogs.reduce((s, f) => s + (f.totalCost || 0), 0);

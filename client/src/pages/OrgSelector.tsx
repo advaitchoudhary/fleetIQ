@@ -29,13 +29,21 @@ const OrgSelector: React.FC = () => {
   const [orgs, setOrgs] = useState<Org[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [entering, setEntering] = useState<string | null>(null);
 
   useEffect(() => {
     axios
       .get(`${API_BASE_URL}/organizations`)
-      .then((res) => setOrgs(res.data))
-      .catch(() => alert("Failed to load organisations"))
+      .then((res) => {
+        const data = res.data;
+        // API may return { orgs: [...] } or a bare array — handle both
+        setOrgs(Array.isArray(data) ? data : data.orgs ?? []);
+      })
+      .catch((err) => {
+        const msg = err.response?.data?.error || err.response?.data?.message || "Failed to load organisations";
+        setLoadError(msg);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -98,17 +106,20 @@ const OrgSelector: React.FC = () => {
         {/* Card grid */}
         {loading ? (
           <p style={{ color: "#6b7280", fontSize: "14px" }}>Loading...</p>
+        ) : loadError ? (
+          <p style={{ color: "#dc2626", fontSize: "14px" }}>{loadError}</p>
         ) : filtered.length === 0 ? (
           <p style={{ color: "#6b7280", fontSize: "14px" }}>No organisations found.</p>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: "16px" }}>
             {filtered.map((org) => {
-              const status = STATUS_COLORS[org.subscription.status] ?? STATUS_COLORS.trialing;
+              const sub = org.subscription ?? { status: "trialing" as const, plan: "bundle" };
+              const status = STATUS_COLORS[sub.status] ?? STATUS_COLORS.trialing;
               const dateLabel =
-                org.subscription.status === "trialing" && org.subscription.trialEndsAt
-                  ? `Trial ends ${new Date(org.subscription.trialEndsAt).toLocaleDateString()}`
-                  : org.subscription.currentPeriodEnd
-                  ? `Renews ${new Date(org.subscription.currentPeriodEnd).toLocaleDateString()}`
+                sub.status === "trialing" && sub.trialEndsAt
+                  ? `Trial ends ${new Date(sub.trialEndsAt).toLocaleDateString()}`
+                  : sub.currentPeriodEnd
+                  ? `Renews ${new Date(sub.currentPeriodEnd).toLocaleDateString()}`
                   : null;
 
               return (
@@ -129,7 +140,7 @@ const OrgSelector: React.FC = () => {
 
                   {/* Details */}
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "12px", color: "#6b7280" }}>
-                    <span>Plan: <strong style={{ color: "#374151" }}>{org.subscription.plan}</strong></span>
+                    <span>Plan: <strong style={{ color: "#374151" }}>{sub.plan}</strong></span>
                     {dateLabel && <span>{dateLabel}</span>}
                     <span>Joined {new Date(org.createdAt).toLocaleDateString()}</span>
                   </div>

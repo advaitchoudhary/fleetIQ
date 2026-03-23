@@ -91,36 +91,83 @@ const Warranties: React.FC = () => {
   };
 
   const handleSave = async () => {
+    if (!form.vehicleId) {
+      alert("Please select a vehicle.");
+      return;
+    }
+    if (!form.title.trim()) {
+      alert("Warranty title is required.");
+      return;
+    }
+    if (!form.startDate) {
+      alert("Start date is required.");
+      return;
+    }
+    if (!form.expiryDate) {
+      alert("Expiry date is required.");
+      return;
+    }
+    if (form.startDate && form.expiryDate && form.startDate > form.expiryDate) {
+      alert("Expiry date must be after start date.");
+      return;
+    }
     setSaving(true);
     try {
       const body = { ...form, mileageLimit: form.mileageLimit ? Number(form.mileageLimit) : undefined, currentMileage: form.currentMileage ? Number(form.currentMileage) : undefined };
       const url = editingWarranty ? `${API_BASE_URL}/warranties/${editingWarranty._id}` : `${API_BASE_URL}/warranties`;
       const method = editingWarranty ? "PUT" : "POST";
-      await fetch(url, { method, headers, body: JSON.stringify(body) });
+      const res = await fetch(url, { method, headers, body: JSON.stringify(body) });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to save warranty.");
+        setSaving(false);
+        return;
+      }
       setIsModalOpen(false);
       fetchAll();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
     setSaving(false);
   };
 
   const handleDelete = async () => {
     if (!selectedWarranty) return;
-    await fetch(`${API_BASE_URL}/warranties/${selectedWarranty._id}`, { method: "DELETE", headers });
-    setIsDeleteModalOpen(false);
-    fetchAll();
+    try {
+      const res = await fetch(`${API_BASE_URL}/warranties/${selectedWarranty._id}`, { method: "DELETE", headers });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to delete warranty.");
+        return;
+      }
+      setIsDeleteModalOpen(false);
+      fetchAll();
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
   };
 
   const handleAddClaim = async () => {
     if (!selectedWarranty) return;
+    if (!claimForm.description.trim()) {
+      alert("Claim description is required.");
+      return;
+    }
+    if (!claimForm.claimDate) {
+      alert("Claim date is required.");
+      return;
+    }
     setSaving(true);
     try {
-      await fetch(`${API_BASE_URL}/warranties/${selectedWarranty._id}/claims`, {
+      const res = await fetch(`${API_BASE_URL}/warranties/${selectedWarranty._id}/claims`, {
         method: "POST", headers,
         body: JSON.stringify({ ...claimForm, claimAmount: Number(claimForm.claimAmount) || 0 }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to submit claim.");
+        setSaving(false);
+        return;
+      }
       setIsClaimModalOpen(false);
       fetchAll();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
     setSaving(false);
   };
 

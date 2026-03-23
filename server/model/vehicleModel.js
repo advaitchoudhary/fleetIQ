@@ -8,9 +8,9 @@ const vehicleSchema = new mongoose.Schema(
       required: true,
     },
     unitNumber: { type: String, required: true }, // e.g. "TRUCK-001"
-    make: { type: String, required: true },        // e.g. "Freightliner"
-    model: { type: String, required: true },       // e.g. "Cascadia"
-    year: { type: Number, required: true },
+    make: { type: String, default: "" },           // e.g. "Freightliner"
+    model: { type: String, default: "" },          // e.g. "Cascadia"
+    year: { type: Number },
     vin: { type: String },
     licensePlate: { type: String },
     type: {

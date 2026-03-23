@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { FaCalendarAlt, FaPlus } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
@@ -26,25 +26,38 @@ const Scheduling: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState({ ...emptyForm });
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const token = localStorage.getItem("token");
-  const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+  // Memoize headers so fetchCalendar's useCallback doesn't become stale when
+  // a new render creates a new headers object reference.
+  const headers = useMemo(() => {
+    const token = localStorage.getItem("token");
+    return { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
+  }, []);
 
   const fetchCalendar = useCallback(async (month: number, year: number) => {
     setLoading(true);
+    setError(null);
     try {
       const [calRes, upRes, vRes] = await Promise.all([
         fetch(`${API_BASE_URL}/scheduling/calendar?month=${month + 1}&year=${year}`, { headers }),
         fetch(`${API_BASE_URL}/scheduling/upcoming?days=30`, { headers }),
         fetch(`${API_BASE_URL}/vehicles`, { headers }),
       ]);
+      if (!calRes.ok || !upRes.ok || !vRes.ok) {
+        throw new Error("Failed to load scheduling data. Please try again.");
+      }
       const [cal, up, v] = await Promise.all([calRes.json(), upRes.json(), vRes.json()]);
       setEvents(Array.isArray(cal) ? cal : []);
       setUpcomingEvents(Array.isArray(up) ? up : []);
       setVehicles(Array.isArray(v) ? v : []);
-    } catch (err) { console.error(err); }
-    finally { setLoading(false); }
-  }, []);
+    } catch (err: any) {
+      console.error(err);
+      setError(err?.message || "Failed to load scheduling data.");
+    } finally {
+      setLoading(false);
+    }
+  }, [headers]);
 
   useEffect(() => { fetchCalendar(currentMonth, currentYear); }, [fetchCalendar, currentMonth, currentYear]);
 
@@ -61,17 +74,30 @@ const Scheduling: React.FC = () => {
   };
 
   const handleSchedule = async () => {
+    // Client-side validation before hitting the server
+    if (!form.vehicleId) { alert("Please select a vehicle."); return; }
+    if (!form.title.trim()) { alert("Please enter a title."); return; }
+    if (!form.scheduledDate) { alert("Please select a scheduled date."); return; }
+
     setSaving(true);
     try {
-      await fetch(`${API_BASE_URL}/scheduling/events`, {
+      const res = await fetch(`${API_BASE_URL}/scheduling/events`, {
         method: "POST", headers,
         body: JSON.stringify({ ...form }),
       });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || `Server error ${res.status}`);
+      }
       setIsModalOpen(false);
       setForm({ ...emptyForm });
       fetchCalendar(currentMonth, currentYear);
-    } catch (err) { console.error(err); }
-    setSaving(false);
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.message || "Failed to schedule maintenance. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Build calendar grid
@@ -80,8 +106,10 @@ const Scheduling: React.FC = () => {
 
   const getEventsForDay = (day: number) => {
     return events.filter((e) => {
+      // Use UTC accessors to avoid timezone-offset shifting the date by one day
+      // when the server stores dates as UTC midnight (e.g. 2024-03-15T00:00:00.000Z).
       const d = new Date(e.date);
-      return d.getFullYear() === currentYear && d.getMonth() === currentMonth && d.getDate() === day;
+      return d.getUTCFullYear() === currentYear && d.getUTCMonth() === currentMonth && d.getUTCDate() === day;
     });
   };
 
@@ -106,6 +134,12 @@ const Scheduling: React.FC = () => {
             <FaPlus size={13} /> Schedule Maintenance
           </button>
         </div>
+
+        {error && (
+          <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "8px", padding: "12px 16px", marginBottom: "20px", color: "#dc2626", fontSize: "14px" }}>
+            {error}
+          </div>
+        )}
 
         <div style={styles.layout}>
           {/* Calendar */}

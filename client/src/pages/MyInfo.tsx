@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import axios from "axios";
 import { API_BASE_URL } from "../utils/env";
-import { FaUserCircle } from "react-icons/fa";
 
 const MyInfo: React.FC = () => {
   const [driver, setDriver] = useState<any>(null);
@@ -37,9 +36,11 @@ const MyInfo: React.FC = () => {
 
   useEffect(() => {
     if (driver?.email) {
+      const token = localStorage.getItem("token");
       axios
         .get(
-          `${API_BASE_URL}/timesheets?email=${encodeURIComponent(driver.email)}`
+          `${API_BASE_URL}/timesheets?email=${encodeURIComponent(driver.email)}`,
+          { headers: { Authorization: `Bearer ${token}` } }
         )
         .then((res) => setTimesheets(res.data))
         .catch((err) => console.error("Error fetching timesheets", err));
@@ -51,14 +52,17 @@ const MyInfo: React.FC = () => {
       const storedUser = localStorage.getItem("user");
       if (!storedUser) return;
       const parsedUser = JSON.parse(storedUser);
+      const token = localStorage.getItem("token");
+      const authHeaders = { Authorization: `Bearer ${token}` };
       try {
-        const allDriversRes = await axios.get(`${API_BASE_URL}/drivers`);
+        const allDriversRes = await axios.get(`${API_BASE_URL}/drivers`, { headers: authHeaders });
         const matchedDriver = allDriversRes.data.find(
           (drv: any) => drv.email === parsedUser.email
         );
         if (matchedDriver) {
           const fullDriverRes = await axios.get(
-            `${API_BASE_URL}/drivers/${matchedDriver._id}`
+            `${API_BASE_URL}/drivers/${matchedDriver._id}`,
+            { headers: authHeaders }
           );
           setDriver(fullDriverRes.data);
           setFormData(fullDriverRes.data);
@@ -99,7 +103,7 @@ const MyInfo: React.FC = () => {
   const renderFormCard = (formKey: string, formTitle: string, fileName: string) => {
     const formValue = driver.requiredOnboardingForms?.[formKey];
     return (
-      <div style={styles.formCard} key={formKey}>
+      <div style={styles.formCard} key={formKey} data-mi-form-card-inner>
         <h4 style={styles.formTitle}>{formTitle}</h4>
         {formValue ? (
           <div style={styles.formUploaded}>
@@ -224,8 +228,12 @@ const MyInfo: React.FC = () => {
     );
   };
 
+  const formsUploaded = Object.values(driver.requiredOnboardingForms || {}).filter(Boolean).length;
+  const totalForms = 6;
+  const trainingsCompleted = (driver.trainings || []).filter((t: any) => t.proofDocument).length;
+
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f0f4ff", minHeight: "100vh" }}>
       <style>{`
         @media (max-width: 1024px) {
           [data-mi-container] { padding: 24px 20px !important; }
@@ -241,6 +249,7 @@ const MyInfo: React.FC = () => {
           [data-mi-training-grid] { grid-template-columns: 1fr !important; }
           [data-mi-section] { padding: 16px !important; margin-top: 20px !important; }
           [data-mi-icon] { width: 60px !important; height: 60px !important; }
+          [data-mi-hero-stats] { flex-wrap: wrap !important; gap: 8px !important; }
         }
         @media (max-width: 480px) {
           [data-mi-container] { padding: 12px 8px !important; }
@@ -248,8 +257,57 @@ const MyInfo: React.FC = () => {
           [data-mi-title] { font-size: 20px !important; }
           [data-mi-section] { padding: 12px !important; border-radius: 12px !important; }
         }
+        [data-mi-edit-btn]:hover { background: rgba(255,255,255,0.25) !important; }
+        [data-mi-save-btn]:hover { background: #4338ca !important; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79,70,229,0.45) !important; }
+        [data-mi-form-card-inner]:hover { box-shadow: 0 4px 16px rgba(79,70,229,0.1) !important; transform: translateY(-1px); }
+        [data-mi-training-card-inner]:hover { box-shadow: 0 4px 16px rgba(79,70,229,0.1) !important; transform: translateY(-1px); }
       `}</style>
       <Navbar />
+
+      {/* ── Hero Section ─────────────────────────────────────────────── */}
+      <div style={styles.hero}>
+        <div style={styles.heroInner}>
+          <div style={styles.heroAvatar}>
+            {(driver.name || "D").charAt(0).toUpperCase()}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h1 style={styles.heroName} data-mi-title>{driver.name}</h1>
+            <div style={styles.heroBadgeRow}>
+              {driver.driverId && (
+                <span style={styles.heroBadgeId}>{driver.driverId}</span>
+              )}
+              {driver.organizationId?.name && (
+                <span style={styles.heroBadgeOrg}>{driver.organizationId.name}</span>
+              )}
+              <span style={{ ...styles.heroBadgeStatus, background: driver.status === "Active" ? "rgba(16,185,129,0.2)" : "rgba(107,114,128,0.2)", border: driver.status === "Active" ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(107,114,128,0.4)", color: driver.status === "Active" ? "#6ee7b7" : "#9ca3af" }}>
+                ● {driver.status || "Active"}
+              </span>
+            </div>
+            <div style={styles.heroStats} data-mi-hero-stats>
+              <div style={styles.heroStat}>
+                <span style={styles.heroStatNum}>{formsUploaded}/{totalForms}</span>
+                <span style={styles.heroStatLabel}>Forms Uploaded</span>
+              </div>
+              <div style={styles.heroStat}>
+                <span style={styles.heroStatNum}>{trainingsCompleted}</span>
+                <span style={styles.heroStatLabel}>Trainings Passed</span>
+              </div>
+              <div style={styles.heroStat}>
+                <span style={styles.heroStatNum}>{driver.status || "—"}</span>
+                <span style={styles.heroStatLabel}>Status</span>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            style={styles.heroEditBtn}
+            data-mi-edit-btn
+          >
+            {isEditing ? "✕ Cancel" : "✎ Edit Info"}
+          </button>
+        </div>
+      </div>
+
       <div style={styles.container} data-mi-container>
         {hasMissingForms && (
           <div style={styles.warningBanner}>
@@ -259,14 +317,9 @@ const MyInfo: React.FC = () => {
           </div>
         )}
         <div style={styles.profileCard} data-mi-card>
-          <FaUserCircle size={80} color="#4F46E5" data-mi-icon />
-          <h2 style={styles.profileTitle} data-mi-title>Welcome, {driver.name}</h2>
-          <button
-            onClick={() => setIsEditing(!isEditing)}
-            style={{ ...styles.button, marginBottom: "20px" }}
-          >
-            {isEditing ? "Cancel" : "Edit My Info"}
-          </button>
+          <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#111827", margin: "0 0 20px", paddingBottom: "14px", borderBottom: "1px solid #e0e7ff", display: "flex", alignItems: "center", gap: "8px" }}>
+            Driver Information
+          </h3>
           <div style={styles.profileInfo} data-mi-info-grid>
             <div style={styles.infoItem}>
               <span style={styles.infoLabel}>Email</span>
@@ -491,9 +544,10 @@ const MyInfo: React.FC = () => {
                   console.error("Error updating driver:", err);
                 }
               }}
-              style={{ ...styles.button, marginTop: "20px" }}
+              style={styles.saveBtn}
+              data-mi-save-btn
             >
-              Submit
+              Save Changes
             </button>
           )}
           {/* Required Onboarding Forms Section */}
@@ -524,7 +578,7 @@ const MyInfo: React.FC = () => {
                 const hasProof = training && training.proofDocument;
                 
                 return (
-                  <div key={trainingName} style={styles.trainingCard}>
+                  <div key={trainingName} style={styles.trainingCard} data-mi-training-card-inner>
                     <h4 style={styles.trainingTitle}>{trainingName}</h4>
                     {hasProof ? (
                       <div style={styles.trainingUploaded}>
@@ -738,7 +792,8 @@ const MyInfo: React.FC = () => {
                     console.error("Error saving bank details:", err);
                   }
                 }}
-                style={{ ...styles.button, marginTop: "20px" }}
+                style={styles.saveBtn}
+                data-mi-save-btn
               >
                 Save Bank Details
               </button>
@@ -751,10 +806,121 @@ const MyInfo: React.FC = () => {
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
+  hero: {
+    background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)",
+    padding: "36px 40px 32px",
+  },
+  heroInner: {
+    maxWidth: "1200px",
+    margin: "0 auto",
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "24px",
+  },
+  heroAvatar: {
+    width: "72px",
+    height: "72px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg, rgba(79,70,229,0.7), rgba(99,102,241,0.5))",
+    border: "2px solid rgba(129,140,248,0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "30px",
+    fontWeight: 700,
+    color: "#fff",
+    flexShrink: 0,
+  },
+  heroName: {
+    fontSize: "26px",
+    fontWeight: 800,
+    color: "#fff",
+    margin: "0 0 10px",
+    letterSpacing: "-0.4px",
+  },
+  heroBadgeRow: {
+    display: "flex",
+    flexWrap: "wrap" as const,
+    gap: "8px",
+    marginBottom: "16px",
+  },
+  heroBadgeId: {
+    fontSize: "11px",
+    fontWeight: 700,
+    color: "#a5b4fc",
+    background: "rgba(79,70,229,0.3)",
+    border: "1px solid rgba(129,140,248,0.4)",
+    borderRadius: "6px",
+    padding: "3px 10px",
+  },
+  heroBadgeOrg: {
+    fontSize: "11px",
+    fontWeight: 700,
+    color: "#6ee7b7",
+    background: "rgba(16,185,129,0.15)",
+    border: "1px solid rgba(16,185,129,0.35)",
+    borderRadius: "6px",
+    padding: "3px 10px",
+  },
+  heroBadgeStatus: {
+    fontSize: "11px",
+    fontWeight: 700,
+    borderRadius: "6px",
+    padding: "3px 10px",
+  },
+  heroStats: {
+    display: "flex",
+    gap: "24px",
+  },
+  heroStat: {
+    display: "flex",
+    flexDirection: "column" as const,
+    gap: "2px",
+  },
+  heroStatNum: {
+    fontSize: "20px",
+    fontWeight: 800,
+    color: "#fff",
+    lineHeight: 1,
+  },
+  heroStatLabel: {
+    fontSize: "11px",
+    color: "rgba(255,255,255,0.55)",
+    fontWeight: 500,
+  },
+  heroEditBtn: {
+    marginLeft: "auto",
+    flexShrink: 0,
+    background: "rgba(255,255,255,0.15)",
+    border: "1px solid rgba(255,255,255,0.25)",
+    color: "#fff",
+    borderRadius: "10px",
+    padding: "10px 20px",
+    fontSize: "13px",
+    fontWeight: 600,
+    cursor: "pointer",
+    transition: "background 0.2s",
+    backdropFilter: "blur(8px)",
+    alignSelf: "flex-start",
+  },
   container: {
     maxWidth: "1200px",
     margin: "0 auto",
-    padding: "24px",
+    padding: "28px 24px 40px",
+  },
+  saveBtn: {
+    backgroundColor: "#4F46E5",
+    color: "#fff",
+    padding: "12px 28px",
+    borderRadius: "10px",
+    border: "none",
+    fontSize: "14px",
+    fontWeight: 600,
+    cursor: "pointer",
+    marginTop: "24px",
+    transition: "all 0.2s ease",
+    boxShadow: "0 4px 14px rgba(79,70,229,0.35)",
+    letterSpacing: "0.2px",
   },
   button: {
     backgroundColor: "#4F46E5",
@@ -769,12 +935,11 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   profileCard: {
     backgroundColor: "#ffffff",
-    padding: "40px",
+    padding: "28px 32px",
     borderRadius: "16px",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
-    textAlign: "center",
-    marginBottom: "40px",
+    border: "1px solid #e0e7ff",
+    boxShadow: "0 1px 8px rgba(79,70,229,0.06)",
+    marginBottom: "20px",
   },
   profileTitle: {
     margin: "16px 0",
@@ -784,28 +949,26 @@ const styles: { [key: string]: React.CSSProperties } = {
     letterSpacing: "-0.3px",
   },
   profileInfo: {
-    marginTop: "28px",
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-    gap: "16px 32px",
+    gap: "4px 32px",
     fontSize: "14px",
     color: "#374151",
     textAlign: "left",
-    padding: "0 12px",
   },
   infoItem: {
     display: "flex",
     flexDirection: "column" as const,
-    gap: "2px",
-    padding: "8px 0",
+    gap: "3px",
+    padding: "12px 0",
     borderBottom: "1px solid #f3f4f6",
   },
   infoLabel: {
-    fontSize: "12px",
-    fontWeight: 600,
+    fontSize: "11px",
+    fontWeight: 700,
     color: "#6b7280",
     textTransform: "uppercase" as const,
-    letterSpacing: "0.4px",
+    letterSpacing: "0.5px",
   },
   infoValue: {
     fontSize: "15px",
@@ -816,6 +979,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: "flex",
     flexDirection: "column" as const,
     gap: "6px",
+    padding: "10px 0",
   },
   inputField: {
     padding: "10px 14px",
@@ -824,57 +988,67 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: "14px",
     backgroundColor: "#fff",
     transition: "border-color 0.2s",
+    width: "100%",
+    boxSizing: "border-box" as const,
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   labelText: {
     fontWeight: 600,
-    marginBottom: "2px",
-    fontSize: "13px",
-    color: "#374151",
+    fontSize: "12px",
+    color: "#6b7280",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.4px",
   },
   section: {
-    marginTop: "32px",
+    marginTop: "20px",
     textAlign: "left" as const,
-    padding: "24px",
+    padding: "28px 32px",
     backgroundColor: "#ffffff",
     borderRadius: "16px",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+    border: "1px solid #e0e7ff",
+    boxShadow: "0 1px 8px rgba(79,70,229,0.06)",
   },
   sectionTitle: {
-    fontSize: "15px",
+    fontSize: "16px",
     marginBottom: "8px",
     marginTop: 0,
-    borderBottom: "1px solid #e5e7eb",
-    paddingBottom: "12px",
+    borderBottom: "1px solid #e0e7ff",
+    paddingBottom: "14px",
     color: "#111827",
     fontWeight: 700,
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
   },
   sectionDescription: {
     fontSize: "14px",
     color: "#6b7280",
     marginBottom: "20px",
-    marginTop: "8px",
+    marginTop: "10px",
     textAlign: "left" as const,
+    lineHeight: "1.5",
   },
   formsGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(3, 1fr)",
-    gap: "16px",
+    gap: "14px",
     marginTop: "16px",
   },
   formCard: {
-    backgroundColor: "#f9fafb",
-    padding: "20px",
+    backgroundColor: "#fafbff",
+    padding: "18px",
     borderRadius: "12px",
-    border: "1px solid #e5e7eb",
+    border: "1px solid #e0e7ff",
     textAlign: "center" as const,
+    transition: "box-shadow 0.2s, transform 0.2s",
   },
   formTitle: {
-    fontSize: "14px",
+    fontSize: "13px",
     fontWeight: 600,
     marginBottom: "14px",
     marginTop: 0,
-    color: "#111827",
+    color: "#1e1b4b",
+    lineHeight: "1.4",
   },
   formUploaded: {
     display: "flex",
@@ -917,10 +1091,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   downloadButton: {
     backgroundColor: "#ecfdf5",
     color: "#059669",
-    padding: "7px 14px",
-    borderRadius: "8px",
+    padding: "6px 12px",
+    borderRadius: "7px",
     border: "1px solid #a7f3d0",
-    fontSize: "13px",
+    fontSize: "12px",
     fontWeight: 600,
     cursor: "pointer",
     transition: "background-color 0.2s ease",
@@ -929,10 +1103,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   uploadButton: {
     backgroundColor: "#4F46E5",
     color: "#fff",
-    padding: "7px 14px",
-    borderRadius: "8px",
+    padding: "6px 12px",
+    borderRadius: "7px",
     border: "none",
-    fontSize: "13px",
+    fontSize: "12px",
     fontWeight: 600,
     cursor: "pointer",
     transition: "background-color 0.2s ease",
@@ -943,33 +1117,37 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: "1px solid #fde68a",
     borderRadius: "12px",
     padding: "14px 20px",
-    marginBottom: "24px",
-    textAlign: "center" as const,
+    marginBottom: "20px",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
   },
   warningText: {
     color: "#92400e",
     fontSize: "14px",
     margin: 0,
+    lineHeight: "1.5",
   },
   trainingsGrid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-    gap: "16px",
+    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+    gap: "14px",
     marginTop: "16px",
   },
   trainingCard: {
-    backgroundColor: "#f9fafb",
-    padding: "20px",
+    backgroundColor: "#fafbff",
+    padding: "18px",
     borderRadius: "12px",
-    border: "1px solid #e5e7eb",
+    border: "1px solid #e0e7ff",
     textAlign: "center" as const,
+    transition: "box-shadow 0.2s, transform 0.2s",
   },
   trainingTitle: {
-    fontSize: "14px",
+    fontSize: "13px",
     fontWeight: 600,
     marginBottom: "14px",
     marginTop: 0,
-    color: "#111827",
+    color: "#1e1b4b",
     lineHeight: "1.4",
   },
   trainingUploaded: {

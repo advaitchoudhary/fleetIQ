@@ -18,7 +18,7 @@ const fuelLogSchema = new mongoose.Schema(
       default: null,
     },
     date: { type: Date, required: true },
-    odometer: { type: Number, required: true }, // odometer at fill-up
+    odometer: { type: Number }, // odometer at fill-up (optional — not always recorded)
     litres: { type: Number, required: true },    // fuel quantity (litres for CA)
     pricePerLitre: { type: Number, required: true },
     totalCost: { type: Number, required: true },

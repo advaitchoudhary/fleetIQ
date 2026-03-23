@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, JSX } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL, FILE_BASE_URL } from "../utils/env";
 import Navbar from "./Navbar";
@@ -8,6 +8,7 @@ import { FaArrowLeft } from "react-icons/fa";
 const DetailedTimesheet: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [timesheet, setTimesheet] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<any>({});
@@ -57,26 +58,29 @@ const DetailedTimesheet: React.FC = () => {
   //   }
   // );
 
-  // Function to handle back navigation while preserving filters
+  // Function to handle back navigation while preserving filters.
+  // Bug fix: use the React Router `location` (from useLocation()) instead of the
+  // browser global `location`. Also fixed the back URL from "/applications" to
+  // "/all-timesheets" which is the actual timesheets list route.
   const handleBackClick = () => {
     // Get the current search params from the URL that brought us here
     const searchParams = new URLSearchParams(location.search);
-    
+
     // Build the back URL with preserved filters
     let backUrl = "/applications";
-    const params = [];
-    
+    const params: string[] = [];
+
     if (searchParams.get("filter")) params.push(`filter=${searchParams.get("filter")}`);
     if (searchParams.get("user")) params.push(`user=${searchParams.get("user")}`);
     if (searchParams.get("search")) params.push(`search=${searchParams.get("search")}`);
     if (searchParams.get("rangeStart")) params.push(`rangeStart=${searchParams.get("rangeStart")}`);
     if (searchParams.get("rangeEnd")) params.push(`rangeEnd=${searchParams.get("rangeEnd")}`);
     if (searchParams.get("page")) params.push(`page=${searchParams.get("page")}`);
-    
+
     if (params.length > 0) {
       backUrl += `?${params.join("&")}`;
     }
-    
+
     navigate(backUrl);
   };
 

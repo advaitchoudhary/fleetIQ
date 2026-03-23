@@ -350,8 +350,9 @@ const approveDriverApplication = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "Application is not in pending status" });
     }
 
-    // Check if driver with this email already exists
-    const existingDriver = await Driver.findOne({ email: application.email });
+    // Check if driver with this email already exists in the same org
+    const orgFilter = getOrgFilter(req);
+    const existingDriver = await Driver.findOne({ email: application.email, ...orgFilter });
     if (existingDriver) {
       return res.status(400).json({ message: "Driver with this email already exists" });
     }
@@ -385,8 +386,6 @@ const approveDriverApplication = asyncHandler(async (req, res) => {
 
     // Update application status
     application.status = "Approved";
-    application.username = username;
-    application.password = defaultPassword; // Store plain password for reference
     if (adminNotes) {
       application.adminNotes = adminNotes;
     }

@@ -12,52 +12,56 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isBackButtonHovered, setIsBackButtonHovered] = useState(false);
-  const { login } = useAuth();
+  const [loginError, setLoginError] = useState("");
+  const { login, loginDirect } = useAuth();
 
   useEffect(() => {
     setEmail("");
     setPassword("");
+    setLoginError("");
   }, [role]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setLoginError("");
 
-    const loginUrl = role === "driver" ? `${API_BASE_URL}/drivers/login` : `${API_BASE_URL}/auth/login`;
-    const payload = role === "driver"
-      ? { username: email.trim(), password: password.trim() }
-      : { email: email.trim(), password: password.trim() };
+    if (!email.trim() || !password.trim()) {
+      setLoginError("Email/username and password are required.");
+      return;
+    }
 
     try {
-      const response = await axios.post(loginUrl, payload);
-      const { token, driver } = response.data;
+      if (role === "driver") {
+        // Driver login — hits the dedicated driver endpoint
+        const response = await axios.post(`${API_BASE_URL}/drivers/login`, {
+          username: email.trim(),
+          password: password.trim(),
+        });
+        const { token, driver } = response.data;
 
-      localStorage.setItem("token", token);
-
-      if (role === "admin") {
-        await login(email.trim(), password.trim()); // Admin flow → existing login handles redirect
-      } else {
-        // Normalize driver user object
         const driverUser = {
           id: driver.id,
-          username: driver.username,
           name: driver.name,
-          email: driver.email,
+          email: driver.email || driver.username,
           role: driver.role,
+          driverId: driver.driverId || null,
+          organizationId: driver.organizationId || null,
+          orgName: driver.orgName || null,
         };
-        localStorage.setItem("user", JSON.stringify(driverUser));
-        console.log("Driver login successful. Token and user stored.");
-        if(role === "driver") {
-          // Auto-redirect driver to dashboard
-          window.location.href = "/dashboard";
-        }
-        else {
-          // Redirect admin to admin dashboard
-          window.location.href = "/admin-home";
-        }
+        await loginDirect(token, driverUser);
+        navigate("/dashboard");
+      } else {
+        // Admin / company_admin / dispatcher login — delegate entirely to AuthContext.login()
+        // which calls POST /api/auth/login, stores token+user, and handles role-based redirect.
+        await login(email.trim(), password.trim());
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
-      alert("Invalid credentials or login failed.");
+      const msg =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        "Invalid credentials or login failed.";
+      setLoginError(msg);
     }
   };
 
@@ -150,7 +154,12 @@ const Login: React.FC = () => {
           Manage your trips, track your hours, and stay updated with important information.
         </p>
         <form onSubmit={handleSubmit} style={styles.form} data-login-form>
-          <select value={role} onChange={(e) => setRole(e.target.value)} style={styles.select} data-login-input>
+          {loginError && (
+            <p style={{ color: "#f87171", fontSize: "13px", marginBottom: "4px", padding: "8px 12px", backgroundColor: "rgba(239,68,68,0.12)", borderRadius: "8px", border: "1px solid rgba(239,68,68,0.3)", margin: 0 }}>
+              {loginError}
+            </p>
+          )}
+          <select value={role} onChange={(e) => { setRole(e.target.value); setLoginError(""); }} style={styles.select} data-login-input>
             <option value="admin">Admin</option>
             <option value="driver">Driver</option>
           </select>

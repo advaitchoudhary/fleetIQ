@@ -159,9 +159,19 @@ const updateClaim = asyncHandler(async (req, res) => {
   const orgFilter = getOrgFilter(req);
   const { claimId } = req.params;
 
+  // Build a $set that only updates the provided fields on the matched subdocument
+  // to avoid overwriting fields not included in req.body (e.g. documents).
+  const setFields = {};
+  const allowedClaimFields = ["claimDate", "description", "claimAmount", "approvedAmount", "status", "claimNumber", "notes"];
+  allowedClaimFields.forEach((field) => {
+    if (req.body[field] !== undefined) {
+      setFields[`claims.$.${field}`] = req.body[field];
+    }
+  });
+
   const warranty = await Warranty.findOneAndUpdate(
     { _id: req.params.id, ...orgFilter, "claims._id": claimId },
-    { $set: { "claims.$": { _id: claimId, ...req.body } } },
+    { $set: setFields },
     { new: true }
   ).populate("vehicleId", "unitNumber make model year");
 

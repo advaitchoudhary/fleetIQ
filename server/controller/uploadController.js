@@ -1,11 +1,13 @@
 const fs = require("fs");
+const path = require("path");
 const { promisify } = require("util");
 const multer = require("multer");
-// import path from "path";
 const Dispatch = require("../model/uploadModel.js"); // Import model
 const pdf2json = require("pdf2json");
+const { getOrgFilter } = require("../middleware/authMiddleware.js");
 
-const UPLOADS_DIR = "uploads/";
+// Resolve uploads directory relative to this file so it works regardless of cwd
+const UPLOADS_DIR = path.join(__dirname, "../../uploads");
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
@@ -19,7 +21,7 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({
+const multerInstance = multer({
   storage,
   fileFilter: (req, file, cb) => {
     if (file.mimetype !== "application/pdf") {
@@ -28,6 +30,16 @@ const upload = multer({
     cb(null, true);
   },
 }).single("file");
+
+// Wrap multer so file-type errors are returned as JSON (400) instead of crashing
+const upload = (req, res, next) => {
+  multerInstance(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ message: err.message || "File upload error" });
+    }
+    next();
+  });
+};
 
 const unlinkAsync = promisify(fs.unlink);
 
@@ -38,34 +50,48 @@ const processFile = async (req, res) => {
         }
 
         const filePath = req.file.path;
+        const fileName = req.file.filename;
+        // organizationId from the authenticated user (set by protect middleware)
+        const organizationId = req.organizationId || null;
+
         const pdfParser = new pdf2json();
 
         pdfParser.on("pdfParser_dataReady", async (pdfData) => {
-            const extractedText = pdfData.Pages.map(page =>
-                page.Texts.map(text => decodeURIComponent(text.R[0].T)).join(" ")
-            ).join("\n");
+            try {
+                const extractedText = pdfData.Pages.map(page =>
+                    page.Texts.map(text => decodeURIComponent(text.R[0].T)).join(" ")
+                ).join("\n");
 
-            console.log("✅ Extracted Text from PDF:\n", extractedText);  // Debug extracted text
+                const structuredData = parseDispatchSheet(extractedText);
 
-            await unlinkAsync(filePath);
+                if (structuredData.length > 0) {
+                    // Attach organizationId to every record for multi-tenant scoping
+                    const records = structuredData.map((row) => ({ ...row, organizationId }));
+                    await Dispatch.insertMany(records);
+                } else {
+                    console.log("⚠️ No structured data extracted from the PDF.");
+                }
 
-            const structuredData = parseDispatchSheet(extractedText);
+                // Delete the uploaded file after successful parsing and DB insert
+                try { await unlinkAsync(filePath); } catch (_) { /* best-effort cleanup */ }
 
-            console.log("✅ Parsed Data Before Insert:\n", structuredData);  // Debug parsed data
-
-            if (structuredData.length > 0) {
-                await Dispatch.insertMany(structuredData);
-                console.log("✅ Inserted Data into MongoDB:\n", structuredData);
-            } else {
-                console.log("⚠️ No structured data extracted from the PDF.");
+                res.status(200).json({ message: "Data extracted & saved", count: structuredData.length, structuredData });
+            } catch (innerErr) {
+                console.error("❌ Error saving dispatch data:", innerErr);
+                // Attempt cleanup even on inner error
+                try { await unlinkAsync(filePath); } catch (_) { /* ignore */ }
+                if (!res.headersSent) {
+                    res.status(500).json({ message: "Failed to save dispatch data", error: innerErr.message });
+                }
             }
-
-            res.status(200).json({ message: "Data extracted & saved", structuredData });
         });
 
-        pdfParser.on("pdfParser_dataError", err => {
+        pdfParser.on("pdfParser_dataError", async (err) => {
             console.error("❌ PDF Parsing Error:", err);
-            res.status(500).json({ message: "Failed to process PDF", error: err.message });
+            try { await unlinkAsync(filePath); } catch (_) { /* ignore */ }
+            if (!res.headersSent) {
+                res.status(500).json({ message: "Failed to process PDF", error: err.parserError || String(err) });
+            }
         });
 
         pdfParser.loadPDF(filePath);
@@ -112,8 +138,8 @@ const processFile = async (req, res) => {
 
 const getDispatches = async (req, res) => {
     try {
-        const dispatches = await Dispatch.find();
-        console.log("Fetched Dispatches from MongoDB:", dispatches); // ✅ Debugging MongoDB retrieval
+        const orgFilter = getOrgFilter(req);
+        const dispatches = await Dispatch.find(orgFilter).sort({ createdAt: -1 });
         res.status(200).json(dispatches);
     } catch (error) {
         console.error("Error fetching dispatch data:", error);

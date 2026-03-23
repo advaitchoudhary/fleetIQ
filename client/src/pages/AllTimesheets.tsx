@@ -168,24 +168,14 @@ const AllTimesheets: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchTimesheets();
-
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setUserRole(user.role);
     }
-
-    // Add focus event listener to refetch data when returning to this component
-    const handleFocus = () => {
-      // fetchTimesheets();
-    };
-
-    window.addEventListener('focus', handleFocus);
-    
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-    };
+    // Bug fix: fetchTimesheets, fetchCategoryRates, and fetchUsers are all called
+    // in the second mount useEffect below; removed duplicate call here to avoid
+    // triple API calls on initial load.
   }, []);
 
   // Refetch data when URL parameters change (e.g., when returning from child component)
@@ -298,6 +288,7 @@ const AllTimesheets: React.FC = () => {
   // Enhanced filter handlers that update URL
   const handleFilterChange = (newFilter: FilterType) => {
     setSelectedFilter(newFilter);
+    setPage(1); // Bug fix: reset to first page when period filter changes
     if (newFilter !== "Custom") {
       setRangeStart("");
       setRangeEnd("");
@@ -450,6 +441,9 @@ const AllTimesheets: React.FC = () => {
   };
 
   const fetchTimesheets = async () => {
+    // Bug fix: show loading indicator and clear stale errors on every fetch
+    setLoading(true);
+    setError(null);
     try {
       // Build query parameters for backend filtering
       const queryParams = new URLSearchParams();
