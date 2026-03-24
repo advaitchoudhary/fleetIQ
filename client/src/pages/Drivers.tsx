@@ -370,485 +370,464 @@ const Drivers: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", minHeight: "100vh", background: "#f0f4ff" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", minHeight: "100vh", background: "#0d1117", color: "#fff" }}>
       <style>{`
-        .rdp-root {
-          --rdp-day-height: 32px; --rdp-day-width: 32px;
-          --rdp-day_button-height: 32px; --rdp-day_button-width: 32px;
-          padding: 12px;
-        }
-        .rdp-caption_label { font-size: 14px; font-weight: 700; }
-        .rdp-weekday { font-size: 11px; width: 32px; }
-        .rdp-weekdays, .rdp-week { gap: 2px; }
+        input::placeholder { color: #4b5563; }
+        select option { background: #161b22; color: #f3f4f6; }
+        input:focus, select:focus { outline: none; border-color: #4F46E5 !important; box-shadow: 0 0 0 3px rgba(79,70,229,0.15) !important; }
       `}</style>
       <Navbar />
-      {/* ── Hero ─────────────────────────────────────────────────────── */}
-      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
-        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
-              <FaClipboard size={22} />
-            </div>
-            <div>
-              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Driver Management</p>
-              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>All Drivers</h1>
-              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Manage driver profiles, rates & credentials</p>
-            </div>
+      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "32px 40px" }}>
+
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+          <span>FLEET</span>
+          <span style={{ color: "#374151" }}>›</span>
+          <span style={{ color: "#9ca3af" }}>DRIVERS</span>
+        </div>
+
+        {/* Page Header */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" as const }}>
+          <div>
+            <h1 style={{ margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.5px" }}>Driver Management</h1>
+            <p style={{ margin: 0, fontSize: "14px", color: "#6b7280" }}>Manage driver profiles, rates & credentials for the entire logistical network.</p>
           </div>
-          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
             <button
-              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "rgba(34,197,94,0.2)", border: "1px solid rgba(34,197,94,0.4)", borderRadius: "8px", color: "#86efac", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", position: "relative" }}
               onClick={() => navigate("/driver-applications")}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "10px", color: "#e5e7eb", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", position: "relative" as const }}
             >
-              Driver Applications
+              <FaClipboard size={13} /> Driver Applications
               {pendingApplicationsCount > 0 && (
-                <span style={{ ...styles.notificationBadge }}>{pendingApplicationsCount}</span>
+                <span style={{ position: "absolute" as const, top: "-6px", right: "-6px", background: "#ef4444", color: "#fff", borderRadius: "50%", width: "18px", height: "18px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700 }}>{pendingApplicationsCount}</span>
               )}
             </button>
-            <button style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} onClick={() => { setIsAddModalOpen(true); setAddFieldErrors({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" }); }}>
+            <button
+              onClick={() => { setIsAddModalOpen(true); setAddFieldErrors({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" }); }}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "#4F46E5", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}
+            >
               + Add Driver
             </button>
           </div>
         </div>
-      </div>
-      <div style={styles.container}>
-        {/* Modern Header/Filter Bar */}
-        <div style={styles.headerWrapper}>
-          <div style={styles.filterBar}>
-            <div style={styles.searchWrapper}>
-              <span style={styles.searchIcon}>🔍</span>
-              <input
-                type="text"
-                placeholder="Search drivers..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                style={styles.searchInput}
-              />
-            </div>
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as "highest" | "lowest" | "none")}
-              style={styles.filterDropdown}
-            >
-              <option value="none">Sort by Hours</option>
-              <option value="highest">Highest Hours</option>
-              <option value="lowest">Lowest Hours</option>
-            </select>
+
+        {/* Search + Sort */}
+        <div style={{ display: "flex", gap: "12px", marginBottom: "16px", alignItems: "center" }}>
+          <div style={{ flex: 1, position: "relative" as const }}>
+            <span style={{ position: "absolute" as const, left: "14px", top: "50%", transform: "translateY(-50%)", color: "#4b5563", pointerEvents: "none" as const, fontSize: "14px" }}>🔍</span>
+            <input
+              type="text"
+              placeholder="Search by name, email, or badge ID..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              style={{ width: "100%", padding: "11px 16px 11px 40px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+            />
           </div>
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as "highest" | "lowest" | "none")}
+            style={{ padding: "11px 36px 11px 14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px", color: "#f3f4f6", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer", minWidth: "200px", appearance: "none" as const, WebkitAppearance: "none" as const }}
+          >
+            <option value="none">Sort by: Active Hours</option>
+            <option value="highest">Highest Hours</option>
+            <option value="lowest">Lowest Hours</option>
+          </select>
         </div>
 
-        {/* Modern Table Layout */}
-        <div style={styles.tableWrapper}>
-          <table style={styles.table}>
+        {/* Table Card */}
+        <div style={{ background: "#161b22", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: "24px" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
             <thead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th key={header.id} style={styles.th}>
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
-                  ))}
-                </tr>
-              ))}
+              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                {["S.NO", "DRIVER", "CONTACT INFORMATION", "STATUS", "HOURS (WK)", "WORK AUTHORIZATION", "ACTIONS"].map((h) => (
+                  <th key={h} style={{ padding: "14px 16px", textAlign: "left" as const, fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", whiteSpace: "nowrap" as const }}>
+                    {h}
+                  </th>
+                ))}
+              </tr>
             </thead>
             <tbody>
-              {table.getRowModel().rows.length === 0 ? (
+              {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={columns.length} style={{ textAlign: "center", padding: "20px", color: "#888" }}>
-                    No matching drivers found.
-                  </td>
+                  <td colSpan={7} style={{ padding: "48px", textAlign: "center" as const, color: "#4b5563", fontSize: "14px" }}>No matching drivers found.</td>
                 </tr>
               ) : (
-                table.getRowModel().rows.map((row) => {
-                  const isDemo = String(row.original._id).startsWith("demo-");
+                filteredData.map((driver: any, idx: number) => {
+                  const isDemo = String(driver._id).startsWith("demo-");
+                  const statusCfg: Record<string, { bg: string; border: string; color: string }> = {
+                    active:     { bg: "rgba(16,185,129,0.12)",  border: "rgba(16,185,129,0.3)",  color: "#34d399" },
+                    inactive:   { bg: "rgba(234,179,8,0.1)",    border: "rgba(234,179,8,0.3)",   color: "#fbbf24" },
+                    suspended:  { bg: "rgba(239,68,68,0.1)",    border: "rgba(239,68,68,0.3)",   color: "#f87171" },
+                    "on leave": { bg: "rgba(234,179,8,0.1)",    border: "rgba(234,179,8,0.3)",   color: "#fbbf24" },
+                  };
+                  const statusKey = (driver.status || "active").toLowerCase();
+                  const badge = statusCfg[statusKey] || statusCfg.active;
+                  const hours = parseFloat(driver.hoursThisWeek || "0");
+                  const avatarColors = ["#4F46E5", "#7c3aed", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444"];
+                  const avatarColor = avatarColors[idx % avatarColors.length];
+                  const initials = (driver.name || "?").split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase();
+                  const driverId = `OP-${String(driver._id || "").slice(-4).toUpperCase() || String(1000 + idx)}`;
+
                   return (
-                  <tr key={row.id}>
-                    {row.getVisibleCells().map((cell) => (
-                      <td
-                        key={cell.id}
-                        style={{ ...styles.td, cursor: isDemo ? "default" : "pointer" }}
-                        onClick={() => { if (!isDemo) navigate(`/profile`, { state: { driver: row.original } }); }}
-                      >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <tr
+                      key={driver._id}
+                      style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", cursor: isDemo ? "default" : "pointer", transition: "background 0.15s" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.02)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      onClick={() => { if (!isDemo) navigate("/profile", { state: { driver } }); }}
+                    >
+                      {/* S.NO */}
+                      <td style={{ padding: "18px 16px", fontSize: "13px", color: "#4b5563", fontWeight: 500, width: "60px" }}>
+                        {String(idx + 1).padStart(2, "0")}
                       </td>
-                    ))}
-                  </tr>
+
+                      {/* DRIVER */}
+                      <td style={{ padding: "18px 16px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                          <div style={{ position: "relative" as const, flexShrink: 0 }}>
+                            <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: avatarColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 700, color: "#fff" }}>
+                              {initials}
+                            </div>
+                            <div style={{ position: "absolute" as const, bottom: "1px", right: "1px", width: "9px", height: "9px", borderRadius: "50%", background: statusKey === "active" ? "#10b981" : statusKey === "suspended" ? "#ef4444" : "#f59e0b", border: "1.5px solid #161b22" }} />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: "14px", fontWeight: 700, color: "#f3f4f6", borderLeft: "2px solid #4F46E5", paddingLeft: "8px" }}>{driver.name}</div>
+                            <div style={{ fontSize: "11px", color: "#4b5563", paddingLeft: "8px", marginTop: "2px" }}>ID: {driverId}</div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* CONTACT */}
+                      <td style={{ padding: "18px 16px" }}>
+                        <div style={{ fontSize: "13px", color: "#9ca3af" }}>{driver.email}</div>
+                        <div style={{ fontSize: "12px", color: "#4b5563", marginTop: "3px" }}>{driver.contact || "—"}</div>
+                      </td>
+
+                      {/* STATUS */}
+                      <td style={{ padding: "18px 16px" }}>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "4px 10px", borderRadius: "20px", background: badge.bg, border: `1px solid ${badge.border}`, color: badge.color, fontSize: "10px", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" as const }}>
+                          ● {(driver.status || "Active").toUpperCase()}
+                        </span>
+                      </td>
+
+                      {/* HOURS */}
+                      <td style={{ padding: "18px 16px", minWidth: "80px" }}>
+                        <div style={{ fontSize: "16px", fontWeight: 700, color: "#f3f4f6" }}>{hours.toFixed(1)}</div>
+                        <div style={{ height: "2px", width: "56px", background: "rgba(255,255,255,0.08)", borderRadius: "2px", marginTop: "5px" }}>
+                          <div style={{ width: `${Math.min(100, hours / 60 * 100)}%`, height: "100%", background: statusKey === "suspended" ? "#ef4444" : "#4F46E5", borderRadius: "2px" }} />
+                        </div>
+                      </td>
+
+                      {/* WORK AUTH */}
+                      <td style={{ padding: "18px 16px", fontSize: "13px", color: "#9ca3af" }}>
+                        {driver.workStatus || "—"}
+                      </td>
+
+                      {/* ACTIONS */}
+                      <td style={{ padding: "18px 16px" }}>
+                        <div style={{ display: "flex", gap: "8px" }} onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => { if (!isDemo) handleEdit(driver); }}
+                            style={{ width: "30px", height: "30px", borderRadius: "8px", background: "rgba(79,70,229,0.12)", border: "1px solid rgba(79,70,229,0.25)", color: "#818CF8", display: "flex", alignItems: "center", justifyContent: "center", cursor: isDemo ? "not-allowed" : "pointer", opacity: isDemo ? 0.3 : 1 }}
+                          >
+                            <FaEdit size={11} />
+                          </button>
+                          <button
+                            onClick={() => { if (!isDemo) handleDelete(driver); }}
+                            style={{ width: "30px", height: "30px", borderRadius: "8px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171", display: "flex", alignItems: "center", justifyContent: "center", cursor: isDemo ? "not-allowed" : "pointer", opacity: isDemo ? 0.3 : 1 }}
+                          >
+                            <FaTrashAlt size={11} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
                   );
                 })
               )}
             </tbody>
           </table>
+
+          {/* Table footer */}
+          <div style={{ padding: "14px 20px", borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "13px", color: "#4b5563" }}>
+              Showing <strong style={{ color: "#9ca3af" }}>1–{filteredData.length}</strong> of <strong style={{ color: "#9ca3af" }}>{data.length}</strong> drivers
+            </span>
+          </div>
         </div>
+
+        {/* Stats Cards */}
+        {(() => {
+          const totalFleet = data.length;
+          const compliantCount = data.filter((d: any) => (d.status || "").toLowerCase() === "active").length;
+          const today = new Date();
+          const renewalCount = data.filter((d: any) => {
+            if (!d.licence_expiry_date) return false;
+            const exp = new Date(d.licence_expiry_date + "T00:00:00");
+            const diff = (exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+            return diff >= 0 && diff <= 15;
+          }).length;
+          const avgHrs = totalFleet > 0 ? data.reduce((s: number, d: any) => s + parseFloat(d.hoursThisWeek || "0"), 0) / totalFleet : 0;
+          const compliantPct = totalFleet > 0 ? (compliantCount / totalFleet) * 100 : 0;
+
+          const statCards = [
+            { icon: "👥", badge: null as string | null, label: "TOTAL FLEET", value: String(totalFleet), sub: "Active personnel across all regions", subColor: "#6b7280", accentRgb: "79,70,229", progress: null as number | null },
+            { icon: "✅", badge: null, label: "COMPLIANT", value: String(compliantCount), sub: null as string | null, subColor: "#6b7280", accentRgb: "16,185,129", progress: compliantPct },
+            { icon: "📋", badge: null, label: "LICENSE RENEWAL", value: String(renewalCount).padStart(2, "0"), sub: "Action required within 15 days", subColor: "#f59e0b", accentRgb: "245,158,11", progress: null },
+            { icon: "⏱", badge: null, label: "AVG. WEEKLY HRS", value: avgHrs.toFixed(1), sub: "Optimal fatigue management score", subColor: "#6b7280", accentRgb: "129,140,248", progress: null },
+          ];
+
+          return (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
+              {statCards.map((c) => (
+                <div key={c.label} style={{ background: "#161b22", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.06)", padding: "20px 22px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
+                    <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: `rgba(${c.accentRgb},0.15)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>
+                      {c.icon}
+                    </div>
+                    {c.badge && (
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: "#34d399", background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: "20px", padding: "2px 8px" }}>{c.badge}</span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px", marginBottom: "6px" }}>{c.label}</div>
+                  <div style={{ fontSize: "28px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.5px", marginBottom: "6px" }}>{c.value}</div>
+                  {c.progress !== null && (
+                    <div style={{ height: "3px", borderRadius: "3px", background: "rgba(255,255,255,0.08)", marginBottom: "6px" }}>
+                      <div style={{ width: `${c.progress}%`, height: "100%", borderRadius: "3px", background: "#10b981" }} />
+                    </div>
+                  )}
+                  {c.sub && (
+                    <div style={{ fontSize: "11px", color: c.subColor, fontWeight: 500 }}>{c.sub}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+        })()}
+
+      </div>
 
       {/* Add Driver Modal */}
       {isAddModalOpen && (
-        <div style={styles.modalOverlay} onClick={() => setIsAddModalOpen(false)}>
-          <div
-            style={styles.modal}
-            onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside modal
-          >
-            <h2 style={styles.modalTitle}>Add New Driver</h2>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }} onClick={() => setIsAddModalOpen(false)}>
+          <div style={{ background: "#141921", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.08)", width: "100%", maxWidth: "920px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(0,0,0,0.6)" }} onClick={(e) => e.stopPropagation()}>
 
-            {/* Name */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Name:</label>
-              <input
-                type="text"
-                placeholder="Enter name"
-                style={styles.input}
-                onChange={(e) => setSelectedDriver({ ...selectedDriver, name: e.target.value })}
-              />
-            </div>
-
-            {/* Email */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Email:</label>
-              <input
-                type="email"
-                placeholder="Enter email"
-                style={styles.input}
-                onChange={(e) => setSelectedDriver({ ...selectedDriver, email: e.target.value })}
-              />
-            </div>
-
-            {/* Contact */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Contact:</label>
-              <input
-                type="text"
-                placeholder="+1 (416) 555-0191"
-                value={selectedDriver.contact}
-                style={{ ...styles.input, borderColor: addFieldErrors.contact ? "#dc2626" : undefined }}
-                onChange={(e) => {
-                  const formatted = formatContact(e.target.value);
-                  setSelectedDriver({ ...selectedDriver, contact: formatted });
-                  const digits = formatted.replace(/^\+1[\s\-\(]*/, "").replace(/\D/g, "");
-                  setAddFieldErrors((prev) => ({ ...prev, contact: digits.length > 0 && digits.length < 10 ? "Enter a valid 10-digit phone number." : "" }));
-                }}
-              />
-              {addFieldErrors.contact && <p style={styles.fieldError}>{addFieldErrors.contact}</p>}
-            </div>
-
-            {/* Address */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Address:</label>
-              <input
-                type="text"
-                placeholder="Enter address"
-                style={styles.input}
-                onChange={(e) => setSelectedDriver({ ...selectedDriver, address: e.target.value })}
-              />
-            </div>
-
-            {/* HST/GST */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>HST/GST:</label>
-              <input
-                type="text"
-                placeholder="Enter HST/GST number"
-                style={styles.input}
-                onChange={(e) => setSelectedDriver({ ...selectedDriver, hst_gst: e.target.value })}
-              />
-            </div>
-
-            {/* Business Name */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Business Name:</label>
-              <input
-                type="text"
-                placeholder="Enter business name"
-                style={styles.input}
-                onChange={(e) => setSelectedDriver({ ...selectedDriver, business_name: e.target.value })}
-              />
-            </div>
-
-            {/* Backhaul Rate */}
-            <div style={styles.formGroup}>
-                <label style={styles.label}>Backhaul Rate:</label>
-                <input
-                    type="number"
-                    placeholder="Enter backhaul rate"
-                    style={styles.input}
-                    onChange={(e) => setSelectedDriver({ ...selectedDriver, backhaulRate: e.target.value })}
-                />
-            </div>
-
-            {/* Combo Rate */}
-            <div style={styles.formGroup}>
-                <label style={styles.label}>Combo Rate:</label>
-                <input
-                    type="number"
-                    placeholder="Enter combo rate"
-                    style={styles.input}
-                    onChange={(e) => setSelectedDriver({ ...selectedDriver, comboRate: e.target.value })}
-                />
-            </div>
-
-            {/* Extra Sheet/E.W Rate */}
-            <div style={styles.formGroup}>
-                <label style={styles.label}>Extra Sheet/E.W Rate:</label>
-                <input
-                    type="number"
-                    placeholder="Enter extra sheet/E.W rate"
-                    style={styles.input}
-                    onChange={(e) => setSelectedDriver({ ...selectedDriver, extraSheetEWRate: e.target.value })}
-                />
-            </div>
-
-            {/* Regular/Banner Rate */}
-            <div style={styles.formGroup}>
-                <label style={styles.label}>Regular/Banner Rate:</label>
-                <input
-                    type="number"
-                    placeholder="Enter regular/banner rate"
-                    style={styles.input}
-                    onChange={(e) => setSelectedDriver({ ...selectedDriver, regularBannerRate: e.target.value })}
-                />
-            </div>
-
-            {/* Wholesale Rate */}
-            <div style={styles.formGroup}>
-                <label style={styles.label}>Wholesale Rate:</label>
-                <input
-                    type="number"
-                    placeholder="Enter wholesale rate"
-                    style={styles.input}
-                    onChange={(e) => setSelectedDriver({ ...selectedDriver, wholesaleRate: e.target.value })}
-                />
-            </div>
-
-            {/* Voila Rate */}
-            <div style={styles.formGroup}>
-                <label style={styles.label}>Voila Rate:</label>
-                <input
-                    type="number"
-                    placeholder="Enter voila rate"
-                    style={styles.input}
-                    onChange={(e) => setSelectedDriver({ ...selectedDriver, voilaRate: e.target.value })}
-                />
-            </div>
-
-            {/* TCS Linehaul Trenton Rate */}
-            <div style={styles.formGroup}>
-                <label style={styles.label}>TCS Linehaul Trenton Rate:</label>
-                <input
-                    type="number"
-                    placeholder="Enter TCS linehaul trenton rate"
-                    style={styles.input}
-                    onChange={(e) => setSelectedDriver({ ...selectedDriver, tcsLinehaulTrentonRate: e.target.value })}
-                />
-            </div>
-
-            {/* Sin No. */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Sin No.:</label>
-              <input
-                type="text"
-                placeholder="XXX-XXX-XXX"
-                value={selectedDriver.sinNo}
-                style={{ ...styles.input, borderColor: addFieldErrors.sinNo ? "#dc2626" : undefined }}
-                onChange={(e) => {
-                  const formatted = formatSIN(e.target.value);
-                  setSelectedDriver({ ...selectedDriver, sinNo: formatted });
-                  const digits = formatted.replace(/\D/g, "");
-                  setAddFieldErrors((prev) => ({ ...prev, sinNo: digits.length > 0 && digits.length < 9 ? "SIN must be 9 digits." : digits.length === 0 ? "SIN No. is required." : "" }));
-                }}
-              />
-              {addFieldErrors.sinNo && <p style={styles.fieldError}>{addFieldErrors.sinNo}</p>}
-            </div>
-
-            {/* Work Authorization */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Work Authorization (Canada):</label>
-              <select
-                value={selectedDriver.workStatus}
-                style={styles.input}
-                onChange={(e) => {
-                  setSelectedDriver({ ...selectedDriver, workStatus: e.target.value, workAuthExpiry: "" });
-                  setShowAddWorkAuthPicker(false);
-                }}
-              >
-                <option value="">Select work authorization</option>
-                {WORK_AUTH_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.value}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Work Auth Expiry — only shown for permit-based options */}
-            {workAuthNeedsExpiry(selectedDriver.workStatus) && (
-              <div style={{ ...styles.formGroup, position: "relative" }}>
-                <label style={styles.label}>Work Authorization Expiry Date:</label>
-                <div
-                  onClick={() => setShowAddWorkAuthPicker(v => !v)}
-                  style={{ ...styles.input, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" }}
-                >
-                  <span style={{ color: selectedDriver.workAuthExpiry ? "#111827" : "#9ca3af" }}>
-                    {selectedDriver.workAuthExpiry ? format(parseISO(selectedDriver.workAuthExpiry), "MMM d, yyyy") : "Select expiry date"}
-                  </span>
-                  <FaCalendarAlt size={13} style={{ color: "#9ca3af" }} />
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "24px 28px", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "rgba(79,70,229,0.15)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaEdit size={16} color="#818CF8" />
                 </div>
-                {showAddWorkAuthPicker && (
-                  <>
-                    <div onClick={() => setShowAddWorkAuthPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
-                    <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
-                      <DayPicker
-                        mode="single"
-                        selected={selectedDriver.workAuthExpiry ? parseISO(selectedDriver.workAuthExpiry) : undefined}
-                        onSelect={(d) => {
-                          if (d) {
-                            setSelectedDriver({ ...selectedDriver, workAuthExpiry: format(d, "yyyy-MM-dd") });
-                            setShowAddWorkAuthPicker(false);
-                          }
-                        }}
-                        styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }}
-                      />
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "#f9fafb" }}>Add New Driver</div>
+                  <div style={{ fontSize: "12px", color: "#4b5563", marginTop: "2px" }}>Create a new driver profile and credentials</div>
+                </div>
+              </div>
+              <button onClick={() => setIsAddModalOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#9ca3af", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto" as const }}>
+
+              {/* IDENTITY & CREDENTIALS */}
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "24px 0 20px" }}>
+                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1.2px", whiteSpace: "nowrap" as const }}>IDENTITY & CREDENTIALS</span>
+                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", marginBottom: "14px" }}>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>FULL NAME</label>
+                  <input type="text" placeholder="Enter name" style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, name: e.target.value })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>EMAIL ADDRESS</label>
+                  <input type="email" placeholder="Enter email" style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, email: e.target.value })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>USERNAME</label>
+                  <input type="text" placeholder="Enter username" value={selectedDriver.username} style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { const v = e.target.value.trim(); setSelectedDriver({ ...selectedDriver, username: v }); checkUsernameExists(v); }} />
+                  {usernameError && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#f87171" }}>{usernameError}</p>}
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", marginBottom: "14px" }}>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>CONTACT NO.</label>
+                  <input type="text" placeholder="+1 (416) 555-0191" value={selectedDriver.contact}
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${addFieldErrors.contact ? "#ef4444" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { const formatted = formatContact(e.target.value); setSelectedDriver({ ...selectedDriver, contact: formatted }); const digits = formatted.replace(/^\+1[\s\-\(]*/, "").replace(/\D/g, ""); setAddFieldErrors((prev) => ({ ...prev, contact: digits.length > 0 && digits.length < 10 ? "Enter a valid 10-digit phone number." : "" })); }} />
+                  {addFieldErrors.contact && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#f87171" }}>{addFieldErrors.contact}</p>}
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>BUSINESS NAME</label>
+                  <input type="text" placeholder="Enter business name" style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, business_name: e.target.value })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>HST/GST NUMBER</label>
+                  <input type="text" placeholder="Enter HST/GST number" style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, hst_gst: e.target.value })} />
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", marginBottom: "14px" }}>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>SIN NO.</label>
+                  <input type="text" placeholder="XXX-XXX-XXX" value={selectedDriver.sinNo}
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${addFieldErrors.sinNo ? "#ef4444" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { const formatted = formatSIN(e.target.value); setSelectedDriver({ ...selectedDriver, sinNo: formatted }); const digits = formatted.replace(/\D/g, ""); setAddFieldErrors((prev) => ({ ...prev, sinNo: digits.length > 0 && digits.length < 9 ? "SIN must be 9 digits." : digits.length === 0 ? "SIN No. is required." : "" })); }} />
+                  {addFieldErrors.sinNo && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#f87171" }}>{addFieldErrors.sinNo}</p>}
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTHORIZATION</label>
+                  <select value={selectedDriver.workStatus}
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, cursor: "pointer" }}
+                    onChange={(e) => { setSelectedDriver({ ...selectedDriver, workStatus: e.target.value, workAuthExpiry: "" }); setShowAddWorkAuthPicker(false); }}>
+                    <option value="">Select work authorization</option>
+                    {WORK_AUTH_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.value}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>STATUS</label>
+                  <select style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, cursor: "pointer" }}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, status: e.target.value })}>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Suspended">Suspended</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* RATE CONFIGURATION */}
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "28px 0 20px" }}>
+                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1.2px", whiteSpace: "nowrap" as const }}>RATE CONFIGURATION</span>
+                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
+                {([["BACKHAUL RATE", "backhaulRate"], ["COMBO RATE", "comboRate"], ["EXTRA SHEET/E.W", "extraSheetEWRate"], ["REGULAR/BANNER", "regularBannerRate"]] as [string, string][]).map(([label, field]) => (
+                  <div key={field} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", padding: "14px 16px" }}>
+                    <div style={{ fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", marginBottom: "10px" }}>{label}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span style={{ fontSize: "14px", fontWeight: 700, color: "#4b5563" }}>$</span>
+                      <input type="number" placeholder="0.00" style={{ flex: 1, background: "none", border: "none", color: "#f3f4f6", fontSize: "16px", fontWeight: 700, fontFamily: "Inter, system-ui, sans-serif", outline: "none", width: "100%", padding: 0 }}
+                        onChange={(e) => setSelectedDriver({ ...selectedDriver, [field]: e.target.value })} />
                     </div>
-                  </>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
+                {([["WHOLESALE RATE", "wholesaleRate"], ["VOILA RATE", "voilaRate"], ["TCS LINEHAUL TRENTON", "tcsLinehaulTrentonRate"]] as [string, string][]).map(([label, field]) => (
+                  <div key={field} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", padding: "14px 16px" }}>
+                    <div style={{ fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", marginBottom: "10px" }}>{label}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span style={{ fontSize: "14px", fontWeight: 700, color: "#4b5563" }}>$</span>
+                      <input type="number" placeholder="0.00" style={{ flex: 1, background: "none", border: "none", color: "#f3f4f6", fontSize: "16px", fontWeight: 700, fontFamily: "Inter, system-ui, sans-serif", outline: "none", width: "100%", padding: 0 }}
+                        onChange={(e) => setSelectedDriver({ ...selectedDriver, [field]: e.target.value })} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* LICENSING & EXPIRY */}
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "28px 0 20px" }}>
+                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1.2px", whiteSpace: "nowrap" as const }}>LICENSING & EXPIRY</span>
+                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: workAuthNeedsExpiry(selectedDriver.workStatus) ? "1fr 1fr 1fr" : "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>LICENCE CLASS</label>
+                  <input type="text" placeholder="e.g. AZ, DZ, G" value={selectedDriver.licence}
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${addFieldErrors.licence ? "#ef4444" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { const upper = e.target.value.toUpperCase(); setSelectedDriver({ ...selectedDriver, licence: upper }); setAddFieldErrors((prev) => ({ ...prev, licence: upper.trim() === "" ? "Licence class is required." : "" })); }} />
+                  {addFieldErrors.licence && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#f87171" }}>{addFieldErrors.licence}</p>}
+                </div>
+                <div style={{ position: "relative" as const }}>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>LICENCE EXPIRY DATE</label>
+                  <div onClick={() => setShowAddExpiryPicker(v => !v)}
+                    style={{ padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${addFieldErrors.licence_expiry_date?.startsWith("Warning") ? "#d97706" : addFieldErrors.licence_expiry_date ? "#ef4444" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+                    <span style={{ color: selectedDriver.licence_expiry_date ? "#f3f4f6" : "#4b5563" }}>{selectedDriver.licence_expiry_date ? format(parseISO(selectedDriver.licence_expiry_date), "MMM d, yyyy") : "Select expiry date"}</span>
+                    <FaCalendarAlt size={13} style={{ color: "#4b5563" }} />
+                  </div>
+                  {showAddExpiryPicker && (<>
+                    <div onClick={() => setShowAddExpiryPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
+                    <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
+                      <DayPicker mode="single" selected={selectedDriver.licence_expiry_date ? parseISO(selectedDriver.licence_expiry_date) : undefined}
+                        onSelect={(d) => { if (d) { const dateStr = format(d, "yyyy-MM-dd"); setSelectedDriver({ ...selectedDriver, licence_expiry_date: dateStr }); setAddFieldErrors((prev) => ({ ...prev, licence_expiry_date: validateExpiryDate(dateStr) })); setShowAddExpiryPicker(false); } }}
+                        styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }} />
+                    </div>
+                  </>)}
+                  {addFieldErrors.licence_expiry_date && <p style={{ margin: "4px 0 0", fontSize: "11px", color: addFieldErrors.licence_expiry_date.startsWith("Warning") ? "#d97706" : "#f87171" }}>{addFieldErrors.licence_expiry_date}</p>}
+                </div>
+                {workAuthNeedsExpiry(selectedDriver.workStatus) && (
+                  <div style={{ position: "relative" as const }}>
+                    <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTH EXPIRY</label>
+                    <div onClick={() => setShowAddWorkAuthPicker(v => !v)}
+                      style={{ padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+                      <span style={{ color: selectedDriver.workAuthExpiry ? "#f3f4f6" : "#4b5563" }}>{selectedDriver.workAuthExpiry ? format(parseISO(selectedDriver.workAuthExpiry), "MMM d, yyyy") : "Select expiry date"}</span>
+                      <FaCalendarAlt size={13} style={{ color: "#4b5563" }} />
+                    </div>
+                    {showAddWorkAuthPicker && (<>
+                      <div onClick={() => setShowAddWorkAuthPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
+                      <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
+                        <DayPicker mode="single" selected={selectedDriver.workAuthExpiry ? parseISO(selectedDriver.workAuthExpiry) : undefined}
+                          onSelect={(d) => { if (d) { setSelectedDriver({ ...selectedDriver, workAuthExpiry: format(d, "yyyy-MM-dd") }); setShowAddWorkAuthPicker(false); } }}
+                          styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }} />
+                      </div>
+                    </>)}
+                  </div>
                 )}
               </div>
-            )}
 
-            {/* Licence */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Licence:</label>
-              <input
-                type="text"
-                placeholder="e.g. AZ, DZ, G"
-                value={selectedDriver.licence}
-                style={{ ...styles.input, borderColor: addFieldErrors.licence ? "#dc2626" : undefined }}
-                onChange={(e) => {
-                  const upper = e.target.value.toUpperCase();
-                  setSelectedDriver({ ...selectedDriver, licence: upper });
-                  setAddFieldErrors((prev) => ({ ...prev, licence: upper.trim() === "" ? "Licence class is required." : "" }));
-                }}
-              />
-              {addFieldErrors.licence && <p style={styles.fieldError}>{addFieldErrors.licence}</p>}
-            </div>
-
-            {/* Licence Expiry Date */}
-            <div style={{ ...styles.formGroup, position: "relative" }}>
-              <label style={styles.label}>Licence Expiry Date:</label>
-              <div
-                onClick={() => setShowAddExpiryPicker(v => !v)}
-                style={{ ...styles.input, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none", borderColor: addFieldErrors.licence_expiry_date?.startsWith("Warning") ? "#d97706" : addFieldErrors.licence_expiry_date ? "#dc2626" : undefined }}
-              >
-                <span style={{ color: selectedDriver.licence_expiry_date ? "#111827" : "#9ca3af" }}>
-                  {selectedDriver.licence_expiry_date ? format(parseISO(selectedDriver.licence_expiry_date), "MMM d, yyyy") : "Select expiry date"}
-                </span>
-                <FaCalendarAlt size={13} style={{ color: "#9ca3af" }} />
-              </div>
-              {showAddExpiryPicker && (
-                <>
-                  <div onClick={() => setShowAddExpiryPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
-                  <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
-                    <DayPicker
-                      mode="single"
-                      selected={selectedDriver.licence_expiry_date ? parseISO(selectedDriver.licence_expiry_date) : undefined}
-                      onSelect={(d) => {
-                        if (d) {
-                          const dateStr = format(d, "yyyy-MM-dd");
-                          setSelectedDriver({ ...selectedDriver, licence_expiry_date: dateStr });
-                          setAddFieldErrors((prev) => ({ ...prev, licence_expiry_date: validateExpiryDate(dateStr) }));
-                          setShowAddExpiryPicker(false);
-                        }
-                      }}
-                      styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }}
-                    />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>PASSWORD</label>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <input type="text" value={selectedDriver.password} placeholder="Enter password"
+                      style={{ flex: 1, padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" }}
+                      onChange={(e) => setSelectedDriver({ ...selectedDriver, password: e.target.value })} />
+                    <button onClick={() => handleCopyPassword(selectedDriver.password)}
+                      style={{ padding: "11px 14px", background: "rgba(79,70,229,0.12)", border: "1px solid rgba(79,70,229,0.25)", borderRadius: "8px", color: "#818CF8", cursor: "pointer", display: "flex", alignItems: "center" }}>
+                      <FaClipboard size={13} />
+                    </button>
                   </div>
-                </>
-              )}
-              {addFieldErrors.licence_expiry_date && (
-                <p style={{ ...styles.fieldError, color: addFieldErrors.licence_expiry_date.startsWith("Warning") ? "#d97706" : "#dc2626" }}>
-                  {addFieldErrors.licence_expiry_date}
-                </p>
-              )}
-            </div>
-
-            {/* Status (Dropdown) */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Status:</label>
-              <select
-                style={styles.input}
-                onChange={(e) => setSelectedDriver({ ...selectedDriver, status: e.target.value })}
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-                <option value="Suspended">Suspended</option>
-              </select>
-            </div>
-
-
-            {/* Username */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Username:</label>
-              <input
-                type="text"
-                placeholder="Enter username"
-                value={selectedDriver.username}
-                style={styles.input}
-                onChange={(e) => {
-                  const value = e.target.value.trim();
-                  setSelectedDriver({ ...selectedDriver, username: value });
-                  checkUsernameExists(value);
-                }}
-              />
-              {usernameError && (
-                <div style={{ color: "red", fontSize: "0.85rem", marginTop: "4px" }}>
-                  {usernameError}
                 </div>
-              )}
-            </div>
-
-            {/* Password */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Password:</label>
-              <div style={styles.passwordInputContainer}>
-                <input
-                  type="text"
-                  value={selectedDriver.password}
-                  placeholder="Enter password"
-                  style={styles.input}
-                  onChange={(e) => setSelectedDriver({ ...selectedDriver, password: e.target.value })}
-                />
-                <button 
-                  style={styles.clipboardButton} 
-                  onClick={() => handleCopyPassword(selectedDriver.password)}
-                >
-                  <FaClipboard />
-                </button>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>ADDRESS</label>
+                  <input type="text" placeholder="Enter address"
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, address: e.target.value })} />
+                </div>
               </div>
+
             </div>
 
-            {/* Buttons */}
-            <div style={styles.buttonGroup}>
+            {/* Footer */}
+            <div style={{ padding: "20px 28px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "flex-end", gap: "12px", flexShrink: 0 }}>
+              <button onClick={() => setIsAddModalOpen(false)} style={{ padding: "11px 20px", background: "none", border: "none", color: "#6b7280", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                Close without saving
+              </button>
               <button
-                style={styles.addButton}
                 onClick={() => {
-                  if (usernameError) {
-                    alert("Please resolve username error before submitting.");
-                    return;
-                  }
+                  if (usernameError) { alert("Please resolve username error before submitting."); return; }
                   const sinDigits = (selectedDriver.sinNo || "").replace(/\D/g, "");
                   const contactDigits = (selectedDriver.contact || "").replace(/^\+1[\s\-\(]*/, "").replace(/\D/g, "");
-                  const errors = {
-                    sinNo: sinDigits.length !== 9 ? "SIN must be 9 digits." : "",
-                    contact: contactDigits.length > 0 && contactDigits.length !== 10 ? "Enter a valid 10-digit phone number." : "",
-                    licence: !(selectedDriver.licence || "").trim() ? "Licence class is required." : "",
-                    licence_expiry_date: validateExpiryDate(selectedDriver.licence_expiry_date || "").startsWith("Warning") ? validateExpiryDate(selectedDriver.licence_expiry_date || "") : validateExpiryDate(selectedDriver.licence_expiry_date || ""),
-                  };
+                  const errors = { sinNo: sinDigits.length !== 9 ? "SIN must be 9 digits." : "", contact: contactDigits.length > 0 && contactDigits.length !== 10 ? "Enter a valid 10-digit phone number." : "", licence: !(selectedDriver.licence || "").trim() ? "Licence class is required." : "", licence_expiry_date: validateExpiryDate(selectedDriver.licence_expiry_date || "") };
                   setAddFieldErrors(errors);
                   if (errors.sinNo || errors.contact || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning"))) return;
                   createDriver({ ...selectedDriver, username: (selectedDriver.username || "").trim() });
                 }}
+                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "11px 22px", background: "#4F46E5", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}
               >
-                Add Driver
-              </button>
-              <button
-                style={styles.closeButton}
-                onClick={() => setIsAddModalOpen(false)}
-              >
-                Cancel
+                ✓ Add Driver Profile
               </button>
             </div>
           </div>
@@ -1221,7 +1200,6 @@ const Drivers: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
     </div>
 
   );

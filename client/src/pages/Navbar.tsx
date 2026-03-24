@@ -196,19 +196,6 @@ const Navbar: React.FC = () => {
         transition: "left 0.3s ease, width 0.3s ease",
         position: "fixed",
       }} data-nav-header>
-        <div style={styles.rowDiv}>
-
-          <div
-            style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            data-nav-title
-          >
-            <FaTruck size={20} style={{ color: "#818CF8" }} />
-            <span style={styles.title}>
-              Fleet<span style={{ color: "#818CF8" }}>IQ</span>
-            </span>
-          </div>
-        </div>
         <div style={styles.authButtons} data-nav-auth>
           {ADMIN_ROLES.includes(user?.role ?? "") && (
             <div style={styles.notificationIconWrapper}>
@@ -334,40 +321,23 @@ const Navbar: React.FC = () => {
           width: isSidebarCollapsed ? "72px" : "260px",
         }}
       >
-        {/* Sidebar header: logo + collapse toggle */}
+        {/* Sidebar header: logo + collapse toggle — always 56px to align with page header */}
         <div style={{
           display: "flex",
-          flexDirection: isSidebarCollapsed ? "column" : "row",
+          flexDirection: "row",
           alignItems: "center",
           justifyContent: isSidebarCollapsed ? "center" : "space-between",
-          padding: isSidebarCollapsed ? "18px 0 14px" : "18px 14px 14px 20px",
+          padding: isSidebarCollapsed ? "0 14px" : "0 14px 0 20px",
+          height: "56px",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
-          marginBottom: "6px",
           flexShrink: 0,
-          gap: isSidebarCollapsed ? "10px" : "0",
         }}>
-          {!isSidebarCollapsed ? (
+          {!isSidebarCollapsed && (
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <FaTruck size={18} style={{ color: "#818CF8" }} />
               <span style={{ fontSize: "17px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
                 Fleet<span style={{ color: "#818CF8" }}>IQ</span>
               </span>
-            </div>
-          ) : (
-            <div style={{
-              width: "38px",
-              height: "38px",
-              borderRadius: "12px",
-              background: "linear-gradient(135deg, #4F46E5, #818CF8)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: "16px",
-              fontWeight: 800,
-              color: "#fff",
-              flexShrink: 0,
-            }}>
-              {(user?.name || user?.email || "F").charAt(0).toUpperCase()}
             </div>
           )}
           <button
@@ -488,7 +458,7 @@ const Navbar: React.FC = () => {
 const styles: { [key: string]: React.CSSProperties } = {
   header: {
     display: "flex",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     alignItems: "center",
     padding: "0 24px",
     height: "56px",
