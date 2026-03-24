@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   FaClock,
   FaUser,
@@ -23,6 +23,8 @@ import {
   FaCalendarAlt,
   FaChartBar,
   FaCheckSquare as FaCheckSquareIcon,
+  FaChevronLeft,
+  FaChevronRight,
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md"; // Material Dashboard Icon
 import { useAuth } from "../contexts/AuthContext";
@@ -31,7 +33,7 @@ const ADMIN_ROLES = ["admin", "company_admin", "dispatcher"];
 import { API_BASE_URL } from "../utils/env";
 
 const Navbar: React.FC = () => {
-  const [isNavOpen, setIsNavOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -75,17 +77,80 @@ const Navbar: React.FC = () => {
   }, [notifications]);
   const { user, logout, isInsideOrg, activeOrgName, exitOrg } = useAuth();
   const navigate = useNavigate();
-  const sidebarRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
+  const isActive = (path: string) => location.pathname === path;
+
+  const getLinkStyle = (path: string, isDriver = false): React.CSSProperties => {
+    const active = isActive(path);
+    const base = active ? styles.navLinkActive : (isDriver ? styles.driverNavLink : styles.navLink);
+    if (isSidebarCollapsed) {
+      if (active) {
+        return {
+          color: "#fff",
+          textDecoration: "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 0,
+          padding: "0",
+          margin: "3px auto",
+          width: "44px",
+          height: "44px",
+          cursor: "pointer",
+          borderRadius: "13px",
+          background: "linear-gradient(135deg, #4F46E5 0%, #6366f1 100%)",
+          boxShadow: "0 4px 14px rgba(79,70,229,0.4)",
+          boxSizing: "border-box" as const,
+        };
+      }
+      return { ...base, justifyContent: "center", padding: "10px 0", margin: "2px 8px", gap: 0 };
+    }
+    return base;
+  };
+
+  const renderNavItem = (to: string, icon: React.ReactNode, label: string, isDriver = false) => (
+    <li style={{ ...styles.navItem, position: "relative" as const }}>
+      <Link to={to} style={getLinkStyle(to, isDriver)}>
+        {icon}{!isSidebarCollapsed && <span>{label}</span>}
+      </Link>
+      {isActive(to) && !isSidebarCollapsed && (
+        <div style={{
+          position: "absolute",
+          right: 0,
+          top: "50%",
+          transform: "translateY(-50%)",
+          width: "3px",
+          height: "26px",
+          background: "linear-gradient(180deg, #818CF8 0%, #4F46E5 100%)",
+          borderRadius: "3px 0 0 3px",
+        }} />
+      )}
+    </li>
+  );
   const notificationRef = useRef<HTMLDivElement>(null);
+
+  // CSS injection: push page content right and down to avoid sidebar/header overlap
+  useEffect(() => {
+    let styleEl = document.getElementById("fleetiq-sidebar-offset") as HTMLStyleElement | null;
+    if (!styleEl) {
+      styleEl = document.createElement("style") as HTMLStyleElement;
+      styleEl.id = "fleetiq-sidebar-offset";
+      document.head.appendChild(styleEl);
+    }
+    const w = isSidebarCollapsed ? 72 : 260;
+    const topOffset = isInsideOrg ? 89 : 56;
+    styleEl.textContent = `
+      div:has(> header[data-nav-header]) {
+        padding-left: ${w}px !important;
+        padding-top: ${topOffset}px !important;
+        transition: padding-left 0.3s ease;
+        box-sizing: border-box;
+      }
+    `;
+  }, [isSidebarCollapsed, isInsideOrg]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        sidebarRef.current &&
-        !sidebarRef.current.contains(event.target as Node)
-      ) {
-        setIsNavOpen(false);
-      }
       if (
         notificationRef.current &&
         !notificationRef.current.contains(event.target as Node)
@@ -104,7 +169,14 @@ const Navbar: React.FC = () => {
     <>
       {/* Super-admin org context banner */}
       {isInsideOrg && (
-        <div style={{ background: "#4F46E5", color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 24px", fontSize: "13px", fontWeight: 500, position: "sticky", top: 0, zIndex: 950 }}>
+        <div style={{
+          background: "#4F46E5", color: "#fff", display: "flex", alignItems: "center",
+          justifyContent: "space-between", padding: "7px 24px", fontSize: "13px", fontWeight: 500,
+          position: "fixed", top: 0, zIndex: 950,
+          left: isSidebarCollapsed ? "72px" : "260px",
+          width: `calc(100% - ${isSidebarCollapsed ? 72 : 260}px)`,
+          transition: "left 0.3s ease, width 0.3s ease",
+        }}>
           <span>Viewing: <strong>{activeOrgName}</strong></span>
           <button
             onClick={exitOrg}
@@ -116,12 +188,19 @@ const Navbar: React.FC = () => {
       )}
 
       {/* Header */}
-      <header style={{ ...styles.header, top: isInsideOrg ? "33px" : "0" }} data-nav-header>
+      <header style={{
+        ...styles.header,
+        top: isInsideOrg ? "33px" : "0",
+        left: isSidebarCollapsed ? "72px" : "260px",
+        width: `calc(100% - ${isSidebarCollapsed ? 72 : 260}px)`,
+        transition: "left 0.3s ease, width 0.3s ease",
+        position: "fixed",
+      }} data-nav-header>
         <div style={styles.rowDiv}>
 
           <div
             style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
-            onClick={() => setIsNavOpen(!isNavOpen)}
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             data-nav-title
           >
             <FaTruck size={20} style={{ color: "#818CF8" }} />
@@ -249,179 +328,158 @@ const Navbar: React.FC = () => {
 
       {/* Sidebar Navigation */}
       <nav
-        ref={sidebarRef}
-        style={{ ...styles.sidebar, left: isNavOpen ? "0px" : "-260px" }}
+        style={{
+          ...styles.sidebar,
+          left: "0px",
+          width: isSidebarCollapsed ? "72px" : "260px",
+        }}
       >
-        {/* Sidebar logo */}
-        <div style={styles.sidebarLogo}>
-          <FaTruck size={20} style={{ color: "#818CF8" }} />
-          <span style={{ fontSize: "18px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
-            Fleet<span style={{ color: "#818CF8" }}>IQ</span>
-          </span>
+        {/* Sidebar header: logo + collapse toggle */}
+        <div style={{
+          display: "flex",
+          flexDirection: isSidebarCollapsed ? "column" : "row",
+          alignItems: "center",
+          justifyContent: isSidebarCollapsed ? "center" : "space-between",
+          padding: isSidebarCollapsed ? "18px 0 14px" : "18px 14px 14px 20px",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          marginBottom: "6px",
+          flexShrink: 0,
+          gap: isSidebarCollapsed ? "10px" : "0",
+        }}>
+          {!isSidebarCollapsed ? (
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <FaTruck size={18} style={{ color: "#818CF8" }} />
+              <span style={{ fontSize: "17px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
+                Fleet<span style={{ color: "#818CF8" }}>IQ</span>
+              </span>
+            </div>
+          ) : (
+            <div style={{
+              width: "38px",
+              height: "38px",
+              borderRadius: "12px",
+              background: "linear-gradient(135deg, #4F46E5, #818CF8)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "16px",
+              fontWeight: 800,
+              color: "#fff",
+              flexShrink: 0,
+            }}>
+              {(user?.name || user?.email || "F").charAt(0).toUpperCase()}
+            </div>
+          )}
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            style={{
+              background: "rgba(255,255,255,0.07)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: "8px",
+              color: "#9ca3af",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "26px",
+              height: "26px",
+              padding: 0,
+              flexShrink: 0,
+            }}
+          >
+            {isSidebarCollapsed ? <FaChevronRight size={10} /> : <FaChevronLeft size={10} />}
+          </button>
         </div>
 
         {/* Driver profile block */}
         {user?.role === "driver" && (
-          <div style={styles.driverProfile}>
+          <div style={{
+            ...styles.driverProfile,
+            ...(isSidebarCollapsed ? { justifyContent: "center", padding: "12px 0", margin: "4px 8px" } : {}),
+          }}>
             <div style={styles.driverAvatar}>
               {(user.name || "D").charAt(0).toUpperCase()}
             </div>
-            <div style={styles.driverProfileInfo}>
-              <div style={styles.driverProfileName}>{user.name || "Driver"}</div>
-              {(user as any).driverId && (
-                <div style={styles.driverIdBadge}>{(user as any).driverId}</div>
-              )}
-              {(user as any).orgName && (
-                <div style={styles.driverOrgBadge}>{(user as any).orgName}</div>
-              )}
-            </div>
+            {!isSidebarCollapsed && (
+              <div style={styles.driverProfileInfo}>
+                <div style={styles.driverProfileName}>{user.name || "Driver"}</div>
+                {(user as any).driverId && (
+                  <div style={styles.driverIdBadge}>{(user as any).driverId}</div>
+                )}
+                {(user as any).orgName && (
+                  <div style={styles.driverOrgBadge}>{(user as any).orgName}</div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
         <ul style={styles.navList}>
           {user?.role === "driver" && (
             <>
-              <li style={styles.navItem}>
-                <Link to="/dashboard" style={styles.driverNavLink}>
-                  <MdDashboard size={18} /> Dashboard
-                </Link>
-              </li>
-
-              <li style={styles.navItem}>
-                <Link to="/my-timesheet" style={styles.driverNavLink}>
-                  <FaClock size={18} /> My Timesheet
-                </Link>
-              </li>
-
-              <li style={styles.navItem}>
-                <Link to="/my-info" style={styles.driverNavLink}>
-                  <FaUser size={18} /> My Info
-                </Link>
-              </li>
-
-              <li style={styles.navItem}>
-                <Link to="/contact-us" style={styles.driverNavLink}>
-                  <FaPhoneAlt size={18} /> Contact Us
-                </Link>
-              </li>
+              {renderNavItem("/dashboard",          <MdDashboard size={18} />,    "Dashboard",          true)}
+              {renderNavItem("/my-timesheet",        <FaClock size={18} />,         "My Timesheet",       true)}
+              {renderNavItem("/my-info",             <FaUser size={18} />,          "My Info",            true)}
+              {renderNavItem("/contact-us",          <FaPhoneAlt size={18} />,      "Contact Us",         true)}
             </>
           )}
 
           {ADMIN_ROLES.includes(user?.role ?? "") && (
             <>
-              <li style={styles.navItem}>
-                <Link to="/admin-home" style={styles.navLink}>
-                  <FaThLarge size={18} /> Home
-                </Link>
+              {renderNavItem("/admin-home",          <FaThLarge size={16} />,       "Home")}
+              {renderNavItem("/users",               <FaUsers size={16} />,         "Users")}
+              {renderNavItem("/invoice",             <FaFileInvoice size={16} />,   "Invoice")}
+              {renderNavItem("/applications",        <FaClipboardList size={16} />, "All Timesheets")}
+              {renderNavItem("/enquiries",           <FaPhoneAlt size={16} />,      "Enquiries")}
+              {renderNavItem("/driver-applications", <FaClipboardList size={16} />, "Driver Applications")}
+
+              <li style={{ ...styles.navItem, marginTop: "14px" }}>
+                {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Vehicle Management</span> : <div style={styles.sectionDivider} />}
               </li>
-              <li style={styles.navItem}>
-                <Link to="/users" style={styles.navLink}>
-                  <FaUsers size={20} /> Users
-                </Link>
+              {renderNavItem("/vehicles",            <FaTruck size={16} />,         "Vehicles")}
+              {renderNavItem("/maintenance",         <FaWrench size={16} />,        "Maintenance")}
+              {renderNavItem("/inspections",         <FaCheckSquare size={16} />,   "Inspections")}
+              {renderNavItem("/fuel-logs",           <FaGasPump size={16} />,       "Fuel Logs")}
+
+              <li style={{ ...styles.navItem, marginTop: "14px" }}>
+                {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Fleet Operations</span> : <div style={styles.sectionDivider} />}
               </li>
-              <li style={styles.navItem}>
-                <Link to="/invoice" style={styles.navLink}>
-                  <FaFileInvoice size={20} /> Invoice
-                </Link>
+              {renderNavItem("/parts",               <FaBox size={16} />,           "Parts Inventory")}
+              {renderNavItem("/warranties",          <FaShieldAlt size={16} />,     "Warranties")}
+              {renderNavItem("/service-history",     <FaHistory size={16} />,       "Service History")}
+              {renderNavItem("/cost-tracking",       <FaChartBar size={16} />,      "Cost Tracking")}
+              {renderNavItem("/preventive-maintenance", <FaCheckSquareIcon size={16} />, "Preventive Maint.")}
+              {renderNavItem("/scheduling",          <FaCalendarAlt size={16} />,   "Scheduling")}
+
+              <li style={{ ...styles.navItem, marginTop: "14px" }}>
+                {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Payments & Billing</span> : <div style={styles.sectionDivider} />}
               </li>
-              <li style={styles.navItem}>
-                <Link to="/applications" style={styles.navLink}>
-                  <FaClipboardList size={20} /> All Timesheets
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/enquiries" style={styles.navLink}>
-                  <FaPhoneAlt size={20} /> Enquiries
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/driver-applications" style={styles.navLink}>
-                  <FaClipboardList size={20} /> Driver Applications
-                </Link>
-              </li>
-              <li style={{ ...styles.navItem, marginTop: "12px" }}>
-                <span style={{ display: "block", padding: "6px 24px 4px", fontSize: "10px", fontWeight: 700, color: "#4b5563", textTransform: "uppercase" as const, letterSpacing: "1px" }}>
-                  Vehicle Management
-                </span>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/vehicles" style={styles.navLink}>
-                  <FaTruck size={18} /> Vehicles
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/maintenance" style={styles.navLink}>
-                  <FaWrench size={18} /> Maintenance
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/inspections" style={styles.navLink}>
-                  <FaCheckSquare size={18} /> Inspections
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/fuel-logs" style={styles.navLink}>
-                  <FaGasPump size={18} /> Fuel Logs
-                </Link>
-              </li>
-              <li style={{ ...styles.navItem, marginTop: "12px" }}>
-                <span style={{ display: "block", padding: "6px 24px 4px", fontSize: "10px", fontWeight: 700, color: "#4b5563", textTransform: "uppercase" as const, letterSpacing: "1px" }}>
-                  Fleet Operations
-                </span>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/parts" style={styles.navLink}>
-                  <FaBox size={18} /> Parts Inventory
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/warranties" style={styles.navLink}>
-                  <FaShieldAlt size={18} /> Warranties
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/service-history" style={styles.navLink}>
-                  <FaHistory size={18} /> Service History
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/cost-tracking" style={styles.navLink}>
-                  <FaChartBar size={18} /> Cost Tracking
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/preventive-maintenance" style={styles.navLink}>
-                  <FaCheckSquareIcon size={18} /> Preventive Maint.
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/scheduling" style={styles.navLink}>
-                  <FaCalendarAlt size={18} /> Scheduling
-                </Link>
-              </li>
-              <li style={{ ...styles.navItem, marginTop: "12px" }}>
-                <span style={{ display: "block", padding: "6px 24px 4px", fontSize: "10px", fontWeight: 700, color: "#4b5563", textTransform: "uppercase" as const, letterSpacing: "1px" }}>
-                  Payments & Billing
-                </span>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/payments" style={styles.navLink}>
-                  <FaDollarSign size={18} /> Driver Payments
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/payment-history" style={styles.navLink}>
-                  <FaHistory size={18} /> Payment History
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/subscription" style={styles.navLink}>
-                  <FaCreditCard size={18} /> Subscription
-                </Link>
-              </li>
+              {renderNavItem("/payments",            <FaDollarSign size={16} />,    "Driver Payments")}
+              {renderNavItem("/payment-history",     <FaHistory size={16} />,       "Payment History")}
+              {renderNavItem("/subscription",        <FaCreditCard size={16} />,    "Subscription")}
             </>
           )}
         </ul>
+
+        {/* Admin profile block at bottom */}
+        {ADMIN_ROLES.includes(user?.role ?? "") && (
+          <div style={{
+            ...styles.adminProfile,
+            ...(isSidebarCollapsed ? { justifyContent: "center", padding: "12px 0", margin: "0 8px 14px" } : {}),
+          }}>
+            <div style={styles.adminAvatar}>
+              {(user?.name || user?.email || "A").charAt(0).toUpperCase()}
+            </div>
+            {!isSidebarCollapsed && (
+              <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
+                <div style={styles.adminName}>{user?.name || user?.email || "Admin"}</div>
+                <div style={styles.adminRole}>
+                  {user?.role === "company_admin" ? "Company Admin" : user?.role === "dispatcher" ? "Dispatcher" : "Admin"}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </nav>
     </>
   );
@@ -438,7 +496,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     color: "#fff",
     fontFamily: "Inter, system-ui, sans-serif",
     boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-    position: "sticky",
+    position: "fixed",
     top: 0,
     zIndex: 900,
   },
@@ -618,25 +676,21 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: "260px",
     height: "100%",
     overflowY: "auto",
-    backgroundColor: "#111827",
+    overflowX: "hidden",
+    backgroundColor: "#0d1117",
     color: "#fff",
-    transition: "left 0.3s ease",
+    transition: "left 0.3s ease, width 0.3s ease",
     zIndex: 1000,
     fontFamily: "Inter, system-ui, sans-serif",
-    boxShadow: "4px 0 16px rgba(0,0,0,0.3)",
-  },
-  sidebarLogo: {
+    boxShadow: "4px 0 24px rgba(0,0,0,0.45)",
     display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    padding: "20px 24px 16px",
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
-    marginBottom: "8px",
+    flexDirection: "column",
   },
   navList: {
     listStyleType: "none",
-    padding: "0 0 24px",
+    padding: "0 0 8px",
     margin: "0",
+    flex: 1,
   },
   navItem: {
     listStyle: "none",
@@ -646,15 +700,84 @@ const styles: { [key: string]: React.CSSProperties } = {
     textDecoration: "none",
     display: "flex",
     alignItems: "center",
-    gap: "12px",
-    fontSize: "14px",
+    gap: "10px",
+    fontSize: "13.5px",
     fontWeight: 500,
-    padding: "11px 24px",
+    padding: "9px 14px",
+    margin: "1px 10px",
     cursor: "pointer",
-    width: "100%",
-    boxSizing: "border-box",
+    borderRadius: "10px",
     transition: "color 0.15s, background 0.15s",
-    borderRadius: "0",
+    boxSizing: "border-box",
+  },
+  navLinkActive: {
+    color: "#fff",
+    textDecoration: "none",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    fontSize: "13.5px",
+    fontWeight: 600,
+    padding: "9px 14px",
+    margin: "1px 10px",
+    cursor: "pointer",
+    borderRadius: "10px",
+    background: "linear-gradient(135deg, #4F46E5 0%, #6366f1 100%)",
+    boxShadow: "0 3px 10px rgba(79,70,229,0.35)",
+    boxSizing: "border-box",
+  },
+  sectionHeader: {
+    display: "block",
+    padding: "4px 24px",
+    fontSize: "10px",
+    fontWeight: 700,
+    color: "#374151",
+    textTransform: "uppercase" as const,
+    letterSpacing: "1.1px",
+  },
+  sectionDivider: {
+    height: "1px",
+    background: "rgba(255,255,255,0.06)",
+    margin: "0 14px",
+  },
+  adminProfile: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    padding: "12px 14px",
+    margin: "auto 10px 14px",
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.07)",
+    borderRadius: "12px",
+    flexShrink: 0,
+  },
+  adminAvatar: {
+    width: "34px",
+    height: "34px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg, #4F46E5, #818CF8)",
+    border: "2px solid rgba(129,140,248,0.35)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "14px",
+    fontWeight: 700,
+    color: "#fff",
+    flexShrink: 0,
+  },
+  adminName: {
+    fontSize: "13px",
+    fontWeight: 600,
+    color: "#f3f4f6",
+    whiteSpace: "nowrap" as const,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+  adminRole: {
+    fontSize: "11px",
+    fontWeight: 500,
+    color: "#6b7280",
+    marginTop: "1px",
   },
   driverProfile: {
     display: "flex",
@@ -726,15 +849,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     textDecoration: "none",
     display: "flex",
     alignItems: "center",
-    gap: "12px",
-    fontSize: "14px",
+    gap: "10px",
+    fontSize: "13.5px",
     fontWeight: 500,
-    padding: "11px 24px",
+    padding: "9px 14px",
+    margin: "1px 10px",
     cursor: "pointer",
-    width: "100%",
-    boxSizing: "border-box",
+    borderRadius: "10px",
     transition: "color 0.15s, background 0.15s",
-    borderRadius: "0",
+    boxSizing: "border-box",
   },
 };
 
@@ -771,12 +894,18 @@ style.innerHTML = `
 
 nav ul li a:hover {
   background-color: rgba(255,255,255,0.07) !important;
-  color: #fff !important;
+  color: #e5e7eb !important;
   text-decoration: none;
 }
 
 nav ul li a:hover svg {
-  color: #818CF8 !important;
+  color: #a5b4fc !important;
+}
+
+/* Active links — keep gradient, don't let hover override */
+nav ul li a[style*="linear-gradient"]:hover {
+  background: linear-gradient(135deg, #4F46E5 0%, #6366f1 100%) !important;
+  color: #fff !important;
 }
 
 /* Driver nav links get an indigo tinted hover */
@@ -784,7 +913,7 @@ nav ul li a[href="/dashboard"]:hover,
 nav ul li a[href="/my-timesheet"]:hover,
 nav ul li a[href="/my-info"]:hover,
 nav ul li a[href="/contact-us"]:hover {
-  background-color: rgba(79,70,229,0.15) !important;
+  background-color: rgba(99,102,241,0.18) !important;
   color: #e0e7ff !important;
 }
 `;
