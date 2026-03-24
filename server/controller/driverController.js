@@ -8,6 +8,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { getOrgFilter } = require("../middleware/authMiddleware.js");
+const { sendDriverCredentialsEmail } = require("../utils/emailService.js");
 
 // Utility function to calculate hours from start and end times
 const calculateHours = (startTime, endTime) => {
@@ -163,6 +164,12 @@ const create = asyncHandler(async (req, res) => {
     plainPassword: password, // store plain for reference/admin display
   });
   const savedData = await newDriver.save();
+
+  if (savedData.email && password) {
+    sendDriverCredentialsEmail(savedData.email, savedData.name, savedData.username, password)
+      .catch(err => console.error("Driver credentials email failed:", err));
+  }
+
   const savedDataObj = savedData.toObject();
   const { password: _pw, plainPassword, ...driverWithoutPassword } = savedDataObj;
   res.status(201).json(driverWithoutPassword);

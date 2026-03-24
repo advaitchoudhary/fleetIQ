@@ -5,7 +5,7 @@ const asyncHandler = require("express-async-handler");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const nodemailer = require("nodemailer");
+const { sendDriverApplicationApprovedEmail } = require("../utils/emailService.js");
 const { getOrgFilter } = require("../middleware/authMiddleware.js");
 
 // Configure multer for multiple file uploads
@@ -163,177 +163,6 @@ const getDriverApplicationById = asyncHandler(async (req, res) => {
   }
 });
 
-// Send approval email to driver
-const sendApprovalEmail = async (email, name, username, password) => {
-  // Check if SMTP is configured
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.warn("⚠️ SMTP not configured. Skipping approval email.");
-    return;
-  }
-
-  try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-
-    const emailHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-          }
-          .header {
-            background-color: #4F46E5;
-            color: white;
-            padding: 20px;
-            text-align: center;
-            border-radius: 8px 8px 0 0;
-          }
-          .content {
-            background-color: #f9f9f9;
-            padding: 30px;
-            border-radius: 0 0 8px 8px;
-          }
-          .credentials-box {
-            background-color: #fff;
-            border: 2px solid #4F46E5;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-          }
-          .credential-item {
-            margin: 10px 0;
-            padding: 10px;
-            background-color: #f0f0f0;
-            border-radius: 4px;
-          }
-          .label {
-            font-weight: bold;
-            color: #4F46E5;
-          }
-          .value {
-            font-family: monospace;
-            font-size: 16px;
-            color: #333;
-            margin-top: 5px;
-          }
-          .warning {
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-          }
-          .footer {
-            text-align: center;
-            margin-top: 30px;
-            color: #666;
-            font-size: 12px;
-          }
-          .button {
-            display: inline-block;
-            background-color: #4F46E5;
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 6px;
-            margin: 20px 0;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="header">
-          <h1>🎉 Driver Application Approved!</h1>
-        </div>
-        <div class="content">
-          <p>Dear ${name},</p>
-          
-          <p>We are pleased to inform you that your driver application has been <strong>approved</strong>!</p>
-          
-          <p>You can now access the Premier Choice Employment platform using the following credentials:</p>
-          
-          <div class="credentials-box">
-            <div class="credential-item">
-              <div class="label">Username:</div>
-              <div class="value">${username}</div>
-            </div>
-            <div class="credential-item">
-              <div class="label">Password:</div>
-              <div class="value">${password}</div>
-            </div>
-          </div>
-          
-          <div class="warning">
-            <strong>⚠️ Important:</strong> For security reasons, please change your password immediately after logging in. You can do this by navigating to the "Change Password" section in your account settings.
-          </div>
-          
-          <p>To log in, please visit the login page and use the credentials provided above.</p>
-          
-          <p>If you have any questions or need assistance, please don't hesitate to contact us.</p>
-          
-          <p>Welcome aboard!</p>
-          
-          <p>Best regards,<br>
-          <strong>Premier Choice Employment Team</strong></p>
-        </div>
-        <div class="footer">
-          <p>This is an automated email. Please do not reply to this message.</p>
-        </div>
-      </body>
-      </html>
-    `;
-
-    const emailText = `
-Dear ${name},
-
-We are pleased to inform you that your driver application has been APPROVED!
-
-You can now access the Premier Choice Employment platform using the following credentials:
-
-Username: ${username}
-Password: ${password}
-
-IMPORTANT: For security reasons, please change your password immediately after logging in. You can do this by navigating to the "Change Password" section in your account settings.
-
-To log in, please visit the login page and use the credentials provided above.
-
-If you have any questions or need assistance, please don't hesitate to contact us.
-
-Welcome aboard!
-
-Best regards,
-Premier Choice Employment Team
-    `;
-
-    const emailOptions = {
-      from: `"Premier Choice Employment" <${process.env.SMTP_USER}>`,
-      to: email,
-      subject: "Your Driver Application Has Been Approved",
-      text: emailText,
-      html: emailHtml,
-    };
-
-    await transporter.sendMail(emailOptions);
-    console.log(`✅ Approval email sent successfully to ${email}`);
-  } catch (error) {
-    console.error("Error sending approval email:", error);
-    throw error;
-  }
-};
-
 // Approve driver application (Admin only)
 const approveDriverApplication = asyncHandler(async (req, res) => {
   try {
@@ -392,12 +221,8 @@ const approveDriverApplication = asyncHandler(async (req, res) => {
     await application.save();
 
     // Send approval email to driver
-    try {
-      await sendApprovalEmail(application.email, application.name, username, defaultPassword);
-    } catch (emailError) {
-      console.error("Failed to send approval email:", emailError);
-      // Don't fail the approval if email fails, but log the error
-    }
+    sendDriverApplicationApprovedEmail(application.email, application.name, username, defaultPassword)
+      .catch(emailError => console.error("Failed to send approval email:", emailError));
 
     res.status(200).json({
       message: "Application approved and driver created successfully",

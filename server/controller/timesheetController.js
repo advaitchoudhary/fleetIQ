@@ -1,11 +1,11 @@
 const Timesheet = require("../model/timesheetModel.js");
 const Driver = require("../model/driverModel.js");
 const User = require("../model/userModel.js");
-const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
 const PDFDocument = require("pdfkit");
 const { getOrgFilter } = require("../middleware/authMiddleware.js");
+const { sendTimesheetApprovedEmail, sendInvoiceEmail: sendInvoiceEmailUtil } = require("../utils/emailService.js");
 
 // Import the updateDriverHours function from driverController
 const { updateDriverHours } = require("./driverController.js");
@@ -366,6 +366,17 @@ const updateTimesheetStatus = async (req, res) => {
     }
 
     res.status(200).json({ message: `Timesheet ${status} successfully`, updatedTimesheet });
+
+    if (status === "approved" && updatedTimesheet.driver) {
+      const driverDoc = await Driver.findOne({ email: updatedTimesheet.driver }, "name").lean();
+      sendTimesheetApprovedEmail(
+        updatedTimesheet.driver,
+        driverDoc?.name,
+        updatedTimesheet.date,
+        updatedTimesheet.customer,
+        updatedTimesheet.totalHours
+      ).catch(err => console.error("Timesheet approval email failed:", err));
+    }
   } catch (error) {
     res.status(500).json({ errorMessage: error.message });
   }
@@ -433,48 +444,12 @@ function createInvoicePDF(data) {
 // **9. Send Invoice Email**
 const sendInvoiceEmail = async (req, res) => {
   try {
-    const { driverId } = req.body;
+    const { driverId, amount, invoicePdf } = req.body;
     const driver = await Driver.findById(driverId);
     if (!driver || !driver.email) {
       return res.status(404).json({ message: "Driver email not found." });
     }
-
-    // Decode and write the already-generated PDF from frontend
-    const pdfBuffer = Buffer.from(req.body.invoicePdf, 'base64');
-    const fileName = `invoice_${Date.now()}.pdf`;
-    const filePath = path.join(__dirname, fileName);
-    fs.writeFileSync(filePath, pdfBuffer);
-
-    // Assign filePath and dummy invoiceDetails to match placeholders
-    const invoiceDetails = { amount: req.body.amount || "N/A" };
-    const invoiceFilePath = filePath;
-
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-
-    const emailOptions = {
-      from: '"Premier Choice Employment" <admin@premierchoicemployment.ca>',
-      to: driver.email,
-      subject: "Your Invoice",
-      text: `Hello ${driver.name},\n\nPlease find attached your invoice totaling $${invoiceDetails.amount}.\n\nBest regards,\nPremier Choice Employment`,
-      attachments: [
-        {
-          filename: "invoice.pdf",
-          path: invoiceFilePath,
-        },
-      ],
-    };
-
-    await transporter.sendMail(emailOptions);
-    fs.unlinkSync(invoiceFilePath);
-
+    await sendInvoiceEmailUtil(driver.email, driver.name, amount || "N/A", invoicePdf);
     res.status(200).json({ message: "Invoice emailed successfully!" });
   } catch (error) {
     console.error("Failed to send invoice email:", error);
