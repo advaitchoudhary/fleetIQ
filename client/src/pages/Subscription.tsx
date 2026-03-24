@@ -143,7 +143,7 @@ const Subscription: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
+      <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f0f4ff", minHeight: "100vh" }}>
         <Navbar />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", flexDirection: "column", gap: "12px" }}>
           <div style={{ width: "40px", height: "40px", border: "4px solid #e5e7eb", borderTop: "4px solid #4F46E5", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
@@ -155,20 +155,26 @@ const Subscription: React.FC = () => {
   }
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f0f4ff", minHeight: "100vh" }}>
       <Navbar />
-      <div style={{ padding: "24px", maxWidth: "1000px", margin: "0 auto" }}>
-        {/* Header */}
-        <div style={{ marginBottom: "28px" }}>
-          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "#111827", display: "flex", alignItems: "center", gap: "10px" }}>
-            <FaCreditCard style={{ color: "#4F46E5" }} /> Subscription
-          </h1>
-          <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "14px" }}>Manage your fleet platform plan</p>
+      {/* Hero */}
+      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
+        <div style={{ maxWidth: "1000px", margin: "0 auto", display: "flex", alignItems: "center", gap: "18px" }}>
+          <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+            <FaCreditCard size={22} />
+          </div>
+          <div>
+            <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Billing</p>
+            <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Subscription</h1>
+            <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Manage your fleet platform plan</p>
+          </div>
         </div>
+      </div>
+      <div style={{ padding: "28px 40px", maxWidth: "1000px", margin: "0 auto" }}>
 
         {/* Current Plan Banner */}
         {!loading && (
-          <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", padding: "20px 24px", marginBottom: "28px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>
+          <div style={{ background: "#fff", border: "1px solid #e0e7ff", borderRadius: "16px", padding: "20px 24px", marginBottom: "28px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" }}>
             <div>
               <div style={{ fontSize: "13px", color: "#6b7280", marginBottom: "4px" }}>Current Plan</div>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>

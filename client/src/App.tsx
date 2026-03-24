@@ -33,6 +33,8 @@ import Subscription from "./pages/Subscription";
 import Pricing from "./pages/Pricing";
 import CompanyRegister from "./pages/CompanyRegister";
 import OrgSelector from "./pages/OrgSelector";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -44,6 +46,8 @@ const App: React.FC = () => {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/file-application" element={<FileDriverApplication />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
 
         {/* Driver Role Routes */}
         <Route

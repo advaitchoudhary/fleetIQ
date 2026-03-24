@@ -158,31 +158,34 @@ const Maintenance: React.FC = () => {
   });
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f0f4ff", minHeight: "100vh" }}>
       <Navbar />
-      <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "#111827", display: "flex", alignItems: "center", gap: "10px" }}>
-              <FaWrench style={{ color: "#4F46E5" }} /> Maintenance
-            </h1>
-            <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "14px" }}>Track maintenance & work orders</p>
+      {/* ── Hero ─────────────────────────────────────────────────────── */}
+      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
+        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+              <FaWrench size={22} />
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Fleet Management</p>
+              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Maintenance</h1>
+              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Track maintenance & work orders</p>
+            </div>
           </div>
-          <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" as const }}>
             {dueAlerts.length > 0 && (
-              <button
-                onClick={() => setShowAlerts(!showAlerts)}
-                style={{ ...styles.secondaryBtn, display: "flex", alignItems: "center", gap: "8px", color: "#ca8a04", borderColor: "#fef08a", background: "#fefce8" }}
-              >
+              <button onClick={() => setShowAlerts(!showAlerts)} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.4)", borderRadius: "8px", color: "#fde68a", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
                 <FaBell size={14} /> {dueAlerts.length} Due Soon
               </button>
             )}
-            <button onClick={openAddModal} style={styles.primaryBtn}>
+            <button onClick={openAddModal} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
               <FaPlus size={14} /> Schedule Maintenance
             </button>
           </div>
         </div>
+      </div>
+      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" }}>
 
         {/* Due Alerts Panel */}
         {showAlerts && dueAlerts.length > 0 && (
@@ -364,11 +367,11 @@ const styles: Record<string, React.CSSProperties> = {
   primaryBtn: { background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" },
   secondaryBtn: { background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 500, cursor: "pointer" },
   iconBtn: { background: "#f3f4f6", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "#374151", display: "flex", alignItems: "center" },
-  tableContainer: { background: "#fff", borderRadius: "12px", border: "1px solid #e5e7eb", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+  tableContainer: { background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", overflow: "hidden", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
   table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
-  tableHeaderRow: { background: "#f9fafb", borderBottom: "1px solid #e5e7eb" },
-  th: { padding: "12px 16px", textAlign: "left", fontSize: "12px", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.5px", whiteSpace: "nowrap" },
-  tr: { borderBottom: "1px solid #f3f4f6" },
+  tableHeaderRow: { background: "#f5f3ff", borderBottom: "2px solid #e0e7ff" },
+  th: { padding: "13px 16px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#6366f1", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
+  tr: { borderBottom: "1px solid #f0f0ff" },
   td: { padding: "14px 16px", color: "#374151", verticalAlign: "middle" },
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600, textTransform: "capitalize" },
   input: { width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid #d1d5db", fontSize: "14px", color: "#111827", background: "#fff", outline: "none", boxSizing: "border-box" },

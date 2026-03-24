@@ -176,21 +176,28 @@ const ServiceHistory: React.FC = () => {
   return (
     <div style={styles.wrapper}>
       <Navbar />
-      <div style={styles.container}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px", flexWrap: "wrap", gap: "16px" }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "#111827", display: "flex", alignItems: "center", gap: "10px" }}>
-              <FaHistory style={{ color: "#4F46E5" }} /> Service History
-            </h1>
-            <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "14px" }}>Unified timeline of all maintenance, inspections, and fuel logs per vehicle</p>
+      {/* Hero */}
+      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
+        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+              <FaHistory size={22} />
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Fleet</p>
+              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Service History</h1>
+              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Unified timeline of maintenance, inspections, and fuel logs per vehicle</p>
+            </div>
           </div>
-          <select style={styles.vehicleSelect} value={selectedVehicleId} onChange={(e) => handleVehicleChange(e.target.value)}>
-            <option value="">— Select a vehicle —</option>
+          <select style={{ ...styles.vehicleSelect, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif" }} value={selectedVehicleId} onChange={(e) => handleVehicleChange(e.target.value)}>
+            <option value="" style={{ background: "#1e1b4b", color: "#fff" }}>— Select a vehicle —</option>
             {vehicles.map((v) => (
-              <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model} ({v.year})</option>
+              <option key={v._id} value={v._id} style={{ background: "#1e1b4b", color: "#fff" }}>{v.unitNumber} — {v.make} {v.model} ({v.year})</option>
             ))}
           </select>
         </div>
+      </div>
+      <div style={styles.container}>
 
         {/* Fleet overview when no vehicle selected */}
         {!selectedVehicleId && (
@@ -309,15 +316,15 @@ const ServiceHistory: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#f9fafb", fontFamily: "Inter, system-ui, sans-serif" },
-  container: { maxWidth: "1200px", margin: "0 auto", padding: "24px" },
+  wrapper: { minHeight: "100vh", background: "#f0f4ff", fontFamily: "Inter, system-ui, sans-serif" },
+  container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
   vehicleSelect: { padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#fff", minWidth: "280px", color: "#111827" },
   fleetGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" },
-  fleetCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", cursor: "pointer" },
+  fleetCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e0e7ff", boxShadow: "0 1px 6px rgba(79,70,229,0.06)", cursor: "pointer" },
   fleetCardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-  vehicleBanner: { background: "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+  vehicleBanner: { background: "#fff", border: "1px solid #e0e7ff", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", boxShadow: "0 1px 6px rgba(79,70,229,0.06)" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" },
-  statCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e5e7eb", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+  statCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e0e7ff", textAlign: "center", boxShadow: "0 1px 6px rgba(79,70,229,0.06)" },
   statValue: { fontSize: "22px", fontWeight: 800, color: "#4F46E5" },
   statLabel: { fontSize: "12px", color: "#6b7280", marginTop: "4px" },
   filtersRow: { display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap", alignItems: "center" },
@@ -325,7 +332,7 @@ const styles: Record<string, React.CSSProperties> = {
   dateInput: { padding: "9px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" },
   filterBtn: { padding: "9px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" },
   timeline: { display: "flex", flexDirection: "column", gap: "12px" },
-  timelineItem: { display: "flex", gap: "0", background: "#fff", borderRadius: "12px", border: "1px solid #e5e7eb", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+  timelineItem: { display: "flex", gap: "0", background: "#fff", borderRadius: "12px", border: "1px solid #e0e7ff", overflow: "hidden", boxShadow: "0 1px 6px rgba(79,70,229,0.06)" },
   timelineBar: { width: "5px", flexShrink: 0 },
   timelineContent: { padding: "16px 18px", flex: 1 },
   timelineHeader: { display: "flex", gap: "12px", alignItems: "flex-start" },

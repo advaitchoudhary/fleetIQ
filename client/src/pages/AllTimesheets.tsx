@@ -653,7 +653,7 @@ const AllTimesheets: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f0f4ff", minHeight: "100vh" }}>
       <style>{`
         @media (max-width: 1024px) {
           [data-at-container] { padding: 24px 20px !important; }
@@ -674,20 +674,30 @@ const AllTimesheets: React.FC = () => {
         }
       `}</style>
       <Navbar />
-      <div style={styles.container} data-at-container>
-
-        {/* ── Page header: title + action buttons ── */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px", flexWrap: "wrap", gap: "12px" }}>
-          <h1 style={styles.pageTitle} data-at-title>All Timesheets</h1>
-          <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-            <button onClick={handleExport} style={styles.exportButton}>
+      {/* ── Hero ─────────────────────────────────────────────────────── */}
+      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
+        <div style={{ maxWidth: "1400px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "22px" }}>
+              📋
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Driver Management</p>
+              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>All Timesheets</h1>
+              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Review, approve & export driver timesheets</p>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" as const }}>
+            <button onClick={handleExport} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 18px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
               Export 📤
             </button>
-            <button onClick={handleDeleteFilteredTimesheets} style={styles.deleteButton}>
+            <button onClick={handleDeleteFilteredTimesheets} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 18px", background: "rgba(239,68,68,0.2)", border: "1px solid rgba(239,68,68,0.4)", borderRadius: "8px", color: "#fca5a5", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
               Delete 🗑️
             </button>
           </div>
         </div>
+      </div>
+      <div style={styles.container} data-at-container>
 
         {/* ── Filter bar: all filters in one row ── */}
         <div style={styles.filterBar}>
@@ -868,9 +878,9 @@ const AllTimesheets: React.FC = () => {
 
 const styles = {
   container: {
-    maxWidth: "1200px",
+    maxWidth: "1400px",
     margin: "0 auto",
-    padding: "24px",
+    padding: "28px 40px",
   },
   pageTitle: {
     fontSize: "24px",
@@ -879,9 +889,9 @@ const styles = {
     margin: 0,
   },
   tableWrapper: {
-    borderRadius: "12px",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+    borderRadius: "16px",
+    border: "1px solid #e0e7ff",
+    boxShadow: "0 2px 16px rgba(79,70,229,0.07)",
     backgroundColor: "#fff",
     overflowX: "auto",
   } as React.CSSProperties,
@@ -890,19 +900,19 @@ const styles = {
     borderCollapse: "collapse" as const,
   },
   th: {
-    padding: "12px 16px",
-    fontSize: "12px",
-    fontWeight: 600,
+    padding: "13px 16px",
+    fontSize: "10px",
+    fontWeight: 700,
     textAlign: "left" as const,
-    backgroundColor: "#f9fafb",
-    color: "#6b7280",
-    borderBottom: "1px solid #e5e7eb",
+    backgroundColor: "#f5f3ff",
+    color: "#6366f1",
+    borderBottom: "2px solid #e0e7ff",
     textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
+    letterSpacing: "0.7px",
     whiteSpace: "nowrap" as const,
   },
   td: {
-    borderBottom: "1px solid #f3f4f6",
+    borderBottom: "1px solid #f0f0ff",
     padding: "14px 18px",
     fontSize: "14px",
     textAlign: "left" as const,

@@ -3,10 +3,11 @@ import axios from "axios";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import Navbar from "./Navbar";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import { DayPicker, DateRange } from "react-day-picker";
+import "react-day-picker/style.css";
 import { format } from "date-fns";
 import { API_BASE_URL } from "../utils/env";
+import { FaFileInvoiceDollar, FaFilePdf, FaEnvelope, FaCalendarAlt } from "react-icons/fa";
 
 // Define TypeScript interface for invoice items
 interface InvoiceItem {
@@ -40,114 +41,53 @@ const Invoice: React.FC = () => {
   const [data, setData] = useState<Driver[]>([]);
   const [items] = useState<InvoiceItem[]>([]);  // Initialize as empty
   const [invoiceDate, setInvoiceDate] = useState<Date>(new Date());
-  const [customRange, setCustomRange] = useState<[Date | null, Date | null]>([null, null]);
-  const [isCustomRange, setIsCustomRange] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showRangePicker, setShowRangePicker] = useState(false);
+
+  const defaultFrom = (() => { const d = new Date(); d.setDate(d.getDate() - 14); return d; })();
+  const [customRange, setCustomRange] = useState<DateRange | undefined>({ from: defaultFrom, to: new Date() });
+
   const [selectedDriver, setSelectedDriver] = useState<string>("__placeholder__");
-  // Raw timesheets fetched for the selected driver (unfiltered)
   const [timesheetsRaw, setTimesheetsRaw] = useState<any[]>([]);
-  // Filtered timesheets shown in the table
   const [timesheets, setTimesheets] = useState<any[]>([]);
   const [categoryRates, setCategoryRates] = useState<Record<string, number>>({});
 
-  const invoicePeriodOptions = [
-    { label: "Last 15 Days", value: "last15" },
-    { label: "Last 7 Days", value: "last7" },
-    { label: "Last 30 Days", value: "last30" },
-    { label: "Custom Range", value: "custom" },
-  ];
-
-  // Helper to get last 7 days range
-  const getLast7DaysRange = () => {
-    const today = new Date();
-    const last7 = new Date();
-    last7.setDate(today.getDate() - 6);
-    return `${format(last7, "yyyy-MM-dd")} - ${format(today, "yyyy-MM-dd")}`;
+  const handleRangeSelect = (range: DateRange | undefined) => {
+    setCustomRange(range);
+    if (range?.from && range?.to) setShowRangePicker(false);
   };
 
-  // Helper to get last 30 days range
-  const getLast30DaysRange = () => {
-    const today = new Date();
-    const last30 = new Date();
-    last30.setDate(today.getDate() - 29);
-    return `${format(last30, "yyyy-MM-dd")} - ${format(today, "yyyy-MM-dd")}`;
-  };
+  const rangeLabel = customRange?.from && customRange?.to
+    ? `${format(customRange.from, "MMM d, yyyy")} – ${format(customRange.to, "MMM d, yyyy")}`
+    : "Select date range";
 
-  const handlePeriodChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedValue = e.target.value;
-    setSelectedPeriodKey(selectedValue); // <-- Add this line
-    if (selectedValue === "last15") {
-      setInvoicePeriod(getLast15DaysRange());
-      setIsCustomRange(false);
-    } else if (selectedValue === "last7") {
-      setInvoicePeriod(getLast7DaysRange());
-      setIsCustomRange(false);
-    } else if (selectedValue === "last30") {
-      setInvoicePeriod(getLast30DaysRange());
-      setIsCustomRange(false);
-    } else if (selectedValue === "custom") {
-      setInvoicePeriod("");
-      setIsCustomRange(true);
-      setCustomRange([null, null]);
-    }
-  };
-
-  const handleCustomDateChange = (dates: [Date | null, Date | null] | null) => {
-    if (!dates) return;
-  
-    const [start, end] = dates;
-    setCustomRange([start, end]);
-  
-    if (start && end) {
-      const formattedStart = format(start, "yyyy-MM-dd");
-      const formattedEnd = format(end, "yyyy-MM-dd");
-      setInvoicePeriod(`${formattedStart} - ${formattedEnd}`);
-    }
-    
-    // Ensure dropdown stays on "Custom Range"
-    setIsCustomRange(true);
-  };
-
-  // From & To Details (Editable)
+  // From = Organization, To = Driver
   const [fromDetails, setFromDetails] = useState({
+    name: "",
+    address: "",
+    phone: "",
+    email: "",
+  });
+
+  const [toDetails, setToDetails] = useState({
+    name: "",
     businessName: "",
+    contact: "",
     address: "",
     gst: "",
-    name: "",
-    contact: "",
   });
-
-  const [toDetails] = useState({
-    name: "Premier Choice Employment",
-    address: "745 Chelton Rd unit-21, London, ON N6M 0J1, Canada",
-    gst: "GST/HST: 806154175RT0001",
-    phone: "+1 (519) 280-1311",
-  });
-
-  const getLast15DaysRange = () => {
-    const today = new Date();
-    const last15Days = new Date();
-    last15Days.setDate(today.getDate() - 14); // Get date 15 days ago
-  
-    return `${format(last15Days, "yyyy-MM-dd")} - ${format(today, "yyyy-MM-dd")}`;
-  };
-
-  const [invoicePeriod, setInvoicePeriod] = useState(getLast15DaysRange());
-  const [selectedPeriodKey, setSelectedPeriodKey] = useState("last15");
 
   // Helper to check if a date is in range
   const isDateInRange = (dateStr: string): boolean => {
+    if (!customRange?.from || !customRange?.to) return true;
     const date = new Date(dateStr);
-    if (isCustomRange && customRange[0] && customRange[1]) {
-      return date >= customRange[0] && date <= customRange[1];
-    }
-    if (typeof invoicePeriod === "string" && invoicePeriod.includes(" - ")) {
-      const [startStr, endStr] = invoicePeriod.split(" - ");
-      const start = new Date(startStr);
-      const end = new Date(endStr);
-      return date >= start && date <= end;
-    }
-    return true;
+    return date >= customRange.from && date <= customRange.to;
   };
+
+  // For PDF: derive period string from customRange
+  const invoicePeriod = customRange?.from && customRange?.to
+    ? `${format(customRange.from, "yyyy-MM-dd")} - ${format(customRange.to, "yyyy-MM-dd")}`
+    : "";
 
   const handleDriverChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const driverId = e.target.value;
@@ -155,12 +95,12 @@ const Invoice: React.FC = () => {
     const selectedDriver = data.find((driver) => driver._id === driverId);
 
     if (selectedDriver) {
-      setFromDetails({
+      setToDetails({
+        name: selectedDriver.name || "",
         businessName: selectedDriver.business_name || "",
+        contact: selectedDriver.contact || "",
         address: selectedDriver.address || "",
         gst: selectedDriver.hst_gst || "",
-        name: selectedDriver.name || "",
-        contact: selectedDriver.contact || "",
       });
     }
     // Fetch timesheets for the selected driver, store unfiltered, let useEffect handle filtering
@@ -190,6 +130,24 @@ const Invoice: React.FC = () => {
     fetchDrivers().then(drivers => {
       setData(drivers);
     });
+    const fetchOrgProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`${API_BASE_URL}/organizations/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const org = res.data;
+        setFromDetails({
+          name: org.name || "",
+          address: org.address || "",
+          phone: org.phone || "",
+          email: org.email || "",
+        });
+      } catch (error) {
+        console.error("Failed to fetch org profile:", error);
+      }
+    };
+    fetchOrgProfile();
   }, []);
 
   useEffect(() => {
@@ -256,7 +214,7 @@ const Invoice: React.FC = () => {
 
   }, [timesheetsRaw, invoicePeriod, customRange]);
 
-  const isGenerateDisabled = !selectedDriver || Object.values(fromDetails).some((value) => value.trim() === "");
+  const isGenerateDisabled = !selectedDriver || selectedDriver === "__placeholder__";
 
   // Generate PDF function
 const generatePDF = () => {
@@ -268,14 +226,14 @@ const generatePDF = () => {
   doc.setFont("helvetica", "normal").text(invoicePeriod, 60, 40);
   doc.text("From:", 15, 55).text("To:", 120, 55);
   doc.setFont("helvetica", "normal");
-  doc.text(fromDetails.name, 15, 63).text(fromDetails.contact, 15, 71).text(fromDetails.address, 15, 79).text(fromDetails.gst, 15, 87);
-  doc.text(toDetails.name, 120, 63).text(toDetails.address, 120, 71).text(toDetails.gst, 120, 79).text(toDetails.phone, 120, 87);
+  doc.text(fromDetails.name, 15, 63).text(fromDetails.email, 15, 71).text(fromDetails.address, 15, 79).text(fromDetails.phone, 15, 87);
+  doc.text(toDetails.name, 120, 63).text(toDetails.businessName, 120, 71).text(toDetails.contact, 120, 79).text(toDetails.gst, 120, 87);
 
   doc.setFont("helvetica", "bold");
   doc.text("Attention:", 15, 100);
   doc.setFont("helvetica", "normal");
   doc.text(attention, 60, 100);
-  
+
   // Correctly formatting and calculating the timesheet entries
   const formattedTimesheets = timesheets.map(t => {
     const rate = categoryRates[t.category] || 0;
@@ -320,8 +278,8 @@ const generatePDF = () => {
     doc.setFont("helvetica", "normal").text(invoicePeriod, 60, 40);
     doc.text("From:", 15, 55).text("To:", 120, 55);
     doc.setFont("helvetica", "normal");
-    doc.text(fromDetails.name, 15, 63).text(fromDetails.contact, 15, 71).text(fromDetails.address, 15, 79).text(fromDetails.gst, 15, 87);
-    doc.text(toDetails.name, 120, 63).text(toDetails.address, 120, 71).text(toDetails.gst, 120, 79).text(toDetails.phone, 120, 87);
+    doc.text(fromDetails.name, 15, 63).text(fromDetails.email, 15, 71).text(fromDetails.address, 15, 79).text(fromDetails.phone, 15, 87);
+    doc.text(toDetails.name, 120, 63).text(toDetails.businessName, 120, 71).text(toDetails.contact, 120, 79).text(toDetails.gst, 120, 87);
   
     // Attention
     doc.setFont("helvetica", "bold");
@@ -410,416 +368,343 @@ const generatePDF = () => {
     }
   };
 
+  const fromFieldLabels: Record<string, string> = {
+    name: "Company Name",
+    address: "Address",
+    phone: "Phone",
+    email: "Email",
+  };
+
+  const toFieldLabels: Record<string, string> = {
+    name: "Driver Name",
+    businessName: "Business Name",
+    contact: "Phone / Email",
+    address: "Address",
+    gst: "GST / HST Number",
+  };
+
+  const STATUS_BADGE: Record<string, { bg: string; color: string; label: string }> = {
+    approved: { bg: "#dcfce7", color: "#166534", label: "Approved" },
+    rejected: { bg: "#fee2e2", color: "#991b1b", label: "Rejected" },
+    pending:  { bg: "#fef9c3", color: "#854d0e", label: "Pending" },
+  };
+
   return (
-    <div>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f0f4ff", minHeight: "100vh" }}>
       <Navbar />
       <style>{`
-        input[type="text"]:focus,
-        input[type="date"]:focus,
-        select:focus {
-          border-color: #4F46E5;
-          box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        input:focus, select:focus {
+          border-color: #4F46E5 !important;
+          box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
           outline: none;
         }
-        input[type="text"]:hover:not(:disabled):not([readonly]),
-        input[type="date"]:hover:not(:disabled),
-        select:hover:not(:disabled) {
-          border-color: #9ca3af;
+        .rdp-root {
+          --rdp-day-height: 32px;
+          --rdp-day-width: 32px;
+          --rdp-day_button-height: 32px;
+          --rdp-day_button-width: 32px;
+          padding: 12px;
         }
-        select:hover:not(:disabled) {
-          background-color: #f9fafb;
+        .rdp-month_caption {
+          margin-bottom: 8px;
+        }
+        .rdp-caption_label {
+          font-size: 14px;
+          font-weight: 700;
+        }
+        .rdp-weekdays, .rdp-week {
+          gap: 2px;
+        }
+        .rdp-weekday {
+          font-size: 11px;
+          width: 32px;
         }
       `}</style>
-    <div style={styles.container}>
-      <h1 style={styles.title}>Invoice</h1>
 
-      {/* Invoice Form */}
-      <div style={styles.invoiceContainer}>
-        {/* Invoice Date & Period */}
-        <div style={styles.flexRow}>
-          <div style={styles.flexColumn}>
-            <label style={styles.label}>Invoice Date:</label>
-              <input
-                type="date"
-                value={invoiceDate.toISOString().split('T')[0]}
-                onChange={(e) => setInvoiceDate(new Date(e.target.value))}
-                style={styles.input}
-              />
+      {/* Hero */}
+      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+              <FaFileInvoiceDollar size={22} />
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Billing</p>
+              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Invoice</h1>
+              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Generate and send invoices to drivers</p>
+            </div>
           </div>
-          <div style={styles.flexColumn}>
-            <label style={styles.label}>Invoice Period:</label>
-            <select
-              value={selectedPeriodKey}
-              onChange={handlePeriodChange}
-              style={styles.dropdown}
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button
+              onClick={generateAndSendPDF}
+              disabled={isGenerateDisabled}
+              style={{ display: "flex", alignItems: "center", gap: "7px", background: isGenerateDisabled ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.15)", color: isGenerateDisabled ? "rgba(255,255,255,0.35)" : "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 600, cursor: isGenerateDisabled ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
             >
-              {invoicePeriodOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            {isCustomRange && (
-              <DatePicker
-                selected={customRange[0]}
-                onChange={handleCustomDateChange}
-                startDate={customRange[0]}
-                endDate={customRange[1]}
-                selectsRange
-                inline
-              />
-            )}
+              <FaEnvelope size={13} /> Send Email
+            </button>
+            <button
+              onClick={generatePDF}
+              disabled={isGenerateDisabled}
+              style={{ display: "flex", alignItems: "center", gap: "7px", background: isGenerateDisabled ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.15)", color: isGenerateDisabled ? "rgba(255,255,255,0.35)" : "#fff", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 600, cursor: isGenerateDisabled ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
+            >
+              <FaFilePdf size={13} /> Generate PDF
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ padding: "28px 40px", maxWidth: "1100px", margin: "0 auto" }}>
+
+        {/* Invoice Settings */}
+        <div style={styles.card}>
+          <h2 style={styles.sectionTitle}>Invoice Settings</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "20px", alignItems: "start" }}>
+            {/* Invoice Date */}
+            <div style={{ position: "relative" }}>
+              <label style={styles.label}>Invoice Date</label>
+              <div
+                onClick={() => { setShowDatePicker(v => !v); setShowRangePicker(false); }}
+                style={{ ...styles.input, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" }}
+              >
+                <span>{format(invoiceDate, "MMM d, yyyy")}</span>
+                <FaCalendarAlt size={13} style={{ color: "#9ca3af" }} />
+              </div>
+              {showDatePicker && (
+                <>
+                  <div onClick={() => setShowDatePicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
+                  <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
+                    <DayPicker
+                      mode="single"
+                      selected={invoiceDate}
+                      onSelect={(d) => { if (d) { setInvoiceDate(d); setShowDatePicker(false); } }}
+                      styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+            {/* Invoice Period */}
+            <div style={{ position: "relative" }}>
+              <label style={styles.label}>Invoice Period</label>
+              <div
+                onClick={() => { setShowRangePicker(v => !v); setShowDatePicker(false); }}
+                style={{ ...styles.input, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" }}
+              >
+                <span style={{ color: customRange?.from ? "#111827" : "#9ca3af" }}>{rangeLabel}</span>
+                <FaCalendarAlt size={13} style={{ color: "#9ca3af" }} />
+              </div>
+              {showRangePicker && (
+                <>
+                  <div onClick={() => setShowRangePicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
+                  <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
+                    <DayPicker
+                      mode="range"
+                      selected={customRange}
+                      onSelect={handleRangeSelect}
+                      styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+            {/* Driver */}
+            <div>
+              <label style={styles.label}>Driver</label>
+              <select value={selectedDriver} onChange={handleDriverChange} style={styles.input}>
+                <option value="__placeholder__" disabled>Select a driver</option>
+                {data.map((driver, index) => {
+                  const driverId = driver._id || `missing-id-${index}`;
+                  return (
+                    <option key={driverId} value={driverId}>
+                      {driver.name || `Unnamed Driver ${index + 1}`}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
           </div>
         </div>
 
-        {/* Driver Selector above From & To Details */}
-        <div style={styles.flexRow}>
-          <div style={styles.flexColumn}>
-            <label style={styles.label}>Select Driver:</label>
-            <select value={selectedDriver} onChange={handleDriverChange} style={styles.dropdown}>
-              <option value="__placeholder__" disabled>Select a Driver</option>
-              {data.map((driver, index) => {
-                const driverId = driver._id || `missing-id-${index}`;
-                return (
-                  <option key={driverId} value={driverId}>
-                    {driver.name || `Unnamed Driver ${index + 1}`}
-                  </option>
-                );
-              })}
-            </select>
-          </div>
-        </div>
-
-        {/* From & To Details */}
-        <div style={styles.flexRow}>
-          <div style={styles.flexColumn}>
-            <div style={styles.box}>
-              <h3 style={{ marginBottom: "12px", fontSize: "16px", fontWeight: 600, color: "#111827" }}>
-                From:
-              </h3>
-              {selectedDriver !== "__placeholder__" && (
-                <div style={styles.detailsContainer}>
-                  {Object.keys(fromDetails).map((key) => (
+        {/* Billing Details */}
+        <div style={styles.card}>
+          <h2 style={styles.sectionTitle}>Billing Details</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: "0", alignItems: "start" }}>
+            {/* From — Organization */}
+            <div style={{ padding: "20px", background: "#f9fafb", borderRadius: "10px", border: "1px solid #e5e7eb" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#4F46E5", textTransform: "uppercase", letterSpacing: "0.8px", background: "#ede9fe", padding: "3px 8px", borderRadius: "4px" }}>From</span>
+                <span style={{ fontSize: "12px", color: "#9ca3af" }}>Organization</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {(Object.keys(fromDetails) as (keyof typeof fromDetails)[]).map((key) => (
+                  <div key={key}>
+                    <label style={styles.label}>{fromFieldLabels[key] || key}</label>
                     <input
-                      key={key}
                       type="text"
-                      value={fromDetails[key as keyof typeof fromDetails]}
-                      onChange={(e) =>
-                        setFromDetails({ ...fromDetails, [key]: e.target.value })
-                      }
+                      value={fromDetails[key]}
+                      onChange={(e) => setFromDetails({ ...fromDetails, [key]: e.target.value })}
                       style={styles.input}
                     />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 20px", minHeight: "120px" }}>
+              <div style={{ width: "1px", height: "40px", background: "#e5e7eb" }} />
+              <div style={{ width: "32px", height: "32px", borderRadius: "50%", border: "1px solid #e5e7eb", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 700, color: "#9ca3af", margin: "8px 0" }}>→</div>
+              <div style={{ width: "1px", height: "40px", background: "#e5e7eb" }} />
+            </div>
+
+            {/* To — Driver */}
+            <div style={{ padding: "20px", background: "#f9fafb", borderRadius: "10px", border: "1px solid #e5e7eb" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+                <span style={{ fontSize: "11px", fontWeight: 700, color: "#374151", textTransform: "uppercase", letterSpacing: "0.8px", background: "#f3f4f6", padding: "3px 8px", borderRadius: "4px" }}>To</span>
+                <span style={{ fontSize: "12px", color: "#9ca3af" }}>Driver</span>
+              </div>
+              {selectedDriver === "__placeholder__" ? (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 0", color: "#9ca3af", fontSize: "13px", gap: "8px" }}>
+                  <span style={{ fontSize: "22px" }}>👤</span>
+                  Select a driver above to populate fields
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {(Object.keys(toDetails) as (keyof typeof toDetails)[]).map((key) => (
+                    <div key={key}>
+                      <label style={styles.label}>{toFieldLabels[key] || key}</label>
+                      <input
+                        type="text"
+                        value={toDetails[key]}
+                        onChange={(e) => setToDetails({ ...toDetails, [key]: e.target.value })}
+                        style={styles.input}
+                      />
+                    </div>
                   ))}
                 </div>
               )}
             </div>
           </div>
-          <div style={styles.flexColumn}>
-            <div style={styles.box}>
-              <h3 style={{ marginBottom: "12px", fontSize: "16px", fontWeight: 600, color: "#111827" }}>
-                To:
-              </h3>
-              {Object.keys(toDetails).map((key) => (
-                <input
-                  key={key}
-                  type="text"
-                  value={toDetails[key as keyof typeof toDetails]}
-                  style={styles.inputReadOnly}
-                  readOnly
-                />
-              ))}
+        </div>
+
+        {/* Timesheets */}
+        <div style={styles.card}>
+          <h2 style={styles.sectionTitle}>Timesheets</h2>
+          {timesheets.length === 0 ? (
+            <div style={{ padding: "32px", textAlign: "center", color: "#9ca3af", fontSize: "14px" }}>
+              {selectedDriver === "__placeholder__" ? "Select a driver to view timesheets." : "No timesheets found for the selected period."}
+            </div>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+                <thead>
+                  <tr style={{ background: "#f5f3ff", borderBottom: "2px solid #e0e7ff" }}>
+                    {["Date", "Start", "End", "Total Hours", "Start KM", "End KM", "Category", "Subtotal", "Status"].map((h) => (
+                      <th key={h} style={styles.th}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {timesheets.map((t) => {
+                    const rate = categoryRates[t.category] || 0;
+                    let start = new Date(`1970-01-01T${t.startTime}`);
+                    let end = new Date(`1970-01-01T${t.endTime}`);
+                    if (end <= start) end.setDate(end.getDate() + 1);
+                    const hoursWorked = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+                    const rowSubtotal = (hoursWorked * rate).toFixed(2);
+                    const badge = STATUS_BADGE[t.status] || STATUS_BADGE.pending;
+                    return (
+                      <tr key={t._id} style={{ borderBottom: "1px solid #f0f0ff" }}>
+                        <td style={styles.td}>{t.date}</td>
+                        <td style={styles.td}>{t.startTime}</td>
+                        <td style={styles.td}>{t.endTime}</td>
+                        <td style={styles.td}>{hoursWorked.toFixed(2)} hrs</td>
+                        <td style={styles.td}>{t.startKM}</td>
+                        <td style={styles.td}>{t.endKM}</td>
+                        <td style={{ ...styles.td, fontWeight: 500, color: "#111827" }}>{t.category}</td>
+                        <td style={{ ...styles.td, fontWeight: 600, color: "#111827" }}>${rowSubtotal}</td>
+                        <td style={styles.td}>
+                          <span style={{ display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600, background: badge.bg, color: badge.color }}>
+                            {badge.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Summary */}
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <div style={{ background: "#fff", border: "1px solid #e0e7ff", borderRadius: "16px", padding: "20px 28px", minWidth: "280px", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", color: "#6b7280", marginBottom: "8px" }}>
+              <span>Subtotal</span><span style={{ color: "#374151", fontWeight: 500 }}>${subtotal.toFixed(2)}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "14px", color: "#6b7280", marginBottom: "12px", paddingBottom: "12px", borderBottom: "1px solid #e5e7eb" }}>
+              <span>HST (13%)</span><span style={{ color: "#374151", fontWeight: 500 }}>${hst.toFixed(2)}</span>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "16px", fontWeight: 700, color: "#111827" }}>
+              <span>Total</span><span style={{ color: "#4F46E5" }}>${total.toFixed(2)}</span>
             </div>
           </div>
         </div>
 
-      {/* Timesheets Table */}
-      <div style={styles.timesheetsSection}>
-        <h3 style={styles.sectionTitle}>Timesheets</h3>
-        {timesheets.length === 0 ? (
-          <p>No timesheets available for this driver.</p>
-        ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead style={{ color: ""}}>
-              <tr>
-                <th style={styles.th}>Date</th>
-                <th style={styles.th}>Start</th>
-                <th style={styles.th}>End</th>
-                <th style={styles.th}>Total Hours</th>
-                <th style={styles.th}>Start KM</th>
-                <th style={styles.th}>End KM</th>
-                <th style={styles.th}>Category</th>
-                <th style={styles.th}>Subtotal</th>
-                <th style={styles.th}>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {timesheets.map((t) => {
-                const rate = categoryRates[t.category] || 0;
-                let start = new Date(`1970-01-01T${t.startTime}`);
-                let end = new Date(`1970-01-01T${t.endTime}`);
-                if (end <= start) {
-                  end.setDate(end.getDate() + 1);
-                }
-                const hoursWorked = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-                const subtotal = (hoursWorked * rate).toFixed(2);
-                return (
-                  <tr key={t._id}>
-                    <td style={styles.td}>{t.date}</td>
-                    <td style={styles.td}>{t.startTime}</td>
-                    <td style={styles.td}>{t.endTime}</td>
-                    <td style={styles.td}>{hoursWorked.toFixed(2)} hrs</td>
-                    <td style={styles.td}>{t.startKM}</td>
-                    <td style={styles.td}>{t.endKM}</td>
-                    <td style={styles.td}>{t.category}</td>
-                    <td style={styles.td}>${subtotal}</td>
-                    <td style={styles.td}>
-                      {t.status === "approved" ? "✔️" : t.status === "rejected" ? "❌" : "⏳"}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        )}
       </div>
-
-        {/* Totals Section */}
-        <div style={styles.totalsContainer}>
-          <p style={styles.subtotal}>
-            Subtotal: <span>${subtotal.toFixed(2)}</span>
-          </p>
-          <p style={styles.hst}>
-            HST (13%): <span>${hst.toFixed(2)}</span>
-          </p>
-          <h2 style={styles.total}>
-            Total: <span>${total.toFixed(2)}</span>
-          </h2>
-        </div>
-
-        {/* Generate PDF Button */}
-        <div style={styles.buttonContainer}>
-          <button
-            onClick={generatePDF}
-            style={{
-              ...styles.button,
-              backgroundColor: isGenerateDisabled ? "#ccc" : "#4F46E5",
-              cursor: isGenerateDisabled ? "not-allowed" : "pointer",
-            }}
-            disabled={isGenerateDisabled}
-          >
-            Generate PDF
-          </button>
-          <button
-            onClick={generateAndSendPDF}
-            style={{
-              ...styles.button,
-              backgroundColor: isGenerateDisabled ? "#ccc" : "#007bff",
-              cursor: isGenerateDisabled ? "not-allowed" : "pointer",
-            }}
-            disabled={isGenerateDisabled}
-          >
-            Send Invoice as Email
-          </button>
-        </div>
-      </div>
-    </div>
     </div>
   );
 };
 
 const styles: { [key: string]: CSSProperties } = {
-  container: {
-    background: "#f9fafb",
-    padding: "24px",
-    maxWidth: "1200px",
-    margin: "0 auto",
-    fontFamily: "Inter, system-ui, sans-serif",
-    minHeight: "100vh",
-  },
-  title: {
-    fontSize: "24px",
-    fontWeight: 700,
-    marginBottom: "24px",
-    color: "#111827",
-  },
-  invoiceContainer: {
-    backgroundColor: "#ffffff",
-    padding: "40px",
-    maxWidth: "1000px",
-    margin: "0 auto",
+  card: {
+    background: "#fff",
+    border: "1px solid #e0e7ff",
     borderRadius: "16px",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+    padding: "24px",
+    marginBottom: "20px",
+    boxShadow: "0 2px 16px rgba(79,70,229,0.07)",
   },
-  flexRow: {
-    display: "flex",
-    flexWrap: "wrap" as const,
-    gap: "24px",
-    justifyContent: "space-between",
-    marginBottom: "8px",
-  },
-  flexColumn: {
-    flex: "1 1 48%",
-    minWidth: "300px",
+  sectionTitle: {
+    margin: "0 0 18px",
+    fontSize: "16px",
+    fontWeight: 700,
+    color: "#111827",
   },
   label: {
     display: "block",
     fontSize: "13px",
-    fontWeight: 600,
-    color: "#6b7280",
-    marginBottom: "6px",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
+    fontWeight: 500,
+    color: "#374151",
+    marginBottom: "5px",
   },
   input: {
-    display: "block",
-    margin: "6px 0 16px 0",
-    padding: "10px 14px",
     width: "100%",
-    border: "1px solid #d1d5db",
-    borderRadius: "8px",
-    fontSize: "14px",
-    fontFamily: "Inter, system-ui, sans-serif",
-    backgroundColor: "#f9fafb",
-    color: "#111827",
-    transition: "all 0.2s ease-in-out",
-    boxSizing: "border-box" as const,
-    outline: "none",
-  },
-  inputReadOnly: {
-    display: "block",
-    margin: "6px 0 16px 0",
-    padding: "10px 14px",
-    width: "100%",
-    border: "1px solid #e5e7eb",
-    borderRadius: "8px",
-    fontSize: "14px",
-    fontFamily: "Inter, system-ui, sans-serif",
-    backgroundColor: "#f3f4f6",
-    color: "#6b7280",
-    cursor: "not-allowed",
-    boxSizing: "border-box" as const,
-  },
-  dropdown: {
-    padding: "10px 40px 10px 14px",
-    fontSize: "14px",
-    fontFamily: "Inter, system-ui, sans-serif",
-    margin: "6px 0 16px 0",
+    padding: "9px 12px",
     borderRadius: "8px",
     border: "1px solid #d1d5db",
-    backgroundColor: "#f9fafb",
+    fontSize: "14px",
     color: "#111827",
-    width: "100%",
-    maxWidth: "100%",
-    appearance: "none",
-    backgroundImage: "url('data:image/svg+xml;utf8,<svg fill=\"%236b7280\" height=\"20\" viewBox=\"0 0 24 24\" width=\"20\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M7 10l5 5 5-5z\"/></svg>')",
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "right 12px center",
-    backgroundSize: "18px 18px",
-    cursor: "pointer",
-    transition: "all 0.2s ease-in-out",
-    boxSizing: "border-box" as const,
+    background: "#fff",
     outline: "none",
-  },
-  box: {
-    backgroundColor: "#f9fafb",
-    padding: "20px",
-    borderRadius: "12px",
-    marginBottom: "16px",
-    border: "1px solid #e5e7eb",
-  },
-  detailsContainer: {
-    marginTop: "12px",
-    borderTop: "1px solid #e5e7eb",
-    paddingTop: "12px",
-  },
-  timesheetsSection: {
-    marginBottom: "24px",
-    padding: "20px",
-    backgroundColor: "#f9fafb",
-    borderRadius: "12px",
-    border: "1px solid #e5e7eb",
-  },
-  sectionTitle: {
-    fontSize: "16px",
-    fontWeight: 700,
-    marginBottom: "12px",
-    color: "#1f2937",
+    boxSizing: "border-box" as const,
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   th: {
-    padding: "12px 14px",
-    fontSize: "12px",
-    fontWeight: 700,
+    padding: "12px 16px",
     textAlign: "left" as const,
-    backgroundColor: "#f3f4f6",
-    color: "#6b7280",
-    borderBottom: "1px solid #e5e7eb",
+    fontSize: "10px",
+    fontWeight: 700,
+    color: "#6366f1",
     textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
+    letterSpacing: "0.7px",
     whiteSpace: "nowrap" as const,
   },
   td: {
-    borderBottom: "1px solid #f3f4f6",
-    padding: "12px 14px",
-    fontSize: "14px",
-    textAlign: "left" as const,
+    padding: "13px 16px",
     color: "#374151",
-  },
-  totalsContainer: {
-    marginTop: "24px",
-    padding: "20px 24px",
-    backgroundColor: "#f9fafb",
-    borderRadius: "12px",
-    border: "1px solid #e5e7eb",
-    width: "100%",
-    maxWidth: "400px",
-    marginLeft: "auto",
-  },
-  subtotal: {
-    fontSize: "14px",
-    fontWeight: 500,
-    color: "#374151",
-    marginBottom: "8px",
-    display: "flex",
-    justifyContent: "space-between",
-    padding: "4px 0",
-  },
-  hst: {
-    fontSize: "14px",
-    fontWeight: 500,
-    color: "#374151",
-    marginBottom: "8px",
-    display: "flex",
-    justifyContent: "space-between",
-    padding: "4px 0",
-  },
-  total: {
-    fontSize: "16px",
-    fontWeight: 700,
-    marginTop: "8px",
-    paddingTop: "12px",
-    borderTop: "1px solid #d1d5db",
-    display: "flex",
-    justifyContent: "space-between",
-    color: "#111827",
-  },
-  buttonContainer: {
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: "10px",
-    marginTop: "28px",
-    paddingTop: "20px",
-    borderTop: "1px solid #f3f4f6",
-  },
-  button: {
-    color: "#ffffff",
-    fontSize: "14px",
-    fontWeight: 600,
-    padding: "10px 20px",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-    transition: "opacity 0.2s ease",
+    verticalAlign: "middle" as const,
   },
 };
 

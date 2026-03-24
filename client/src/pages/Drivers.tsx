@@ -7,7 +7,10 @@ import {
   getCoreRowModel,
   flexRender,
 } from "@tanstack/react-table";
-import { FaEdit, FaTrashAlt, FaClipboard } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaClipboard, FaCalendarAlt } from "react-icons/fa";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/style.css";
+import { format, parseISO } from "date-fns";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
@@ -19,12 +22,57 @@ const DEMO_DRIVERS = [
   { _id: "demo-d5", name: "James Kowalski", email: "j.kowalski@fleetmail.ca", contact: "519-555-0267", address: "1040 Dundas St E, London, ON N5W 3A8", hst_gst: "834567890RT0001", business_name: "JK Freight Solutions", status: "Active", username: "jkowalski", licence: "AZ", licence_expiry_date: "2027-11-05", backhaulRate: 215, comboRate: 265, regularBannerRate: 235, wholesaleRate: 205, voilaRate: 245, tcsLinehaulTrentonRate: 290, trainings: "WHMIS, TDG, Forklift, Air Brake", workStatus: "Full-time", sinNo: "***-**-7890" },
 ];
 
+const WORK_AUTH_OPTIONS = [
+  { value: "Canadian Citizen",                       hasExpiry: false },
+  { value: "Permanent Resident",                     hasExpiry: false },
+  { value: "Work Permit",                            hasExpiry: true  },
+  { value: "Open Work Permit",                       hasExpiry: true  },
+  { value: "Post-Graduate Work Permit (PGWP)",       hasExpiry: true  },
+  { value: "Bridging Open Work Permit (BOWP)",       hasExpiry: true  },
+  { value: "Study Permit (Work Authorization)",      hasExpiry: true  },
+  { value: "International Mobility Program (IMP)",   hasExpiry: true  },
+  { value: "Seasonal Agricultural Worker Program",   hasExpiry: true  },
+];
+
+const workAuthNeedsExpiry = (val: string) =>
+  WORK_AUTH_OPTIONS.find((o) => o.value === val)?.hasExpiry ?? false;
+
 const Drivers: React.FC = () => {
   const navigate = useNavigate();
 
 
   const generatePassword = () => {
     return Math.random().toString(36).slice(-8); // Example: "aB3dE9fG"
+  };
+
+  const formatContact = (raw: string): string => {
+    // Strip the "+1 (" prefix first so its "1" digit is never re-extracted
+    const withoutPrefix = raw.replace(/^\+1[\s\-\(]*/, "");
+    let digits = withoutPrefix.replace(/\D/g, "");
+    // Also handle paste of a full E.164 number like "14567890123"
+    if (digits.length === 11 && digits.startsWith("1")) digits = digits.slice(1);
+    digits = digits.slice(0, 10);
+    if (digits.length === 0) return "";
+    if (digits.length <= 3) return `+1 (${digits}`;
+    if (digits.length <= 6) return `+1 (${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    return `+1 (${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  };
+
+  const formatSIN = (raw: string): string => {
+    const digits = raw.replace(/\D/g, "").slice(0, 9);
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
+  };
+
+  const validateExpiryDate = (dateStr: string): string => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr + "T00:00:00");
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (date <= today) return "Licence expiry date must be in the future.";
+    const soon = new Date(today); soon.setDate(soon.getDate() + 30);
+    if (date <= soon) return "Warning: Licence expires within 30 days.";
+    return "";
   };
 
   const [data, setData] = useState<any[]>([]);
@@ -41,6 +89,13 @@ const Drivers: React.FC = () => {
       console.error("Failed to check username:", err);
     }
   };
+  const [addFieldErrors, setAddFieldErrors] = useState({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" });
+  const [editFieldErrors, setEditFieldErrors] = useState({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" });
+  const [showAddExpiryPicker, setShowAddExpiryPicker] = useState(false);
+  const [showEditExpiryPicker, setShowEditExpiryPicker] = useState(false);
+  const [showAddWorkAuthPicker, setShowAddWorkAuthPicker] = useState(false);
+  const [showEditWorkAuthPicker, setShowEditWorkAuthPicker] = useState(false);
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -65,7 +120,9 @@ const Drivers: React.FC = () => {
     username: "",
     password: generatePassword(),
     sinNo: "",
-    workStatus: ""
+    workStatus: "",
+    workAuthExpiry: "",
+    trainings: [],
   });
 
   const [editedDriver, setEditedDriver] = useState<any>(null);
@@ -186,28 +243,25 @@ const Drivers: React.FC = () => {
           return hours.toFixed(2);
         }
       },
-      { accessorKey: "workStatus", header: "Work Status" },
+      { accessorKey: "workStatus", header: "Work Authorization" },
       {
         accessorKey: "actions",
         header: "Actions",
-        cell: ({ row }) => (
+        cell: ({ row }) => {
+          const isDemo = String(row.original._id).startsWith("demo-");
+          return (
             <div style={styles.actionButtons}>
-            <FaEdit
-                style={styles.iconEdit}
-              onClick={(e) => {
-                  e.stopPropagation(); // Prevents navigation from triggering
-                handleEdit(row.original);
-              }}
-            />
-            <FaTrashAlt
-              style={styles.iconDelete}
-              onClick={(e) => {
-                  e.stopPropagation(); // Prevents navigation from triggering
-                handleDelete(row.original);
-              }}
-            />
-          </div>
-        ),
+              <FaEdit
+                style={{ ...styles.iconEdit, opacity: isDemo ? 0.3 : 1, cursor: isDemo ? "not-allowed" : "pointer" }}
+                onClick={(e) => { e.stopPropagation(); if (!isDemo) handleEdit(row.original); }}
+              />
+              <FaTrashAlt
+                style={{ ...styles.iconDelete, opacity: isDemo ? 0.3 : 1, cursor: isDemo ? "not-allowed" : "pointer" }}
+                onClick={(e) => { e.stopPropagation(); if (!isDemo) handleDelete(row.original); }}
+              />
+            </div>
+          );
+        },
       },
     ];
 
@@ -239,10 +293,11 @@ const Drivers: React.FC = () => {
   // Handlers for modals
   const handleEdit = (driver: any) => {
     setSelectedDriver(driver);
-    setEditedDriver(driver); // Store the original driver data
+    setEditedDriver(driver);
     setIsEditModalOpen(true);
-    setIsUpdateDisabled(true); // Disable update button initially
-    setUsernameError(""); // Clear any previous username errors
+    setIsUpdateDisabled(true);
+    setUsernameError("");
+    setEditFieldErrors({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" });
   };
 
   const handleCopyPassword = (password: string): void => {
@@ -315,10 +370,48 @@ const Drivers: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", minHeight: "100vh", background: "#f9fafb" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", minHeight: "100vh", background: "#f0f4ff" }}>
+      <style>{`
+        .rdp-root {
+          --rdp-day-height: 32px; --rdp-day-width: 32px;
+          --rdp-day_button-height: 32px; --rdp-day_button-width: 32px;
+          padding: 12px;
+        }
+        .rdp-caption_label { font-size: 14px; font-weight: 700; }
+        .rdp-weekday { font-size: 11px; width: 32px; }
+        .rdp-weekdays, .rdp-week { gap: 2px; }
+      `}</style>
       <Navbar />
+      {/* ── Hero ─────────────────────────────────────────────────────── */}
+      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
+        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+              <FaClipboard size={22} />
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Driver Management</p>
+              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>All Drivers</h1>
+              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Manage driver profiles, rates & credentials</p>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" as const }}>
+            <button
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "rgba(34,197,94,0.2)", border: "1px solid rgba(34,197,94,0.4)", borderRadius: "8px", color: "#86efac", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", position: "relative" }}
+              onClick={() => navigate("/driver-applications")}
+            >
+              Driver Applications
+              {pendingApplicationsCount > 0 && (
+                <span style={{ ...styles.notificationBadge }}>{pendingApplicationsCount}</span>
+              )}
+            </button>
+            <button style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} onClick={() => { setIsAddModalOpen(true); setAddFieldErrors({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" }); }}>
+              + Add Driver
+            </button>
+          </div>
+        </div>
+      </div>
       <div style={styles.container}>
-      <h1 style={styles.pageTitle}>All Drivers</h1>
         {/* Modern Header/Filter Bar */}
         <div style={styles.headerWrapper}>
           <div style={styles.filterBar}>
@@ -332,34 +425,15 @@ const Drivers: React.FC = () => {
                 style={styles.searchInput}
               />
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as "highest" | "lowest" | "none")}
-                style={styles.filterDropdown}
-              >
-                <option value="none">Sort by Hours</option>
-                <option value="highest">Highest Hours</option>
-                <option value="lowest">Lowest Hours</option>
-              </select>
-              <button 
-                style={{
-                  ...styles.driverApplicationsButton,
-                  backgroundColor: isApplicationsButtonHovered ? "#218838" : "#28a745",
-                }}
-                onClick={() => navigate("/driver-applications")}
-                onMouseEnter={() => setIsApplicationsButtonHovered(true)}
-                onMouseLeave={() => setIsApplicationsButtonHovered(false)}
-              >
-                Driver Applications
-                {pendingApplicationsCount > 0 && (
-                  <span style={styles.notificationBadge}>{pendingApplicationsCount}</span>
-                )}
-              </button>
-              <button style={styles.addDriverButton} onClick={() => setIsAddModalOpen(true)}>
-                + Add Driver
-              </button>
-            </div>
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as "highest" | "lowest" | "none")}
+              style={styles.filterDropdown}
+            >
+              <option value="none">Sort by Hours</option>
+              <option value="highest">Highest Hours</option>
+              <option value="lowest">Lowest Hours</option>
+            </select>
           </div>
         </div>
 
@@ -385,19 +459,22 @@ const Drivers: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                table.getRowModel().rows.map((row) => (
+                table.getRowModel().rows.map((row) => {
+                  const isDemo = String(row.original._id).startsWith("demo-");
+                  return (
                   <tr key={row.id}>
                     {row.getVisibleCells().map((cell) => (
                       <td
                         key={cell.id}
-                        style={styles.td}
-                        onClick={() => navigate(`/profile`, { state: { driver: row.original } })}
+                        style={{ ...styles.td, cursor: isDemo ? "default" : "pointer" }}
+                        onClick={() => { if (!isDemo) navigate(`/profile`, { state: { driver: row.original } }); }}
                       >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -439,10 +516,17 @@ const Drivers: React.FC = () => {
               <label style={styles.label}>Contact:</label>
               <input
                 type="text"
-                placeholder="Enter contact number"
-                style={styles.input}
-                onChange={(e) => setSelectedDriver({ ...selectedDriver, contact: e.target.value })}
+                placeholder="+1 (416) 555-0191"
+                value={selectedDriver.contact}
+                style={{ ...styles.input, borderColor: addFieldErrors.contact ? "#dc2626" : undefined }}
+                onChange={(e) => {
+                  const formatted = formatContact(e.target.value);
+                  setSelectedDriver({ ...selectedDriver, contact: formatted });
+                  const digits = formatted.replace(/^\+1[\s\-\(]*/, "").replace(/\D/g, "");
+                  setAddFieldErrors((prev) => ({ ...prev, contact: digits.length > 0 && digits.length < 10 ? "Enter a valid 10-digit phone number." : "" }));
+                }}
               />
+              {addFieldErrors.contact && <p style={styles.fieldError}>{addFieldErrors.contact}</p>}
             </div>
 
             {/* Address */}
@@ -560,41 +644,125 @@ const Drivers: React.FC = () => {
               <label style={styles.label}>Sin No.:</label>
               <input
                 type="text"
-                placeholder="Enter SIN Number"
-                style={styles.input}
-                onChange={(e) => setSelectedDriver({ ...selectedDriver, sinNo: e.target.value })}
+                placeholder="XXX-XXX-XXX"
+                value={selectedDriver.sinNo}
+                style={{ ...styles.input, borderColor: addFieldErrors.sinNo ? "#dc2626" : undefined }}
+                onChange={(e) => {
+                  const formatted = formatSIN(e.target.value);
+                  setSelectedDriver({ ...selectedDriver, sinNo: formatted });
+                  const digits = formatted.replace(/\D/g, "");
+                  setAddFieldErrors((prev) => ({ ...prev, sinNo: digits.length > 0 && digits.length < 9 ? "SIN must be 9 digits." : digits.length === 0 ? "SIN No. is required." : "" }));
+                }}
               />
+              {addFieldErrors.sinNo && <p style={styles.fieldError}>{addFieldErrors.sinNo}</p>}
             </div>
 
+            {/* Work Authorization */}
             <div style={styles.formGroup}>
-              <label style={styles.label}>Work Status:</label>
-              <input
-                type="text"
-                placeholder="Enter work status"
+              <label style={styles.label}>Work Authorization (Canada):</label>
+              <select
+                value={selectedDriver.workStatus}
                 style={styles.input}
-                onChange={(e) => setSelectedDriver({ ...selectedDriver, workStatus: e.target.value })}
-              />
+                onChange={(e) => {
+                  setSelectedDriver({ ...selectedDriver, workStatus: e.target.value, workAuthExpiry: "" });
+                  setShowAddWorkAuthPicker(false);
+                }}
+              >
+                <option value="">Select work authorization</option>
+                {WORK_AUTH_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.value}</option>
+                ))}
+              </select>
             </div>
+
+            {/* Work Auth Expiry — only shown for permit-based options */}
+            {workAuthNeedsExpiry(selectedDriver.workStatus) && (
+              <div style={{ ...styles.formGroup, position: "relative" }}>
+                <label style={styles.label}>Work Authorization Expiry Date:</label>
+                <div
+                  onClick={() => setShowAddWorkAuthPicker(v => !v)}
+                  style={{ ...styles.input, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" }}
+                >
+                  <span style={{ color: selectedDriver.workAuthExpiry ? "#111827" : "#9ca3af" }}>
+                    {selectedDriver.workAuthExpiry ? format(parseISO(selectedDriver.workAuthExpiry), "MMM d, yyyy") : "Select expiry date"}
+                  </span>
+                  <FaCalendarAlt size={13} style={{ color: "#9ca3af" }} />
+                </div>
+                {showAddWorkAuthPicker && (
+                  <>
+                    <div onClick={() => setShowAddWorkAuthPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
+                    <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
+                      <DayPicker
+                        mode="single"
+                        selected={selectedDriver.workAuthExpiry ? parseISO(selectedDriver.workAuthExpiry) : undefined}
+                        onSelect={(d) => {
+                          if (d) {
+                            setSelectedDriver({ ...selectedDriver, workAuthExpiry: format(d, "yyyy-MM-dd") });
+                            setShowAddWorkAuthPicker(false);
+                          }
+                        }}
+                        styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
             {/* Licence */}
             <div style={styles.formGroup}>
               <label style={styles.label}>Licence:</label>
               <input
                 type="text"
-                placeholder="Enter licence number"
-                style={styles.input}
-                onChange={(e) => setSelectedDriver({ ...selectedDriver, licence: e.target.value })}
+                placeholder="e.g. AZ, DZ, G"
+                value={selectedDriver.licence}
+                style={{ ...styles.input, borderColor: addFieldErrors.licence ? "#dc2626" : undefined }}
+                onChange={(e) => {
+                  const upper = e.target.value.toUpperCase();
+                  setSelectedDriver({ ...selectedDriver, licence: upper });
+                  setAddFieldErrors((prev) => ({ ...prev, licence: upper.trim() === "" ? "Licence class is required." : "" }));
+                }}
               />
+              {addFieldErrors.licence && <p style={styles.fieldError}>{addFieldErrors.licence}</p>}
             </div>
 
             {/* Licence Expiry Date */}
-            <div style={styles.formGroup}>
+            <div style={{ ...styles.formGroup, position: "relative" }}>
               <label style={styles.label}>Licence Expiry Date:</label>
-              <input
-                type="date"
-                style={styles.input}
-                onChange={(e) => setSelectedDriver({ ...selectedDriver, licence_expiry_date: e.target.value })}
-              />
+              <div
+                onClick={() => setShowAddExpiryPicker(v => !v)}
+                style={{ ...styles.input, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none", borderColor: addFieldErrors.licence_expiry_date?.startsWith("Warning") ? "#d97706" : addFieldErrors.licence_expiry_date ? "#dc2626" : undefined }}
+              >
+                <span style={{ color: selectedDriver.licence_expiry_date ? "#111827" : "#9ca3af" }}>
+                  {selectedDriver.licence_expiry_date ? format(parseISO(selectedDriver.licence_expiry_date), "MMM d, yyyy") : "Select expiry date"}
+                </span>
+                <FaCalendarAlt size={13} style={{ color: "#9ca3af" }} />
+              </div>
+              {showAddExpiryPicker && (
+                <>
+                  <div onClick={() => setShowAddExpiryPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
+                  <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
+                    <DayPicker
+                      mode="single"
+                      selected={selectedDriver.licence_expiry_date ? parseISO(selectedDriver.licence_expiry_date) : undefined}
+                      onSelect={(d) => {
+                        if (d) {
+                          const dateStr = format(d, "yyyy-MM-dd");
+                          setSelectedDriver({ ...selectedDriver, licence_expiry_date: dateStr });
+                          setAddFieldErrors((prev) => ({ ...prev, licence_expiry_date: validateExpiryDate(dateStr) }));
+                          setShowAddExpiryPicker(false);
+                        }
+                      }}
+                      styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }}
+                    />
+                  </div>
+                </>
+              )}
+              {addFieldErrors.licence_expiry_date && (
+                <p style={{ ...styles.fieldError, color: addFieldErrors.licence_expiry_date.startsWith("Warning") ? "#d97706" : "#dc2626" }}>
+                  {addFieldErrors.licence_expiry_date}
+                </p>
+              )}
             </div>
 
             {/* Status (Dropdown) */}
@@ -610,16 +778,6 @@ const Drivers: React.FC = () => {
               </select>
             </div>
 
-            {/* Trainings */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Trainings:</label>
-              <input
-                type="text"
-                placeholder="Enter trainings"
-                style={styles.input}
-                onChange={(e) => setSelectedDriver({ ...selectedDriver, trainings: e.target.value })}
-              />
-            </div>
 
             {/* Username */}
             <div style={styles.formGroup}>
@@ -630,9 +788,9 @@ const Drivers: React.FC = () => {
                 value={selectedDriver.username}
                 style={styles.input}
                 onChange={(e) => {
-                  const value = e.target.value;
+                  const value = e.target.value.trim();
                   setSelectedDriver({ ...selectedDriver, username: value });
-                  checkUsernameExists(value.trim());
+                  checkUsernameExists(value);
                 }}
               />
               {usernameError && (
@@ -671,11 +829,17 @@ const Drivers: React.FC = () => {
                     alert("Please resolve username error before submitting.");
                     return;
                   }
-                  if (!selectedDriver.sinNo?.trim()) {
-                    alert("Sin No. is required.");
-                    return;
-                  }
-                  createDriver(selectedDriver);
+                  const sinDigits = (selectedDriver.sinNo || "").replace(/\D/g, "");
+                  const contactDigits = (selectedDriver.contact || "").replace(/^\+1[\s\-\(]*/, "").replace(/\D/g, "");
+                  const errors = {
+                    sinNo: sinDigits.length !== 9 ? "SIN must be 9 digits." : "",
+                    contact: contactDigits.length > 0 && contactDigits.length !== 10 ? "Enter a valid 10-digit phone number." : "",
+                    licence: !(selectedDriver.licence || "").trim() ? "Licence class is required." : "",
+                    licence_expiry_date: validateExpiryDate(selectedDriver.licence_expiry_date || "").startsWith("Warning") ? validateExpiryDate(selectedDriver.licence_expiry_date || "") : validateExpiryDate(selectedDriver.licence_expiry_date || ""),
+                  };
+                  setAddFieldErrors(errors);
+                  if (errors.sinNo || errors.contact || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning"))) return;
+                  createDriver({ ...selectedDriver, username: (selectedDriver.username || "").trim() });
                 }}
               >
                 Add Driver
@@ -737,10 +901,17 @@ const Drivers: React.FC = () => {
               <label style={styles.label}>Contact:</label>
               <input
                 type="text"
-                defaultValue={selectedDriver?.contact}
-                style={styles.input}
-                onChange={(e) => handleInputChange("contact", e.target.value)}
+                placeholder="+1 (416) 555-0191"
+                value={selectedDriver?.contact || ""}
+                style={{ ...styles.input, borderColor: editFieldErrors.contact ? "#dc2626" : undefined }}
+                onChange={(e) => {
+                  const formatted = formatContact(e.target.value);
+                  handleInputChange("contact", formatted);
+                  const digits = formatted.replace(/\D/g, "");
+                  setEditFieldErrors((prev) => ({ ...prev, contact: digits.length > 0 && digits.length < 10 ? "Enter a valid 10-digit phone number." : "" }));
+                }}
               />
+              {editFieldErrors.contact && <p style={styles.fieldError}>{editFieldErrors.contact}</p>}
             </div>
 
             <div style={styles.formGroup}>
@@ -768,10 +939,17 @@ const Drivers: React.FC = () => {
               <label style={styles.label}>Sin No.:</label>
               <input
                 type="text"
-                defaultValue={selectedDriver?.sinNo}
-                style={styles.input}
-                onChange={(e) => handleInputChange("sinNo", e.target.value)}
+                placeholder="XXX-XXX-XXX"
+                value={selectedDriver?.sinNo || ""}
+                style={{ ...styles.input, borderColor: editFieldErrors.sinNo ? "#dc2626" : undefined }}
+                onChange={(e) => {
+                  const formatted = formatSIN(e.target.value);
+                  handleInputChange("sinNo", formatted);
+                  const digits = formatted.replace(/\D/g, "");
+                  setEditFieldErrors((prev) => ({ ...prev, sinNo: digits.length > 0 && digits.length < 9 ? "SIN must be 9 digits." : digits.length === 0 ? "SIN No. is required." : "" }));
+                }}
               />
+              {editFieldErrors.sinNo && <p style={styles.fieldError}>{editFieldErrors.sinNo}</p>}
             </div>
 
             {/* Backhaul Rate */}
@@ -851,36 +1029,121 @@ const Drivers: React.FC = () => {
                 />
             </div>
 
+            {/* Work Authorization */}
             <div style={styles.formGroup}>
-              <label style={styles.label}>Work Status:</label>
-              <input
-                type="text"
-                defaultValue={selectedDriver?.workStatus}
+              <label style={styles.label}>Work Authorization (Canada):</label>
+              <select
+                value={selectedDriver?.workStatus || ""}
                 style={styles.input}
-                onChange={(e) => handleInputChange("workStatus", e.target.value)}
-              />
+                onChange={(e) => {
+                  handleInputChange("workStatus", e.target.value);
+                  handleInputChange("workAuthExpiry", "");
+                  setShowEditWorkAuthPicker(false);
+                }}
+              >
+                <option value="">Select work authorization</option>
+                {WORK_AUTH_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.value}</option>
+                ))}
+              </select>
             </div>
+
+            {/* Work Auth Expiry — only shown for permit-based options */}
+            {workAuthNeedsExpiry(selectedDriver?.workStatus) && (
+              <div style={{ ...styles.formGroup, position: "relative" }}>
+                <label style={styles.label}>Work Authorization Expiry Date:</label>
+                <div
+                  onClick={() => setShowEditWorkAuthPicker(v => !v)}
+                  style={{ ...styles.input, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" }}
+                >
+                  <span style={{ color: selectedDriver?.workAuthExpiry ? "#111827" : "#9ca3af" }}>
+                    {selectedDriver?.workAuthExpiry ? format(parseISO(selectedDriver.workAuthExpiry), "MMM d, yyyy") : "Select expiry date"}
+                  </span>
+                  <FaCalendarAlt size={13} style={{ color: "#9ca3af" }} />
+                </div>
+                {showEditWorkAuthPicker && (
+                  <>
+                    <div onClick={() => setShowEditWorkAuthPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
+                    <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
+                      <DayPicker
+                        mode="single"
+                        selected={selectedDriver?.workAuthExpiry ? parseISO(selectedDriver.workAuthExpiry) : undefined}
+                        onSelect={(d) => {
+                          if (d) {
+                            handleInputChange("workAuthExpiry", format(d, "yyyy-MM-dd"));
+                            setShowEditWorkAuthPicker(false);
+                          }
+                        }}
+                        styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
             <div style={styles.formGroup}>
               <label style={styles.label}>Licence:</label>
               <input
                 type="text"
-                defaultValue={selectedDriver?.licence}
-                style={styles.input}
-                onChange={(e) => handleInputChange("licence", e.target.value)}
+                placeholder="e.g. AZ, DZ, G"
+                value={selectedDriver?.licence || ""}
+                style={{ ...styles.input, borderColor: editFieldErrors.licence ? "#dc2626" : undefined }}
+                onChange={(e) => {
+                  const upper = e.target.value.toUpperCase();
+                  handleInputChange("licence", upper);
+                  setEditFieldErrors((prev) => ({ ...prev, licence: upper.trim() === "" ? "Licence class is required." : "" }));
+                }}
               />
+              {editFieldErrors.licence && <p style={styles.fieldError}>{editFieldErrors.licence}</p>}
             </div>
 
-            <div style={styles.formGroup}>
+            <div style={{ ...styles.formGroup, position: "relative" }}>
               <label style={styles.label}>Licence Expiry Date:</label>
-              <input
-                type="date"
-                defaultValue={selectedDriver?.licence_expiry_date ? 
-                  new Date(selectedDriver.licence_expiry_date).toISOString().split('T')[0] : ""
-                }
-                style={styles.input}
-                onChange={(e) => handleInputChange("licence_expiry_date", e.target.value)}
-              />
+              <div
+                onClick={() => setShowEditExpiryPicker(v => !v)}
+                style={{ ...styles.input, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none", borderColor: editFieldErrors.licence_expiry_date?.startsWith("Warning") ? "#d97706" : editFieldErrors.licence_expiry_date ? "#dc2626" : undefined }}
+              >
+                {(() => {
+                  const raw = selectedDriver?.licence_expiry_date;
+                  const dateStr = raw ? (raw.includes("T") ? raw.split("T")[0] : raw) : "";
+                  return (
+                    <span style={{ color: dateStr ? "#111827" : "#9ca3af" }}>
+                      {dateStr ? format(parseISO(dateStr), "MMM d, yyyy") : "Select expiry date"}
+                    </span>
+                  );
+                })()}
+                <FaCalendarAlt size={13} style={{ color: "#9ca3af" }} />
+              </div>
+              {showEditExpiryPicker && (
+                <>
+                  <div onClick={() => setShowEditExpiryPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
+                  <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
+                    <DayPicker
+                      mode="single"
+                      selected={(() => {
+                        const raw = selectedDriver?.licence_expiry_date;
+                        const s = raw ? (raw.includes("T") ? raw.split("T")[0] : raw) : "";
+                        return s ? parseISO(s) : undefined;
+                      })()}
+                      onSelect={(d) => {
+                        if (d) {
+                          const dateStr = format(d, "yyyy-MM-dd");
+                          handleInputChange("licence_expiry_date", dateStr);
+                          setEditFieldErrors((prev) => ({ ...prev, licence_expiry_date: validateExpiryDate(dateStr) }));
+                          setShowEditExpiryPicker(false);
+                        }
+                      }}
+                      styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }}
+                    />
+                  </div>
+                </>
+              )}
+              {editFieldErrors.licence_expiry_date && (
+                <p style={{ ...styles.fieldError, color: editFieldErrors.licence_expiry_date.startsWith("Warning") ? "#d97706" : "#dc2626" }}>
+                  {editFieldErrors.licence_expiry_date}
+                </p>
+              )}
             </div>
 
             <div style={styles.formGroup}>
@@ -904,10 +1167,16 @@ const Drivers: React.FC = () => {
                     alert("Please resolve username error before submitting.");
                     return;
                   }
-                  if (!selectedDriver.sinNo?.trim()) {
-                    alert("Sin No. is required.");
-                    return;
-                  }
+                  const sinDigits = (selectedDriver.sinNo || "").replace(/\D/g, "");
+                  const contactDigits = (selectedDriver.contact || "").replace(/^\+1[\s\-\(]*/, "").replace(/\D/g, "");
+                  const errors = {
+                    sinNo: sinDigits.length !== 9 ? "SIN must be 9 digits." : "",
+                    contact: contactDigits.length > 0 && contactDigits.length !== 10 ? "Enter a valid 10-digit phone number." : "",
+                    licence: !(selectedDriver.licence || "").trim() ? "Licence class is required." : "",
+                    licence_expiry_date: validateExpiryDate(selectedDriver.licence_expiry_date || ""),
+                  };
+                  setEditFieldErrors(errors);
+                  if (errors.sinNo || errors.contact || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning"))) return;
                   updateDriver(selectedDriver);
                 }}
               >
@@ -962,9 +1231,9 @@ import { CSSProperties } from "react";
 
 const styles: { [key: string]: CSSProperties } = {
   container: {
-    maxWidth: "1200px",
+    maxWidth: "1300px",
     margin: "0 auto",
-    padding: "24px",
+    padding: "28px 40px",
   },
   pageTitle: {
     fontSize: "24px",
@@ -979,11 +1248,11 @@ const styles: { [key: string]: CSSProperties } = {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: "14px 20px",
+    padding: "12px 18px",
     backgroundColor: "#ffffff",
-    border: "1px solid #e5e7eb",
+    border: "1px solid #e0e7ff",
     borderRadius: "12px",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+    boxShadow: "0 1px 6px rgba(79,70,229,0.06)",
     gap: "16px",
     marginBottom: "16px",
   },
@@ -1023,9 +1292,9 @@ const styles: { [key: string]: CSSProperties } = {
   },
   tableWrapper: {
     backgroundColor: "#fff",
-    borderRadius: "12px",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+    borderRadius: "16px",
+    border: "1px solid #e0e7ff",
+    boxShadow: "0 2px 16px rgba(79,70,229,0.07)",
     overflowX: "auto",
   },
   table: {
@@ -1033,19 +1302,19 @@ const styles: { [key: string]: CSSProperties } = {
     borderCollapse: "collapse",
   },
   th: {
-    padding: "12px 16px",
-    fontSize: "12px",
-    fontWeight: 600,
+    padding: "13px 16px",
+    fontSize: "10px",
+    fontWeight: 700,
     textAlign: "left",
-    backgroundColor: "#f9fafb",
-    color: "#6b7280",
-    borderBottom: "1px solid #e5e7eb",
+    backgroundColor: "#f5f3ff",
+    color: "#6366f1",
+    borderBottom: "2px solid #e0e7ff",
     textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
+    letterSpacing: "0.7px",
     whiteSpace: "nowrap" as const,
   },
   td: {
-    borderBottom: "1px solid #f3f4f6",
+    borderBottom: "1px solid #f0f0ff",
     padding: "14px 18px",
     fontSize: "14px",
     textAlign: "left",
@@ -1148,6 +1417,11 @@ const styles: { [key: string]: CSSProperties } = {
   },
   formGroup: {
     marginBottom: "16px",
+  },
+  fieldError: {
+    margin: "4px 0 0",
+    fontSize: "12px",
+    color: "#dc2626",
   },
   label: {
     display: "block",

@@ -150,13 +150,20 @@ const CostTracking: React.FC = () => {
   return (
     <div style={styles.wrapper}>
       <Navbar />
-      <div style={styles.container}>
-        <div style={{ marginBottom: "24px" }}>
-          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "#111827", display: "flex", alignItems: "center", gap: "10px" }}>
-            <FaChartBar style={{ color: "#4F46E5" }} /> Cost Tracking
-          </h1>
-          <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "14px" }}>Fleet-wide cost analysis across fuel and maintenance</p>
+      {/* Hero */}
+      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
+        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", gap: "18px" }}>
+          <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+            <FaChartBar size={22} />
+          </div>
+          <div>
+            <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Fleet</p>
+            <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Cost Tracking</h1>
+            <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Fleet-wide cost analysis across fuel and maintenance</p>
+          </div>
         </div>
+      </div>
+      <div style={styles.container}>
 
         {/* Filters */}
         <div style={styles.filtersRow}>
@@ -285,24 +292,24 @@ const CostTracking: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#f9fafb", fontFamily: "Inter, system-ui, sans-serif" },
-  container: { maxWidth: "1200px", margin: "0 auto", padding: "24px" },
+  wrapper: { minHeight: "100vh", background: "#f0f4ff", fontFamily: "Inter, system-ui, sans-serif" },
+  container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
   filtersRow: { display: "flex", gap: "10px", marginBottom: "24px", flexWrap: "wrap", alignItems: "center" },
   select: { padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#fff" },
   dateInput: { padding: "9px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" },
   filterBtn: { padding: "9px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" },
-  statCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e5e7eb", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+  statCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e0e7ff", textAlign: "center", boxShadow: "0 1px 6px rgba(79,70,229,0.06)" },
   statValue: { fontSize: "24px", fontWeight: 800, color: "#4F46E5" },
   statLabel: { fontSize: "13px", color: "#6b7280", marginTop: "4px" },
   tabRow: { display: "flex", gap: "8px", marginBottom: "20px", borderBottom: "1px solid #e5e7eb", paddingBottom: "0" },
   tab: { padding: "10px 20px", background: "none", border: "none", borderBottom: "2px solid transparent", cursor: "pointer", fontSize: "14px", fontWeight: 600, color: "#6b7280", fontFamily: "Inter, system-ui, sans-serif", marginBottom: "-1px" },
   activeTab: { color: "#4F46E5", borderBottom: "2px solid #4F46E5" },
-  tableWrapper: { background: "#fff", borderRadius: "12px", border: "1px solid #e5e7eb", overflowX: "auto", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
-  card: { background: "#fff", borderRadius: "12px", border: "1px solid #e5e7eb", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+  tableWrapper: { background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", overflowX: "auto", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
+  card: { background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", padding: "24px", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
   table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
-  th: { padding: "12px 16px", textAlign: "left", background: "#f9fafb", borderBottom: "1px solid #e5e7eb", fontWeight: 600, color: "#6b7280", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px", whiteSpace: "nowrap" },
-  tr: { borderBottom: "1px solid #f3f4f6" },
+  th: { padding: "12px 16px", textAlign: "left", background: "#f5f3ff", borderBottom: "2px solid #e0e7ff", fontWeight: 700, color: "#6366f1", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
+  tr: { borderBottom: "1px solid #f0f0ff" },
   td: { padding: "14px 16px", color: "#374151", verticalAlign: "middle" },
   emptyState: { textAlign: "center", padding: "60px 0", color: "#6b7280", fontSize: "15px" },
 };

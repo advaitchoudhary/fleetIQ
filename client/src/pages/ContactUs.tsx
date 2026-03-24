@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
@@ -8,6 +9,18 @@ const ContactUs: React.FC = () => {
     email: "",
     message: ""
   });
+
+  const [org, setOrg] = useState({ name: "", address: "", phone: "", email: "" });
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    axios.get(`${API_BASE_URL}/organizations/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((res) => {
+      const { name, address, phone, email } = res.data;
+      setOrg({ name: name || "", address: address || "", phone: phone || "", email: email || "" });
+    }).catch(() => {});
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -60,19 +73,19 @@ const ContactUs: React.FC = () => {
         <h2 style={styles.pageTitle} data-cu-title>Contact Us</h2>
         
         <div style={styles.companyInfo} data-cu-company>
-          <h3 style={styles.companyName}>Premier Choice Employment</h3>
+          <h3 style={styles.companyName}>{org.name || "—"}</h3>
           <div style={styles.infoGrid} data-cu-info-grid>
             <div style={styles.infoItem}>
               <span style={styles.infoLabel}>Address</span>
-              <span style={styles.infoValue}>UNIT-21 745 CHELTON RD, LONDON, ON N6M 0J1</span>
+              <span style={styles.infoValue}>{org.address || "—"}</span>
             </div>
             <div style={styles.infoItem}>
               <span style={styles.infoLabel}>Phone</span>
-              <span style={styles.infoValue}>+1 (519) 280-1311</span>
+              <span style={styles.infoValue}>{org.phone || "—"}</span>
             </div>
             <div style={styles.infoItem}>
               <span style={styles.infoLabel}>Email</span>
-              <span style={styles.infoValue}>admin@premierchoicemployment.ca</span>
+              <span style={styles.infoValue}>{org.email || "—"}</span>
             </div>
             <div style={styles.infoItem}>
               <span style={styles.infoLabel}>Business Hours</span>
@@ -126,7 +139,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: "flex",
     flexDirection: "column",
     minHeight: "100vh",
-    backgroundColor: "#f4f6f8",
+    backgroundColor: "#f0f4ff",
     fontFamily: "Inter, system-ui, sans-serif",
   },
   mainContent: {
@@ -136,8 +149,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     maxWidth: "640px",
     backgroundColor: "#ffffff",
     borderRadius: "16px",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+    border: "1px solid #e0e7ff",
+    boxShadow: "0 2px 16px rgba(79,70,229,0.07)",
   },
   pageTitle: {
     fontSize: "24px",
@@ -149,10 +162,10 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   companyInfo: {
     padding: "24px",
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#f0f4ff",
     borderRadius: "12px",
     marginBottom: "28px",
-    border: "1px solid #e5e7eb",
+    border: "1px solid #e0e7ff",
   },
   companyName: {
     fontSize: "18px",

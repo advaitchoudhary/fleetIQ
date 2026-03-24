@@ -135,7 +135,7 @@ const Navbar: React.FC = () => {
             <div style={styles.notificationIconWrapper}>
               <div style={styles.notificationBell}>
                 <FaBell
-                  size={20}
+                  size={16}
                   style={{ cursor: "pointer" }}
                   onClick={() => setShowNotification(!showNotification)}
                 />
@@ -233,7 +233,7 @@ const Navbar: React.FC = () => {
             onClick={() => navigate("/change-password")}
             style={styles.changePasswordButton}
           >
-            <FaKey size={18} /><span className="hide-on-mobile"> Change Password</span>
+            <FaKey size={16} /><span className="hide-on-mobile"> Change Password</span>
           </button>
           <button
             onClick={() => {

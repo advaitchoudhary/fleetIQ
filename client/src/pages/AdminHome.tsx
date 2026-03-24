@@ -114,22 +114,17 @@ const AdminHome: React.FC = () => {
     : null;
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f0f4ff", minHeight: "100vh" }}>
       <Navbar />
-      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "24px" }}>
 
-        {/* ── Welcome Banner ── */}
-        <div style={{
-          background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 100%)",
-          borderRadius: "16px", padding: "32px 36px", marginBottom: "28px",
-          display: "flex", justifyContent: "space-between", alignItems: "center",
-          flexWrap: "wrap", gap: "16px",
-        }}>
+      {/* ── Welcome Hero (full-bleed) ── */}
+      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
+        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
           <div>
-            <p style={{ margin: "0 0 4px", fontSize: "13px", color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "1px" }}>
+            <p style={{ margin: "0 0 4px", fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "1.2px" }}>
               Welcome back
             </p>
-            <h1 style={{ margin: "0 0 12px", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
+            <h1 style={{ margin: "0 0 10px", fontSize: "28px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>
               {adminName}
             </h1>
             <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
@@ -154,14 +149,17 @@ const AdminHome: React.FC = () => {
             onClick={() => navigate("/subscription")}
             style={{
               display: "inline-flex", alignItems: "center", gap: "8px",
-              padding: "11px 20px", background: "rgba(255,255,255,0.1)",
-              border: "1px solid rgba(255,255,255,0.2)", borderRadius: "8px",
-              color: "#fff", fontSize: "13px", fontWeight: 600, cursor: "pointer",
+              padding: "11px 20px", background: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px",
+              color: "#fff", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif",
             }}
           >
             Manage Subscription <FaArrowRight size={11} />
           </button>
         </div>
+      </div>
+
+      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" }}>
 
         {/* ── Fleet Stats Summary ── */}
         {!statsLoading && stats && (
@@ -178,10 +176,10 @@ const AdminHome: React.FC = () => {
             ].map((s) => (
               <div key={s.label} style={{
                 background: "#fff",
-                border: "1px solid #e5e7eb",
+                border: "1px solid #e0e7ff",
                 borderRadius: "12px",
                 padding: "20px",
-                boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                boxShadow: "0 1px 6px rgba(79,70,229,0.06)",
                 display: "flex",
                 alignItems: "center",
                 gap: "14px",

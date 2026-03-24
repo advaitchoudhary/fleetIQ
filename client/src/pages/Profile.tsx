@@ -1,16 +1,86 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaCheckCircle, FaRegCircle, FaUpload } from "react-icons/fa";
 import Navbar from "./Navbar";
-import { useEffect } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../utils/env";
+
+const ALL_TRAININGS = [
+  "Defensive Driving - Tractor-Trailer",
+  "Distracted Driving",
+  "Hours of Service: Canadian Regulations",
+  "Transportation of Dangerous Goods",
+  "Vehicle Inspections",
+  "WHMIS",
+  "Winter Driving",
+  "Fall Protection for Drivers",
+  "Pallet Trucks (Walkies and Riders)",
+  "Practical Cargo Securement for Drivers (Cargo Van)",
+  "Food Safety for Drivers",
+  "Lift Truck Operator Skills",
+];
 
 const Profile: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const driver = location.state?.driver;
   const [timesheets, setTimesheets] = useState<any[]>([]);
+
+  // trainings: array of { name: string, proofDocument?: string }
+  const initTrainings = (): { name: string; proofDocument?: string }[] => {
+    const raw = driver?.trainings;
+    if (!Array.isArray(raw)) return [];
+    return raw.map((t: any) => typeof t === "string" ? { name: t } : t);
+  };
+  const [trainings, setTrainings] = useState<{ name: string; proofDocument?: string }[]>(initTrainings);
+  const [trainingSaving, setTrainingSaving] = useState(false);
+  const [trainingSaved, setTrainingSaved] = useState(false);
+
+  const isCompleted = (name: string) => trainings.some((t) => t.name === name && t.proofDocument);
+
+  const toggleTraining = (name: string) => {
+    setTrainings((prev) => {
+      const exists = prev.find((t) => t.name === name);
+      if (exists) {
+        // remove it entirely (uncomplete)
+        return prev.filter((t) => t.name !== name);
+      }
+      return [...prev, { name }];
+    });
+  };
+
+  const handleProofUpload = async (name: string, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(`${API_BASE_URL}/upload`, formData, {
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+      });
+      const path = res.data.path || res.data.url || res.data.filePath;
+      setTrainings((prev) =>
+        prev.map((t) => t.name === name ? { ...t, proofDocument: path } : t)
+      );
+    } catch (err) {
+      console.error("Proof upload failed:", err);
+    }
+  };
+
+  const saveTrainings = async () => {
+    try {
+      setTrainingSaving(true);
+      const token = localStorage.getItem("token");
+      await axios.put(`${API_BASE_URL}/drivers/${driver._id}`, { ...driver, trainings }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTrainingSaved(true);
+      setTimeout(() => setTrainingSaved(false), 2500);
+    } catch (err) {
+      console.error("Failed to save trainings:", err);
+    } finally {
+      setTrainingSaving(false);
+    }
+  };
 
   useEffect(() => {
     const fetchDriverTimesheets = async () => {
@@ -154,9 +224,15 @@ const Profile: React.FC = () => {
                     <span style={styles.fieldValue}>{driver.status || "N/A"}</span>
                   </div>
                   <div style={styles.fieldItem}>
-                    <span style={styles.fieldLabel}>Work Status</span>
+                    <span style={styles.fieldLabel}>Work Authorization</span>
                     <span style={styles.fieldValue}>{driver.workStatus || "N/A"}</span>
                   </div>
+                  {driver.workAuthExpiry && (
+                    <div style={styles.fieldItem}>
+                      <span style={styles.fieldLabel}>Work Auth Expiry</span>
+                      <span style={styles.fieldValue}>{new Date(driver.workAuthExpiry + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -321,95 +397,61 @@ const Profile: React.FC = () => {
 
           {/* Trainings — full width */}
           <div style={styles.sectionCard}>
-            <h3 style={styles.sectionTitle}>📚 Trainings</h3>
-              <div style={styles.trainingsTracker}>
-                {(() => {
-                  // List of all available trainings
-                  const availableTrainings = [
-                    "Defensive Driving - Tractor-Trailer",
-                    "Distracted Driving",
-                    "Hours of Service: Canadian Regulations",
-                    "Transportation of Dangerous Goods",
-                    "Vehicle Inspections",
-                    "WHMIS",
-                    "Winter Driving",
-                    "Fall Protection for Drivers",
-                    "Pallet Trucks (Walkies and Riders)",
-                    "Practical Cargo Securement for Drivers (Cargo Van)",
-                    "Food Safety for Drivers",
-                    "Lift Truck Operator Skills"
-                  ];
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <h3 style={{ ...styles.sectionTitle, marginBottom: 0 }}>Training Tracker</h3>
+              <button
+                onClick={saveTrainings}
+                disabled={trainingSaving}
+                style={{ padding: "7px 18px", fontSize: "13px", fontWeight: 600, border: "none", borderRadius: "8px", cursor: trainingSaving ? "not-allowed" : "pointer", background: trainingSaved ? "#16a34a" : "#4F46E5", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", transition: "background 0.2s" }}
+              >
+                {trainingSaved ? "Saved!" : trainingSaving ? "Saving…" : "Save Changes"}
+              </button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {ALL_TRAININGS.map((name) => {
+                const entry = trainings.find((t) => t.name === name);
+                const done = !!entry?.proofDocument;
+                const marked = !!entry;
+                return (
+                  <div key={name} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", borderRadius: "8px", border: `1px solid ${done ? "#bbf7d0" : "#e5e7eb"}`, background: done ? "#f0fdf4" : "#fff" }}>
+                    {/* Checkbox toggle */}
+                    <button
+                      onClick={() => toggleTraining(name)}
+                      style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", color: done ? "#16a34a" : marked ? "#4F46E5" : "#d1d5db", flexShrink: 0 }}
+                    >
+                      {done || marked ? <FaCheckCircle size={20} /> : <FaRegCircle size={20} />}
+                    </button>
 
-                  // Get completed trainings (with proof documents)
-                  const completedTrainings = driver.trainings?.filter((t: any) => {
-                    const name = typeof t === 'string' ? t : t?.name;
-                    return name && name !== "Adipisci laborum laboriosam" && (typeof t === 'object' ? t.proofDocument : false);
-                  }) || [];
+                    {/* Name */}
+                    <span style={{ flex: 1, fontSize: "14px", fontWeight: 500, color: done ? "#166534" : marked ? "#111827" : "#6b7280" }}>{name}</span>
 
-                  // Get pending trainings (in available list but not completed)
-                  const completedTrainingNames = completedTrainings.map((t: any) => typeof t === 'string' ? t : t.name);
-                  const pendingTrainings = availableTrainings.filter(name => !completedTrainingNames.includes(name));
+                    {/* Status badge */}
+                    {done ? (
+                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#16a34a", background: "#dcfce7", padding: "3px 10px", borderRadius: "20px" }}>Completed</span>
+                    ) : marked ? (
+                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#4F46E5", background: "#ede9fe", padding: "3px 10px", borderRadius: "20px" }}>In Progress</span>
+                    ) : (
+                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#9ca3af", background: "#f3f4f6", padding: "3px 10px", borderRadius: "20px" }}>Pending</span>
+                    )}
 
-                  return (
-                    <div>
-                      {/* Completed Trainings */}
-                      {completedTrainings.length > 0 && (
-                        <div>
-                          <h4 style={styles.trainingsSubtitle}>Completed Trainings</h4>
-                          <div style={styles.trainingsList}>
-                            {completedTrainings.map((training: any, index: number) => {
-                              const trainingName = typeof training === 'string' ? training : training.name;
-                              return (
-                                <div key={index} style={styles.trainingTrackerItem}>
-                                  <div style={styles.trainingTrackerLeft}>
-                                    <span style={styles.trainingCheckIcon}>✓</span>
-                                    <span style={styles.trainingTrackerName}>{trainingName}</span>
-                                  </div>
-                                  {typeof training === 'object' && training.proofDocument && (
-                                    <a
-                                      href={`${API_BASE_URL.replace("/api", "")}/${training.proofDocument}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      style={styles.viewTrainingProofLink}
-                                    >
-                                      View Proof
-                                    </a>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Pending Trainings */}
-                      {pendingTrainings.length > 0 && (
-                        <div style={{ marginTop: completedTrainings.length > 0 ? "20px" : "0" }}>
-                          <h4 style={styles.trainingsSubtitle}>Pending Trainings</h4>
-                          <div style={styles.trainingsList}>
-                            {pendingTrainings.map((trainingName, index) => (
-                              <div key={index} style={styles.trainingTrackerItem}>
-                                <div style={styles.trainingTrackerLeft}>
-                                  <span style={styles.trainingPendingIcon}>○</span>
-                                  <span style={styles.trainingTrackerNamePending}>{trainingName}</span>
-                                </div>
-                                <span style={styles.pendingLabel}>Pending</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* No Trainings Message */}
-                      {completedTrainings.length === 0 && pendingTrainings.length === 0 && (
-                        <p style={styles.noTrainingsText}>No trainings available</p>
-                      )}
-                    </div>
-                  );
-                })()}
-              </div>
+                    {/* Proof upload / view */}
+                    {marked && !done && (
+                      <label style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "13px", fontWeight: 500, color: "#4F46E5", background: "#eef2ff", padding: "4px 12px", borderRadius: "6px", cursor: "pointer" }}>
+                        <FaUpload size={11} /> Upload Proof
+                        <input type="file" accept="image/*,.pdf" style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) handleProofUpload(name, e.target.files[0]); }} />
+                      </label>
+                    )}
+                    {done && entry?.proofDocument && (
+                      <a href={`${API_BASE_URL.replace("/api", "")}/${entry.proofDocument}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "13px", fontWeight: 500, color: "#4F46E5", background: "#eef2ff", padding: "4px 12px", borderRadius: "6px", textDecoration: "none" }}>
+                        View Proof
+                      </a>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
+        </div>
 
         <div style={styles.sectionCard}>
           <h3 style={styles.sectionTitle}>📚 Timesheets</h3>

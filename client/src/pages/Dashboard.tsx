@@ -389,17 +389,28 @@ const Timesheet: React.FC = () => {
       `}</style>
       <Navbar />
 
-      {/* ── Driver Profile Card ─────────────────────────────────────────── */}
-      <div style={profileCard}>
-        <div style={avatarCircle}>
-          {(driverName || "D").charAt(0).toUpperCase()}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={profileName}>{driverName || "Driver"}</div>
-          <div style={badgeRow}>
-            {driverIdDisplay && (
-              <span style={idBadge}>🪪 {driverIdDisplay}</span>
-            )}
+      {/* ── Driver Hero ─────────────────────────────────────────────────── */}
+      <div style={heroOuter}>
+        <div style={heroInner}>
+          {/* Left: avatar + name */}
+          <div style={{ display: "flex", alignItems: "center", gap: "18px", flexShrink: 0 }}>
+            <div style={avatarCircle}>
+              {(driverName || "D").charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "1.2px" }}>Driver Portal</p>
+              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>
+                {driverName || "Driver"}
+              </h1>
+              {driverIdDisplay && (
+                <p style={{ margin: "6px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500, fontFamily: "monospace" }}>
+                  {driverIdDisplay}
+                </p>
+              )}
+            </div>
+          </div>
+          {/* Right: org + status chips */}
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" as const, alignItems: "center" }}>
             {orgName && (
               <span style={orgBadge}>🏢 {orgName}</span>
             )}
@@ -892,54 +903,40 @@ const Timesheet: React.FC = () => {
           <textarea name="comments" value={timesheet.comments} onChange={handleChange} style={styles.textarea} placeholder="Enter comments..."></textarea>
 
           {/* Attachments */}
-          {[...Array(4)].map((_, i) => (
-            <div key={i} style={{ ...styles.attachmentWrapper, flexDirection: 'row' }} data-db-attach>
-              <label style={styles.label}>Attachment {i + 1}:</label>
-              <div style={{ ...styles.customFileInputWrapper, position: 'relative' }}>
-                <label style={styles.customFileLabel}>
-                  Choose File
-                  <input
-                    type="file"
-                    name="attachments"
-                    accept="image/png, image/jpeg, image/jpg"
-                    onChange={(e) => handleFileChange(i, e)}
-                    style={{ 
-                      ...styles.customFileInput, 
-                    }}
-                  />
-                </label>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "16px" }}>
+            {[...Array(4)].map((_, i) => (
+              <div key={i} style={{ border: "1px solid #e0e7ff", borderRadius: "10px", padding: "12px 14px", background: "#f8f9ff", display: "flex", flexDirection: "column", gap: "8px" }}>
+                <span style={{ fontSize: "12px", fontWeight: 600, color: "#6b7280", textTransform: "uppercase" as const, letterSpacing: "0.4px" }}>
+                  Attachment {i + 1}
+                </span>
+                {timesheet.attachments[i] ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <img
+                      src={URL.createObjectURL(timesheet.attachments[i])}
+                      alt={`Attachment ${i + 1}`}
+                      style={{ width: "56px", height: "56px", objectFit: "cover", borderRadius: "6px", border: "1px solid #e5e7eb", flexShrink: 0 }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updatedAttachments = [...timesheet.attachments];
+                        updatedAttachments[i] = undefined;
+                        setTimesheet((prev) => ({ ...prev, attachments: updatedAttachments }));
+                      }}
+                      style={{ backgroundColor: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca", padding: "5px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "12px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <label style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "7px 14px", backgroundColor: "#4F46E5", color: "#fff", borderRadius: "7px", cursor: "pointer", fontSize: "13px", fontWeight: 600, alignSelf: "flex-start", fontFamily: "Inter, system-ui, sans-serif" }}>
+                    Choose File
+                    <input type="file" name="attachments" accept="image/png, image/jpeg, image/jpg" onChange={(e) => handleFileChange(i, e)} style={{ display: "none" }} />
+                  </label>
+                )}
               </div>
-              {timesheet.attachments[i] && (
-                <div style={{ display: 'flex', alignItems: 'center', marginTop: '8px' }}>
-                  <img
-                    src={URL.createObjectURL(timesheet.attachments[i])}
-                    alt={`Attachment ${i + 1}`}
-                    style={{ maxHeight: '80px', marginRight: '10px', borderRadius: '8px', border: '1px solid #e5e7eb' }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const updatedAttachments = [...timesheet.attachments];
-                      updatedAttachments[i] = undefined;
-                      setTimesheet((prev) => ({ ...prev, attachments: updatedAttachments }));
-                    }}
-                    style={{
-                      backgroundColor: '#fef2f2',
-                      color: '#dc2626',
-                      border: '1px solid #fecaca',
-                      padding: '6px 14px',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                    }}
-                  >
-                    Remove
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
 
           </div>{/* end Notes card */}
 
@@ -968,18 +965,19 @@ const Timesheet: React.FC = () => {
   );
 };
 
-// ── Profile card inline styles (outside the styles object for easy reference) ──
-const profileCard: CSSProperties = {
-  margin: "24px auto 0",
-  width: "90%",
-  maxWidth: "800px",
-  background: "linear-gradient(135deg, #4F46E5 0%, #6366f1 100%)",
-  borderRadius: "16px",
-  padding: "24px 28px",
+// ── Hero styles ──────────────────────────────────────────────────────────────
+const heroOuter: CSSProperties = {
+  background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)",
+  padding: "36px 40px",
+};
+const heroInner: CSSProperties = {
+  maxWidth: "820px",
+  margin: "0 auto",
   display: "flex",
   alignItems: "center",
-  gap: "20px",
-  boxShadow: "0 4px 20px rgba(79,70,229,0.25)",
+  justifyContent: "space-between",
+  gap: "28px",
+  flexWrap: "wrap" as const,
 };
 const avatarCircle: CSSProperties = {
   width: "60px",
@@ -994,29 +992,6 @@ const avatarCircle: CSSProperties = {
   fontWeight: 700,
   color: "#fff",
   flexShrink: 0,
-};
-const profileName: CSSProperties = {
-  fontSize: "20px",
-  fontWeight: 700,
-  color: "#fff",
-  marginBottom: "10px",
-  letterSpacing: "-0.3px",
-};
-const badgeRow: CSSProperties = {
-  display: "flex",
-  flexWrap: "wrap" as const,
-  gap: "8px",
-};
-const idBadge: CSSProperties = {
-  background: "rgba(255,255,255,0.15)",
-  color: "#fff",
-  border: "1px solid rgba(255,255,255,0.3)",
-  borderRadius: "20px",
-  padding: "3px 12px",
-  fontSize: "12px",
-  fontFamily: "monospace",
-  fontWeight: 600,
-  letterSpacing: "0.5px",
 };
 const orgBadge: CSSProperties = {
   background: "rgba(255,255,255,0.15)",
@@ -1052,21 +1027,23 @@ const sectionDivider: CSSProperties = {
   textTransform: "uppercase" as const,
   letterSpacing: "0.8px",
   borderBottom: "1px solid #e5e7eb",
-  paddingBottom: "6px",
-  marginTop: "6px",
+  paddingBottom: "8px",
+  marginTop: 0,
+  marginBottom: "16px",
 };
 const twoCol: CSSProperties = {
   display: "grid",
   gridTemplateColumns: "1fr 1fr",
-  gap: "20px",
+  gap: "16px",
   alignItems: "start",
+  marginBottom: "14px",
 };
 
 const formSectionCard: CSSProperties = {
   background: "#fff",
   borderRadius: "14px",
   border: "1px solid #e0e7ff",
-  padding: "20px 22px",
+  padding: "20px 24px",
   boxShadow: "0 1px 6px rgba(79,70,229,0.05)",
 };
 
@@ -1079,11 +1056,11 @@ const styles: { [key: string]: CSSProperties } = {
     fontFamily: "Inter, system-ui, sans-serif",
   },
   mainContent: {
-    margin: "28px auto",
-    padding: "32px 36px",
+    margin: "16px auto 40px",
+    padding: "0",
     width: "90%",
     maxWidth: "820px",
-    backgroundColor: "#f0f4ff",
+    backgroundColor: "transparent",
     borderRadius: "0",
     border: "none",
     boxShadow: "none",
@@ -1092,8 +1069,8 @@ const styles: { [key: string]: CSSProperties } = {
     fontSize: "22px",
     fontWeight: 800,
     color: "#1e1b4b",
-    marginBottom: "20px",
-    marginTop: 0,
+    marginBottom: "16px",
+    marginTop: "4px",
     letterSpacing: "-0.4px",
   },
   form: {
@@ -1144,6 +1121,7 @@ const styles: { [key: string]: CSSProperties } = {
     height: "100px",
     resize: "vertical" as const,
     transition: "border-color 0.2s ease",
+    marginBottom: "4px",
   },
   fileInput: {
     padding: "6px 0",
@@ -1185,8 +1163,9 @@ const styles: { [key: string]: CSSProperties } = {
   extraWorkWrapper: {
     border: "1px solid #e5e7eb",
     borderRadius: "12px",
-    padding: "20px",
+    padding: "16px 20px",
     backgroundColor: "#f9fafb",
+    marginBottom: "16px",
   },
   durationContainer: {
     display: "flex",

@@ -157,21 +157,27 @@ const Vehicles: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f0f4ff", minHeight: "100vh" }}>
       <Navbar />
-      <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "#111827", display: "flex", alignItems: "center", gap: "10px" }}>
-              <FaTruck style={{ color: "#4F46E5" }} /> Vehicles
-            </h1>
-            <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "14px" }}>Manage your fleet vehicles</p>
+      {/* ── Hero ─────────────────────────────────────────────────────── */}
+      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
+        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+              <FaTruck size={22} />
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Fleet Management</p>
+              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Vehicles</h1>
+              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Manage your fleet vehicles</p>
+            </div>
           </div>
-          <button onClick={openAddModal} style={styles.primaryBtn}>
+          <button onClick={openAddModal} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
             <FaPlus size={14} /> Add Vehicle
           </button>
         </div>
+      </div>
+      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" }}>
 
         {/* Stats Cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" }}>
@@ -406,16 +412,16 @@ const styles: Record<string, React.CSSProperties> = {
   statCard: {
     background: "#fff",
     borderRadius: "12px",
-    border: "1px solid #e5e7eb",
+    border: "1px solid #e0e7ff",
     padding: "20px",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+    boxShadow: "0 1px 6px rgba(79,70,229,0.06)",
   },
   tableContainer: {
     background: "#fff",
-    borderRadius: "12px",
-    border: "1px solid #e5e7eb",
+    borderRadius: "16px",
+    border: "1px solid #e0e7ff",
     overflow: "hidden",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+    boxShadow: "0 2px 16px rgba(79,70,229,0.07)",
   },
   table: {
     width: "100%",
@@ -423,21 +429,21 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "14px",
   },
   tableHeaderRow: {
-    background: "#f9fafb",
-    borderBottom: "1px solid #e5e7eb",
+    background: "#f5f3ff",
+    borderBottom: "2px solid #e0e7ff",
   },
   th: {
-    padding: "12px 16px",
+    padding: "13px 16px",
     textAlign: "left",
-    fontSize: "12px",
-    fontWeight: 600,
-    color: "#6b7280",
+    fontSize: "10px",
+    fontWeight: 700,
+    color: "#6366f1",
     textTransform: "uppercase",
-    letterSpacing: "0.5px",
+    letterSpacing: "0.7px",
     whiteSpace: "nowrap",
   },
   tr: {
-    borderBottom: "1px solid #f3f4f6",
+    borderBottom: "1px solid #f0f0ff",
   },
   td: {
     padding: "14px 16px",

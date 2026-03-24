@@ -122,18 +122,25 @@ const Scheduling: React.FC = () => {
   return (
     <div style={styles.wrapper}>
       <Navbar />
-      <div style={styles.container}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px", flexWrap: "wrap", gap: "12px" }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "#111827", display: "flex", alignItems: "center", gap: "10px" }}>
-              <FaCalendarAlt style={{ color: "#4F46E5" }} /> Maintenance Schedule
-            </h1>
-            <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "14px" }}>Calendar view of all scheduled maintenance and PM due dates</p>
+      {/* Hero */}
+      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
+        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+              <FaCalendarAlt size={22} />
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Fleet</p>
+              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Maintenance Schedule</h1>
+              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Calendar view of all scheduled maintenance and PM due dates</p>
+            </div>
           </div>
-          <button style={styles.primaryBtn} onClick={() => { setForm({ ...emptyForm }); setIsModalOpen(true); }}>
+          <button style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} onClick={() => { setForm({ ...emptyForm }); setIsModalOpen(true); }}>
             <FaPlus size={13} /> Schedule Maintenance
           </button>
         </div>
+      </div>
+      <div style={styles.container}>
 
         {error && (
           <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "8px", padding: "12px 16px", marginBottom: "20px", color: "#dc2626", fontSize: "14px" }}>
@@ -306,11 +313,11 @@ const Scheduling: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#f9fafb", fontFamily: "Inter, system-ui, sans-serif" },
-  container: { maxWidth: "1200px", margin: "0 auto", padding: "24px" },
+  wrapper: { minHeight: "100vh", background: "#f0f4ff", fontFamily: "Inter, system-ui, sans-serif" },
+  container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
   primaryBtn: { padding: "10px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
   layout: { display: "grid", gridTemplateColumns: "1fr 280px", gap: "24px", alignItems: "start" },
-  calendarWrapper: { background: "#fff", borderRadius: "16px", border: "1px solid #e5e7eb", padding: "20px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+  calendarWrapper: { background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", padding: "20px", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
   calNav: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" },
   navBtn: { background: "none", border: "1px solid #e5e7eb", borderRadius: "8px", padding: "6px 14px", cursor: "pointer", fontSize: "18px", color: "#374151", fontFamily: "Inter, system-ui, sans-serif" },
   monthLabel: { fontSize: "17px", fontWeight: 700, color: "#111827" },
@@ -319,7 +326,7 @@ const styles: Record<string, React.CSSProperties> = {
   dayCell: { minHeight: "72px", border: "1px solid #e5e7eb", borderRadius: "8px", padding: "6px", display: "flex", flexDirection: "column" },
   dayPanel: { marginTop: "16px", background: "#f9fafb", borderRadius: "10px", padding: "16px", border: "1px solid #e5e7eb" },
   eventChip: { background: "#fff", borderRadius: "6px", padding: "8px 12px", border: "1px solid #e5e7eb" },
-  sidebar: { background: "#fff", borderRadius: "16px", border: "1px solid #e5e7eb", padding: "20px", position: "sticky", top: "20px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+  sidebar: { background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", padding: "20px", position: "sticky", top: "20px", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
   upcomingItem: { background: "#f9fafb", borderRadius: "8px", padding: "10px 12px" },
   modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
   modal: { background: "#fff", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" },

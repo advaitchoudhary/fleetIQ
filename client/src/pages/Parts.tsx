@@ -199,17 +199,25 @@ const Parts: React.FC = () => {
   return (
     <div style={styles.wrapper}>
       <Navbar />
-      <div style={styles.container}>
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "#111827", display: "flex", alignItems: "center", gap: "10px" }}>
-              <FaBox style={{ color: "#4F46E5" }} /> Parts Inventory
-            </h1>
-            <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "14px" }}>Manage spare parts, stock levels, and usage history</p>
+      {/* ── Hero ─────────────────────────────────────────────────────── */}
+      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
+        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+              <FaBox size={22} />
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Fleet Management</p>
+              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Parts Inventory</h1>
+              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Manage spare parts, stock levels, and usage history</p>
+            </div>
           </div>
-          <button style={styles.primaryBtn} onClick={openAdd}><FaPlus size={14} /> Add Part</button>
+          <button style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} onClick={openAdd}>
+            <FaPlus size={14} /> Add Part
+          </button>
         </div>
+      </div>
+      <div style={styles.container}>
 
         {/* Low stock alert */}
         {lowStockAlerts.length > 0 && (
@@ -428,21 +436,21 @@ const Parts: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#f9fafb", fontFamily: "Inter, system-ui, sans-serif" },
-  container: { maxWidth: "1200px", margin: "0 auto", padding: "24px" },
+  wrapper: { minHeight: "100vh", background: "#f0f4ff", fontFamily: "Inter, system-ui, sans-serif" },
+  container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
   primaryBtn: { padding: "10px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
   alertBanner: { background: "#fef3c7", border: "1px solid #fbbf24", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "#92400e" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" },
-  statCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e5e7eb", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+  statCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e0e7ff", textAlign: "center", boxShadow: "0 1px 6px rgba(79,70,229,0.06)" },
   statValue: { fontSize: "28px", fontWeight: 800, color: "#4F46E5" },
   statLabel: { fontSize: "13px", color: "#6b7280", marginTop: "4px" },
   filtersRow: { display: "flex", gap: "12px", marginBottom: "20px", flexWrap: "wrap" },
   searchInput: { flex: 1, minWidth: "220px", padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" },
   select: { padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#fff" },
-  tableWrapper: { overflowX: "auto", background: "#fff", borderRadius: "12px", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+  tableWrapper: { overflowX: "auto", background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
   table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
-  th: { padding: "12px 16px", textAlign: "left", background: "#f9fafb", borderBottom: "1px solid #e5e7eb", fontWeight: 600, color: "#6b7280", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px", whiteSpace: "nowrap" },
-  tr: { borderBottom: "1px solid #f3f4f6" },
+  th: { padding: "13px 16px", textAlign: "left", background: "#f5f3ff", borderBottom: "2px solid #e0e7ff", fontWeight: 700, color: "#6366f1", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
+  tr: { borderBottom: "1px solid #f0f0ff" },
   td: { padding: "14px 16px", color: "#374151", verticalAlign: "middle" },
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
   iconBtn: { background: "#f3f4f6", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "#374151", display: "flex", alignItems: "center" },
