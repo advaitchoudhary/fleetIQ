@@ -282,7 +282,7 @@ const Parts: React.FC = () => {
                       </span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{ color: isLow(part) ? "#dc2626" : "#111827", fontWeight: isLow(part) ? 700 : 400 }}>
+                      <span style={{ color: isLow(part) ? "#fca5a5" : "#e5e7eb", fontWeight: isLow(part) ? 700 : 400 }}>
                         {isLow(part) ? "⚠ " : ""}{part.quantity}
                       </span>
                     </td>
@@ -436,34 +436,34 @@ const Parts: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#f0f4ff", fontFamily: "Inter, system-ui, sans-serif" },
+  wrapper: { minHeight: "100vh", background: "#0d1117", fontFamily: "Inter, system-ui, sans-serif" },
   container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
   primaryBtn: { padding: "10px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
-  alertBanner: { background: "#fef3c7", border: "1px solid #fbbf24", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "#92400e" },
+  alertBanner: { background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "#fcd34d" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" },
-  statCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e0e7ff", textAlign: "center", boxShadow: "0 1px 6px rgba(79,70,229,0.06)" },
-  statValue: { fontSize: "28px", fontWeight: 800, color: "#4F46E5" },
+  statCard: { background: "#161b22", borderRadius: "12px", padding: "20px", border: "1px solid rgba(255,255,255,0.07)", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
+  statValue: { fontSize: "28px", fontWeight: 800, color: "#818CF8" },
   statLabel: { fontSize: "13px", color: "#6b7280", marginTop: "4px" },
   filtersRow: { display: "flex", gap: "12px", marginBottom: "20px", flexWrap: "wrap" },
-  searchInput: { flex: 1, minWidth: "220px", padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" },
-  select: { padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#fff" },
-  tableWrapper: { overflowX: "auto", background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
+  searchInput: { flex: 1, minWidth: "220px", padding: "9px 14px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "rgba(255,255,255,0.05)", color: "#e5e7eb" },
+  select: { padding: "9px 14px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#1c2128", color: "#e5e7eb" },
+  tableWrapper: { overflowX: "auto", background: "#161b22", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.07)", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
   table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
-  th: { padding: "13px 16px", textAlign: "left", background: "#f5f3ff", borderBottom: "2px solid #e0e7ff", fontWeight: 700, color: "#6366f1", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
-  tr: { borderBottom: "1px solid #f0f0ff" },
-  td: { padding: "14px 16px", color: "#374151", verticalAlign: "middle" },
+  th: { padding: "13px 16px", textAlign: "left", background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.08)", fontWeight: 700, color: "#818CF8", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
+  tr: { borderBottom: "1px solid rgba(255,255,255,0.05)" },
+  td: { padding: "14px 16px", color: "#d1d5db", verticalAlign: "middle" },
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
-  iconBtn: { background: "#f3f4f6", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "#374151", display: "flex", alignItems: "center" },
+  iconBtn: { background: "rgba(255,255,255,0.06)", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "#9ca3af", display: "flex", alignItems: "center" },
   emptyState: { textAlign: "center", padding: "60px 0", color: "#6b7280", fontSize: "15px" },
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
-  modal: { background: "#fff", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "#111827" },
+  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
+  modal: { background: "#161b22", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.08)" },
+  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "#f3f4f6" },
   formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" },
   formGroup: { marginBottom: "16px" },
-  label: { display: "block", fontSize: "13px", fontWeight: 500, color: "#374151", marginBottom: "4px" },
-  input: { width: "100%", padding: "9px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", color: "#111827", background: "#fff", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
+  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "#4b5563", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
+  input: { width: "100%", padding: "9px 12px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", color: "#e5e7eb", background: "rgba(255,255,255,0.05)", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
   modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
-  cancelBtn: { padding: "10px 20px", background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
+  cancelBtn: { padding: "10px 20px", background: "rgba(255,255,255,0.06)", color: "#9ca3af", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
 };
 
 export default Parts;

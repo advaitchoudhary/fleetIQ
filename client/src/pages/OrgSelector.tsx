@@ -18,10 +18,10 @@ interface Org {
 }
 
 const STATUS_COLORS: Record<string, { bg: string; color: string; label: string }> = {
-  trialing:  { bg: "#eef2ff", color: "#4F46E5", label: "Trialing" },
-  active:    { bg: "#dcfce7", color: "#16a34a", label: "Active" },
-  past_due:  { bg: "#fef3c7", color: "#d97706", label: "Past Due" },
-  cancelled: { bg: "#fee2e2", color: "#dc2626", label: "Cancelled" },
+  trialing:  { bg: "rgba(79,70,229,0.15)",    color: "#818CF8", label: "Trialing" },
+  active:    { bg: "rgba(16,185,129,0.12)",   color: "#34d399", label: "Active"   },
+  past_due:  { bg: "rgba(234,179,8,0.12)",    color: "#fbbf24", label: "Past Due" },
+  cancelled: { bg: "rgba(239,68,68,0.12)",    color: "#fca5a5", label: "Cancelled"},
 };
 
 const OrgSelector: React.FC = () => {
@@ -62,9 +62,9 @@ const OrgSelector: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", minHeight: "100vh" }}>
       {/* Header */}
-      <header style={{ background: "#111827", padding: "0 32px", height: "56px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <header style={{ background: "#0d1117", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "0 32px", height: "56px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <FaTruck style={{ color: "#818CF8" }} size={20} />
           <span style={{ color: "#fff", fontWeight: 800, fontSize: "18px" }}>
@@ -85,7 +85,7 @@ const OrgSelector: React.FC = () => {
       <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 24px" }}>
         {/* Title */}
         <div style={{ marginBottom: "32px" }}>
-          <h1 style={{ margin: "0 0 6px", fontSize: "26px", fontWeight: 800, color: "#111827" }}>Select Organisation</h1>
+          <h1 style={{ margin: "0 0 6px", fontSize: "26px", fontWeight: 800, color: "#f3f4f6" }}>Select Organisation</h1>
           <p style={{ margin: 0, color: "#6b7280", fontSize: "14px" }}>
             {orgs.length} organisation{orgs.length !== 1 ? "s" : ""} registered
           </p>
@@ -99,7 +99,7 @@ const OrgSelector: React.FC = () => {
             placeholder="Search organisations..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ width: "100%", padding: "10px 14px 10px 36px", borderRadius: "8px", border: "1px solid #d1d5db", fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+            style={{ width: "100%", padding: "10px 14px 10px 36px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", fontSize: "14px", outline: "none", boxSizing: "border-box", background: "rgba(255,255,255,0.05)", color: "#e5e7eb" }}
           />
         </div>
 
@@ -125,12 +125,12 @@ const OrgSelector: React.FC = () => {
               return (
                 <div
                   key={org._id}
-                  style={{ background: "#fff", borderRadius: "12px", border: "1px solid #e5e7eb", padding: "20px 22px", boxShadow: "0 1px 4px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: "12px" }}
+                  style={{ background: "#161b22", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.08)", padding: "20px 22px", boxShadow: "0 4px 24px rgba(0,0,0,0.4)", display: "flex", flexDirection: "column", gap: "12px" }}
                 >
                   {/* Top row */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: "15px", color: "#111827" }}>{org.name}</div>
+                      <div style={{ fontWeight: 700, fontSize: "15px", color: "#e5e7eb" }}>{org.name}</div>
                       <div style={{ fontSize: "13px", color: "#6b7280", marginTop: "2px" }}>{org.email}</div>
                     </div>
                     <span style={{ background: status.bg, color: status.color, padding: "3px 10px", borderRadius: "100px", fontSize: "11px", fontWeight: 700, whiteSpace: "nowrap" }}>
@@ -140,7 +140,7 @@ const OrgSelector: React.FC = () => {
 
                   {/* Details */}
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px", fontSize: "12px", color: "#6b7280" }}>
-                    <span>Plan: <strong style={{ color: "#374151" }}>{sub.plan}</strong></span>
+                    <span>Plan: <strong style={{ color: "#d1d5db" }}>{sub.plan}</strong></span>
                     {dateLabel && <span>{dateLabel}</span>}
                     <span>Joined {new Date(org.createdAt).toLocaleDateString()}</span>
                   </div>

@@ -108,7 +108,7 @@ const CostTracking: React.FC = () => {
             const y = padT + innerH - f * innerH;
             return (
               <g key={f}>
-                <line x1={padL} y1={y} x2={chartW - padR} y2={y} stroke="#e5e7eb" strokeWidth={1} />
+                <line x1={padL} y1={y} x2={chartW - padR} y2={y} stroke="rgba(255,255,255,0.08)" strokeWidth={1} />
                 <text x={padL - 6} y={y + 4} textAnchor="end" fontSize={10} fill="#9ca3af">
                   ${((f * maxCost) / 1000).toFixed(1)}k
                 </text>
@@ -117,7 +117,7 @@ const CostTracking: React.FC = () => {
           })}
           {/* Month labels */}
           {trend.map((t, i) => (
-            <text key={i} x={toX(i)} y={chartH - 6} textAnchor="middle" fontSize={10} fill="#6b7280">{t.label}</text>
+            <text key={i} x={toX(i)} y={chartH - 6} textAnchor="middle" fontSize={10} fill="#6b7280" style={{ fill: "#6b7280" }}>{t.label}</text>
           ))}
           {/* Lines */}
           <polyline points={mPoints} fill="none" stroke="#4F46E5" strokeWidth={2.5} strokeLinejoin="round" />
@@ -131,10 +131,10 @@ const CostTracking: React.FC = () => {
           ))}
         </svg>
         <div style={{ display: "flex", gap: "20px", marginTop: "8px", justifyContent: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#d1d5db" }}>
             <div style={{ width: "14px", height: "3px", background: "#4F46E5", borderRadius: "2px" }} /> Maintenance
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "#d1d5db" }}>
             <div style={{ width: "14px", height: "3px", background: "#0891b2", borderRadius: "2px" }} /> Fuel
           </div>
         </div>
@@ -172,7 +172,7 @@ const CostTracking: React.FC = () => {
             {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model}</option>)}
           </select>
           <input type="date" style={styles.dateInput} value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-          <span style={{ color: "#6b7280", fontSize: "14px" }}>to</span>
+          <span style={{ color: "#9ca3af", fontSize: "14px" }}>to</span>
           <input type="date" style={styles.dateInput} value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
           <button style={styles.filterBtn} onClick={fetchAll}>Apply</button>
         </div>
@@ -220,11 +220,11 @@ const CostTracking: React.FC = () => {
                   <tr key={row.vehicleId} style={styles.tr}>
                     <td style={styles.td}>
                       <strong>{row.vehicle?.unitNumber || "—"}</strong>
-                      <span style={{ color: "#6b7280", marginLeft: "8px", fontSize: "13px" }}>{row.vehicle?.make} {row.vehicle?.model}</span>
+                      <span style={{ color: "#9ca3af", marginLeft: "8px", fontSize: "13px" }}>{row.vehicle?.make} {row.vehicle?.model}</span>
                     </td>
                     <td style={styles.td}>${row.maintenanceCost.toFixed(2)}</td>
                     <td style={styles.td}>${row.fuelCost.toFixed(2)}</td>
-                    <td style={{ ...styles.td, fontWeight: 700, color: "#4F46E5" }}>${row.totalCost.toFixed(2)}</td>
+                    <td style={{ ...styles.td, fontWeight: 700, color: "#818CF8" }}>${row.totalCost.toFixed(2)}</td>
                     <td style={styles.td}>{row.jobCount}</td>
                     <td style={styles.td}>{row.litres.toFixed(1)} L</td>
                   </tr>
@@ -274,9 +274,9 @@ const CostTracking: React.FC = () => {
                     <div key={c._id} style={{ marginBottom: "16px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px", fontSize: "14px" }}>
                         <span style={{ fontWeight: 600 }}>{TYPE_LABELS[c._id] || c._id}</span>
-                        <span style={{ color: "#6b7280" }}>${c.totalCost.toFixed(2)} · {c.count} job{c.count !== 1 ? "s" : ""} · {pct.toFixed(1)}%</span>
+                        <span style={{ color: "#9ca3af" }}>${c.totalCost.toFixed(2)} · {c.count} job{c.count !== 1 ? "s" : ""} · {pct.toFixed(1)}%</span>
                       </div>
-                      <div style={{ background: "#f3f4f6", borderRadius: "100px", height: "8px" }}>
+                      <div style={{ background: "rgba(255,255,255,0.08)", borderRadius: "100px", height: "8px" }}>
                         <div style={{ background: "#4F46E5", borderRadius: "100px", height: "8px", width: `${pct}%`, transition: "width 0.4s" }} />
                       </div>
                     </div>
@@ -292,25 +292,25 @@ const CostTracking: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#f0f4ff", fontFamily: "Inter, system-ui, sans-serif" },
+  wrapper: { minHeight: "100vh", background: "#0d1117", fontFamily: "Inter, system-ui, sans-serif" },
   container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
   filtersRow: { display: "flex", gap: "10px", marginBottom: "24px", flexWrap: "wrap", alignItems: "center" },
-  select: { padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#fff" },
-  dateInput: { padding: "9px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" },
+  select: { padding: "9px 14px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#1c2128", color: "#e5e7eb" },
+  dateInput: { padding: "9px 12px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "rgba(255,255,255,0.05)", color: "#e5e7eb" },
   filterBtn: { padding: "9px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" },
-  statCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e0e7ff", textAlign: "center", boxShadow: "0 1px 6px rgba(79,70,229,0.06)" },
-  statValue: { fontSize: "24px", fontWeight: 800, color: "#4F46E5" },
+  statCard: { background: "#161b22", borderRadius: "12px", padding: "20px", border: "1px solid rgba(255,255,255,0.07)", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
+  statValue: { fontSize: "24px", fontWeight: 800, color: "#818CF8" },
   statLabel: { fontSize: "13px", color: "#6b7280", marginTop: "4px" },
-  tabRow: { display: "flex", gap: "8px", marginBottom: "20px", borderBottom: "1px solid #e5e7eb", paddingBottom: "0" },
+  tabRow: { display: "flex", gap: "8px", marginBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.08)", paddingBottom: "0" },
   tab: { padding: "10px 20px", background: "none", border: "none", borderBottom: "2px solid transparent", cursor: "pointer", fontSize: "14px", fontWeight: 600, color: "#6b7280", fontFamily: "Inter, system-ui, sans-serif", marginBottom: "-1px" },
-  activeTab: { color: "#4F46E5", borderBottom: "2px solid #4F46E5" },
-  tableWrapper: { background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", overflowX: "auto", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
-  card: { background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", padding: "24px", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
+  activeTab: { color: "#818CF8", borderBottom: "2px solid #818CF8" },
+  tableWrapper: { background: "#161b22", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.07)", overflowX: "auto", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
+  card: { background: "#161b22", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.07)", padding: "24px", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
   table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
-  th: { padding: "12px 16px", textAlign: "left", background: "#f5f3ff", borderBottom: "2px solid #e0e7ff", fontWeight: 700, color: "#6366f1", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
-  tr: { borderBottom: "1px solid #f0f0ff" },
-  td: { padding: "14px 16px", color: "#374151", verticalAlign: "middle" },
+  th: { padding: "12px 16px", textAlign: "left", background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.08)", fontWeight: 700, color: "#818CF8", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
+  tr: { borderBottom: "1px solid rgba(255,255,255,0.05)" },
+  td: { padding: "14px 16px", color: "#d1d5db", verticalAlign: "middle" },
   emptyState: { textAlign: "center", padding: "60px 0", color: "#6b7280", fontSize: "15px" },
 };
 

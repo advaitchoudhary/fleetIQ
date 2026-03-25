@@ -133,7 +133,24 @@ const Drivers: React.FC = () => {
   const [sortOrder, setSortOrder] = useState<"highest" | "lowest" | "none">("none");
   const [pendingApplicationsCount, setPendingApplicationsCount] = useState<number>(0);
   const [isApplicationsButtonHovered, setIsApplicationsButtonHovered] = useState(false);
+  const [driverPayouts, setDriverPayouts] = useState<any[]>([]);
+  const [payoutsLoading, setPayoutsLoading] = useState(false);
   
+  const fetchDriverPayouts = async (driverId: string) => {
+    setPayoutsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API_BASE_URL}/payments?driverId=${driverId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDriverPayouts(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setDriverPayouts([]);
+    } finally {
+      setPayoutsLoading(false);
+    }
+  };
+
   // Fetch users on component mount
   useEffect(() => {
     fetchDrivers();
@@ -298,6 +315,7 @@ const Drivers: React.FC = () => {
     setIsUpdateDisabled(true);
     setUsernameError("");
     setEditFieldErrors({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" });
+    fetchDriverPayouts(driver._id);
   };
 
   const handleCopyPassword = (password: string): void => {
@@ -836,316 +854,285 @@ const Drivers: React.FC = () => {
 
       {/* Edit Driver Modal */}
       {isEditModalOpen && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>Edit Driver</h2>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ background: "#141921", borderRadius: "16px", maxWidth: "960px", width: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.08)" }}>
 
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Name:</label>
-              <input
-                type="text"
-                defaultValue={selectedDriver?.name}
-                style={styles.input}
-                onChange={(e) => handleInputChange("name", e.target.value)}
-              />
-            </div>
-
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Email:</label>
-              <input
-                type="email"
-                defaultValue={selectedDriver?.email}
-                style={styles.input}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-              />
-            </div>
-
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Username:</label>
-              <input
-                type="text"
-                placeholder="Enter username"
-                defaultValue={selectedDriver?.username}
-                style={styles.input}
-                onChange={(e) => handleUsernameChangeEdit(e.target.value)}
-              />
-              {usernameError && (
-                <div style={{ color: "red", fontSize: "0.85rem", marginTop: "4px" }}>
-                  {usernameError}
+            {/* Modal Header */}
+            <div style={{ padding: "24px 28px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: "linear-gradient(135deg,#4F46E5,#7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <FaEdit size={16} color="#fff" />
                 </div>
-              )}
-            </div>
-
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Contact:</label>
-              <input
-                type="text"
-                placeholder="+1 (416) 555-0191"
-                value={selectedDriver?.contact || ""}
-                style={{ ...styles.input, borderColor: editFieldErrors.contact ? "#dc2626" : undefined }}
-                onChange={(e) => {
-                  const formatted = formatContact(e.target.value);
-                  handleInputChange("contact", formatted);
-                  const digits = formatted.replace(/\D/g, "");
-                  setEditFieldErrors((prev) => ({ ...prev, contact: digits.length > 0 && digits.length < 10 ? "Enter a valid 10-digit phone number." : "" }));
-                }}
-              />
-              {editFieldErrors.contact && <p style={styles.fieldError}>{editFieldErrors.contact}</p>}
-            </div>
-
-            <div style={styles.formGroup}>
-              <label style={styles.label}>HST/GST:</label>
-              <input
-                type="text"
-                defaultValue={selectedDriver?.hst_gst}
-                style={styles.input}
-                onChange={(e) => handleInputChange("hst_gst", e.target.value)}
-              />
-            </div>
-
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Business Name:</label>
-              <input
-                type="text"
-                defaultValue={selectedDriver?.business_name}
-                style={styles.input}
-                onChange={(e) => handleInputChange("business_name", e.target.value)}
-              />
-            </div>
-
-            {/* Sin No. */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Sin No.:</label>
-              <input
-                type="text"
-                placeholder="XXX-XXX-XXX"
-                value={selectedDriver?.sinNo || ""}
-                style={{ ...styles.input, borderColor: editFieldErrors.sinNo ? "#dc2626" : undefined }}
-                onChange={(e) => {
-                  const formatted = formatSIN(e.target.value);
-                  handleInputChange("sinNo", formatted);
-                  const digits = formatted.replace(/\D/g, "");
-                  setEditFieldErrors((prev) => ({ ...prev, sinNo: digits.length > 0 && digits.length < 9 ? "SIN must be 9 digits." : digits.length === 0 ? "SIN No. is required." : "" }));
-                }}
-              />
-              {editFieldErrors.sinNo && <p style={styles.fieldError}>{editFieldErrors.sinNo}</p>}
-            </div>
-
-            {/* Backhaul Rate */}
-            <div style={styles.formGroup}>
-                <label style={styles.label}>Backhaul Rate:</label>
-                <input
-                    type="number"
-                    defaultValue={selectedDriver?.backhaulRate}
-                    style={styles.input}
-                    onChange={(e) => handleInputChange("backhaulRate", e.target.value)}
-                />
-            </div>
-
-            {/* Combo Rate */}
-            <div style={styles.formGroup}>
-                <label style={styles.label}>Combo Rate:</label>
-                <input
-                    type="number"
-                    defaultValue={selectedDriver?.comboRate}
-                    style={styles.input}
-                    onChange={(e) => handleInputChange("comboRate", e.target.value)}
-                />
-            </div>
-
-            {/* Extra Sheet/E.W Rate */}
-            <div style={styles.formGroup}>
-                <label style={styles.label}>Extra Sheet/E.W Rate:</label>
-                <input
-                    type="number"
-                    defaultValue={selectedDriver?.extraSheetEWRate}
-                    style={styles.input}
-                    onChange={(e) => handleInputChange("extraSheetEWRate", e.target.value)}
-                />
-            </div>
-
-            {/* Regular/Banner Rate */}
-            <div style={styles.formGroup}>
-                <label style={styles.label}>Regular/Banner Rate:</label>
-                <input
-                    type="number"
-                    defaultValue={selectedDriver?.regularBannerRate}
-                    style={styles.input}
-                    onChange={(e) => handleInputChange("regularBannerRate", e.target.value)}
-                />
-            </div>
-
-            {/* Wholesale Rate */}
-            <div style={styles.formGroup}>
-                <label style={styles.label}>Wholesale Rate:</label>
-                <input
-                    type="number"
-                    defaultValue={selectedDriver?.wholesaleRate}
-                    style={styles.input}
-                    onChange={(e) => handleInputChange("wholesaleRate", e.target.value)}
-                />
-            </div>
-
-            {/* Voila Rate */}
-            <div style={styles.formGroup}>
-                <label style={styles.label}>Voila Rate:</label>
-                <input
-                    type="number"
-                    defaultValue={selectedDriver?.voilaRate}
-                    style={styles.input}
-                    onChange={(e) => handleInputChange("voilaRate", e.target.value)}
-                />
-            </div>
-
-            {/* TCS Linehaul Trenton Rate */}
-            <div style={styles.formGroup}>
-                <label style={styles.label}>TCS Linehaul Trenton Rate:</label>
-                <input
-                    type="number"
-                    defaultValue={selectedDriver?.tcsLinehaulTrentonRate}
-                    style={styles.input}
-                    onChange={(e) => handleInputChange("tcsLinehaulTrentonRate", e.target.value)}
-                />
-            </div>
-
-            {/* Work Authorization */}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Work Authorization (Canada):</label>
-              <select
-                value={selectedDriver?.workStatus || ""}
-                style={styles.input}
-                onChange={(e) => {
-                  handleInputChange("workStatus", e.target.value);
-                  handleInputChange("workAuthExpiry", "");
-                  setShowEditWorkAuthPicker(false);
-                }}
-              >
-                <option value="">Select work authorization</option>
-                {WORK_AUTH_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.value}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Work Auth Expiry — only shown for permit-based options */}
-            {workAuthNeedsExpiry(selectedDriver?.workStatus) && (
-              <div style={{ ...styles.formGroup, position: "relative" }}>
-                <label style={styles.label}>Work Authorization Expiry Date:</label>
-                <div
-                  onClick={() => setShowEditWorkAuthPicker(v => !v)}
-                  style={{ ...styles.input, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" }}
-                >
-                  <span style={{ color: selectedDriver?.workAuthExpiry ? "#111827" : "#9ca3af" }}>
-                    {selectedDriver?.workAuthExpiry ? format(parseISO(selectedDriver.workAuthExpiry), "MMM d, yyyy") : "Select expiry date"}
-                  </span>
-                  <FaCalendarAlt size={13} style={{ color: "#9ca3af" }} />
+                <div>
+                  <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "#f9fafb" }}>Edit Driver Profile</h2>
+                  <p style={{ margin: "3px 0 0", fontSize: "12px", color: "#6b7280" }}>Update credentials, rates, and licensing information</p>
                 </div>
-                {showEditWorkAuthPicker && (
-                  <>
-                    <div onClick={() => setShowEditWorkAuthPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
-                    <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
-                      <DayPicker
-                        mode="single"
-                        selected={selectedDriver?.workAuthExpiry ? parseISO(selectedDriver.workAuthExpiry) : undefined}
-                        onSelect={(d) => {
-                          if (d) {
-                            handleInputChange("workAuthExpiry", format(d, "yyyy-MM-dd"));
-                            setShowEditWorkAuthPicker(false);
-                          }
-                        }}
-                        styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }}
-                      />
+              </div>
+              <button onClick={() => { setIsEditModalOpen(false); setUsernameError(""); }} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#9ca3af", borderRadius: "8px", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "16px", fontFamily: "Inter, system-ui, sans-serif" }}>✕</button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ flex: 1, overflowY: "auto", padding: "0 28px 28px" }}>
+
+              {/* Section: Identity & Credentials */}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>IDENTITY &amp; CREDENTIALS</span>
+                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>FULL NAME</label>
+                  <input type="text" defaultValue={selectedDriver?.name}
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => handleInputChange("name", e.target.value)} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>EMAIL ADDRESS</label>
+                  <input type="email" defaultValue={selectedDriver?.email}
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => handleInputChange("email", e.target.value)} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>USERNAME</label>
+                  <input type="text" placeholder="Enter username" defaultValue={selectedDriver?.username}
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${usernameError ? "#dc2626" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => handleUsernameChangeEdit(e.target.value)} />
+                  {usernameError && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "#f87171" }}>{usernameError}</p>}
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>CONTACT NUMBER</label>
+                  <input type="text" placeholder="+1 (416) 555-0191" value={selectedDriver?.contact || ""}
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${editFieldErrors.contact ? "#dc2626" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => {
+                      const formatted = formatContact(e.target.value);
+                      handleInputChange("contact", formatted);
+                      const digits = formatted.replace(/\D/g, "");
+                      setEditFieldErrors((prev) => ({ ...prev, contact: digits.length > 0 && digits.length < 10 ? "Enter a valid 10-digit phone number." : "" }));
+                    }} />
+                  {editFieldErrors.contact && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "#f87171" }}>{editFieldErrors.contact}</p>}
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>SIN NUMBER</label>
+                  <input type="text" placeholder="XXX-XXX-XXX" value={selectedDriver?.sinNo || ""}
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${editFieldErrors.sinNo ? "#dc2626" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => {
+                      const formatted = formatSIN(e.target.value);
+                      handleInputChange("sinNo", formatted);
+                      const digits = formatted.replace(/\D/g, "");
+                      setEditFieldErrors((prev) => ({ ...prev, sinNo: digits.length > 0 && digits.length < 9 ? "SIN must be 9 digits." : digits.length === 0 ? "SIN No. is required." : "" }));
+                    }} />
+                  {editFieldErrors.sinNo && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "#f87171" }}>{editFieldErrors.sinNo}</p>}
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>STATUS</label>
+                  <select value={selectedDriver?.status || "Active"}
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, cursor: "pointer" }}
+                    onChange={(e) => handleInputChange("status", e.target.value)}>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Suspended">Suspended</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>HST / GST NUMBER</label>
+                  <input type="text" placeholder="e.g. 123456789RT0001" defaultValue={selectedDriver?.hst_gst}
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => handleInputChange("hst_gst", e.target.value)} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>BUSINESS NAME</label>
+                  <input type="text" placeholder="Optional — if incorporated" defaultValue={selectedDriver?.business_name}
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => handleInputChange("business_name", e.target.value)} />
+                </div>
+              </div>
+
+              {/* Section: Rate Configuration */}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>RATE CONFIGURATION</span>
+                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
+                {([["BACKHAUL RATE", "backhaulRate"], ["COMBO RATE", "comboRate"], ["EXTRA SHEET / E.W", "extraSheetEWRate"], ["REGULAR / BANNER", "regularBannerRate"]] as [string, string][]).map(([label, field]) => (
+                  <div key={field} style={{ background: "rgba(79,70,229,0.08)", border: "1px solid rgba(79,70,229,0.18)", borderRadius: "10px", padding: "14px" }}>
+                    <label style={{ fontSize: "9px", fontWeight: 700, color: "#818CF8", letterSpacing: "0.8px", display: "block", marginBottom: "8px" }}>{label}</label>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span style={{ fontSize: "14px", color: "#6b7280" }}>$</span>
+                      <input type="number" defaultValue={selectedDriver?.[field]}
+                        style={{ flex: 1, padding: "8px 10px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "6px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", width: "100%", boxSizing: "border-box" as const }}
+                        onChange={(e) => handleInputChange(field, e.target.value)} />
                     </div>
-                  </>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+                {([["WHOLESALE RATE", "wholesaleRate"], ["VOILA RATE", "voilaRate"], ["TCS LINEHAUL TRENTON", "tcsLinehaulTrentonRate"]] as [string, string][]).map(([label, field]) => (
+                  <div key={field} style={{ background: "rgba(79,70,229,0.08)", border: "1px solid rgba(79,70,229,0.18)", borderRadius: "10px", padding: "14px" }}>
+                    <label style={{ fontSize: "9px", fontWeight: 700, color: "#818CF8", letterSpacing: "0.8px", display: "block", marginBottom: "8px" }}>{label}</label>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span style={{ fontSize: "14px", color: "#6b7280" }}>$</span>
+                      <input type="number" defaultValue={selectedDriver?.[field]}
+                        style={{ flex: 1, padding: "8px 10px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "6px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", width: "100%", boxSizing: "border-box" as const }}
+                        onChange={(e) => handleInputChange(field, e.target.value)} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Section: Licensing & Expiry */}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>LICENSING &amp; EXPIRY</span>
+                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>LICENCE CLASS</label>
+                  <input type="text" placeholder="e.g. AZ, DZ, G" value={selectedDriver?.licence || ""}
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${editFieldErrors.licence ? "#dc2626" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => {
+                      const upper = e.target.value.toUpperCase();
+                      handleInputChange("licence", upper);
+                      setEditFieldErrors((prev) => ({ ...prev, licence: upper.trim() === "" ? "Licence class is required." : "" }));
+                    }} />
+                  {editFieldErrors.licence && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "#f87171" }}>{editFieldErrors.licence}</p>}
+                </div>
+                <div style={{ position: "relative" as const }}>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>LICENCE EXPIRY DATE</label>
+                  <div onClick={() => setShowEditExpiryPicker(v => !v)}
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${editFieldErrors.licence_expiry_date?.startsWith("Warning") ? "#d97706" : editFieldErrors.licence_expiry_date ? "#dc2626" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" as const }}>
+                    {(() => {
+                      const raw = selectedDriver?.licence_expiry_date;
+                      const dateStr = raw ? (raw.includes("T") ? raw.split("T")[0] : raw) : "";
+                      return <span style={{ color: dateStr ? "#f3f4f6" : "#4b5563" }}>{dateStr ? format(parseISO(dateStr), "MMM d, yyyy") : "Select expiry date"}</span>;
+                    })()}
+                    <FaCalendarAlt size={13} style={{ color: "#4b5563" }} />
+                  </div>
+                  {showEditExpiryPicker && (
+                    <>
+                      <div onClick={() => setShowEditExpiryPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
+                      <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#1e2433", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                        <DayPicker mode="single"
+                          selected={(() => { const raw = selectedDriver?.licence_expiry_date; const s = raw ? (raw.includes("T") ? raw.split("T")[0] : raw) : ""; return s ? parseISO(s) : undefined; })()}
+                          onSelect={(d) => { if (d) { const dateStr = format(d, "yyyy-MM-dd"); handleInputChange("licence_expiry_date", dateStr); setEditFieldErrors((prev) => ({ ...prev, licence_expiry_date: validateExpiryDate(dateStr) })); setShowEditExpiryPicker(false); } }}
+                          styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0", color: "#f3f4f6" } as React.CSSProperties }} />
+                      </div>
+                    </>
+                  )}
+                  {editFieldErrors.licence_expiry_date && (
+                    <p style={{ margin: "5px 0 0", fontSize: "11px", color: editFieldErrors.licence_expiry_date.startsWith("Warning") ? "#fbbf24" : "#f87171" }}>{editFieldErrors.licence_expiry_date}</p>
+                  )}
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTHORIZATION</label>
+                  <select value={selectedDriver?.workStatus || ""}
+                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: selectedDriver?.workStatus ? "#f3f4f6" : "#4b5563", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, cursor: "pointer" }}
+                    onChange={(e) => { handleInputChange("workStatus", e.target.value); handleInputChange("workAuthExpiry", ""); setShowEditWorkAuthPicker(false); }}>
+                    <option value="">Select work authorization</option>
+                    {WORK_AUTH_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.value}</option>)}
+                  </select>
+                </div>
+                {workAuthNeedsExpiry(selectedDriver?.workStatus) && (
+                  <div style={{ position: "relative" as const }}>
+                    <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTH EXPIRY DATE</label>
+                    <div onClick={() => setShowEditWorkAuthPicker(v => !v)}
+                      style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" as const }}>
+                      <span style={{ color: selectedDriver?.workAuthExpiry ? "#f3f4f6" : "#4b5563" }}>
+                        {selectedDriver?.workAuthExpiry ? format(parseISO(selectedDriver.workAuthExpiry), "MMM d, yyyy") : "Select expiry date"}
+                      </span>
+                      <FaCalendarAlt size={13} style={{ color: "#4b5563" }} />
+                    </div>
+                    {showEditWorkAuthPicker && (
+                      <>
+                        <div onClick={() => setShowEditWorkAuthPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
+                        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#1e2433", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                          <DayPicker mode="single"
+                            selected={selectedDriver?.workAuthExpiry ? parseISO(selectedDriver.workAuthExpiry) : undefined}
+                            onSelect={(d) => { if (d) { handleInputChange("workAuthExpiry", format(d, "yyyy-MM-dd")); setShowEditWorkAuthPicker(false); } }}
+                            styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0", color: "#f3f4f6" } as React.CSSProperties }} />
+                        </div>
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
 
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Licence:</label>
-              <input
-                type="text"
-                placeholder="e.g. AZ, DZ, G"
-                value={selectedDriver?.licence || ""}
-                style={{ ...styles.input, borderColor: editFieldErrors.licence ? "#dc2626" : undefined }}
-                onChange={(e) => {
-                  const upper = e.target.value.toUpperCase();
-                  handleInputChange("licence", upper);
-                  setEditFieldErrors((prev) => ({ ...prev, licence: upper.trim() === "" ? "Licence class is required." : "" }));
-                }}
-              />
-              {editFieldErrors.licence && <p style={styles.fieldError}>{editFieldErrors.licence}</p>}
-            </div>
-
-            <div style={{ ...styles.formGroup, position: "relative" }}>
-              <label style={styles.label}>Licence Expiry Date:</label>
-              <div
-                onClick={() => setShowEditExpiryPicker(v => !v)}
-                style={{ ...styles.input, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none", borderColor: editFieldErrors.licence_expiry_date?.startsWith("Warning") ? "#d97706" : editFieldErrors.licence_expiry_date ? "#dc2626" : undefined }}
-              >
-                {(() => {
-                  const raw = selectedDriver?.licence_expiry_date;
-                  const dateStr = raw ? (raw.includes("T") ? raw.split("T")[0] : raw) : "";
-                  return (
-                    <span style={{ color: dateStr ? "#111827" : "#9ca3af" }}>
-                      {dateStr ? format(parseISO(dateStr), "MMM d, yyyy") : "Select expiry date"}
-                    </span>
-                  );
-                })()}
-                <FaCalendarAlt size={13} style={{ color: "#9ca3af" }} />
+              {/* Section: Payout History */}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>PAYOUT HISTORY</span>
+                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
               </div>
-              {showEditExpiryPicker && (
-                <>
-                  <div onClick={() => setShowEditExpiryPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
-                  <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
-                    <DayPicker
-                      mode="single"
-                      selected={(() => {
-                        const raw = selectedDriver?.licence_expiry_date;
-                        const s = raw ? (raw.includes("T") ? raw.split("T")[0] : raw) : "";
-                        return s ? parseISO(s) : undefined;
-                      })()}
-                      onSelect={(d) => {
-                        if (d) {
-                          const dateStr = format(d, "yyyy-MM-dd");
-                          handleInputChange("licence_expiry_date", dateStr);
-                          setEditFieldErrors((prev) => ({ ...prev, licence_expiry_date: validateExpiryDate(dateStr) }));
-                          setShowEditExpiryPicker(false);
-                        }
-                      }}
-                      styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }}
-                    />
-                  </div>
-                </>
+
+              {payoutsLoading ? (
+                <div style={{ padding: "24px", textAlign: "center" as const, color: "#4b5563", fontSize: "13px" }}>Loading payouts…</div>
+              ) : driverPayouts.length === 0 ? (
+                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: "10px", padding: "28px", textAlign: "center" as const }}>
+                  <p style={{ margin: 0, color: "#4b5563", fontSize: "13px" }}>No payouts recorded for this driver yet.</p>
+                </div>
+              ) : (
+                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", overflow: "hidden" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                        {["DATE", "PERIOD", "AMOUNT (CAD)", "TIMESHEETS", "STATUS"].map((h) => (
+                          <th key={h} style={{ padding: "11px 14px", textAlign: "left" as const, fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {driverPayouts.map((p: any, i: number) => {
+                        const statusCfg: Record<string, { bg: string; color: string }> = {
+                          paid:       { bg: "rgba(16,185,129,0.12)",  color: "#34d399" },
+                          pending:    { bg: "rgba(234,179,8,0.1)",    color: "#fbbf24" },
+                          processing: { bg: "rgba(59,130,246,0.12)",  color: "#60a5fa" },
+                          failed:     { bg: "rgba(239,68,68,0.1)",    color: "#f87171" },
+                        };
+                        const sc = statusCfg[p.status] || statusCfg.pending;
+                        const paidDate = p.paidAt ? format(new Date(p.paidAt), "MMM d, yyyy") : (p.createdAt ? format(new Date(p.createdAt), "MMM d, yyyy") : "—");
+                        const periodStr = p.periodFrom && p.periodTo
+                          ? `${format(new Date(p.periodFrom), "MMM d")} – ${format(new Date(p.periodTo), "MMM d, yyyy")}`
+                          : "—";
+                        const amountCad = ((p.amount || 0) / 100).toFixed(2);
+                        return (
+                          <tr key={p._id || i} style={{ borderBottom: i < driverPayouts.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none", background: i % 2 === 1 ? "rgba(255,255,255,0.015)" : "transparent" }}>
+                            <td style={{ padding: "12px 14px", fontSize: "13px", color: "#e5e7eb" }}>{paidDate}</td>
+                            <td style={{ padding: "12px 14px", fontSize: "13px", color: "#9ca3af" }}>{periodStr}</td>
+                            <td style={{ padding: "12px 14px", fontSize: "13px", color: "#f9fafb", fontWeight: 600 }}>${amountCad}</td>
+                            <td style={{ padding: "12px 14px", fontSize: "12px", color: "#6b7280" }}>{(p.timesheetIds || []).length} sheet{(p.timesheetIds || []).length !== 1 ? "s" : ""}</td>
+                            <td style={{ padding: "12px 14px" }}>
+                              <span style={{ display: "inline-flex", alignItems: "center", padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, background: sc.bg, color: sc.color, textTransform: "capitalize" as const }}>{p.status}</span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               )}
-              {editFieldErrors.licence_expiry_date && (
-                <p style={{ ...styles.fieldError, color: editFieldErrors.licence_expiry_date.startsWith("Warning") ? "#d97706" : "#dc2626" }}>
-                  {editFieldErrors.licence_expiry_date}
-                </p>
-              )}
+
             </div>
 
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Status:</label>
-              <select
-                value={selectedDriver?.status || "Active"} // Default value is "Active"
-                style={styles.input}
-                onChange={(e) => handleInputChange("status", e.target.value)}
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-                <option value="Suspended">Suspended</option>
-              </select>
-            </div>
-
-            <div style={styles.buttonGroup}>
+            {/* Modal Footer */}
+            <div style={{ padding: "20px 28px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "flex-end", gap: "12px", flexShrink: 0 }}>
+              <button onClick={() => { setIsEditModalOpen(false); setUsernameError(""); }}
+                style={{ padding: "11px 20px", background: "none", border: "none", color: "#6b7280", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                Close without saving
+              </button>
               <button
-                style={styles.editButton}
                 onClick={() => {
-                  if (usernameError) {
-                    alert("Please resolve username error before submitting.");
-                    return;
-                  }
+                  if (usernameError) { alert("Please resolve username error before submitting."); return; }
                   const sinDigits = (selectedDriver.sinNo || "").replace(/\D/g, "");
                   const contactDigits = (selectedDriver.contact || "").replace(/^\+1[\s\-\(]*/, "").replace(/\D/g, "");
                   const errors = {
@@ -1158,17 +1145,8 @@ const Drivers: React.FC = () => {
                   if (errors.sinNo || errors.contact || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning"))) return;
                   updateDriver(selectedDriver);
                 }}
-              >
-                Update
-              </button>
-              <button 
-                style={styles.closeButton} 
-                onClick={() => {
-                  setIsEditModalOpen(false);
-                  setUsernameError("");
-                }}
-              >
-                Close
+                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "11px 22px", background: "#4F46E5", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}>
+                ✓ Update Driver Records
               </button>
             </div>
           </div>

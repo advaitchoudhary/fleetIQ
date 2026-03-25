@@ -60,6 +60,8 @@ const Timesheet: React.FC = () => {
   const [orgName, setOrgName] = useState("");
   const [driverStatus, setDriverStatus] = useState("Active");
   const [totalHours, setTotalHours] = useState("0");
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [submittedData, setSubmittedData] = useState<{ date: string; totalHours: string }>({ date: "", totalHours: "" });
   // Extra Work Sheet state
   const [extraWorkSheet, setExtraWorkSheet] = useState("");
   const [extraWorkSheetDuration, setExtraWorkSheetDuration] = useState({ duration: "", from: "", to: "" });
@@ -348,7 +350,8 @@ const Timesheet: React.FC = () => {
       }
 
       console.log("🟢 Timesheet submitted successfully. Server response:", response.data);
-      alert("Timesheet submitted successfully!");
+      setSubmittedData({ date: timesheet.date, totalHours: totalHours });
+      setShowSuccess(true);
 
       setTimesheet(getEmptyTimesheet(timesheet.driver));
       // Reset delay and extra worksheet fields
@@ -371,593 +374,399 @@ const Timesheet: React.FC = () => {
     }
   };
 
+  // ── Success Screen ──────────────────────────────────────────────────────────
+  if (showSuccess) {
+    const tsId = `TS-${Math.random().toString(36).slice(2, 8).toUpperCase()}-X`;
+    const formattedDate = submittedData.date
+      ? new Date(submittedData.date + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+      : "Today";
+    return (
+      <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", minHeight: "100vh", display: "flex", flexDirection: "column" as const }}>
+        <Navbar />
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
+          <div style={{ maxWidth: "600px", width: "100%", textAlign: "center" as const }}>
+            {/* Checkmark */}
+            <div style={{ width: "90px", height: "90px", borderRadius: "50%", background: "rgba(79,70,229,0.2)", border: "2px solid rgba(79,70,229,0.4)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 32px", fontSize: "36px" }}>
+              ✓
+            </div>
+            <h1 style={{ margin: "0 0 16px", fontSize: "clamp(28px, 6vw, 42px)", fontWeight: 900, color: "#f9fafb", letterSpacing: "-0.8px", lineHeight: 1.15 }}>
+              Timesheet Submitted<br />Successfully
+            </h1>
+            <p style={{ margin: "0 0 40px", fontSize: "16px", color: "#6b7280", lineHeight: 1.6 }}>
+              Your records for <strong style={{ color: "#e5e7eb" }}>{formattedDate}</strong>, have been encrypted<br />and queued for review.
+            </p>
+            {/* Summary Card */}
+            <div style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", padding: "32px", textAlign: "left" as const, marginBottom: "32px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "28px", marginBottom: "24px" }}>
+                {[
+                  ["TIMESHEET ID", tsId],
+                  ["TOTAL DURATION", submittedData.totalHours || "—"],
+                  ["DRIVER", driverName || "—"],
+                ].map(([label, value]) => (
+                  <div key={label}>
+                    <p style={{ margin: "0 0 6px", fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px" }}>{label}</p>
+                    <p style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#f9fafb" }}>{value}</p>
+                  </div>
+                ))}
+                <div>
+                  <p style={{ margin: "0 0 6px", fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px" }}>STATUS</p>
+                  <p style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#f59e0b", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#f59e0b", display: "inline-block" }} />
+                    Pending Review
+                  </p>
+                </div>
+              </div>
+              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "12px", color: "#4b5563", display: "flex", alignItems: "center", gap: "6px" }}>🔒 End-to-end encryption active</span>
+                <span style={{ fontSize: "11px", color: "#374151" }}>Ref: FleetIQ-Core-v2.4</span>
+              </div>
+            </div>
+            {/* Action Buttons */}
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" as const, justifyContent: "center" }}>
+              <button
+                onClick={() => { setShowSuccess(false); setTimesheet(getEmptyTimesheet(timesheet.driver)); }}
+                style={{ flex: "1 1 200px", padding: "14px 28px", background: "linear-gradient(135deg, #4F46E5, #6366f1)", border: "none", borderRadius: "12px", color: "#fff", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 20px rgba(79,70,229,0.4)" }}
+              >
+                Return to Dashboard →
+              </button>
+              <button
+                onClick={() => setShowSuccess(false)}
+                style={{ flex: "1 1 180px", padding: "14px 28px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "12px", color: "#e5e7eb", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                👁 View Detailed Log
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={styles.container}>
       <style>{`
         @media (max-width: 768px) {
-          [data-db-content] { padding: 24px 16px !important; margin: 20px 12px !important; width: auto !important; }
-          [data-db-title] { font-size: 20px !important; }
-          [data-db-duration-row] { flex-direction: column !important; }
-          [data-db-attach] { flex-direction: column !important; align-items: flex-start !important; }
+          .db-two-col { grid-template-columns: 1fr !important; }
+          .db-section-card { padding: 16px !important; }
+          .db-main { padding: 0 12px 80px !important; margin-top: 12px !important; }
+          .db-hero { padding: 20px 16px !important; }
+          .db-hero-inner { flex-direction: column !important; align-items: flex-start !important; gap: 14px !important; }
         }
-        @media (max-width: 480px) {
-          [data-db-content] { padding: 20px 12px !important; margin: 12px 8px !important; border-radius: 12px !important; }
-          [data-db-title] { font-size: 18px !important; }
-          [data-db-delay-row] { flex-direction: column !important; }
-          [data-db-checkbox-row] { flex-direction: column !important; gap: 10px !important; }
+        @media (min-width: 769px) {
+          .db-two-col { grid-template-columns: 1fr 1fr; }
         }
+        input[type="date"]::-webkit-calendar-picker-indicator,
+        input[type="time"]::-webkit-calendar-picker-indicator {
+          filter: invert(1) opacity(0.4);
+        }
+        select option { background: #1c2128; color: #e5e7eb; }
       `}</style>
       <Navbar />
 
       {/* ── Driver Hero ─────────────────────────────────────────────────── */}
-      <div style={heroOuter}>
-        <div style={heroInner}>
-          {/* Left: avatar + name */}
-          <div style={{ display: "flex", alignItems: "center", gap: "18px", flexShrink: 0 }}>
-            <div style={avatarCircle}>
-              {(driverName || "D").charAt(0).toUpperCase()}
-            </div>
+      <div style={heroOuter} className="db-hero">
+        <div style={heroInner} className="db-hero-inner">
+          <div style={{ display: "flex", alignItems: "center", gap: "16px", flexShrink: 0 }}>
+            <div style={avatarCircle}>{(driverName || "D").charAt(0).toUpperCase()}</div>
             <div>
-              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "1.2px" }}>Driver Portal</p>
-              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>
+              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Senior Logistics Op</p>
+              <h1 style={{ margin: "3px 0 0", fontSize: "22px", fontWeight: 800, color: "#fff", letterSpacing: "-0.4px", lineHeight: 1 }}>
                 {driverName || "Driver"}
               </h1>
               {driverIdDisplay && (
-                <p style={{ margin: "6px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500, fontFamily: "monospace" }}>
-                  {driverIdDisplay}
+                <p style={{ margin: "5px 0 0", fontSize: "12px", color: "rgba(255,255,255,0.4)", fontWeight: 500, fontFamily: "monospace" }}>
+                  • {driverIdDisplay}
                 </p>
               )}
             </div>
           </div>
-          {/* Right: org + status chips */}
-          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" as const, alignItems: "center" }}>
-            {orgName && (
-              <span style={orgBadge}>🏢 {orgName}</span>
-            )}
-            <span style={driverStatus === "Active" ? activeBadge : inactiveBadge}>
-              ● {driverStatus}
-            </span>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" as const, alignItems: "center" }}>
+            {orgName && <span style={orgBadge}>🏢 {orgName}</span>}
+            <span style={driverStatus === "Active" ? activeBadge : inactiveBadge}>● {driverStatus}</span>
           </div>
         </div>
       </div>
 
-      <div style={styles.mainContent} data-db-content>
-        <h2 style={styles.pageTitle} data-db-title>Enter Your Timesheet</h2>
+      <div style={styles.mainContent} className="db-main">
         <form onSubmit={handleSubmit} style={styles.form}>
 
-          {/* ── Trip Info Section ──────────────────────────────────────── */}
-          <div style={formSectionCard}>
-          <div style={sectionDivider}>Trip Information</div>
-          <div style={twoCol}>
-            <div>
-              <label style={styles.label}>Driver Name</label>
-              <input type="text" name="driver" value={driverName || timesheet.driver} disabled style={{ ...styles.input, backgroundColor: "#f9fafb" }} />
+          {/* ── TRIP INFORMATION ──────────────────────────────────────── */}
+          <div style={formSectionCard} className="db-section-card">
+            <p style={sectionDivider}>Trip Information</p>
+            <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "16px", marginBottom: "14px" }}>
+              <p style={fieldLabel}>Organization ID</p>
+              <p style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: "#e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                {driverIdDisplay ? `GLO-${driverIdDisplay.slice(-7).toUpperCase()}` : "GLO-LOG-2024"}
+                <span style={{ fontSize: "14px", color: "#4b5563" }}>🔒</span>
+              </p>
+            </div>
+            <div style={twoCol} className="db-two-col">
+              <div>
+                <p style={fieldLabel}>Vehicle ID</p>
+                <input type="text" name="vehicleID" placeholder="VK-409" style={styles.input} onChange={handleChange} />
+              </div>
+              <div>
+                <p style={fieldLabel}>Load ID</p>
+                <input type="text" name="loadID" value={timesheet.loadID} onChange={handleChange} placeholder="Enter ID" style={errors.loadID ? { ...styles.input, borderColor: "#ef4444" } : styles.input} />
+                {errors.loadID && <span style={styles.error}>{errors.loadID}</span>}
+              </div>
             </div>
             <div>
-              <label style={styles.label}>Driver ID</label>
-              <input type="text" value={driverIdDisplay || "—"} disabled style={{ ...styles.input, backgroundColor: "#f9fafb", fontFamily: "monospace", fontSize: "13px" }} />
-            </div>
-          </div>
-  
-          <div style={twoCol}>
-            <div>
-              <label style={styles.label}>Customer</label>
-              <select name="customer" value={timesheet.customer} onChange={handleChange} style={styles.input}>
+              <p style={fieldLabel}>Customer Selection</p>
+              <select name="customer" value={timesheet.customer} onChange={handleChange} style={errors.customer ? { ...styles.input, borderColor: "#ef4444" } : styles.input}>
                 <option value="">Select Customer</option>
-                {customerOptions.map((option) => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
+                {customerOptions.map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
               {errors.customer && <span style={styles.error}>{errors.customer}</span>}
             </div>
-            <div>
-              <label style={styles.label}>Category</label>
-              <select name="category" value={timesheet.category} onChange={handleChange} style={styles.input}>
+            <div style={{ marginTop: "14px" }}>
+              <p style={fieldLabel}>Category</p>
+              <select name="category" value={timesheet.category} onChange={handleChange} style={errors.category ? { ...styles.input, borderColor: "#ef4444" } : styles.input}>
                 <option value="">Select Category</option>
-                {categoryOptions.map((option) => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
+                {categoryOptions.map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
               {errors.category && <span style={styles.error}>{errors.category}</span>}
             </div>
           </div>
 
-          <div style={twoCol}>
-            <div>
-              <label style={styles.label}>Trip Number</label>
-              <input type="text" name="tripNumber" value={timesheet.tripNumber} onChange={handleChange} style={styles.input} />
-              {errors.tripNumber && <span style={styles.error}>{errors.tripNumber}</span>}
+          {/* ── TIMING & GATE ACCESS ──────────────────────────────────── */}
+          <div style={formSectionCard} className="db-section-card">
+            <p style={sectionDivider}>Timing &amp; Gate Access</p>
+            {/* Trip Date */}
+            <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "14px 16px", marginBottom: "14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "16px" }}>📅</span>
+                <div>
+                  <p style={{ margin: "0 0 2px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>TRIP DATE</p>
+                  <input type="date" name="date" value={timesheet.date} onChange={handleChange}
+                    style={{ background: "none", border: "none", color: "#e5e7eb", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer", padding: 0 }} />
+                </div>
+              </div>
+              <button type="button" style={{ background: "none", border: "1px solid rgba(255,255,255,0.15)", color: "#9ca3af", borderRadius: "6px", padding: "4px 10px", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>EDIT</button>
             </div>
-            <div>
-              <label style={styles.label}>Load ID</label>
-              <input type="text" name="loadID" value={timesheet.loadID} onChange={handleChange} style={styles.input} />
-              {errors.loadID && <span style={styles.error}>{errors.loadID}</span>}
+            <div style={twoCol} className="db-two-col">
+              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "12px 14px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
+                  <span>⏱</span> START TIME
+                </p>
+                <input type="time" name="startTime" value={timesheet.startTime} onChange={handleChange}
+                  style={{ background: "none", border: "none", color: "#e5e7eb", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
+              </div>
+              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "12px 14px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
+                  <span>⏱</span> END TIME
+                </p>
+                <input type="time" name="endTime" value={timesheet.endTime} onChange={handleChange}
+                  style={{ background: "none", border: "none", color: "#e5e7eb", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
+              </div>
+              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "12px 14px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
+                  <span>🚪</span> GATE OUT
+                </p>
+                <input type="time" name="gateOutTime" value={timesheet.gateOutTime} onChange={handleChange}
+                  style={{ background: "none", border: "none", color: "#e5e7eb", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
+                {errors.gateOutTime && <span style={styles.error}>{errors.gateOutTime}</span>}
+              </div>
+              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "12px 14px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
+                  <span>🚪</span> GATE IN
+                </p>
+                <input type="time" name="gateInTime" value={timesheet.gateInTime} onChange={handleChange}
+                  style={{ background: "none", border: "none", color: "#e5e7eb", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
+                {errors.gateInTime && <span style={styles.error}>{errors.gateInTime}</span>}
+              </div>
             </div>
-          </div>
-
-          </div>{/* end Trip Info card */}
-
-          {/* ── Timing Section ────────────────────────────────────────── */}
-          <div style={formSectionCard}>
-          <div style={sectionDivider}>Timing</div>
-          <div style={twoCol}>
-            <div>
-              <label style={styles.label}>Trip Date</label>
-              <input type="date" name="date" value={timesheet.date} onChange={handleChange} style={styles.input} />
-            </div>
-            <div>
-              <label style={styles.label}>Total Hours</label>
-              <input type="text" value={totalHours} disabled style={{ ...styles.input, backgroundColor: "#f9fafb", fontWeight: 600, color: "#4F46E5" }} />
-            </div>
-          </div>
-          <div style={twoCol}>
-            <div>
-              <label style={styles.label}>Start Time</label>
-              <input type="time" name="startTime" value={timesheet.startTime} onChange={handleChange} style={styles.input} />
-            </div>
-            <div>
-              <label style={styles.label}>End Time</label>
-              <input type="time" name="endTime" value={timesheet.endTime} onChange={handleChange} style={styles.input} />
-            </div>
-          </div>
-          <div style={twoCol}>
-            <div>
-              <label style={styles.label}>Gate Out Time</label>
-              <input type="time" name="gateOutTime" value={timesheet.gateOutTime} onChange={handleChange} style={styles.input} />
-              {errors.gateOutTime && <span style={styles.error}>{errors.gateOutTime}</span>}
-            </div>
-            <div>
-              <label style={styles.label}>Gate In Time</label>
-              <input type="time" name="gateInTime" value={timesheet.gateInTime} onChange={handleChange} style={styles.input} />
-              {errors.gateInTime && <span style={styles.error}>{errors.gateInTime}</span>}
-            </div>
-          </div>
-  
-          {/* Extra Work Sheet radio and conditional duration */}
-          <div style={styles.extraWorkWrapper}>
-            <label style={styles.sectionLabel}>Extra Work Sheet?</label>
-            <div style={{ display: "flex", gap: "24px", marginBottom: "10px", marginTop: "6px" }}>
-              <label style={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="extraWorkSheet"
-                  value="yes"
-                  checked={extraWorkSheet === "yes"}
-                  onChange={(e) => setExtraWorkSheet(e.target.value)}
-                  style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
-                />{" "}
-                Yes
-              </label>
-              <label style={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="extraWorkSheet"
-                  value="no"
-                  checked={extraWorkSheet === "no"}
-                  onChange={(e) => setExtraWorkSheet(e.target.value)}
-                  style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
-                />{" "}
-                No
-              </label>
-            </div>
-            {extraWorkSheet === "yes" && (
-              <>
-                <div style={styles.durationContainer} data-db-duration-row>
-                  <div style={styles.durationField}>
-                    <label style={styles.label}>From</label>
-                    <input
-                      type="time"
-                      name="durationFrom"
-                      style={styles.input}
-                      value={extraWorkSheetDuration.from}
-                      onChange={e => {
-                        const newFrom = e.target.value;
-                        setExtraWorkSheetDuration((prev) => {
-                          const newState = { ...prev, from: newFrom };
-                          if (newState.from && newState.to) {
-                            newState.duration = calculateDuration(newState.from, newState.to);
-                          }
-                          return newState;
-                        });
-                      }}
-                    />
+            {/* Extra Work Sheet */}
+            <div style={{ ...styles.extraWorkWrapper, marginTop: "14px" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <label style={{ fontSize: "14px", fontWeight: 600, color: "#e5e7eb" }}>Extra Work Sheet?</label>
+                <div style={{ display: "flex", gap: "12px" }}>
+                  {["yes", "no"].map(v => (
+                    <label key={v} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: extraWorkSheet === v ? "#818CF8" : "#6b7280", cursor: "pointer", fontWeight: extraWorkSheet === v ? 700 : 500 }}>
+                      <input type="radio" name="extraWorkSheet" value={v} checked={extraWorkSheet === v} onChange={e => setExtraWorkSheet(e.target.value)} style={{ accentColor: "#4F46E5" }} />
+                      {v.charAt(0).toUpperCase() + v.slice(1)}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {extraWorkSheet === "yes" && (
+                <div style={{ marginTop: "14px", display: "flex", flexDirection: "column" as const, gap: "10px" }}>
+                  <div style={twoCol} className="db-two-col">
+                    <div>
+                      <p style={fieldLabel}>From</p>
+                      <input type="time" style={styles.input} value={extraWorkSheetDuration.from} onChange={e => { const v = e.target.value; setExtraWorkSheetDuration(p => { const n = { ...p, from: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} />
+                    </div>
+                    <div>
+                      <p style={fieldLabel}>To</p>
+                      <input type="time" style={styles.input} value={extraWorkSheetDuration.to} onChange={e => { const v = e.target.value; setExtraWorkSheetDuration(p => { const n = { ...p, to: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} />
+                    </div>
                   </div>
-                  <div style={styles.durationField}>
-                    <label style={styles.label}>To</label>
-                    <input
-                      type="time"
-                      name="durationTo"
-                      style={styles.input}
-                      value={extraWorkSheetDuration.to}
-                      onChange={e => {
-                        const newTo = e.target.value;
-                        setExtraWorkSheetDuration((prev) => {
-                          const newState = { ...prev, to: newTo };
-                          if (newState.from && newState.to) {
-                            newState.duration = calculateDuration(newState.from, newState.to);
-                          }
-                          return newState;
-                        });
-                      }}
-                    />
+                  <div>
+                    <p style={fieldLabel}>Duration</p>
+                    <input type="text" style={{ ...styles.input, color: "#4b5563" }} value={extraWorkSheetDuration.duration} readOnly />
+                  </div>
+                  <div>
+                    <p style={fieldLabel}>Comments</p>
+                    <input type="text" style={styles.input} value={extraWorkSheetComments.comments} onChange={e => setExtraWorkSheetComments({ comments: e.target.value })} />
                   </div>
                 </div>
-                <div style={styles.durationTotal}>
-                  <label style={styles.label}>Duration:</label>
-                  <input
-                    type="text"
-                    name="extraDuration"
-                    style={styles.input}
-                    value={extraWorkSheetDuration.duration}
-                    onChange={e => setExtraWorkSheetDuration((prev) => ({ ...prev, duration: e.target.value }))}
-                  />
-                </div>
-                <div style={styles.durationTotal}>
-                  <label style={styles.label}>Comments:</label>
-                  <input
-                    type="text"
-                    name="extraWorkSheetComments"
-                    style={styles.input}
-                    value={extraWorkSheetComments.comments}
-                    onChange={e => setExtraWorkSheetComments({ comments: e.target.value })}
-                  />
-                </div>
-              </>
-            )}
+              )}
+            </div>
           </div>
 
-          <div style={styles.extraWorkWrapper}>
-            <label style={styles.sectionLabel}>Was there an extra Delay?</label>
-            <div style={{ display: "flex", gap: "24px", marginBottom: "10px", marginTop: "6px" }}>
-              <label style={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="extraDelay"
-                  value="yes"
-                  checked={extraDelayYesNo === "yes"}
-                  onChange={(e) => setExtraDelayYesNo(e.target.value)}
-                  style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
-                />{" "}
-                Yes
-              </label>
-              <label style={styles.radioLabel}>
-                <input
-                  type="radio"
-                  name="extraDelay"
-                  value="no"
-                  checked={extraDelayYesNo === "no"}
-                  onChange={(e) => setExtraDelayYesNo(e.target.value)}
-                  style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
-                />{" "}
-                No
-              </label>
+          {/* ── METRICS & DISTANCE ───────────────────────────────────── */}
+          <div style={formSectionCard} className="db-section-card">
+            <p style={sectionDivider}>Metrics &amp; Distance</p>
+            <div style={twoCol} className="db-two-col">
+              <div style={{ background: "rgba(79,70,229,0.15)", border: "1px solid rgba(79,70,229,0.3)", borderRadius: "12px", padding: "16px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#818CF8", letterSpacing: "0.8px" }}>TOTAL HOURS</p>
+                <p style={{ margin: 0, fontSize: "26px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.5px" }}>{totalHours}</p>
+              </div>
+              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "16px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>TRIP NUMBER</p>
+                <input type="text" name="tripNumber" value={timesheet.tripNumber} onChange={handleChange} placeholder="#TX-000"
+                  style={{ background: "none", border: "none", color: "#f9fafb", fontSize: "22px", fontWeight: 800, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
+                {errors.tripNumber && <span style={styles.error}>{errors.tripNumber}</span>}
+              </div>
             </div>
-            {extraDelayYesNo === "yes" && (
-              <>
-                <label style={styles.label}>Select Delay Types:</label>
-                <div style={{ display: "flex", flexDirection: "row", gap: "24px", marginBottom: "12px", marginTop: "4px", flexWrap: "wrap" as const }} data-db-checkbox-row>
-                  <label style={styles.radioLabel}>
-                    <input
-                      type="checkbox"
-                      checked={hasDelay.includes("store")}
-                      onChange={(e) =>
-                        setHasDelay((prev) =>
-                          e.target.checked ? [...prev, "store"] : prev.filter((d) => d !== "store")
-                        )
-                      }
-                      style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
-                    />{" "}
-                    Store Delay
-                  </label>
-                  <label style={styles.radioLabel}>
-                    <input
-                      type="checkbox"
-                      checked={hasDelay.includes("road")}
-                      onChange={(e) =>
-                        setHasDelay((prev) =>
-                          e.target.checked ? [...prev, "road"] : prev.filter((d) => d !== "road")
-                        )
-                      }
-                      style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
-                    />{" "}
-                    Road Delay
-                  </label>
-                  <label style={styles.radioLabel}>
-                    <input
-                      type="checkbox"
-                      checked={hasDelay.includes("other")}
-                      onChange={(e) =>
-                        setHasDelay((prev) =>
-                          e.target.checked ? [...prev, "other"] : prev.filter((d) => d !== "other")
-                        )
-                      }
-                      style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
-                    />{" "}
-                    Other Delay
-                  </label>
-                </div>
+            <div style={{ ...twoCol, marginTop: "14px" }} className="db-two-col">
+              <div>
+                <p style={fieldLabel}>KM Start</p>
+                <input type="number" name="startKM" value={timesheet.startKM} onChange={handleChange} placeholder="45230" style={errors.startKM ? { ...styles.input, borderColor: "#ef4444" } : styles.input} />
+                {errors.startKM && <span style={styles.error}>{errors.startKM}</span>}
+              </div>
+              <div>
+                <p style={fieldLabel}>KM End</p>
+                <input type="number" name="endKM" value={timesheet.endKM} onChange={handleChange} placeholder="45412" style={errors.endKM ? { ...styles.input, borderColor: "#ef4444" } : styles.input} />
+                {errors.endKM && <span style={styles.error}>{errors.endKM}</span>}
+              </div>
+              <div>
+                <p style={fieldLabel}>Planned Hours</p>
+                <input type="text" name="plannedHours" value={timesheet.plannedHours} onChange={handleChange} style={styles.input} />
+              </div>
+              <div>
+                <p style={fieldLabel}>Planned KM</p>
+                <input type="text" name="plannedKM" value={timesheet.plannedKM} onChange={handleChange} style={styles.input} />
+              </div>
+            </div>
+          </div>
 
+          {/* ── CONDITIONS & DELAYS ──────────────────────────────────── */}
+          <div style={formSectionCard} className="db-section-card">
+            <p style={sectionDivider}>Conditions &amp; Delays</p>
+            {/* Extra Delay toggle */}
+            {[
+              { key: "traffic", icon: "⚠️", label: "Traffic Delay", color: "#f59e0b" },
+              { key: "store", icon: "🔧", label: "Extra Labor / Store Delay", color: "#818CF8" },
+              { key: "road", icon: "🚫", label: "Road Delay", color: "#f87171" },
+              { key: "other", icon: "📋", label: "Other Delay", color: "#34d399" },
+            ].map(({ key, icon, label, color }) => (
+              <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "rgba(255,255,255,0.03)", border: `1px solid ${hasDelay.includes(key) ? color + "33" : "rgba(255,255,255,0.06)"}`, borderRadius: "12px", marginBottom: "10px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <span style={{ width: "36px", height: "36px", borderRadius: "8px", background: `${color}1A`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }}>{icon}</span>
+                  <span style={{ fontSize: "14px", fontWeight: 600, color: "#e5e7eb" }}>{label}</span>
+                </div>
+                <label style={{ position: "relative" as const, display: "inline-block", width: "44px", height: "24px", cursor: "pointer", flexShrink: 0 }}>
+                  <input type="checkbox" checked={hasDelay.includes(key)}
+                    onChange={e => {
+                      if (key === "traffic") {
+                        setExtraDelayYesNo(e.target.checked ? "yes" : "no");
+                      }
+                      setHasDelay(prev => e.target.checked ? [...prev, key] : prev.filter(d => d !== key));
+                    }}
+                    style={{ opacity: 0, width: 0, height: 0 }} />
+                  <span style={{ position: "absolute" as const, inset: 0, borderRadius: "24px", background: hasDelay.includes(key) ? color : "rgba(255,255,255,0.1)", transition: "background 0.2s" }}>
+                    <span style={{ position: "absolute" as const, width: "18px", height: "18px", borderRadius: "50%", background: "#fff", top: "3px", left: hasDelay.includes(key) ? "23px" : "3px", transition: "left 0.2s" }} />
+                  </span>
+                </label>
+              </div>
+            ))}
+            {/* Delay Detail Fields */}
+            {(hasDelay.includes("store") || hasDelay.includes("road") || hasDelay.includes("other")) && (
+              <div style={{ marginTop: "4px" }}>
                 {hasDelay.includes("store") && (
                   <div style={styles.delaySection}>
-                    <h4 style={styles.delaySectionTitle}>Store Delay</h4>
-                    <div style={styles.delayRow} data-db-delay-row>
-                      <div style={styles.delayField}>
-                        <label style={styles.delayLabel}>From:</label>
-                        <input
-                          type="time"
-                          style={styles.delayInput}
-                          value={storeDelay.from}
-                          onChange={(e) => {
-                            const newFrom = e.target.value;
-                            setStoreDelay((prev) => {
-                              const newState = { ...prev, from: newFrom };
-                              if (newState.from && newState.to) {
-                                newState.duration = calculateDuration(newState.from, newState.to);
-                              }
-                              return newState;
-                            });
-                          }}
-                        />
-                      </div>
-                      <div style={styles.delayField}>
-                        <label style={styles.delayLabel}>To:</label>
-                        <input
-                          type="time"
-                          style={styles.delayInput}
-                          value={storeDelay.to}
-                          onChange={(e) => {
-                            const newTo = e.target.value;
-                            setStoreDelay((prev) => {
-                              const newState = { ...prev, to: newTo };
-                              if (newState.from && newState.to) {
-                                newState.duration = calculateDuration(newState.from, newState.to);
-                              }
-                              return newState;
-                            });
-                          }}
-                        />
-                      </div>
+                    <h4 style={styles.delaySectionTitle}>Store / Extra Labor Delay</h4>
+                    <div style={twoCol} className="db-two-col">
+                      <div><p style={fieldLabel}>From</p><input type="time" style={styles.delayInput} value={storeDelay.from} onChange={e => { const v = e.target.value; setStoreDelay(p => { const n = { ...p, from: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} /></div>
+                      <div><p style={fieldLabel}>To</p><input type="time" style={styles.delayInput} value={storeDelay.to} onChange={e => { const v = e.target.value; setStoreDelay(p => { const n = { ...p, to: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} /></div>
                     </div>
-                    <div style={styles.delayField}>
-                      <label style={styles.delayLabel}>Duration:</label>
-                      <input
-                        type="text"
-                        style={styles.delayInput}
-                        value={storeDelay.duration}
-                        onChange={(e) => setStoreDelay({ ...storeDelay, duration: e.target.value })}
-                      />
-                    </div>
-                    <div style={styles.delayField}>
-                      <label style={styles.delayLabel}>Reason:</label>
-                      <input
-                        type="text"
-                        style={styles.delayInput}
-                        value={storeDelay.reason}
-                        onChange={(e) => setStoreDelay({ ...storeDelay, reason: e.target.value })}
-                      />
-                    </div>
+                    <div style={{ marginTop: "10px" }}><p style={fieldLabel}>Duration (auto)</p><input type="text" style={{ ...styles.delayInput, color: "#4b5563" }} value={storeDelay.duration} readOnly /></div>
+                    <div style={{ marginTop: "10px" }}><p style={fieldLabel}>Reason</p><input type="text" style={styles.delayInput} value={storeDelay.reason} onChange={e => setStoreDelay({ ...storeDelay, reason: e.target.value })} /></div>
                   </div>
                 )}
-
                 {hasDelay.includes("road") && (
                   <div style={styles.delaySection}>
                     <h4 style={styles.delaySectionTitle}>Road Delay</h4>
-                    <div style={styles.delayRow} data-db-delay-row>
-                      <div style={styles.delayField}>
-                        <label style={styles.delayLabel}>From:</label>
-                        <input
-                          type="time"
-                          style={styles.delayInput}
-                          value={roadDelay.from}
-                          onChange={(e) => {
-                            const newFrom = e.target.value;
-                            setRoadDelay((prev) => {
-                              const newState = { ...prev, from: newFrom };
-                              if (newState.from && newState.to) {
-                                newState.duration = calculateDuration(newState.from, newState.to);
-                              }
-                              return newState;
-                            });
-                          }}
-                        />
-                      </div>
-                      <div style={styles.delayField}>
-                        <label style={styles.delayLabel}>To:</label>
-                        <input
-                          type="time"
-                          style={styles.delayInput}
-                          value={roadDelay.to}
-                          onChange={(e) => {
-                            const newTo = e.target.value;
-                            setRoadDelay((prev) => {
-                              const newState = { ...prev, to: newTo };
-                              if (newState.from && newState.to) {
-                                newState.duration = calculateDuration(newState.from, newState.to);
-                              }
-                              return newState;
-                            });
-                          }}
-                        />
-                      </div>
+                    <div style={twoCol} className="db-two-col">
+                      <div><p style={fieldLabel}>From</p><input type="time" style={styles.delayInput} value={roadDelay.from} onChange={e => { const v = e.target.value; setRoadDelay(p => { const n = { ...p, from: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} /></div>
+                      <div><p style={fieldLabel}>To</p><input type="time" style={styles.delayInput} value={roadDelay.to} onChange={e => { const v = e.target.value; setRoadDelay(p => { const n = { ...p, to: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} /></div>
                     </div>
-                    <div style={styles.delayField}>
-                      <label style={styles.delayLabel}>Duration:</label>
-                      <input
-                        type="text"
-                        style={styles.delayInput}
-                        value={roadDelay.duration}
-                        onChange={(e) => setRoadDelay({ ...roadDelay, duration: e.target.value })}
-                      />
-                    </div>
-                    <div style={styles.delayField}>
-                      <label style={styles.delayLabel}>Reason:</label>
-                      <input
-                        type="text"
-                        style={styles.delayInput}
-                        value={roadDelay.reason}
-                        onChange={(e) => setRoadDelay({ ...roadDelay, reason: e.target.value })}
-                      />
-                    </div>
+                    <div style={{ marginTop: "10px" }}><p style={fieldLabel}>Duration (auto)</p><input type="text" style={{ ...styles.delayInput, color: "#4b5563" }} value={roadDelay.duration} readOnly /></div>
+                    <div style={{ marginTop: "10px" }}><p style={fieldLabel}>Reason</p><input type="text" style={styles.delayInput} value={roadDelay.reason} onChange={e => setRoadDelay({ ...roadDelay, reason: e.target.value })} /></div>
                   </div>
                 )}
-
                 {hasDelay.includes("other") && (
                   <div style={styles.delaySection}>
                     <h4 style={styles.delaySectionTitle}>Other Delay</h4>
-                    <div style={styles.delayRow} data-db-delay-row>
-                      <div style={styles.delayField}>
-                        <label style={styles.delayLabel}>From:</label>
-                        <input
-                          type="time"
-                          style={styles.delayInput}
-                          value={otherDelay.from}
-                          onChange={(e) => {
-                            const newFrom = e.target.value;
-                            setOtherDelay((prev) => {
-                              const newState = { ...prev, from: newFrom };
-                              if (newState.from && newState.to) {
-                                newState.duration = calculateDuration(newState.from, newState.to);
-                              }
-                              return newState;
-                            });
-                          }}
-                        />
-                      </div>
-                      <div style={styles.delayField}>
-                        <label style={styles.delayLabel}>To:</label>
-                        <input
-                          type="time"
-                          style={styles.delayInput}
-                          value={otherDelay.to}
-                          onChange={(e) => {
-                            const newTo = e.target.value;
-                            setOtherDelay((prev) => {
-                              const newState = { ...prev, to: newTo };
-                              if (newState.from && newState.to) {
-                                newState.duration = calculateDuration(newState.from, newState.to);
-                              }
-                              return newState;
-                            });
-                          }}
-                        />
-                      </div>
+                    <div style={twoCol} className="db-two-col">
+                      <div><p style={fieldLabel}>From</p><input type="time" style={styles.delayInput} value={otherDelay.from} onChange={e => { const v = e.target.value; setOtherDelay(p => { const n = { ...p, from: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} /></div>
+                      <div><p style={fieldLabel}>To</p><input type="time" style={styles.delayInput} value={otherDelay.to} onChange={e => { const v = e.target.value; setOtherDelay(p => { const n = { ...p, to: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} /></div>
                     </div>
-                    <div style={styles.delayField}>
-                      <label style={styles.delayLabel}>Duration:</label>
-                      <input
-                        type="text"
-                        style={styles.delayInput}
-                        value={otherDelay.duration}
-                        onChange={(e) => setOtherDelay({ ...otherDelay, duration: e.target.value })}
-                      />
-                    </div>
-                    <div style={styles.delayField}>
-                      <label style={styles.delayLabel}>Reason:</label>
-                      <input
-                        type="text"
-                        style={styles.delayInput}
-                        value={otherDelay.reason}
-                        onChange={(e) => setOtherDelay({ ...otherDelay, reason: e.target.value })}
-                      />
-                    </div>
+                    <div style={{ marginTop: "10px" }}><p style={fieldLabel}>Duration (auto)</p><input type="text" style={{ ...styles.delayInput, color: "#4b5563" }} value={otherDelay.duration} readOnly /></div>
+                    <div style={{ marginTop: "10px" }}><p style={fieldLabel}>Reason</p><input type="text" style={styles.delayInput} value={otherDelay.reason} onChange={e => setOtherDelay({ ...otherDelay, reason: e.target.value })} /></div>
                   </div>
                 )}
-              </>
+              </div>
             )}
           </div>
 
-          </div>{/* end Timing card */}
-
-          {/* ── Distance Section ─────────────────────────────────────── */}
-          <div style={formSectionCard}>
-          <div style={sectionDivider}>Distance & Planning</div>
-          <div style={twoCol}>
-            <div>
-              <label style={styles.label}>Start KM</label>
-              <input type="number" name="startKM" value={timesheet.startKM} onChange={handleChange} style={styles.input} />
-              {errors.startKM && <span style={styles.error}>{errors.startKM}</span>}
-            </div>
-            <div>
-              <label style={styles.label}>End KM</label>
-              <input type="number" name="endKM" value={timesheet.endKM} onChange={handleChange} style={styles.input} />
-              {errors.endKM && <span style={styles.error}>{errors.endKM}</span>}
+          {/* ── NOTES & PROOF ─────────────────────────────────────────── */}
+          <div style={formSectionCard} className="db-section-card">
+            <p style={sectionDivider}>Notes &amp; Proof</p>
+            <p style={fieldLabel}>Comments</p>
+            <textarea name="comments" value={timesheet.comments} onChange={handleChange} style={styles.textarea} placeholder="Add details about your trip or any incidents..." />
+            <p style={{ ...fieldLabel, marginTop: "16px" }}>Attachments</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+              {[...Array(4)].map((_, i) => (
+                <div key={i} style={{ borderRadius: "10px", overflow: "hidden", aspectRatio: "1", position: "relative" as const }}>
+                  {timesheet.attachments[i] ? (
+                    <>
+                      <img src={URL.createObjectURL(timesheet.attachments[i]!)} alt={`Attachment ${i + 1}`}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" as const }} />
+                      <button type="button" onClick={() => { const a = [...timesheet.attachments]; a[i] = undefined; setTimesheet(p => ({ ...p, attachments: a })); }}
+                        style={{ position: "absolute" as const, top: "6px", right: "6px", width: "22px", height: "22px", borderRadius: "50%", background: "#ef4444", border: "none", color: "#fff", fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>✕</button>
+                    </>
+                  ) : (
+                    <label style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", height: "100%", background: "rgba(255,255,255,0.04)", border: "1px dashed rgba(255,255,255,0.12)", borderRadius: "10px", cursor: "pointer", gap: "6px", minHeight: "100px" }}>
+                      <span style={{ fontSize: "22px", color: "#4b5563" }}>📷</span>
+                      <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.5px" }}>ADD PROOF</span>
+                      <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={e => handleFileChange(i, e)} style={{ display: "none" }} />
+                    </label>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
-          <div style={twoCol}>
-            <div>
-              <label style={styles.label}>Planned Hours</label>
-              <input type="text" name="plannedHours" value={timesheet.plannedHours} onChange={handleChange} style={styles.input} />
-            </div>
-            <div>
-              <label style={styles.label}>Planned KM</label>
-              <input type="text" name="plannedKM" value={timesheet.plannedKM} onChange={handleChange} style={styles.input} />
-            </div>
-          </div>
 
-          </div>{/* end Distance card */}
-
-          {/* ── Notes & Attachments Section ───────────────────────────── */}
-          <div style={formSectionCard}>
-          <div style={sectionDivider}>Notes</div>
-          <label style={styles.label}>Comments</label>
-          <textarea name="comments" value={timesheet.comments} onChange={handleChange} style={styles.textarea} placeholder="Enter comments..."></textarea>
-
-          {/* Attachments */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "16px" }}>
-            {[...Array(4)].map((_, i) => (
-              <div key={i} style={{ border: "1px solid #e0e7ff", borderRadius: "10px", padding: "12px 14px", background: "#f8f9ff", display: "flex", flexDirection: "column", gap: "8px" }}>
-                <span style={{ fontSize: "12px", fontWeight: 600, color: "#6b7280", textTransform: "uppercase" as const, letterSpacing: "0.4px" }}>
-                  Attachment {i + 1}
-                </span>
-                {timesheet.attachments[i] ? (
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <img
-                      src={URL.createObjectURL(timesheet.attachments[i])}
-                      alt={`Attachment ${i + 1}`}
-                      style={{ width: "56px", height: "56px", objectFit: "cover", borderRadius: "6px", border: "1px solid #e5e7eb", flexShrink: 0 }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const updatedAttachments = [...timesheet.attachments];
-                        updatedAttachments[i] = undefined;
-                        setTimesheet((prev) => ({ ...prev, attachments: updatedAttachments }));
-                      }}
-                      style={{ backgroundColor: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca", padding: "5px 12px", borderRadius: "6px", cursor: "pointer", fontSize: "12px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" }}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ) : (
-                  <label style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "7px 14px", backgroundColor: "#4F46E5", color: "#fff", borderRadius: "7px", cursor: "pointer", fontSize: "13px", fontWeight: 600, alignSelf: "flex-start", fontFamily: "Inter, system-ui, sans-serif" }}>
-                    Choose File
-                    <input type="file" name="attachments" accept="image/png, image/jpeg, image/jpg" onChange={(e) => handleFileChange(i, e)} style={{ display: "none" }} />
-                  </label>
-                )}
-              </div>
-            ))}
-          </div>
-
-          </div>{/* end Notes card */}
-
-          {/* Submit Button */}
+          {/* Submit */}
           <button type="submit" style={styles.submitButton} disabled={loading}>
-            {loading ? "Submitting..." : "Submit Timesheet"}
+            {loading ? "Submitting..." : "Save Timesheet"}
           </button>
         </form>
       </div>
+
+      {/* Error Modal */}
       {showErrorModal && (
         <div style={styles.modalBackdrop} onClick={() => setShowErrorModal(false)}>
-          <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#111827", marginTop: 0, marginBottom: "16px" }}>Validation Errors</h3>
+          <div style={styles.modalContent} onClick={e => e.stopPropagation()}>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#f9fafb", marginTop: 0, marginBottom: "16px" }}>Validation Errors</h3>
             <ul style={{ paddingLeft: "20px", margin: 0 }}>
-              {errorMessagesList.map((msg, index) => (
-                <li key={index} style={{ color: "#dc2626", fontSize: "14px", marginBottom: "6px" }}>{msg}</li>
+              {errorMessagesList.map((msg, i) => (
+                <li key={i} style={{ color: "#f87171", fontSize: "14px", marginBottom: "6px" }}>{msg}</li>
               ))}
             </ul>
-            <button onClick={() => setShowErrorModal(false)} style={styles.modalCloseBtn}>
-              Close
-            </button>
+            <button onClick={() => setShowErrorModal(false)} style={styles.modalCloseBtn}>Close</button>
           </div>
         </div>
       )}
@@ -965,86 +774,91 @@ const Timesheet: React.FC = () => {
   );
 };
 
-// ── Hero styles ──────────────────────────────────────────────────────────────
+// ── Style constants ───────────────────────────────────────────────────────────
 const heroOuter: CSSProperties = {
-  background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)",
-  padding: "36px 40px",
+  background: "linear-gradient(135deg, #0a0f1e 0%, #0d1117 60%, #161b22 100%)",
+  padding: "28px 40px",
+  borderBottom: "1px solid rgba(255,255,255,0.06)",
 };
 const heroInner: CSSProperties = {
-  maxWidth: "820px",
+  maxWidth: "680px",
   margin: "0 auto",
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  gap: "28px",
+  gap: "20px",
   flexWrap: "wrap" as const,
 };
 const avatarCircle: CSSProperties = {
-  width: "60px",
-  height: "60px",
-  borderRadius: "50%",
-  background: "rgba(255,255,255,0.2)",
-  border: "2px solid rgba(255,255,255,0.4)",
+  width: "52px",
+  height: "52px",
+  borderRadius: "12px",
+  background: "linear-gradient(135deg, #4F46E5, #7c3aed)",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  fontSize: "26px",
-  fontWeight: 700,
+  fontSize: "22px",
+  fontWeight: 800,
   color: "#fff",
   flexShrink: 0,
 };
 const orgBadge: CSSProperties = {
-  background: "rgba(255,255,255,0.15)",
-  color: "#fff",
-  border: "1px solid rgba(255,255,255,0.3)",
+  background: "rgba(255,255,255,0.08)",
+  color: "#9ca3af",
+  border: "1px solid rgba(255,255,255,0.12)",
   borderRadius: "20px",
   padding: "3px 12px",
   fontSize: "12px",
   fontWeight: 600,
 };
 const activeBadge: CSSProperties = {
-  background: "rgba(52,211,153,0.25)",
-  color: "#6ee7b7",
-  border: "1px solid rgba(52,211,153,0.4)",
+  background: "rgba(16,185,129,0.15)",
+  color: "#34d399",
+  border: "1px solid rgba(16,185,129,0.3)",
   borderRadius: "20px",
   padding: "3px 12px",
   fontSize: "12px",
   fontWeight: 600,
 };
 const inactiveBadge: CSSProperties = {
-  background: "rgba(239,68,68,0.2)",
-  color: "#fca5a5",
-  border: "1px solid rgba(239,68,68,0.3)",
+  background: "rgba(239,68,68,0.15)",
+  color: "#f87171",
+  border: "1px solid rgba(239,68,68,0.25)",
   borderRadius: "20px",
   padding: "3px 12px",
   fontSize: "12px",
   fontWeight: 600,
 };
 const sectionDivider: CSSProperties = {
-  fontSize: "11px",
+  fontSize: "10px",
   fontWeight: 700,
-  color: "#6b7280",
+  color: "#4b5563",
   textTransform: "uppercase" as const,
-  letterSpacing: "0.8px",
-  borderBottom: "1px solid #e5e7eb",
-  paddingBottom: "8px",
+  letterSpacing: "1px",
+  borderBottom: "1px solid rgba(255,255,255,0.06)",
+  paddingBottom: "10px",
   marginTop: 0,
   marginBottom: "16px",
+};
+const fieldLabel: CSSProperties = {
+  margin: "0 0 6px",
+  fontSize: "9px",
+  fontWeight: 700,
+  color: "#4b5563",
+  letterSpacing: "0.8px",
+  textTransform: "uppercase" as const,
 };
 const twoCol: CSSProperties = {
   display: "grid",
   gridTemplateColumns: "1fr 1fr",
-  gap: "16px",
+  gap: "12px",
   alignItems: "start",
-  marginBottom: "14px",
 };
-
 const formSectionCard: CSSProperties = {
-  background: "#fff",
-  borderRadius: "14px",
-  border: "1px solid #e0e7ff",
-  padding: "20px 24px",
-  boxShadow: "0 1px 6px rgba(79,70,229,0.05)",
+  background: "#161b22",
+  borderRadius: "16px",
+  border: "1px solid rgba(255,255,255,0.07)",
+  padding: "20px",
 };
 
 const styles: { [key: string]: CSSProperties } = {
@@ -1052,26 +866,15 @@ const styles: { [key: string]: CSSProperties } = {
     display: "flex",
     flexDirection: "column" as const,
     minHeight: "100vh",
-    backgroundColor: "#f0f4ff",
+    backgroundColor: "#0d1117",
     fontFamily: "Inter, system-ui, sans-serif",
   },
   mainContent: {
-    margin: "16px auto 40px",
-    padding: "0",
-    width: "90%",
-    maxWidth: "820px",
-    backgroundColor: "transparent",
-    borderRadius: "0",
-    border: "none",
-    boxShadow: "none",
-  },
-  pageTitle: {
-    fontSize: "22px",
-    fontWeight: 800,
-    color: "#1e1b4b",
-    marginBottom: "16px",
-    marginTop: "4px",
-    letterSpacing: "-0.4px",
+    margin: "20px auto 60px",
+    padding: "0 16px",
+    width: "100%",
+    maxWidth: "680px",
+    boxSizing: "border-box" as const,
   },
   form: {
     display: "flex",
@@ -1082,13 +885,13 @@ const styles: { [key: string]: CSSProperties } = {
     display: "block",
     fontWeight: 600,
     fontSize: "13px",
-    color: "#374151",
+    color: "#6b7280",
     marginBottom: "6px",
   },
   sectionLabel: {
     fontWeight: 700,
     fontSize: "14px",
-    color: "#111827",
+    color: "#e5e7eb",
     marginBottom: "4px",
   },
   radioLabel: {
@@ -1096,7 +899,7 @@ const styles: { [key: string]: CSSProperties } = {
     alignItems: "center",
     gap: "6px",
     fontSize: "14px",
-    color: "#374151",
+    color: "#9ca3af",
     cursor: "pointer",
   },
   input: {
@@ -1106,107 +909,47 @@ const styles: { [key: string]: CSSProperties } = {
     padding: "10px 12px",
     fontSize: "14px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    backgroundColor: "#fff",
-    transition: "border-color 0.2s ease",
+    border: "1px solid rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(255,255,255,0.05)",
+    color: "#e5e7eb",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   textarea: {
     display: "block",
     width: "100%",
     boxSizing: "border-box" as const,
-    padding: "10px 12px",
+    padding: "12px",
     fontSize: "14px",
-    borderRadius: "8px",
-    border: "1px solid #d1d5db",
+    borderRadius: "10px",
+    border: "1px solid rgba(255,255,255,0.08)",
+    backgroundColor: "rgba(255,255,255,0.04)",
+    color: "#9ca3af",
     height: "100px",
     resize: "vertical" as const,
-    transition: "border-color 0.2s ease",
-    marginBottom: "4px",
-  },
-  fileInput: {
-    padding: "6px 0",
-  },
-  customFileInputWrapper: {
-    position: "relative" as const,
-    display: "inline-block",
-  },
-  customFileLabel: {
-    display: "inline-block",
-    padding: "8px 16px",
-    backgroundColor: "#4F46E5",
-    color: "#fff",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "13px",
-    fontWeight: 600,
-    marginTop: "0px",
-    border: "none",
-    boxShadow: "none",
-    transition: "background 0.2s",
-  },
-  attachmentWrapper: {
-    marginBottom: "4px",
-    display: "inline-flex",
-    flexDirection: "row" as const,
-    alignItems: "center",
-    gap: "12px",
-  },
-  customFileInput: {
-    position: "absolute" as const,
-    left: 0,
-    top: 0,
-    opacity: 0,
-    width: "100%",
-    height: "80%",
-    cursor: "pointer",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   extraWorkWrapper: {
-    border: "1px solid #e5e7eb",
+    border: "1px solid rgba(255,255,255,0.07)",
     borderRadius: "12px",
-    padding: "16px 20px",
-    backgroundColor: "#f9fafb",
-    marginBottom: "16px",
-  },
-  durationContainer: {
-    display: "flex",
-    flexDirection: "row" as const,
-    justifyContent: "space-between",
-    gap: "16px",
-    marginTop: "8px",
-  },
-  durationField: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "6px",
-  },
-  durationTotal: {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "6px",
-    marginTop: "8px",
+    padding: "14px 16px",
+    backgroundColor: "rgba(255,255,255,0.02)",
   },
   delaySection: {
-    border: "1px solid #e5e7eb",
+    border: "1px solid rgba(255,255,255,0.07)",
     borderRadius: "12px",
-    padding: "20px",
-    marginBottom: "16px",
-    backgroundColor: "#fff",
+    padding: "16px",
+    marginBottom: "12px",
+    backgroundColor: "rgba(255,255,255,0.02)",
+    marginTop: "8px",
   },
   delaySectionTitle: {
-    fontSize: "15px",
+    fontSize: "12px",
     fontWeight: 700,
-    color: "#111827",
+    color: "#9ca3af",
     marginTop: 0,
     marginBottom: "12px",
-  },
-  delayRow: {
-    display: "flex",
-    flexWrap: "wrap" as const,
-    gap: "12px",
-    marginBottom: "12px",
-    marginTop: "8px",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.5px",
   },
   delayField: {
     display: "flex",
@@ -1216,17 +959,14 @@ const styles: { [key: string]: CSSProperties } = {
   },
   delayInput: {
     padding: "10px 12px",
-    border: "1px solid #d1d5db",
+    border: "1px solid rgba(255,255,255,0.1)",
     borderRadius: "8px",
     fontSize: "14px",
     width: "100%",
     boxSizing: "border-box" as const,
-  },
-  delayLabel: {
-    fontWeight: 600,
-    fontSize: "13px",
-    color: "#6b7280",
-    marginBottom: "4px",
+    backgroundColor: "rgba(255,255,255,0.05)",
+    color: "#e5e7eb",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   submitButton: {
     background: "linear-gradient(135deg, #4F46E5 0%, #6366f1 100%)",
@@ -1237,37 +977,36 @@ const styles: { [key: string]: CSSProperties } = {
     borderRadius: "12px",
     border: "none",
     cursor: "pointer",
-    boxShadow: "0 4px 14px rgba(79,70,229,0.35)",
+    boxShadow: "0 4px 20px rgba(79,70,229,0.4)",
     letterSpacing: "0.2px",
     marginTop: "4px",
     width: "100%",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   error: {
-    color: "#dc2626",
-    fontSize: "13px",
-    marginTop: "2px",
+    color: "#f87171",
+    fontSize: "12px",
+    marginTop: "4px",
     display: "block",
   },
   modalBackdrop: {
     position: "fixed" as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    backdropFilter: "blur(4px)",
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    backdropFilter: "blur(6px)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
     zIndex: 1000,
   },
   modalContent: {
-    backgroundColor: "#fff",
+    backgroundColor: "#161b22",
+    border: "1px solid rgba(255,255,255,0.1)",
     padding: "28px",
     borderRadius: "16px",
     width: "80%",
-    maxWidth: "500px",
-    boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+    maxWidth: "460px",
+    boxShadow: "0 16px 40px rgba(0,0,0,0.4)",
   },
   modalCloseBtn: {
     marginTop: "20px",
@@ -1279,6 +1018,7 @@ const styles: { [key: string]: CSSProperties } = {
     cursor: "pointer",
     fontSize: "14px",
     fontWeight: 600,
+    fontFamily: "Inter, system-ui, sans-serif",
   },
 };
 

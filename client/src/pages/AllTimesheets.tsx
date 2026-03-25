@@ -272,6 +272,19 @@ const AllTimesheets: React.FC = () => {
     }
   };
 
+  const handleBulkApprove = async () => {
+    const pending = data.filter((t) => t.status === "pending");
+    if (pending.length === 0) { alert("No pending timesheets to approve."); return; }
+    if (!window.confirm(`Approve all ${pending.length} pending timesheets?`)) return;
+    try {
+      await Promise.all(pending.map((ts) => axios.put(`${API_BASE_URL}/timesheets/${ts._id}`, { status: "approved" })));
+      fetchTimesheets();
+    } catch (err) {
+      console.error("Bulk approve error:", err);
+      alert("Some timesheets could not be approved. Please try again.");
+    }
+  };
+
   // Function to clear all filters
   const clearAllFilters = () => {
     setSelectedFilter("All");
@@ -639,13 +652,13 @@ const AllTimesheets: React.FC = () => {
   }) => {
     if (!isOpen) return null;
     return (
-      <div className="modal-overlay">
-        <div className="modal-content">
-          <h3>Confirm Delete</h3>
-          <p>Are you sure you want to delete this timesheet?</p>
-          <div className="modal-actions">
-            <button className="cancel-btn" onClick={onClose}>Cancel</button>
-            <button className="delete-btn" onClick={onConfirm}>Delete</button>
+      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ background: "#141921", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", padding: "32px 28px", width: "360px", boxShadow: "0 24px 64px rgba(0,0,0,0.6)" }}>
+          <h3 style={{ margin: "0 0 10px", fontSize: "18px", fontWeight: 800, color: "#f9fafb" }}>Delete Timesheet</h3>
+          <p style={{ margin: "0 0 24px", fontSize: "14px", color: "#6b7280" }}>Are you sure you want to delete this timesheet? This action cannot be undone.</p>
+          <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+            <button onClick={onClose} style={{ padding: "10px 18px", background: "none", border: "none", color: "#6b7280", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Cancel</button>
+            <button onClick={onConfirm} style={{ padding: "10px 18px", background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px", color: "#f87171", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Yes, Delete</button>
           </div>
         </div>
       </div>
@@ -653,212 +666,265 @@ const AllTimesheets: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f0f4ff", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", minHeight: "100vh" }}>
       <style>{`
-        @media (max-width: 1024px) {
-          [data-at-container] { padding: 24px 20px !important; }
-          [data-at-filter-row] { flex-direction: column !important; align-items: stretch !important; }
-          [data-at-filter-actions] { margin-left: 0 !important; }
-        }
-        @media (max-width: 640px) {
-          [data-at-container] { padding: 16px 12px !important; }
-          [data-at-title] { font-size: 22px !important; }
-          [data-at-table-wrap] { margin-left: -12px !important; margin-right: -12px !important; border-radius: 0 !important; border-left: none !important; border-right: none !important; }
-          [data-at-search] { width: 100% !important; }
-          [data-at-filter-group] { flex: 1 1 100% !important; }
-        }
-        [data-at-table-wrap] table tr:hover td {
-          background-color: #f0f4ff;
-          transition: background-color 0.2s ease;
-          cursor: pointer;
-        }
+        input::placeholder { color: #4b5563; }
+        select option { background: #1e2433; color: #f3f4f6; }
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5); }
+        tr[data-ts-row]:hover td { background: rgba(255,255,255,0.02); }
       `}</style>
       <Navbar />
-      {/* ── Hero ─────────────────────────────────────────────────────── */}
-      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
-        <div style={{ maxWidth: "1400px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "22px" }}>
-              📋
-            </div>
-            <div>
-              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Driver Management</p>
-              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>All Timesheets</h1>
-              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Review, approve & export driver timesheets</p>
-            </div>
+
+      <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "32px 40px" }}>
+
+        {/* Page Header */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "32px", gap: "16px", flexWrap: "wrap" as const }}>
+          <div>
+            <h1 style={{ margin: "0 0 8px", fontSize: "32px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.5px" }}>All Timesheets</h1>
+            <p style={{ margin: 0, fontSize: "14px", color: "#6b7280" }}>
+              Review and approve{" "}
+              <strong style={{ color: "#f9fafb" }}>{data.filter((t) => t.status === "pending").length} pending</strong>{" "}
+              timesheets from this pay period.
+            </p>
           </div>
-          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" as const }}>
-            <button onClick={handleExport} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 18px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
-              Export 📤
+          <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
+            <button onClick={handleExport}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "10px", color: "#e5e7eb", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+              ⬇ Export (CSV/PDF)
             </button>
-            <button onClick={handleDeleteFilteredTimesheets} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 18px", background: "rgba(239,68,68,0.2)", border: "1px solid rgba(239,68,68,0.4)", borderRadius: "8px", color: "#fca5a5", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
-              Delete 🗑️
+            <button onClick={handleBulkApprove}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "#4F46E5", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}>
+              ✓ Bulk Approve
             </button>
           </div>
         </div>
-      </div>
-      <div style={styles.container} data-at-container>
 
-        {/* ── Filter bar: all filters in one row ── */}
-        <div style={styles.filterBar}>
-          <div style={styles.filterRow} data-at-filter-row>
+        {/* Main Table Card */}
+        <div style={{ background: "#161b22", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: "24px" }}>
 
-            {/* Search */}
-            <div style={styles.searchWrapper} data-at-search>
-              <span style={styles.searchIcon}>🔍</span>
-              <input
-                type="text"
-                placeholder="Search driver, load ID..."
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                style={styles.searchInput}
-              />
+          {/* Filter Bar */}
+          <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" as const }}>
+            <div style={{ position: "relative" as const, flex: 1, minWidth: "200px" }}>
+              <span style={{ position: "absolute" as const, left: "12px", top: "50%", transform: "translateY(-50%)", color: "#4b5563", fontSize: "14px", pointerEvents: "none" as const }}>🔍</span>
+              <input type="text" placeholder="Search by driver name or load ID..."
+                value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)}
+                style={{ width: "100%", padding: "9px 14px 9px 36px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#f3f4f6", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }} />
             </div>
-
-            {/* Divider */}
-            <div style={{ width: "1px", height: "28px", background: "#e5e7eb", flexShrink: 0 }} />
-
-            {/* Driver */}
-            <div style={styles.filterGroup} data-at-filter-group>
-              <label style={styles.filterLabel}>Driver</label>
-              <select value={selectedUser} onChange={(e) => handleUserChange(e.target.value)} style={styles.selectInput}>
-                <option value="All">All Drivers</option>
-                {users.map((driver: Driver) => (
-                  <option key={driver._id} value={driver.email}>{driver.name} ({driver.username})</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Period */}
-            <div style={styles.filterGroup}>
-              <label style={styles.filterLabel}>Period</label>
-              <select
-                value={selectedFilter ?? "All"}
-                onChange={e => handleFilterChange(e.target.value as FilterType)}
-                style={styles.selectInput}
-              >
-                <option value="All">All Time</option>
-                <option value="Today">Today</option>
-                <option value="This Week">This Week</option>
-                <option value="This Month">This Month</option>
-                <option value="Custom">Custom Range</option>
-              </select>
-            </div>
-
-            {/* Custom date range — only shown when Custom is selected */}
+            <select value={selectedUser} onChange={(e) => handleUserChange(e.target.value)}
+              style={{ padding: "9px 14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#f3f4f6", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer", minWidth: "140px" }}>
+              <option value="All">All Drivers</option>
+              {users.map((d) => <option key={d._id} value={d.email}>{d.name}</option>)}
+            </select>
+            <select value={selectedFilter} onChange={(e) => handleFilterChange(e.target.value as FilterType)}
+              style={{ padding: "9px 14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#f3f4f6", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer" }}>
+              <option value="All">All Time</option>
+              <option value="Today">Today</option>
+              <option value="This Week">This Week</option>
+              <option value="This Month">This Month</option>
+              <option value="Custom">Custom Range</option>
+            </select>
             {selectedFilter === "Custom" && (
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)} style={styles.dateInput} />
-                <span style={{ fontSize: "12px", color: "#9ca3af" }}>→</span>
-                <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} style={styles.dateInput} />
-              </div>
+              <>
+                <input type="date" value={rangeStart} onChange={(e) => setRangeStart(e.target.value)}
+                  style={{ padding: "9px 12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#f3f4f6", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }} />
+                <span style={{ color: "#4b5563", fontSize: "12px" }}>→</span>
+                <input type="date" value={rangeEnd} onChange={(e) => setRangeEnd(e.target.value)}
+                  style={{ padding: "9px 12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#f3f4f6", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }} />
+              </>
             )}
-
-            {/* Status */}
-            <div style={styles.filterGroup}>
-              <label style={styles.filterLabel}>Status</label>
-              <select
-                value={selectedStatus}
-                onChange={e => handleStatusChange(e.target.value)}
-                style={styles.selectInput}
-              >
-                <option value="All">All</option>
-                <option value="approved">Approved</option>
-                <option value="pending">Pending</option>
-                <option value="rejected">Rejected</option>
-              </select>
-            </div>
-
-            {/* Clear — only shown when any filter is active */}
-            {((selectedFilter !== "All") || (selectedUser !== "All") || (selectedStatus !== "All") || searchQuery.trim() || ((selectedFilter as string) === "Custom" && (rangeStart || rangeEnd))) && (
-              <button onClick={clearAllFilters} style={styles.clearButton}>
-                Clear ✕
-              </button>
-            )}
+            <select value={selectedStatus} onChange={(e) => handleStatusChange(e.target.value)}
+              style={{ padding: "9px 14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#f3f4f6", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer" }}>
+              <option value="All">Status: All</option>
+              <option value="approved">Approved</option>
+              <option value="pending">Pending</option>
+              <option value="rejected">Rejected</option>
+            </select>
+            <button onClick={clearAllFilters} title="Reset filters"
+              style={{ padding: "9px 13px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#9ca3af", cursor: "pointer", fontSize: "15px", fontFamily: "Inter, system-ui, sans-serif" }}>
+              ↺
+            </button>
           </div>
-        </div>
 
-        {/* Removed extra export button and exportOptions container */}
-        {loading ? (
-          <p style={{ color: "#6b7280", fontSize: "15px" }}>Loading timesheets...</p>
-        ) : error ? (
-          <p style={styles.error}>{error}</p>
-        ) : (
-          <>
-            <div style={styles.tableWrapper} data-at-table-wrap>
-              <table style={styles.table}>
+          {/* Table */}
+          {loading ? (
+            <div style={{ padding: "56px", textAlign: "center" as const, color: "#4b5563", fontSize: "14px" }}>Loading timesheets…</div>
+          ) : error ? (
+            <div style={{ padding: "56px", textAlign: "center" as const, color: "#f87171", fontSize: "14px" }}>{error}</div>
+          ) : (
+            <div style={{ overflowX: "auto" as const }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
                 <thead>
-                  {filteredTable.getHeaderGroups().map((headerGroup) => (
-                    <tr key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <th key={header.id} style={styles.th}>
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                        </th>
-                      ))}
-                    </tr>
-                  ))}
+                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    <th style={{ padding: "13px 16px", width: "44px" }}>
+                      <input type="checkbox" style={{ accentColor: "#4F46E5", cursor: "pointer" }} />
+                    </th>
+                    {["DRIVER", "LOAD & ROUTE", "DATE/TIME", "KM (S/E)", "TOTAL KM", "HRS", "CATEGORY", "STATUS"].map((h) => (
+                      <th key={h} style={{ padding: "13px 16px", textAlign: "left" as const, fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", whiteSpace: "nowrap" as const }}>{h}</th>
+                    ))}
+                    <th style={{ padding: "13px 16px", width: "44px" }} />
+                  </tr>
                 </thead>
                 <tbody>
-                  {filteredData && filteredData.length > 0 ? (
-                    filteredTable.getRowModel().rows.map((row) => (
-                      <tr
-                        key={row.id}
-                        onClick={(e) => {
-                          const target = e.target as HTMLElement;
-                          if (target.closest("button")) return;
-                          
-                          // Build URL with current search parameters to preserve filters
-                          let detailUrl = `/timesheet/${row.original._id}`;
-                          const currentParams = new URLSearchParams(searchParams);
-                          
-                          if (currentParams.toString()) {
-                            detailUrl += `?${currentParams.toString()}`;
-                          }
-                          
-                          navigate(detailUrl);
-                        }}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <td key={cell.id} style={styles.td}>
-                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                          </td>
-                        ))}
-                      </tr>
-                    ))
-                  ) : (
+                  {filteredData.length === 0 ? (
                     <tr>
-                      <td colSpan={columns.length} style={{ ...styles.td, textAlign: "center", color: "#9ca3af" }}>No data available</td>
+                      <td colSpan={10} style={{ padding: "56px", textAlign: "center" as const, color: "#4b5563", fontSize: "14px" }}>No timesheets found for the selected filters.</td>
                     </tr>
-                  )}
+                  ) : filteredData.map((ts, idx) => {
+                    const totalKM = (!isNaN(Number(ts.startKM)) && !isNaN(Number(ts.endKM))) ? Number(ts.endKM) - Number(ts.startKM) : null;
+                    const plannedKM = parseFloat(ts.plannedKM || "0");
+                    const kmVariance = totalKM !== null && plannedKM > 0 ? totalKM - plannedKM : null;
+                    const statusCfg: Record<string, { bg: string; color: string; dot: string }> = {
+                      approved: { bg: "rgba(16,185,129,0.12)",  color: "#34d399", dot: "#10b981" },
+                      pending:  { bg: "rgba(251,191,36,0.12)",  color: "#fbbf24", dot: "#f59e0b" },
+                      rejected: { bg: "rgba(239,68,68,0.1)",    color: "#f87171", dot: "#ef4444" },
+                    };
+                    const sc = statusCfg[ts.status] || statusCfg.pending;
+                    const avatarColors = ["#4F46E5", "#7c3aed", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444"];
+                    const rawName = (ts.driverName || "").replace(/\s*\(@.*?\)/, "");
+                    const driverUsername = (ts.driverName || "").match(/\(@(.*?)\)/)?.[1] || "";
+                    const initials = rawName.split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
+                    const dateStr = ts.date ? new Date(ts.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
+                    return (
+                      <tr key={ts._id} data-ts-row
+                        onClick={(e) => { if ((e.target as HTMLElement).closest("button, input")) return; navigate(`/timesheet/${ts._id}?${searchParams.toString()}`); }}
+                        style={{ borderBottom: idx < filteredData.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none", cursor: "pointer", transition: "background 0.15s" }}>
+                        <td style={{ padding: "16px 16px" }} onClick={(e) => e.stopPropagation()}>
+                          <input type="checkbox" style={{ accentColor: "#4F46E5", cursor: "pointer" }} />
+                        </td>
+                        {/* Driver */}
+                        <td style={{ padding: "16px 16px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                            <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: avatarColors[idx % avatarColors.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700, color: "#fff", flexShrink: 0 }}>{initials}</div>
+                            <div>
+                              <p style={{ margin: "0 0 2px", fontSize: "14px", fontWeight: 700, color: "#f9fafb" }}>{rawName || "—"}</p>
+                              <p style={{ margin: 0, fontSize: "11px", color: "#6b7280" }}>ID: {driverUsername || `DR-${String(ts._id).slice(-4).toUpperCase()}`}</p>
+                            </div>
+                          </div>
+                        </td>
+                        {/* Load & Route */}
+                        <td style={{ padding: "16px 16px" }}>
+                          <p style={{ margin: "0 0 2px", fontSize: "13px", fontWeight: 700, color: "#818CF8" }}>#{ts.loadID || "—"}</p>
+                          <p style={{ margin: 0, fontSize: "11px", color: "#6b7280" }}>Route: {ts.tripNumber || "—"}</p>
+                        </td>
+                        {/* Date/Time */}
+                        <td style={{ padding: "16px 16px" }}>
+                          <p style={{ margin: "0 0 2px", fontSize: "13px", fontWeight: 600, color: "#e5e7eb" }}>{dateStr}</p>
+                          <p style={{ margin: 0, fontSize: "11px", color: "#6b7280" }}>{ts.startTime || "—"} – {ts.endTime || "—"}</p>
+                        </td>
+                        {/* KM S/E */}
+                        <td style={{ padding: "16px 16px" }}>
+                          <p style={{ margin: "0 0 1px", fontSize: "12px", color: "#9ca3af" }}>{Number(ts.startKM).toLocaleString()}</p>
+                          <p style={{ margin: 0, fontSize: "12px", color: "#9ca3af" }}>{Number(ts.endKM).toLocaleString()}</p>
+                        </td>
+                        {/* Total KM */}
+                        <td style={{ padding: "16px 16px" }}>
+                          <p style={{ margin: "0 0 2px", fontSize: "14px", fontWeight: 700, color: "#f9fafb" }}>{totalKM !== null ? `${totalKM.toLocaleString()} KM` : "—"}</p>
+                          {plannedKM > 0 && (
+                            <p style={{ margin: 0, fontSize: "11px", color: kmVariance !== null && Math.abs(kmVariance) > 50 ? "#f87171" : "#34d399" }}>
+                              Plan: {plannedKM.toLocaleString()} KM
+                            </p>
+                          )}
+                        </td>
+                        {/* Hours */}
+                        <td style={{ padding: "16px 16px" }}>
+                          <span style={{ fontSize: "15px", fontWeight: 700, color: "#f9fafb" }}>{parseFloat(ts.totalHours || "0").toFixed(2)}</span>
+                        </td>
+                        {/* Category */}
+                        <td style={{ padding: "16px 16px" }}>
+                          <span style={{ display: "inline-block", padding: "4px 10px", borderRadius: "6px", fontSize: "10px", fontWeight: 700, background: "rgba(255,255,255,0.07)", color: "#9ca3af", letterSpacing: "0.5px", textTransform: "uppercase" as const, whiteSpace: "nowrap" as const }}>
+                            {ts.category || "—"}
+                          </span>
+                        </td>
+                        {/* Status */}
+                        <td style={{ padding: "16px 16px" }}>
+                          <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, background: sc.bg, color: sc.color, textTransform: "uppercase" as const, whiteSpace: "nowrap" as const }}>
+                            <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: sc.dot, display: "inline-block" }} />
+                            {ts.status === "approved" ? "Approved" : ts.status === "rejected" ? "Rejected" : "Pending"}
+                          </span>
+                        </td>
+                        {/* Delete */}
+                        <td style={{ padding: "16px 12px" }} onClick={(e) => e.stopPropagation()}>
+                          <button onClick={() => handleDeleteClick(ts._id)}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "#4b5563", fontSize: "14px", padding: "4px 6px", borderRadius: "6px", fontFamily: "Inter, system-ui, sans-serif" }}
+                            title="Delete">🗑️</button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
-            {/* Pagination controls */}
-            <div style={styles.pagination}>
-              <button
-                onClick={() => handlePageChange(Math.max(page - 1, 1))}
-                disabled={page === 1}
-                style={styles.paginationButton}
-              >
-                Previous
-              </button>
-              <span>Page {page} of {totalPages}</span>
-              <button
-                onClick={() => handlePageChange(Math.min(page + 1, totalPages))}
-                disabled={page === totalPages}
-                style={styles.paginationButton}
-              >
-                Next
-              </button>
-            </div>
-          </>
-        )}
+          )}
 
+          {/* Table Footer + Pagination */}
+          {!loading && !error && (
+            <div style={{ padding: "14px 20px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" as const, gap: "12px" }}>
+              <span style={{ fontSize: "13px", color: "#6b7280" }}>
+                Showing <strong style={{ color: "#9ca3af" }}>{(page - 1) * limit + 1}–{Math.min(page * limit, (page - 1) * limit + filteredData.length)}</strong> of{" "}
+                <strong style={{ color: "#9ca3af" }}>{totalPages * limit}</strong> entries
+              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <button onClick={() => handlePageChange(Math.max(page - 1, 1))} disabled={page === 1}
+                  style={{ padding: "6px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "7px", color: page === 1 ? "#374151" : "#9ca3af", cursor: page === 1 ? "not-allowed" : "pointer", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}>
+                  ‹ Previous
+                </button>
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((p) => (
+                  <button key={p} onClick={() => handlePageChange(p)}
+                    style={{ padding: "6px 10px", background: page === p ? "#4F46E5" : "rgba(255,255,255,0.05)", border: page === p ? "none" : "1px solid rgba(255,255,255,0.1)", borderRadius: "7px", color: page === p ? "#fff" : "#9ca3af", cursor: "pointer", fontSize: "13px", fontWeight: page === p ? 700 : 400, minWidth: "32px", fontFamily: "Inter, system-ui, sans-serif" }}>
+                    {p}
+                  </button>
+                ))}
+                {totalPages > 5 && <span style={{ color: "#4b5563", fontSize: "13px", padding: "0 2px" }}>…</span>}
+                {totalPages > 5 && (
+                  <button onClick={() => handlePageChange(totalPages)}
+                    style={{ padding: "6px 10px", background: page === totalPages ? "#4F46E5" : "rgba(255,255,255,0.05)", border: page === totalPages ? "none" : "1px solid rgba(255,255,255,0.1)", borderRadius: "7px", color: page === totalPages ? "#fff" : "#9ca3af", cursor: "pointer", fontSize: "13px", minWidth: "32px", fontFamily: "Inter, system-ui, sans-serif" }}>
+                    {totalPages}
+                  </button>
+                )}
+                <button onClick={() => handlePageChange(Math.min(page + 1, totalPages))} disabled={page === totalPages}
+                  style={{ padding: "6px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "7px", color: page === totalPages ? "#374151" : "#9ca3af", cursor: page === totalPages ? "not-allowed" : "pointer", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}>
+                  Next ›
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Stats Cards */}
+        {(() => {
+          const totalHrs = data.reduce((sum, t) => sum + parseFloat(t.totalHours || "0"), 0);
+          const pendingCount = data.filter((t) => t.status === "pending").length;
+          const approvedCount = data.filter((t) => t.status === "approved").length;
+          const kmVariances = data
+            .filter((t) => t.plannedKM && !isNaN(Number(t.startKM)) && !isNaN(Number(t.endKM)))
+            .map((t) => {
+              const actual = Number(t.endKM) - Number(t.startKM);
+              const planned = parseFloat(t.plannedKM);
+              return planned > 0 ? Math.abs((actual - planned) / planned) * 100 : 0;
+            });
+          const avgVariance = kmVariances.length > 0 ? kmVariances.reduce((a, b) => a + b, 0) / kmVariances.length : 0;
+          const cards = [
+            { icon: "⏱", label: "TOTAL REPORTED HOURS", value: totalHrs.toLocaleString("en", { maximumFractionDigits: 0 }), sub: "↗ 4.2% from last week", subColor: "#34d399" },
+            { icon: "⚠", label: "PENDING APPROVALS",    value: pendingCount.toString(),  sub: pendingCount > 0 ? "Requires action" : "All clear", subColor: pendingCount > 0 ? "#f87171" : "#34d399" },
+            { icon: "✓✓", label: "APPROVED THIS WEEK",   value: approvedCount.toString(), sub: "On track for payroll", subColor: "#34d399" },
+            { icon: "📍", label: "DISTANCE VARIANCE",    value: `${avgVariance.toFixed(1)}%`, sub: avgVariance > 5 ? "Above threshold" : "Within threshold", subColor: avgVariance > 5 ? "#f87171" : "#34d399" },
+          ];
+          return (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
+              {cards.map((card) => (
+                <div key={card.label} style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "22px 24px" }}>
+                  <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", marginBottom: "14px" }}>{card.icon}</div>
+                  <p style={{ margin: "0 0 6px", fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>{card.label}</p>
+                  <p style={{ margin: "0 0 6px", fontSize: "28px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.5px" }}>{card.value}</p>
+                  <p style={{ margin: 0, fontSize: "12px", color: card.subColor }}>{card.sub}</p>
+                </div>
+              ))}
+            </div>
+          );
+        })()}
       </div>
-      {/* Enhanced Image/PDF preview modal */}
+
+      {/* Attachment preview modal */}
       {selectedImageIndex !== null && (
         <ImagePreviewModal
           selectedImageIndex={selectedImageIndex}

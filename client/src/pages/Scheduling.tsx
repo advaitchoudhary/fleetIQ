@@ -143,7 +143,7 @@ const Scheduling: React.FC = () => {
       <div style={styles.container}>
 
         {error && (
-          <div style={{ background: "#fef2f2", border: "1px solid #fca5a5", borderRadius: "8px", padding: "12px 16px", marginBottom: "20px", color: "#dc2626", fontSize: "14px" }}>
+          <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px", padding: "12px 16px", marginBottom: "20px", color: "#fca5a5", fontSize: "14px" }}>
             {error}
           </div>
         )}
@@ -177,13 +177,13 @@ const Scheduling: React.FC = () => {
                     key={day}
                     style={{
                       ...styles.dayCell,
-                      background: selected ? "#EEF2FF" : todayDay ? "#f0fdf4" : "#fff",
-                      borderColor: selected ? "#4F46E5" : todayDay ? "#059669" : "#e5e7eb",
+                      background: selected ? "rgba(79,70,229,0.15)" : todayDay ? "rgba(16,185,129,0.08)" : "#1c2128",
+                      borderColor: selected ? "#4F46E5" : todayDay ? "#059669" : "rgba(255,255,255,0.07)",
                       cursor: "pointer",
                     }}
                     onClick={() => setSelectedDate(selected ? null : day)}
                   >
-                    <span style={{ fontSize: "13px", fontWeight: todayDay ? 700 : 500, color: todayDay ? "#059669" : "#374151" }}>{day}</span>
+                    <span style={{ fontSize: "13px", fontWeight: todayDay ? 700 : 500, color: todayDay ? "#6ee7b7" : "#d1d5db" }}>{day}</span>
                     {dayEvents.slice(0, 3).map((e, idx) => (
                       <div
                         key={idx}
@@ -207,7 +207,7 @@ const Scheduling: React.FC = () => {
             </div>
 
             {/* Legend */}
-            <div style={{ display: "flex", gap: "16px", marginTop: "12px", fontSize: "12px", color: "#6b7280" }}>
+            <div style={{ display: "flex", gap: "16px", marginTop: "12px", fontSize: "12px", color: "#9ca3af" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                 <div style={{ width: "10px", height: "10px", borderRadius: "2px", background: "#4F46E5" }} /> Maintenance
               </div>
@@ -219,7 +219,7 @@ const Scheduling: React.FC = () => {
             {/* Selected day panel */}
             {selectedDate && (
               <div style={styles.dayPanel}>
-                <strong style={{ fontSize: "14px", color: "#111827" }}>
+                <strong style={{ fontSize: "14px", color: "#e5e7eb" }}>
                   {MONTHS_LABELS[currentMonth]} {selectedDate}, {currentYear}
                 </strong>
                 {selectedDayEvents.length === 0 ? (
@@ -229,7 +229,7 @@ const Scheduling: React.FC = () => {
                     {selectedDayEvents.map((e, i) => (
                       <div key={i} style={{ ...styles.eventChip, borderLeft: `4px solid ${e.color || "#6b7280"}` }}>
                         <strong style={{ fontSize: "13px" }}>{e.title}</strong>
-                        <div style={{ fontSize: "12px", color: "#6b7280", marginTop: "2px" }}>
+                        <div style={{ fontSize: "12px", color: "#9ca3af", marginTop: "2px" }}>
                           {e.type} · {e.status}
                         </div>
                       </div>
@@ -242,7 +242,7 @@ const Scheduling: React.FC = () => {
 
           {/* Upcoming sidebar */}
           <div style={styles.sidebar}>
-            <h3 style={{ fontSize: "16px", fontWeight: 700, color: "#111827", marginTop: 0, marginBottom: "16px" }}>
+            <h3 style={{ fontSize: "16px", fontWeight: 700, color: "#f3f4f6", marginTop: 0, marginBottom: "16px" }}>
               Upcoming (30 days)
             </h3>
             {loading ? (
@@ -253,8 +253,8 @@ const Scheduling: React.FC = () => {
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {upcomingEvents.map((e, i) => (
                   <div key={i} style={{ ...styles.upcomingItem, borderLeft: `3px solid ${e.color || "#6b7280"}` }}>
-                    <div style={{ fontSize: "13px", fontWeight: 600, color: "#111827" }}>{e.title}</div>
-                    <div style={{ fontSize: "12px", color: "#6b7280", marginTop: "3px" }}>
+                    <div style={{ fontSize: "13px", fontWeight: 600, color: "#e5e7eb" }}>{e.title}</div>
+                    <div style={{ fontSize: "12px", color: "#9ca3af", marginTop: "3px" }}>
                       {e.vehicle?.unitNumber && `${e.vehicle.unitNumber} · `}
                       {e.date ? new Date(e.date).toLocaleDateString("en-CA", { month: "short", day: "numeric" }) : ""}
                     </div>
@@ -313,29 +313,29 @@ const Scheduling: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#f0f4ff", fontFamily: "Inter, system-ui, sans-serif" },
+  wrapper: { minHeight: "100vh", background: "#0d1117", fontFamily: "Inter, system-ui, sans-serif" },
   container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
   primaryBtn: { padding: "10px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
   layout: { display: "grid", gridTemplateColumns: "1fr 280px", gap: "24px", alignItems: "start" },
-  calendarWrapper: { background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", padding: "20px", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
+  calendarWrapper: { background: "#161b22", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.07)", padding: "20px", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
   calNav: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" },
-  navBtn: { background: "none", border: "1px solid #e5e7eb", borderRadius: "8px", padding: "6px 14px", cursor: "pointer", fontSize: "18px", color: "#374151", fontFamily: "Inter, system-ui, sans-serif" },
-  monthLabel: { fontSize: "17px", fontWeight: 700, color: "#111827" },
+  navBtn: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "6px 14px", cursor: "pointer", fontSize: "18px", color: "#9ca3af", fontFamily: "Inter, system-ui, sans-serif" },
+  monthLabel: { fontSize: "17px", fontWeight: 700, color: "#f3f4f6" },
   calGrid: { display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "4px" },
-  dayHeader: { textAlign: "center", fontSize: "11px", fontWeight: 700, color: "#9ca3af", padding: "6px 0", textTransform: "uppercase" },
-  dayCell: { minHeight: "72px", border: "1px solid #e5e7eb", borderRadius: "8px", padding: "6px", display: "flex", flexDirection: "column" },
-  dayPanel: { marginTop: "16px", background: "#f9fafb", borderRadius: "10px", padding: "16px", border: "1px solid #e5e7eb" },
-  eventChip: { background: "#fff", borderRadius: "6px", padding: "8px 12px", border: "1px solid #e5e7eb" },
-  sidebar: { background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", padding: "20px", position: "sticky", top: "20px", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
-  upcomingItem: { background: "#f9fafb", borderRadius: "8px", padding: "10px 12px" },
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
-  modal: { background: "#fff", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "#111827" },
+  dayHeader: { textAlign: "center", fontSize: "11px", fontWeight: 700, color: "#4b5563", padding: "6px 0", textTransform: "uppercase" },
+  dayCell: { minHeight: "72px", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px", padding: "6px", display: "flex", flexDirection: "column" },
+  dayPanel: { marginTop: "16px", background: "rgba(255,255,255,0.03)", borderRadius: "10px", padding: "16px", border: "1px solid rgba(255,255,255,0.07)" },
+  eventChip: { background: "#1c2128", borderRadius: "6px", padding: "8px 12px", border: "1px solid rgba(255,255,255,0.07)" },
+  sidebar: { background: "#161b22", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.07)", padding: "20px", position: "sticky", top: "20px", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
+  upcomingItem: { background: "rgba(255,255,255,0.03)", borderRadius: "8px", padding: "10px 12px" },
+  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
+  modal: { background: "#161b22", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.08)" },
+  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "#f3f4f6" },
   formGroup: { marginBottom: "16px" },
-  label: { display: "block", fontSize: "13px", fontWeight: 500, color: "#374151", marginBottom: "4px" },
-  input: { width: "100%", padding: "9px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", color: "#111827", background: "#fff", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
+  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "#4b5563", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
+  input: { width: "100%", padding: "9px 12px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", color: "#e5e7eb", background: "rgba(255,255,255,0.05)", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
   modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
-  cancelBtn: { padding: "10px 20px", background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
+  cancelBtn: { padding: "10px 20px", background: "rgba(255,255,255,0.06)", color: "#9ca3af", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
 };
 
 export default Scheduling;

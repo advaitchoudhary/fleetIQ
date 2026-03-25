@@ -16,13 +16,13 @@ const EVENT_ICONS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  completed: { bg: "#d1fae5", color: "#065f46" },
-  scheduled: { bg: "#e0e7ff", color: "#3730a3" },
-  in_progress: { bg: "#fef3c7", color: "#92400e" },
-  cancelled: { bg: "#fee2e2", color: "#991b1b" },
-  satisfactory: { bg: "#d1fae5", color: "#065f46" },
-  defects_noted: { bg: "#fef3c7", color: "#92400e" },
-  out_of_service: { bg: "#fee2e2", color: "#991b1b" },
+  completed: { bg: "rgba(16,185,129,0.15)", color: "#6ee7b7" },
+  scheduled: { bg: "rgba(99,102,241,0.15)", color: "#a5b4fc" },
+  in_progress: { bg: "rgba(245,158,11,0.15)", color: "#fcd34d" },
+  cancelled: { bg: "rgba(255,255,255,0.06)", color: "#9ca3af" },
+  satisfactory: { bg: "rgba(16,185,129,0.15)", color: "#6ee7b7" },
+  defects_noted: { bg: "rgba(245,158,11,0.15)", color: "#fcd34d" },
+  out_of_service: { bg: "rgba(239,68,68,0.15)", color: "#fca5a5" },
 };
 
 const DEMO_FLEET_SUMMARY = [
@@ -210,7 +210,7 @@ const ServiceHistory: React.FC = () => {
                     <strong>{item.vehicle.unitNumber}</strong>
                     <span style={{ fontSize: "13px", color: "#6b7280" }}>{item.vehicle.make} {item.vehicle.model} {item.vehicle.year}</span>
                   </div>
-                  <div style={{ fontSize: "13px", color: "#374151", marginTop: "8px" }}>
+                  <div style={{ fontSize: "13px", color: "#d1d5db", marginTop: "8px" }}>
                     <div>Total events: <strong>{item.totalEvents}</strong></div>
                     {item.lastMaintenance && (
                       <div style={{ marginTop: "4px" }}>Last maintenance: <strong>{new Date(item.lastMaintenance.scheduledDate || item.lastMaintenance.completedDate).toLocaleDateString()}</strong></div>
@@ -219,7 +219,7 @@ const ServiceHistory: React.FC = () => {
                       <div style={{ marginTop: "4px" }}>Last inspection: <strong>{new Date(item.lastInspection.date).toLocaleDateString()}</strong></div>
                     )}
                   </div>
-                  <div style={{ marginTop: "12px", fontSize: "13px", color: "#4F46E5", fontWeight: 600 }}>View history →</div>
+                  <div style={{ marginTop: "12px", fontSize: "13px", color: "#818CF8", fontWeight: 600 }}>View history →</div>
                 </div>
               ))}
             </div>
@@ -283,14 +283,14 @@ const ServiceHistory: React.FC = () => {
                         <span style={{ fontSize: "22px" }}>{EVENT_ICONS[event.eventType]}</span>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                            <strong style={{ fontSize: "15px", color: "#111827" }}>{event.title}</strong>
+                            <strong style={{ fontSize: "15px", color: "#e5e7eb" }}>{event.title}</strong>
                             {event.status && (
-                              <span style={{ ...styles.badge, background: STATUS_COLORS[event.status]?.bg || "#f3f4f6", color: STATUS_COLORS[event.status]?.color || "#374151" }}>
+                              <span style={{ ...styles.badge, background: STATUS_COLORS[event.status]?.bg || "rgba(255,255,255,0.06)", color: STATUS_COLORS[event.status]?.color || "#9ca3af" }}>
                                 {event.status.replace("_", " ")}
                               </span>
                             )}
                             {event.cost > 0 && (
-                              <span style={{ ...styles.badge, background: "#f3f4f6", color: "#374151" }}>
+                              <span style={{ ...styles.badge, background: "rgba(255,255,255,0.06)", color: "#9ca3af" }}>
                                 ${event.cost.toFixed(2)}
                               </span>
                             )}
@@ -316,23 +316,23 @@ const ServiceHistory: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#f0f4ff", fontFamily: "Inter, system-ui, sans-serif" },
+  wrapper: { minHeight: "100vh", background: "#0d1117", fontFamily: "Inter, system-ui, sans-serif" },
   container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
-  vehicleSelect: { padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#fff", minWidth: "280px", color: "#111827" },
+  vehicleSelect: { padding: "9px 14px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#1c2128", minWidth: "280px", color: "#e5e7eb" },
   fleetGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" },
-  fleetCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e0e7ff", boxShadow: "0 1px 6px rgba(79,70,229,0.06)", cursor: "pointer" },
+  fleetCard: { background: "#161b22", borderRadius: "12px", padding: "20px", border: "1px solid rgba(255,255,255,0.07)", boxShadow: "0 1px 6px rgba(0,0,0,0.3)", cursor: "pointer" },
   fleetCardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-  vehicleBanner: { background: "#fff", border: "1px solid #e0e7ff", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", boxShadow: "0 1px 6px rgba(79,70,229,0.06)" },
+  vehicleBanner: { background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" },
-  statCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e0e7ff", textAlign: "center", boxShadow: "0 1px 6px rgba(79,70,229,0.06)" },
-  statValue: { fontSize: "22px", fontWeight: 800, color: "#4F46E5" },
+  statCard: { background: "#161b22", borderRadius: "12px", padding: "20px", border: "1px solid rgba(255,255,255,0.07)", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
+  statValue: { fontSize: "22px", fontWeight: 800, color: "#818CF8" },
   statLabel: { fontSize: "12px", color: "#6b7280", marginTop: "4px" },
   filtersRow: { display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap", alignItems: "center" },
-  select: { padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#fff" },
-  dateInput: { padding: "9px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" },
+  select: { padding: "9px 14px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#1c2128", color: "#e5e7eb" },
+  dateInput: { padding: "9px 12px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "rgba(255,255,255,0.05)", color: "#e5e7eb" },
   filterBtn: { padding: "9px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" },
   timeline: { display: "flex", flexDirection: "column", gap: "12px" },
-  timelineItem: { display: "flex", gap: "0", background: "#fff", borderRadius: "12px", border: "1px solid #e0e7ff", overflow: "hidden", boxShadow: "0 1px 6px rgba(79,70,229,0.06)" },
+  timelineItem: { display: "flex", gap: "0", background: "#161b22", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.07)", overflow: "hidden", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
   timelineBar: { width: "5px", flexShrink: 0 },
   timelineContent: { padding: "16px 18px", flex: 1 },
   timelineHeader: { display: "flex", gap: "12px", alignItems: "flex-start" },

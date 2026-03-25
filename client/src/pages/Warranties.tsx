@@ -7,17 +7,17 @@ const WARRANTY_TYPES = ["manufacturer", "extended", "part", "tire", "battery", "
 const CLAIM_STATUSES = ["submitted", "approved", "denied", "pending"];
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  active: { bg: "#d1fae5", color: "#065f46" },
-  expired: { bg: "#f3f4f6", color: "#6b7280" },
-  claimed: { bg: "#dbeafe", color: "#1e40af" },
-  voided: { bg: "#fee2e2", color: "#991b1b" },
+  active: { bg: "rgba(16,185,129,0.15)", color: "#6ee7b7" },
+  expired: { bg: "rgba(255,255,255,0.06)", color: "#9ca3af" },
+  claimed: { bg: "rgba(99,102,241,0.15)", color: "#a5b4fc" },
+  voided: { bg: "rgba(239,68,68,0.15)", color: "#fca5a5" },
 };
 
 const CLAIM_STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  submitted: { bg: "#fef3c7", color: "#92400e" },
-  approved: { bg: "#d1fae5", color: "#065f46" },
-  denied: { bg: "#fee2e2", color: "#991b1b" },
-  pending: { bg: "#e0e7ff", color: "#3730a3" },
+  submitted: { bg: "rgba(245,158,11,0.15)", color: "#fcd34d" },
+  approved: { bg: "rgba(16,185,129,0.15)", color: "#6ee7b7" },
+  denied: { bg: "rgba(239,68,68,0.15)", color: "#fca5a5" },
+  pending: { bg: "rgba(99,102,241,0.15)", color: "#a5b4fc" },
 };
 
 const emptyForm = {
@@ -218,9 +218,9 @@ const Warranties: React.FC = () => {
             { icon: "📋", title: "Claims Management", body: "File and track warranty claims against any registered warranty. Record claim amounts, approval status, and claim reference numbers for your audit trail." },
             { icon: "🔔", title: "Expiry Alerts", body: "FleetIQ automatically flags warranties expiring within 30 days so you can renew coverage or plan replacements before you're exposed to uninsured repair costs." },
           ].map((card) => (
-            <div key={card.title} style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: "10px", padding: "16px 18px" }}>
+            <div key={card.title} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", padding: "16px 18px" }}>
               <div style={{ fontSize: "20px", marginBottom: "6px" }}>{card.icon}</div>
-              <div style={{ fontWeight: 700, fontSize: "13px", color: "#111827", marginBottom: "4px" }}>{card.title}</div>
+              <div style={{ fontWeight: 700, fontSize: "13px", color: "#e5e7eb", marginBottom: "4px" }}>{card.title}</div>
               <div style={{ fontSize: "12.5px", color: "#6b7280", lineHeight: "1.55" }}>{card.body}</div>
             </div>
           ))}
@@ -278,12 +278,12 @@ const Warranties: React.FC = () => {
                       <td style={styles.td}>{w.type}</td>
                       <td style={styles.td}>{w.provider || "—"}</td>
                       <td style={styles.td}>
-                        <span style={{ color: isExpiringSoon(w) && w.status === "active" ? "#dc2626" : "#374151", fontWeight: isExpiringSoon(w) ? 700 : 400 }}>
+                        <span style={{ color: isExpiringSoon(w) && w.status === "active" ? "#fca5a5" : "#d1d5db", fontWeight: isExpiringSoon(w) ? 700 : 400 }}>
                           {w.expiryDate ? new Date(w.expiryDate).toLocaleDateString() : "—"}
                         </span>
                       </td>
                       <td style={styles.td}>
-                        <span style={{ ...styles.badge, background: STATUS_COLORS[w.status]?.bg || "#f3f4f6", color: STATUS_COLORS[w.status]?.color || "#374151" }}>
+                        <span style={{ ...styles.badge, background: STATUS_COLORS[w.status]?.bg || "rgba(255,255,255,0.06)", color: STATUS_COLORS[w.status]?.color || "#9ca3af" }}>
                           {w.status}
                         </span>
                       </td>
@@ -298,20 +298,20 @@ const Warranties: React.FC = () => {
                     </tr>
                     {expandedId === w._id && (
                       <tr>
-                        <td colSpan={8} style={{ padding: "0 16px 16px", background: "#f9fafb" }}>
-                          <div style={{ padding: "12px 0", fontSize: "13px", color: "#374151" }}>
+                        <td colSpan={8} style={{ padding: "0 16px 16px", background: "rgba(255,255,255,0.02)" }}>
+                          <div style={{ padding: "12px 0", fontSize: "13px", color: "#d1d5db" }}>
                             {w.coverageDetails && <p style={{ marginBottom: "8px" }}><strong>Coverage:</strong> {w.coverageDetails}</p>}
                             {w.mileageLimit && <p style={{ marginBottom: "8px" }}><strong>Mileage Limit:</strong> {w.mileageLimit.toLocaleString()} km</p>}
                             {w.policyNumber && <p style={{ marginBottom: "8px" }}><strong>Policy #:</strong> {w.policyNumber}</p>}
                             <strong>Claims:</strong>
                             {(!w.claims || w.claims.length === 0) ? (
-                              <span style={{ color: "#6b7280", marginLeft: "8px" }}>No claims filed</span>
+                              <span style={{ color: "#9ca3af", marginLeft: "8px" }}>No claims filed</span>
                             ) : (
                               <table style={{ width: "100%", marginTop: "8px", borderCollapse: "collapse" }}>
                                 <thead>
                                   <tr>
                                     {["Date", "Description", "Claimed", "Approved", "Status", "Claim #"].map((h) => (
-                                      <th key={h} style={{ ...styles.th, background: "#f3f4f6" }}>{h}</th>
+                                      <th key={h} style={{ ...styles.th, background: "rgba(255,255,255,0.04)" }}>{h}</th>
                                     ))}
                                   </tr>
                                 </thead>
@@ -323,7 +323,7 @@ const Warranties: React.FC = () => {
                                       <td style={styles.td}>${(c.claimAmount || 0).toFixed(2)}</td>
                                       <td style={styles.td}>${(c.approvedAmount || 0).toFixed(2)}</td>
                                       <td style={styles.td}>
-                                        <span style={{ ...styles.badge, background: CLAIM_STATUS_COLORS[c.status]?.bg || "#f3f4f6", color: CLAIM_STATUS_COLORS[c.status]?.color || "#374151" }}>
+                                        <span style={{ ...styles.badge, background: CLAIM_STATUS_COLORS[c.status]?.bg || "rgba(255,255,255,0.06)", color: CLAIM_STATUS_COLORS[c.status]?.color || "#9ca3af" }}>
                                           {c.status}
                                         </span>
                                       </td>
@@ -442,34 +442,34 @@ const Warranties: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#f0f4ff", fontFamily: "Inter, system-ui, sans-serif" },
+  wrapper: { minHeight: "100vh", background: "#0d1117", fontFamily: "Inter, system-ui, sans-serif" },
   container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
   primaryBtn: { padding: "10px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
-  alertBanner: { background: "#fef3c7", border: "1px solid #fbbf24", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "#92400e" },
+  alertBanner: { background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "#fcd34d" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" },
-  statCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e0e7ff", textAlign: "center", boxShadow: "0 1px 6px rgba(79,70,229,0.06)" },
-  statValue: { fontSize: "28px", fontWeight: 800, color: "#4F46E5" },
+  statCard: { background: "#161b22", borderRadius: "12px", padding: "20px", border: "1px solid rgba(255,255,255,0.07)", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
+  statValue: { fontSize: "28px", fontWeight: 800, color: "#818CF8" },
   statLabel: { fontSize: "13px", color: "#6b7280", marginTop: "4px" },
   filtersRow: { display: "flex", gap: "12px", marginBottom: "20px", flexWrap: "wrap" },
-  searchInput: { flex: 1, minWidth: "220px", padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" },
-  select: { padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#fff" },
-  tableWrapper: { overflowX: "auto", background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
+  searchInput: { flex: 1, minWidth: "220px", padding: "9px 14px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "rgba(255,255,255,0.05)", color: "#e5e7eb" },
+  select: { padding: "9px 14px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#1c2128", color: "#e5e7eb" },
+  tableWrapper: { overflowX: "auto", background: "#161b22", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.07)", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
   table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
-  th: { padding: "13px 16px", textAlign: "left", background: "#f5f3ff", borderBottom: "2px solid #e0e7ff", fontWeight: 700, color: "#6366f1", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
-  tr: { borderBottom: "1px solid #f0f0ff", cursor: "pointer" },
-  td: { padding: "14px 16px", color: "#374151", verticalAlign: "middle" },
+  th: { padding: "13px 16px", textAlign: "left", background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.08)", fontWeight: 700, color: "#818CF8", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
+  tr: { borderBottom: "1px solid rgba(255,255,255,0.05)", cursor: "pointer" },
+  td: { padding: "14px 16px", color: "#d1d5db", verticalAlign: "middle" },
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
-  iconBtn: { background: "#f3f4f6", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "#374151", display: "flex", alignItems: "center" },
+  iconBtn: { background: "rgba(255,255,255,0.06)", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "#9ca3af", display: "flex", alignItems: "center" },
   emptyState: { textAlign: "center", padding: "60px 0", color: "#6b7280", fontSize: "15px" },
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
-  modal: { background: "#fff", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "#111827" },
+  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
+  modal: { background: "#161b22", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.08)" },
+  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "#f3f4f6" },
   formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" },
   formGroup: { marginBottom: "16px" },
-  label: { display: "block", fontSize: "13px", fontWeight: 500, color: "#374151", marginBottom: "4px" },
-  input: { width: "100%", padding: "9px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", color: "#111827", background: "#fff", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
+  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "#4b5563", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
+  input: { width: "100%", padding: "9px 12px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", color: "#e5e7eb", background: "rgba(255,255,255,0.05)", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
   modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
-  cancelBtn: { padding: "10px 20px", background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
+  cancelBtn: { padding: "10px 20px", background: "rgba(255,255,255,0.06)", color: "#9ca3af", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
 };
 
 export default Warranties;
