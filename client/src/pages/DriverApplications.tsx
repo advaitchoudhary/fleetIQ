@@ -169,7 +169,7 @@ const DriverApplications: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f0f4ff", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", minHeight: "100vh" }}>
       <Navbar />
       {/* Hero */}
       <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
@@ -400,8 +400,8 @@ const DriverApplications: React.FC = () => {
               <div style={styles.modalBody}>
                 {approvalResult ? (
                   <div style={styles.approvalResult}>
-                    <h3 style={{ color: "#10b981" }}>✅ Application Approved!</h3>
-                    <p>Driver account has been created with the following credentials:</p>
+                    <h3 style={{ color: "#34d399" }}>✅ Application Approved!</h3>
+                    <p style={{ color: "#d1d5db" }}>Driver account has been created with the following credentials:</p>
                     <div style={styles.credentials}>
                       <div>
                         <strong>Username:</strong> {approvalResult.username}
@@ -426,8 +426,8 @@ const DriverApplications: React.FC = () => {
                   </div>
                 ) : (
                   <>
-                    <p>
-                      <strong>Applicant:</strong> {selectedApplication.name} ({selectedApplication.email})
+                    <p style={{ color: "#d1d5db" }}>
+                      <strong style={{ color: "#e5e7eb" }}>Applicant:</strong> {selectedApplication.name} ({selectedApplication.email})
                     </p>
                     <div style={styles.formGroup}>
                       <label style={styles.label}>
@@ -483,10 +483,10 @@ const DriverApplications: React.FC = () => {
                 {previewError ? (
                   <div style={styles.previewErrorContainer}>
                     <div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
-                    <p style={{ fontSize: "16px", fontWeight: 600, color: "#374151", marginBottom: "8px" }}>
+                    <p style={{ fontSize: "16px", fontWeight: 600, color: "#e5e7eb", marginBottom: "8px" }}>
                       Unable to load file
                     </p>
-                    <p style={{ fontSize: "14px", color: "#6b7280", marginBottom: "20px" }}>
+                    <p style={{ fontSize: "14px", color: "#9ca3af", marginBottom: "20px" }}>
                       The file could not be found or is unavailable.
                     </p>
                     <a
@@ -537,9 +537,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "8px 14px",
     fontSize: "13px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    backgroundColor: "#fff",
-    color: "#374151",
+    border: "1px solid rgba(255,255,255,0.1)",
+    backgroundColor: "#1c2128",
+    color: "#d1d5db",
     cursor: "pointer",
     fontWeight: 500,
     outline: "none",
@@ -557,10 +557,10 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: "15px",
   },
   tableWrapper: {
-    backgroundColor: "#fff",
+    backgroundColor: "#161b22",
     borderRadius: "16px",
-    border: "1px solid #e0e7ff",
-    boxShadow: "0 2px 16px rgba(79,70,229,0.07)",
+    border: "1px solid rgba(255,255,255,0.07)",
+    boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
     overflowX: "auto",
   },
   table: {
@@ -572,21 +572,21 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: "10px",
     fontWeight: 700,
     textAlign: "left",
-    backgroundColor: "#f5f3ff",
-    color: "#6366f1",
-    borderBottom: "2px solid #e0e7ff",
+    backgroundColor: "rgba(255,255,255,0.03)",
+    color: "#818CF8",
+    borderBottom: "1px solid rgba(255,255,255,0.07)",
     textTransform: "uppercase" as const,
     letterSpacing: "0.7px",
     whiteSpace: "nowrap" as const,
   },
   tr: {
-    borderBottom: "1px solid #f0f0ff",
+    borderBottom: "1px solid rgba(255,255,255,0.05)",
     transition: "background-color 0.15s",
   },
   td: {
     padding: "14px 18px",
     fontSize: "14px",
-    color: "#374151",
+    color: "#d1d5db",
   },
   statusBadge: {
     padding: "4px 12px",
@@ -613,16 +613,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: "opacity 0.2s",
   },
   viewButton: {
-    backgroundColor: "#eef2ff",
-    color: "#4F46E5",
+    backgroundColor: "rgba(79,70,229,0.12)",
+    color: "#818CF8",
   },
   approveButton: {
-    backgroundColor: "#ecfdf5",
-    color: "#059669",
+    backgroundColor: "rgba(16,185,129,0.12)",
+    color: "#34d399",
   },
   rejectButton: {
-    backgroundColor: "#fef2f2",
-    color: "#dc2626",
+    backgroundColor: "rgba(239,68,68,0.1)",
+    color: "#fca5a5",
   },
   modalOverlay: {
     position: "fixed",
@@ -630,7 +630,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "rgba(0,0,0,0.75)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -639,25 +639,26 @@ const styles: { [key: string]: React.CSSProperties } = {
     backdropFilter: "blur(4px)",
   },
   modalContent: {
-    backgroundColor: "#fff",
+    backgroundColor: "#161b22",
     borderRadius: "16px",
     maxWidth: "720px",
     width: "100%",
     maxHeight: "90vh",
     overflowY: "auto",
-    boxShadow: "0 24px 48px rgba(0, 0, 0, 0.16)",
+    boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
+    border: "1px solid rgba(255,255,255,0.08)",
   },
   modalHeader: {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "flex-start",
     padding: "24px 28px 20px",
-    borderBottom: "1px solid #e5e7eb",
+    borderBottom: "1px solid rgba(255,255,255,0.07)",
   },
   modalTitle: {
     fontSize: "20px",
     fontWeight: 700,
-    color: "#111827",
+    color: "#f3f4f6",
     margin: 0,
   },
   modalSubtitle: {
@@ -666,9 +667,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     margin: "4px 0 0 0",
   },
   closeButton: {
-    background: "none",
-    border: "none",
-    fontSize: "24px",
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    fontSize: "20px",
     cursor: "pointer",
     color: "#9ca3af",
     padding: 0,
@@ -688,18 +689,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: "20px",
   },
   detailCard: {
-    backgroundColor: "#f9fafb",
+    backgroundColor: "rgba(255,255,255,0.03)",
     borderRadius: "12px",
     padding: "20px",
-    border: "1px solid #f3f4f6",
+    border: "1px solid rgba(255,255,255,0.07)",
   },
   detailCardTitle: {
-    fontSize: "14px",
+    fontSize: "10px",
     fontWeight: 700,
-    color: "#374151",
+    color: "#4b5563",
     margin: "0 0 16px 0",
     textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
+    letterSpacing: "0.8px",
   },
   fieldGrid: {
     display: "grid",
@@ -712,16 +713,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: "3px",
   },
   fieldLabel: {
-    fontSize: "11px",
-    fontWeight: 600,
-    color: "#9ca3af",
+    fontSize: "10px",
+    fontWeight: 700,
+    color: "#4b5563",
     textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
+    letterSpacing: "0.6px",
   },
   fieldValue: {
     fontSize: "14px",
     fontWeight: 500,
-    color: "#111827",
+    color: "#e5e7eb",
   },
   fileLinkRow: {
     display: "flex",
@@ -733,9 +734,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "6px 14px",
     fontSize: "13px",
     fontWeight: 500,
-    color: "#4F46E5",
-    backgroundColor: "#eef2ff",
-    border: "1px solid #c7d2fe",
+    color: "#818CF8",
+    backgroundColor: "rgba(79,70,229,0.1)",
+    border: "1px solid rgba(79,70,229,0.2)",
     borderRadius: "8px",
     cursor: "pointer",
     fontFamily: "inherit",
@@ -743,7 +744,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   notesText: {
     fontSize: "14px",
-    color: "#374151",
+    color: "#d1d5db",
     lineHeight: 1.7,
     margin: 0,
   },
@@ -753,16 +754,20 @@ const styles: { [key: string]: React.CSSProperties } = {
   label: {
     display: "block",
     marginBottom: "8px",
-    fontSize: "13px",
-    fontWeight: 600,
-    color: "#374151",
+    fontSize: "11px",
+    fontWeight: 700,
+    color: "#4b5563",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.6px",
   },
   textarea: {
     width: "100%",
     padding: "12px",
     fontSize: "14px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
+    border: "1px solid rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(255,255,255,0.05)",
+    color: "#e5e7eb",
     minHeight: "100px",
     resize: "vertical",
     fontFamily: "inherit",
@@ -778,9 +783,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   cancelButton: {
     padding: "10px 20px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    backgroundColor: "#fff",
-    color: "#374151",
+    border: "1px solid rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(255,255,255,0.05)",
+    color: "#d1d5db",
     cursor: "pointer",
     fontSize: "14px",
     fontWeight: 600,
@@ -819,23 +824,25 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: "center",
   },
   credentials: {
-    backgroundColor: "#f0fdf4",
+    backgroundColor: "rgba(16,185,129,0.08)",
     padding: "16px 20px",
     borderRadius: "10px",
     margin: "16px 0",
     fontSize: "14px",
-    border: "1px solid #bbf7d0",
+    color: "#d1d5db",
+    border: "1px solid rgba(16,185,129,0.2)",
     display: "flex",
     flexDirection: "column",
     gap: "8px",
   },
   warning: {
-    color: "#b45309",
+    color: "#fbbf24",
     fontSize: "13px",
     marginTop: "16px",
-    backgroundColor: "#fef3c7",
+    backgroundColor: "rgba(234,179,8,0.08)",
     padding: "10px 14px",
     borderRadius: "8px",
+    border: "1px solid rgba(234,179,8,0.2)",
   },
   previewOverlay: {
     position: "fixed",
@@ -843,7 +850,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    backgroundColor: "rgba(0,0,0,0.85)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -852,14 +859,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     backdropFilter: "blur(4px)",
   },
   previewContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: "#161b22",
     borderRadius: "16px",
     maxWidth: "90vw",
     maxHeight: "90vh",
     width: "auto",
     display: "flex",
     flexDirection: "column",
-    boxShadow: "0 24px 48px rgba(0, 0, 0, 0.4)",
+    boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
+    border: "1px solid rgba(255,255,255,0.08)",
     overflow: "hidden",
   },
   previewHeader: {
@@ -867,13 +875,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: "space-between",
     alignItems: "center",
     padding: "16px 24px",
-    borderBottom: "1px solid #e5e7eb",
+    borderBottom: "1px solid rgba(255,255,255,0.07)",
     flexShrink: 0,
   },
   previewTitle: {
     fontSize: "18px",
     fontWeight: 600,
-    color: "#1f2937",
+    color: "#f3f4f6",
     margin: 0,
   },
   previewBody: {
@@ -905,13 +913,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: "center",
   },
   downloadLink: {
-    color: "#4F46E5",
+    color: "#818CF8",
     textDecoration: "none",
     fontSize: "14px",
     fontWeight: 600,
     cursor: "pointer",
     padding: "8px 16px",
-    backgroundColor: "#eef2ff",
+    backgroundColor: "rgba(79,70,229,0.12)",
     borderRadius: "8px",
   },
 };

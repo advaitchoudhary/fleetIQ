@@ -27,7 +27,7 @@ const Enquiries: React.FC = () => {
   }, []);
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f0f4ff", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", minHeight: "100vh" }}>
     <Navbar />
 
     {/* Hero */}
@@ -84,9 +84,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   tableWrapper: {
     borderRadius: "16px",
-    border: "1px solid #e0e7ff",
-    boxShadow: "0 2px 16px rgba(79,70,229,0.07)",
-    backgroundColor: "#fff",
+    border: "1px solid rgba(255,255,255,0.07)",
+    boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
+    backgroundColor: "#161b22",
     overflowX: "auto",
   },
   table: {
@@ -95,13 +95,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: "14px",
   },
   th: {
-    borderBottom: "2px solid #e0e7ff",
+    borderBottom: "1px solid rgba(255,255,255,0.07)",
     padding: "12px 16px",
     fontSize: "10px",
     fontWeight: 700,
     textAlign: "left",
-    backgroundColor: "#f5f3ff",
-    color: "#6366f1",
+    backgroundColor: "rgba(255,255,255,0.03)",
+    color: "#818CF8",
     textTransform: "uppercase",
     letterSpacing: "0.7px",
     whiteSpace: "nowrap",
@@ -110,11 +110,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "14px 16px",
     fontSize: "14px",
     textAlign: "left",
-    color: "#374151",
-    borderBottom: "1px solid #f0f0ff",
+    color: "#d1d5db",
+    borderBottom: "1px solid rgba(255,255,255,0.05)",
   },
   row: {
-    backgroundColor: "#f9fafb",
+    backgroundColor: "rgba(255,255,255,0.02)",
   },
 };
 
