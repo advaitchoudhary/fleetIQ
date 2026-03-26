@@ -101,7 +101,7 @@ const Profile: React.FC = () => {
   }, [driver]);
 
   if (!driver) {
-    return <p style={styles.noData}>No driver data available.</p>;
+    return <p style={{ padding: "40px", textAlign: "center", color: "var(--t-text-faint)", fontFamily: "Inter, system-ui, sans-serif" }}>No driver data available.</p>;
   }
 
   const getInitials = (name: string) => {
@@ -115,794 +115,372 @@ const Profile: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
       <Navbar />
-      <div style={styles.container}>
-        <button onClick={() => navigate(-1)} style={styles.backButton}>
-          <FaArrowLeft size={13} /> Back
+      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 40px" }}>
+        {/* Back button */}
+        <button onClick={() => navigate(-1)}
+          style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 16px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-faint)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", marginBottom: "24px" }}>
+          <FaArrowLeft size={11} /> Back
         </button>
+
         {/* Profile Header */}
-        <div style={styles.profileHeader}>
-          <div style={styles.leftSection}>
+        <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "28px 32px", display: "flex", alignItems: "flex-start", gap: "28px", marginBottom: "20px" }}>
+          <div style={{ position: "relative" as const, flexShrink: 0 }}>
             {driver.image ? (
-              <img
-                src={driver.image}
-                alt="Profile"
-                style={styles.profileImage}
-              />
+              <img src={driver.image} alt="Profile"
+                style={{ width: "100px", height: "100px", borderRadius: "16px", objectFit: "cover" as const, border: "2px solid rgba(255,255,255,0.1)" }} />
             ) : (
-              <div style={styles.initialsContainer}>
+              <div style={{ width: "100px", height: "100px", borderRadius: "16px", background: "linear-gradient(135deg,#4F46E5,#7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "34px", fontWeight: 800, color: "#fff" }}>
                 {getInitials(driver.name)}
               </div>
             )}
-            <div style={styles.driverInfo}>
-              <h2 style={styles.driverName}>{driver.name}</h2>
-              <p style={styles.driverRole}>Professional Driver</p>
-              <p style={styles.driverLocation}>{driver.address}</p>
+            <div style={{ position: "absolute" as const, bottom: "-8px", right: "-8px", background: "var(--t-surface)", borderRadius: "50%", padding: "2px", border: "1px solid var(--t-border)" }}>
+              <FaCheckCircle size={14} color="var(--t-success)" />
+            </div>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px" }}>
+              <h1 style={{ margin: 0, fontSize: "26px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.3px" }}>{driver.name}</h1>
+              <span style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, background: "rgba(16,185,129,0.15)", color: "var(--t-success)", border: "1px solid rgba(16,185,129,0.25)", letterSpacing: "0.5px" }}>
+                {(driver.status || "ACTIVE").toUpperCase()}
+              </span>
+            </div>
+            <p style={{ margin: "0 0 4px", fontSize: "13px", color: "var(--t-text-faint)", maxWidth: "520px" }}>
+              {driver.workStatus ? `Work Authorization: ${driver.workStatus}` : "Professional Driver"}{driver.address ? ` · ${driver.address}` : ""}
+            </p>
+            <p style={{ margin: "0 0 14px", fontSize: "12px", color: "var(--t-text-ghost)" }}>Driver ID: #OP-{String(driver._id || "").slice(-6).toUpperCase()}</p>
+            <div style={{ display: "flex", gap: "20px" }}>
+              <span style={{ fontSize: "13px", color: "var(--t-text-faint)" }}>⭐ {driver.backhaulRate ? `$${driver.backhaulRate}/km backhaul` : "Rate configured"}</span>
+              <span style={{ fontSize: "13px", color: "var(--t-text-faint)" }}>🚗 {driver.licence ? `Licence ${driver.licence}` : "Licence on file"}</span>
             </div>
           </div>
         </div>
 
-        {/* Sections — full-width single column */}
-        <div style={styles.sectionsWrapper}>
-          {/* Driver Details + License in a two-column grid */}
-          <div style={styles.twoColRow}>
-            <div style={styles.sectionCard}>
-              <h3 style={styles.sectionTitle}>🚗 Driver Details</h3>
-              <div style={styles.fieldGrid}>
-                <div style={styles.fieldItem}>
-                  <span style={styles.fieldLabel}>Email</span>
-                  <span style={styles.fieldValue}>{driver.email}</span>
-                </div>
-                <div style={styles.fieldItem}>
-                  <span style={styles.fieldLabel}>Username</span>
-                  <span style={styles.fieldValue}>{driver.username || "N/A"}</span>
-                </div>
-                <div style={styles.fieldItem}>
-                  <span style={styles.fieldLabel}>Contact</span>
-                  <span style={styles.fieldValue}>{driver.contact}</span>
-                </div>
-                <div style={styles.fieldItem}>
-                  <span style={styles.fieldLabel}>HST/GST</span>
-                  <span style={styles.fieldValue}>{driver.hst_gst || "N/A"}</span>
-                </div>
-                <div style={styles.fieldItem}>
-                  <span style={styles.fieldLabel}>Business Name</span>
-                  <span style={styles.fieldValue}>{driver.business_name || "N/A"}</span>
-                </div>
-                <div style={styles.fieldItem}>
-                  <span style={styles.fieldLabel}>Backhaul Rate</span>
-                  <span style={styles.fieldValue}>${driver.backhaulRate || "N/A"}</span>
-                </div>
-                <div style={styles.fieldItem}>
-                  <span style={styles.fieldLabel}>Combo Rate</span>
-                  <span style={styles.fieldValue}>${driver.comboRate || "N/A"}</span>
-                </div>
-                <div style={styles.fieldItem}>
-                  <span style={styles.fieldLabel}>Extra Sheet/E.W Rate</span>
-                  <span style={styles.fieldValue}>${driver.extraSheetEWRate || "N/A"}</span>
-                </div>
-                <div style={styles.fieldItem}>
-                  <span style={styles.fieldLabel}>Regular/Banner Rate</span>
-                  <span style={styles.fieldValue}>${driver.regularBannerRate || "N/A"}</span>
-                </div>
-                <div style={styles.fieldItem}>
-                  <span style={styles.fieldLabel}>Wholesale Rate</span>
-                  <span style={styles.fieldValue}>${driver.wholesaleRate || "N/A"}</span>
-                </div>
-                <div style={styles.fieldItem}>
-                  <span style={styles.fieldLabel}>Voila Rate</span>
-                  <span style={styles.fieldValue}>${driver.voilaRate || "N/A"}</span>
-                </div>
-                <div style={styles.fieldItem}>
-                  <span style={styles.fieldLabel}>TCS Linehaul Trenton Rate</span>
-                  <span style={styles.fieldValue}>${driver.tcsLinehaulTrentonRate || "N/A"}</span>
-                </div>
-              </div>
+        {/* Row 1: Driver Metadata + Rate & Compensation */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: "20px", marginBottom: "20px" }}>
+
+          {/* Driver Metadata */}
+          <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "24px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>DRIVER METADATA</p>
+              <span style={{ fontSize: "14px", color: "var(--t-text-dim)" }}>ℹ</span>
             </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-              <div style={styles.sectionCard}>
-                <h3 style={styles.sectionTitle}>🚘 License Details</h3>
-                <div style={styles.fieldGrid}>
-                  <div style={styles.fieldItem}>
-                    <span style={styles.fieldLabel}>Licence No.</span>
-                    <span style={styles.fieldValue}>{driver.licence || "N/A"}</span>
-                  </div>
-                  <div style={styles.fieldItem}>
-                    <span style={styles.fieldLabel}>Licence Expiry Date</span>
-                    <span style={styles.fieldValue}>{driver.licence_expiry_date ? new Date(driver.licence_expiry_date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "N/A"}</span>
-                  </div>
-                </div>
+            {([
+              ["EMAIL ADDRESS", driver.email],
+              ["USERNAME", driver.username || "N/A"],
+              ["PRIMARY CONTACT", driver.contact || "N/A"],
+              ["HST / GST", driver.hst_gst || "N/A"],
+              ["BUSINESS NAME", driver.business_name || "N/A"],
+            ] as [string, string][]).map(([label, value]) => (
+              <div key={label} style={{ marginBottom: "18px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>{label}</p>
+                <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "var(--t-text-secondary)" }}>{value}</p>
               </div>
+            ))}
+            <p style={{ margin: "0 0 8px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>SYSTEM STATUS</p>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 14px", background: "var(--t-hover-bg)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px" }}>
+              <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: driver.status === "Active" ? "var(--t-success)" : "var(--t-warning)", display: "inline-block" }} />
+              <span style={{ fontSize: "13px", color: "var(--t-text-faint)", fontWeight: 500 }}>{driver.status === "Active" ? "Live Telemetry Connected" : `Status: ${driver.status || "Unknown"}`}</span>
+            </div>
+          </div>
 
-              <div style={styles.sectionCard}>
-                <h3 style={styles.sectionTitle}>📌 Status</h3>
-                <div style={styles.fieldGrid}>
-                  <div style={styles.fieldItem}>
-                    <span style={styles.fieldLabel}>Current Status</span>
-                    <span style={styles.fieldValue}>{driver.status || "N/A"}</span>
-                  </div>
-                  <div style={styles.fieldItem}>
-                    <span style={styles.fieldLabel}>Work Authorization</span>
-                    <span style={styles.fieldValue}>{driver.workStatus || "N/A"}</span>
-                  </div>
-                  {driver.workAuthExpiry && (
-                    <div style={styles.fieldItem}>
-                      <span style={styles.fieldLabel}>Work Auth Expiry</span>
-                      <span style={styles.fieldValue}>{new Date(driver.workAuthExpiry + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}</span>
-                    </div>
+          {/* Rate & Compensation */}
+          <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "24px" }}>
+            <div style={{ marginBottom: "20px" }}>
+              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>RATE &amp; COMPENSATION SCHEDULE</p>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
+              {([
+                ["STANDARD BACKHAUL", driver.backhaulRate, "/km"],
+                ["EXTRA SHEET / E.W", driver.extraSheetEWRate, "/unit"],
+                ["COMBO RATE", driver.comboRate, "/km"],
+                ["REGULAR / BANNER", driver.regularBannerRate, "/km"],
+                ["WHOLESALE", driver.wholesaleRate, "/km"],
+                ["VOILA", driver.voilaRate, "/km"],
+              ] as [string, number | undefined, string][]).map(([label, value, unit]) => (
+                <div key={label} style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "14px" }}>
+                  <p style={{ margin: "0 0 6px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.6px" }}>{label}</p>
+                  {value ? (
+                    <p style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>
+                      ${value}<span style={{ fontSize: "12px", fontWeight: 500, color: "var(--t-text-dim)" }}>{unit}</span>
+                    </p>
+                  ) : (
+                    <p style={{ margin: 0, fontSize: "13px", color: "var(--t-text-ghost)", fontWeight: 500 }}>Not set</p>
                   )}
                 </div>
+              ))}
+            </div>
+            {driver.tcsLinehaulTrentonRate && (
+              <div style={{ marginTop: "10px", background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "14px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.6px" }}>TCS LINEHAUL TRENTON</p>
+                <p style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>${driver.tcsLinehaulTrentonRate}<span style={{ fontSize: "12px", fontWeight: 500, color: "var(--t-text-dim)" }}>/km</span></p>
               </div>
+            )}
+          </div>
+        </div>
 
-              <div style={styles.sectionCard}>
-                <h3 style={styles.sectionTitle}>💳 Direct Deposit Details</h3>
-                {driver.bankDetails ? (
-                  <div style={styles.fieldGrid}>
-                    <div style={styles.fieldItem}>
-                      <span style={styles.fieldLabel}>Bank Name</span>
-                      <span style={styles.fieldValue}>{driver.bankDetails.bankName || "N/A"}</span>
-                    </div>
-                    <div style={styles.fieldItem}>
-                      <span style={styles.fieldLabel}>Account Number</span>
-                      <span style={styles.fieldValue}>{driver.bankDetails.accountNumber || "N/A"}</span>
-                    </div>
-                    <div style={styles.fieldItem}>
-                      <span style={styles.fieldLabel}>Transit Number</span>
-                      <span style={styles.fieldValue}>{driver.bankDetails.transitNumber || "N/A"}</span>
-                    </div>
-                    <div style={styles.fieldItem}>
-                      <span style={styles.fieldLabel}>Institution Number</span>
-                      <span style={styles.fieldValue}>{driver.bankDetails.institutionNumber || "N/A"}</span>
+        {/* Row 2: Safety & Training + Financial Settlement */}
+        <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: "20px", marginBottom: "20px" }}>
+
+          {/* Safety & Training Compliance */}
+          <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "24px" }}>
+            {(() => {
+              const completedCount = ALL_TRAININGS.filter((name) => isCompleted(name)).length;
+              const progress = Math.round((completedCount / ALL_TRAININGS.length) * 100);
+              return (
+                <>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                    <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>SAFETY &amp; TRAINING COMPLIANCE</p>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <span style={{ fontSize: "12px", color: "var(--t-text-dim)" }}>Progress</span>
+                      <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--t-indigo)" }}>{progress}%</span>
+                      <button onClick={saveTrainings} disabled={trainingSaving}
+                        style={{ padding: "5px 12px", background: trainingSaved ? "rgba(16,185,129,0.15)" : "var(--t-indigo-bg)", border: `1px solid ${trainingSaved ? "rgba(16,185,129,0.3)" : "rgba(79,70,229,0.3)"}`, borderRadius: "6px", color: trainingSaved ? "var(--t-success)" : "var(--t-indigo)", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                        {trainingSaved ? "Saved!" : trainingSaving ? "Saving…" : "Save"}
+                      </button>
                     </div>
                   </div>
-                ) : (
-                  <p style={{ color: "#6b7280", fontSize: "14px" }}>No Direct Deposit details available.</p>
+                  <div style={{ height: "4px", background: "var(--t-hover-bg)", borderRadius: "4px", marginBottom: "16px", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg,#4F46E5,#818CF8)", borderRadius: "4px" }} />
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {ALL_TRAININGS.map((name) => {
+                      const entry = trainings.find((t) => t.name === name);
+                      const done = !!entry?.proofDocument;
+                      const marked = !!entry;
+                      return (
+                        <div key={name} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "11px 14px", background: "var(--t-surface-alt)", border: `1px solid ${done ? "rgba(16,185,129,0.2)" : marked ? "rgba(79,70,229,0.2)" : "var(--t-hover-bg)"}`, borderRadius: "10px" }}>
+                          <button onClick={() => toggleTraining(name)}
+                            style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: done ? "var(--t-success)" : marked ? "var(--t-indigo)" : "var(--t-text-muted)", flexShrink: 0 }}>
+                            {done || marked ? <FaCheckCircle size={17} /> : <FaRegCircle size={17} />}
+                          </button>
+                          <div style={{ flex: 1 }}>
+                            <p style={{ margin: "0 0 1px", fontSize: "13px", fontWeight: 600, color: done ? "var(--t-success)" : marked ? "var(--t-text-secondary)" : "var(--t-text-dim)" }}>{name}</p>
+                            <p style={{ margin: 0, fontSize: "11px", color: "var(--t-text-ghost)" }}>{done ? "Completed" : marked ? "In progress" : "Not started"}</p>
+                          </div>
+                          {marked && !done && (
+                            <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "var(--t-indigo)", background: "var(--t-indigo-bg)", padding: "5px 10px", borderRadius: "6px", cursor: "pointer", border: "1px solid rgba(79,70,229,0.2)", whiteSpace: "nowrap" as const }}>
+                              <FaUpload size={9} /> Upload
+                              <input type="file" accept="image/*,.pdf" style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) handleProofUpload(name, e.target.files[0]); }} />
+                            </label>
+                          )}
+                          {done && entry?.proofDocument && (
+                            <a href={`${API_BASE_URL.replace("/api", "")}/${entry.proofDocument}`} target="_blank" rel="noopener noreferrer"
+                              style={{ fontSize: "11px", fontWeight: 600, color: "var(--t-success)", background: "rgba(16,185,129,0.1)", padding: "5px 10px", borderRadius: "6px", textDecoration: "none", border: "1px solid rgba(16,185,129,0.2)", whiteSpace: "nowrap" as const }}>
+                              View Proof
+                            </a>
+                          )}
+                          {!marked && (
+                            <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", background: "var(--t-hover-bg)", padding: "4px 9px", borderRadius: "20px", border: "1px solid var(--t-border)", whiteSpace: "nowrap" as const }}>PENDING</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+
+          {/* Financial Settlement */}
+          <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "24px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>FINANCIAL SETTLEMENT</p>
+              <span style={{ fontSize: "20px" }}>🏦</span>
+            </div>
+            {driver.bankDetails ? (
+              <>
+                <p style={{ margin: "0 0 12px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>DIRECT DEPOSIT ACCOUNT</p>
+                <div style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "16px", marginBottom: "14px" }}>
+                  <p style={{ margin: "0 0 3px", fontSize: "11px", color: "var(--t-text-dim)" }}>Bank Name</p>
+                  <p style={{ margin: "0 0 14px", fontSize: "15px", fontWeight: 700, color: "var(--t-text)" }}>{driver.bankDetails.bankName || "N/A"}</p>
+                  <p style={{ margin: "0 0 3px", fontSize: "11px", color: "var(--t-text-dim)" }}>Account Number</p>
+                  <p style={{ margin: "0 0 14px", fontSize: "15px", fontWeight: 700, color: "var(--t-text)", letterSpacing: "2px" }}>
+                    {driver.bankDetails.accountNumber ? `•••• •••• ${String(driver.bankDetails.accountNumber).slice(-4)}` : "N/A"}
+                  </p>
+                  {driver.bankDetails.transitNumber && (
+                    <>
+                      <p style={{ margin: "0 0 3px", fontSize: "11px", color: "var(--t-text-dim)" }}>Transit Number</p>
+                      <p style={{ margin: "0 0 14px", fontSize: "15px", fontWeight: 700, color: "var(--t-text)" }}>{driver.bankDetails.transitNumber}</p>
+                    </>
+                  )}
+                  {driver.bankDetails.institutionNumber && (
+                    <>
+                      <p style={{ margin: "0 0 3px", fontSize: "11px", color: "var(--t-text-dim)" }}>Institution Number</p>
+                      <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "var(--t-text)" }}>{driver.bankDetails.institutionNumber}</p>
+                    </>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div style={{ padding: "24px", textAlign: "center" as const, background: "var(--t-surface-alt)", borderRadius: "10px", border: "1px dashed rgba(255,255,255,0.08)" }}>
+                <p style={{ margin: 0, color: "var(--t-text-ghost)", fontSize: "13px" }}>No direct deposit details on file.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Row 3: Compliance Documents + License Details */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
+
+          {/* Compliance Documents */}
+          <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "24px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>COMPLIANCE DOCUMENTS</p>
+              <FaUpload size={13} color="var(--t-text-dim)" />
+            </div>
+            {([
+              ["agencySignOff", "Agency Sign Off"],
+              ["driverDeliveryExpectations", "Driver Delivery Expectations"],
+              ["cellPhonePolicy", "Cell Phone Policy"],
+              ["storeSurvey1", "Store Survey 1"],
+              ["tobaccoAndLCPValidation", "Tobacco & LCP Validation"],
+              ["driverSop", "Driver SOP"],
+            ] as [string, string][]).map(([key, label]) => {
+              const doc = driver.requiredOnboardingForms?.[key];
+              const sc = doc
+                ? { label: "VALID", bg: "var(--t-success-bg)", color: "var(--t-success)", border: "rgba(16,185,129,0.25)" }
+                : { label: "PENDING", bg: "rgba(251,191,36,0.1)", color: "var(--t-warning)", border: "rgba(251,191,36,0.25)" };
+              return (
+                <div key={key} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "11px 14px", background: "var(--t-surface-alt)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "10px", marginBottom: "8px" }}>
+                  <span style={{ fontSize: "16px" }}>📄</span>
+                  <div style={{ flex: 1 }}>
+                    <p style={{ margin: "0 0 2px", fontSize: "13px", fontWeight: 600, color: "var(--t-text-secondary)" }}>{label}</p>
+                    <p style={{ margin: 0, fontSize: "11px", color: "var(--t-text-ghost)" }}>{doc ? "On file" : "Not submitted"}</p>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    {doc && (
+                      <a href={`${API_BASE_URL.replace("/api", "")}/${doc}`} target="_blank" rel="noopener noreferrer"
+                        style={{ fontSize: "11px", color: "var(--t-indigo)", textDecoration: "none", fontWeight: 600 }}>View</a>
+                    )}
+                    <span style={{ padding: "3px 9px", borderRadius: "20px", fontSize: "10px", fontWeight: 700, background: sc.bg, color: sc.color, border: `1px solid ${sc.border}`, letterSpacing: "0.5px" }}>{sc.label}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* License Details */}
+          <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "24px" }}>
+            <p style={{ margin: "0 0 20px", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>LICENSE DETAILS</p>
+            <div style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "12px", padding: "20px" }}>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "20px" }}>
+                <div>
+                  <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>COMMERCIAL DRIVER LICENSE</p>
+                  <p style={{ margin: 0, fontSize: "20px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.3px" }}>
+                    {driver.licence ? `CLASS ${driver.licence.toUpperCase()} – UNRESTRICTED` : "N/A"}
+                  </p>
+                </div>
+                <span style={{ fontSize: "22px" }}>🪪</span>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+                <div>
+                  <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>LICENSE NUMBER</p>
+                  <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "var(--t-text-secondary)" }}>{driver.licence || "N/A"}</p>
+                </div>
+                <div>
+                  <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>WORK AUTHORIZATION</p>
+                  <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "var(--t-text-secondary)" }}>{driver.workStatus || "N/A"}</p>
+                </div>
+                <div>
+                  <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>ISSUE DATE</p>
+                  <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "var(--t-text-secondary)" }}>On file</p>
+                </div>
+                <div>
+                  <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>EXPIRATION</p>
+                  {driver.licence_expiry_date ? (() => {
+                    const expiry = new Date(driver.licence_expiry_date);
+                    const soon = new Date(); soon.setDate(soon.getDate() + 90);
+                    const formatted = expiry.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+                    return <p style={{ margin: 0, fontSize: "14px", fontWeight: 700, color: expiry <= soon ? "var(--t-error)" : "var(--t-success)" }}>{formatted}</p>;
+                  })() : <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "var(--t-text-ghost)" }}>N/A</p>}
+                </div>
+                {driver.workAuthExpiry && (
+                  <div style={{ gridColumn: "1 / -1" }}>
+                    <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>WORK AUTH EXPIRY</p>
+                    <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "var(--t-warning)" }}>
+                      {new Date(driver.workAuthExpiry + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
           </div>
-
-          {/* Required Documents — full width */}
-          <div style={styles.sectionCard}>
-            <h3 style={styles.sectionTitle}>📄 Required Documents</h3>
-              <div style={styles.documentsChecklist}>
-                <div style={styles.checklistItem}>
-                  <span style={{
-                    ...styles.checkIcon,
-                    color: driver.requiredOnboardingForms?.agencySignOff ? "#10b981" : "#ef4444"
-                  }}>
-                    {driver.requiredOnboardingForms?.agencySignOff ? "✓" : "✗"}
-                  </span>
-                  <span style={styles.checklistLabel}>Agency Sign Off</span>
-                  {driver.requiredOnboardingForms?.agencySignOff && (
-                    <a
-                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.agencySignOff}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={styles.viewDocumentLink}
-                    >
-                      View
-                    </a>
-                  )}
-                </div>
-                <div style={styles.checklistItem}>
-                  <span style={{
-                    ...styles.checkIcon,
-                    color: driver.requiredOnboardingForms?.driverDeliveryExpectations ? "#10b981" : "#ef4444"
-                  }}>
-                    {driver.requiredOnboardingForms?.driverDeliveryExpectations ? "✓" : "✗"}
-                  </span>
-                  <span style={styles.checklistLabel}>Driver Delivery Expectations</span>
-                  {driver.requiredOnboardingForms?.driverDeliveryExpectations && (
-                    <a
-                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.driverDeliveryExpectations}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={styles.viewDocumentLink}
-                    >
-                      View
-                    </a>
-                  )}
-                </div>
-                <div style={styles.checklistItem}>
-                  <span style={{
-                    ...styles.checkIcon,
-                    color: driver.requiredOnboardingForms?.cellPhonePolicy ? "#10b981" : "#ef4444"
-                  }}>
-                    {driver.requiredOnboardingForms?.cellPhonePolicy ? "✓" : "✗"}
-                  </span>
-                  <span style={styles.checklistLabel}>Cell Phone Policy</span>
-                  {driver.requiredOnboardingForms?.cellPhonePolicy && (
-                    <a
-                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.cellPhonePolicy}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={styles.viewDocumentLink}
-                    >
-                      View
-                    </a>
-                  )}
-                </div>
-                <div style={styles.checklistItem}>
-                  <span style={{
-                    ...styles.checkIcon,
-                    color: driver.requiredOnboardingForms?.storeSurvey1 ? "#10b981" : "#ef4444"
-                  }}>
-                    {driver.requiredOnboardingForms?.storeSurvey1 ? "✓" : "✗"}
-                  </span>
-                  <span style={styles.checklistLabel}>Store Survey 1</span>
-                  {driver.requiredOnboardingForms?.storeSurvey1 && (
-                    <a
-                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.storeSurvey1}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={styles.viewDocumentLink}
-                    >
-                      View
-                    </a>
-                  )}
-                </div>
-                <div style={styles.checklistItem}>
-                  <span style={{
-                    ...styles.checkIcon,
-                    color: driver.requiredOnboardingForms?.tobaccoAndLCPValidation ? "#10b981" : "#ef4444"
-                  }}>
-                    {driver.requiredOnboardingForms?.tobaccoAndLCPValidation ? "✓" : "✗"}
-                  </span>
-                  <span style={styles.checklistLabel}>Tobacco and LCP Validation</span>
-                  {driver.requiredOnboardingForms?.tobaccoAndLCPValidation && (
-                    <a
-                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.tobaccoAndLCPValidation}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={styles.viewDocumentLink}
-                    >
-                      View
-                    </a>
-                  )}
-                </div>
-                <div style={styles.checklistItem}>
-                  <span style={{
-                    ...styles.checkIcon,
-                    color: driver.requiredOnboardingForms?.driverSop ? "#10b981" : "#ef4444"
-                  }}>
-                    {driver.requiredOnboardingForms?.driverSop ? "✓" : "✗"}
-                  </span>
-                  <span style={styles.checklistLabel}>Driver SOP</span>
-                  {driver.requiredOnboardingForms?.driverSop && (
-                    <a
-                      href={`${API_BASE_URL.replace("/api", "")}/${driver.requiredOnboardingForms.driverSop}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={styles.viewDocumentLink}
-                    >
-                      View
-                    </a>
-                  )}
-                </div>
-              </div>
-              {(!driver.requiredOnboardingForms?.agencySignOff || 
-                !driver.requiredOnboardingForms?.driverDeliveryExpectations || 
-                !driver.requiredOnboardingForms?.cellPhonePolicy ||
-                !driver.requiredOnboardingForms?.storeSurvey1 ||
-                !driver.requiredOnboardingForms?.tobaccoAndLCPValidation ||
-                !driver.requiredOnboardingForms?.driverSop) && (
-                <p style={styles.missingDocsWarning}>
-                  ⚠️ Some required documents are missing
-                </p>
-              )}
-            </div>
-
-          {/* Trainings — full width */}
-          <div style={styles.sectionCard}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-              <h3 style={{ ...styles.sectionTitle, marginBottom: 0 }}>Training Tracker</h3>
-              <button
-                onClick={saveTrainings}
-                disabled={trainingSaving}
-                style={{ padding: "7px 18px", fontSize: "13px", fontWeight: 600, border: "none", borderRadius: "8px", cursor: trainingSaving ? "not-allowed" : "pointer", background: trainingSaved ? "#16a34a" : "#4F46E5", color: "#fff", fontFamily: "Inter, system-ui, sans-serif", transition: "background 0.2s" }}
-              >
-                {trainingSaved ? "Saved!" : trainingSaving ? "Saving…" : "Save Changes"}
-              </button>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {ALL_TRAININGS.map((name) => {
-                const entry = trainings.find((t) => t.name === name);
-                const done = !!entry?.proofDocument;
-                const marked = !!entry;
-                return (
-                  <div key={name} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", borderRadius: "8px", border: `1px solid ${done ? "#bbf7d0" : "#e5e7eb"}`, background: done ? "#f0fdf4" : "#fff" }}>
-                    {/* Checkbox toggle */}
-                    <button
-                      onClick={() => toggleTraining(name)}
-                      style={{ background: "none", border: "none", cursor: "pointer", padding: 0, display: "flex", color: done ? "#16a34a" : marked ? "#4F46E5" : "#d1d5db", flexShrink: 0 }}
-                    >
-                      {done || marked ? <FaCheckCircle size={20} /> : <FaRegCircle size={20} />}
-                    </button>
-
-                    {/* Name */}
-                    <span style={{ flex: 1, fontSize: "14px", fontWeight: 500, color: done ? "#166534" : marked ? "#111827" : "#6b7280" }}>{name}</span>
-
-                    {/* Status badge */}
-                    {done ? (
-                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#16a34a", background: "#dcfce7", padding: "3px 10px", borderRadius: "20px" }}>Completed</span>
-                    ) : marked ? (
-                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#4F46E5", background: "#ede9fe", padding: "3px 10px", borderRadius: "20px" }}>In Progress</span>
-                    ) : (
-                      <span style={{ fontSize: "12px", fontWeight: 600, color: "#9ca3af", background: "#f3f4f6", padding: "3px 10px", borderRadius: "20px" }}>Pending</span>
-                    )}
-
-                    {/* Proof upload / view */}
-                    {marked && !done && (
-                      <label style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "13px", fontWeight: 500, color: "#4F46E5", background: "#eef2ff", padding: "4px 12px", borderRadius: "6px", cursor: "pointer" }}>
-                        <FaUpload size={11} /> Upload Proof
-                        <input type="file" accept="image/*,.pdf" style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) handleProofUpload(name, e.target.files[0]); }} />
-                      </label>
-                    )}
-                    {done && entry?.proofDocument && (
-                      <a href={`${API_BASE_URL.replace("/api", "")}/${entry.proofDocument}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "13px", fontWeight: 500, color: "#4F46E5", background: "#eef2ff", padding: "4px 12px", borderRadius: "6px", textDecoration: "none" }}>
-                        View Proof
-                      </a>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
         </div>
 
-        <div style={styles.sectionCard}>
-          <h3 style={styles.sectionTitle}>📚 Timesheets</h3>
+        {/* Timesheets */}
+        <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", overflow: "hidden", marginBottom: "20px" }}>
+          <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--t-border)" }}>
+            <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>TIMESHEETS</p>
+          </div>
           {timesheets.length === 0 ? (
-            <p>No timesheets available for this driver.</p>
+            <div style={{ padding: "40px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "14px" }}>No timesheets available for this driver.</div>
           ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>Date</th>
-                  <th style={styles.th}>Start Time</th>
-                  <th style={styles.th}>End Time</th>
-                  <th style={styles.th}>Start KM</th>
-                  <th style={styles.th}>End KM</th>
-                  <th style={styles.th}>Total KM</th>
-                  <th style={styles.th}>Attachments</th>
-                  <th style={styles.th}>Category</th>
-                  <th style={styles.th}>Planned KM</th>
-                  <th style={styles.th}>SubTotal</th>
-                  <th style={styles.th}>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {timesheets.map((t) => {
-                  const start = parseFloat(t.startKM);
-                  const end = parseFloat(t.endKM);
-                  const totalKM =
-                    !isNaN(start) && !isNaN(end) ? end - start : "N/A";
-                  // Map category names to rate field names
-                  const categoryToRateMap: Record<string, string> = {
-                    "Backhaul": "backhaulRate",
-                    "Combo": "comboRate",
-                    "Extra Sheet/E.W": "extraSheetEWRate",
-                    "Regular/Banner": "regularBannerRate",
-                    "Wholesale": "wholesaleRate",
-                    "Wholesale DZ": "wholesaleRate", // Uses same rate as Wholesale
-                    "voila": "voilaRate",
-                    "TCS linehaul trenton": "tcsLinehaulTrentonRate"
-                  };
-                  const rateField = categoryToRateMap[t.category || ""] || 
-                    `${t.category?.toLowerCase().replace(/\/|\s+/g, "")}Rate`;
-                  const rate = driver?.[rateField] || 0;
-                  const subtotal =
-                    !isNaN(Number(totalKM)) && !isNaN(rate)
-                      ? Number(totalKM) * rate
-                      : NaN;
-                  return (
-                    <tr key={t._id}>
-                      <td style={styles.td}>{t.date}</td>
-                      <td style={styles.td}>{t.startTime}</td>
-                      <td style={styles.td}>{t.endTime}</td>
-                      <td style={styles.td}>{t.startKM}</td>
-                      <td style={styles.td}>{t.endKM}</td>
-                      <td style={styles.td}>
-                        {typeof totalKM === "number" ? totalKM : "N/A"}
-                      </td>
-                      <td style={styles.td}>
-                        {(t.attachments || []).length > 0 ? (
-                          <div
-                            style={{
-                              display: "flex",
-                              flexWrap: "wrap",
-                              gap: "5px",
-                            }}
-                          >
-                            {t.attachments.map((path: string, idx: number) => (
-                              <a
-                                key={idx}
-                                href={`${API_BASE_URL.replace(
-                                  "/api",
-                                  ""
-                                )}/${path}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <img
-                                  src={`${API_BASE_URL.replace(
-                                    "/api",
-                                    ""
-                                  )}/${path}`}
-                                  alt={`attachment-${idx}`}
-                                  style={{
-                                    width: "40px",
-                                    height: "40px",
-                                    objectFit: "cover",
-                                    borderRadius: "4px",
-                                  }}
-                                />
-                              </a>
-                            ))}
-                          </div>
-                        ) : (
-                          <span>No Attachments</span>
-                        )}
-                      </td>
-                      <td style={styles.td}>{t.category || "N/A"}</td>
-                      <td style={styles.td}>{t.plannedKM || "N/A"}</td>
-                      <td style={styles.td}>
-                        {!isNaN(subtotal) ? `$${subtotal.toFixed(2)}` : "N/A"}
-                      </td>
-                      <td style={styles.td}>
-                        {t.status === "approved"
-                          ? "✔️"
-                          : t.status === "rejected"
-                          ? "❌"
-                          : "⏳"}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div style={{ overflowX: "auto" as const }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid var(--t-border)" }}>
+                    {["Date", "Start", "End", "Start KM", "End KM", "Total KM", "Category", "Planned KM", "Subtotal", "Status"].map((h) => (
+                      <th key={h} style={{ padding: "12px 16px", textAlign: "left" as const, fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", whiteSpace: "nowrap" as const }}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {timesheets.map((t, idx) => {
+                    const start = parseFloat(t.startKM);
+                    const end = parseFloat(t.endKM);
+                    const totalKM = !isNaN(start) && !isNaN(end) ? end - start : null;
+                    const categoryToRateMap: Record<string, string> = {
+                      "Backhaul": "backhaulRate", "Combo": "comboRate", "Extra Sheet/E.W": "extraSheetEWRate",
+                      "Regular/Banner": "regularBannerRate", "Wholesale": "wholesaleRate", "Wholesale DZ": "wholesaleRate",
+                      "voila": "voilaRate", "TCS linehaul trenton": "tcsLinehaulTrentonRate",
+                    };
+                    const rateField = categoryToRateMap[t.category || ""] || `${t.category?.toLowerCase().replace(/\/|\s+/g, "")}Rate`;
+                    const rate = driver?.[rateField] || 0;
+                    const subtotal = totalKM !== null && !isNaN(rate) ? totalKM * rate : NaN;
+                    const statusCfg: Record<string, { color: string; label: string }> = {
+                      approved: { color: "var(--t-success)", label: "Approved" },
+                      rejected: { color: "var(--t-error)", label: "Rejected" },
+                      pending:  { color: "var(--t-warning)", label: "Pending" },
+                    };
+                    const sc = statusCfg[t.status] || statusCfg.pending;
+                    return (
+                      <tr key={t._id} style={{ borderBottom: "1px solid var(--t-stripe)", background: idx % 2 === 1 ? "var(--t-stripe)" : "transparent" }}>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "var(--t-text-secondary)" }}>{t.date}</td>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "var(--t-text-faint)" }}>{t.startTime}</td>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "var(--t-text-faint)" }}>{t.endTime}</td>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "var(--t-text-faint)" }}>{t.startKM}</td>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "var(--t-text-faint)" }}>{t.endKM}</td>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", fontWeight: 600, color: "var(--t-text)" }}>{totalKM !== null ? totalKM : "N/A"}</td>
+                        <td style={{ padding: "12px 16px" }}>
+                          <span style={{ padding: "3px 9px", borderRadius: "6px", fontSize: "10px", fontWeight: 700, background: "var(--t-hover-bg)", color: "var(--t-text-faint)" }}>{t.category || "—"}</span>
+                        </td>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "var(--t-text-faint)" }}>{t.plannedKM || "—"}</td>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", fontWeight: 700, color: "var(--t-text)" }}>{!isNaN(subtotal) ? `$${subtotal.toFixed(2)}` : "N/A"}</td>
+                        <td style={{ padding: "12px 16px" }}>
+                          <span style={{ fontSize: "12px", fontWeight: 700, color: sc.color }}>{sc.label}</span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
 
-      </div>
+        {/* Footer */}
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "14px 0", borderTop: "1px solid var(--t-border)" }}>
+          <span style={{ fontSize: "11px", color: "var(--t-text-muted)", fontWeight: 500 }}>SYSTEM ID: FP-{String(driver._id || "ALPHA").slice(-9).toUpperCase()}</span>
+          <div style={{ display: "flex", gap: "20px" }}>
+<span style={{ fontSize: "11px", color: "var(--t-text-muted)" }}>SECURE ENCRYPTION ACTIVE.</span>
+          </div>
+        </div>
 
+      </div>
     </div>
   );
-};
-
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    maxWidth: "1200px",
-    margin: "0 auto",
-    padding: "24px",
-  },
-  backButton: {
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    padding: "8px 16px",
-    backgroundColor: "#fff",
-    color: "#374151",
-    border: "1px solid #d1d5db",
-    borderRadius: "8px",
-    fontSize: "13px",
-    fontWeight: 600,
-    cursor: "pointer",
-    marginBottom: "20px",
-    transition: "background-color 0.2s, border-color 0.2s",
-    fontFamily: "Inter, system-ui, sans-serif",
-  },
-  sectionsWrapper: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "20px",
-    marginBottom: "24px",
-  },
-  twoColRow: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "20px",
-  },
-  sectionCard: {
-    backgroundColor: "#ffffff",
-    padding: "24px",
-    borderRadius: "12px",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
-  },
-  fieldGrid: {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr 1fr",
-    gap: "20px",
-    marginTop: "16px",
-  },
-  fieldItem: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "4px",
-  },
-  fieldLabel: {
-    fontSize: "12px",
-    fontWeight: 600,
-    color: "#6b7280",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
-  },
-  fieldValue: {
-    fontSize: "15px",
-    fontWeight: 500,
-    color: "#111827",
-  },
-  profileHeader: {
-    display: "flex",
-    alignItems: "center",
-    gap: "24px",
-    padding: "24px",
-    marginBottom: "24px",
-    backgroundColor: "#ffffff",
-    borderRadius: "12px",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
-  },
-  leftSection: {
-    display: "flex",
-    alignItems: "center",
-  },
-  profileImage: {
-    width: "90px",
-    height: "90px",
-    borderRadius: "50%",
-    border: "3px solid #4F46E5",
-    marginRight: "24px",
-    objectFit: "cover",
-  },
-  initialsContainer: {
-    width: "90px",
-    height: "90px",
-    borderRadius: "50%",
-    color: "white",
-    fontSize: "32px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "bold",
-    marginRight: "24px",
-    backgroundColor: "#4F46E5",
-  },
-  driverInfo: {
-    textAlign: "left" as const,
-  },
-  driverName: {
-    fontSize: "22px",
-    fontWeight: 700,
-    marginBottom: "4px",
-    color: "#111827",
-  },
-  driverRole: {
-    fontSize: "14px",
-    color: "#6b7280",
-    marginBottom: "2px",
-  },
-  driverLocation: {
-    fontSize: "14px",
-    color: "#9ca3af",
-  },
-  sectionTitle: {
-    fontSize: "15px",
-    fontWeight: 700,
-    marginBottom: "4px",
-    marginTop: 0,
-    color: "#111827",
-  },
-  seeAllButton: {
-    marginTop: "10px",
-    padding: "6px 12px",
-    backgroundColor: "#007bff",
-    color: "#fff",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-  },
-  button: {
-    padding: "10px 20px",
-    backgroundColor: "#4F46E5",
-    color: "#fff",
-    border: "none",
-    borderRadius: "8px",
-    cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: 600,
-    marginTop: "8px",
-  },
-  modalOverlay: {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modal: {
-    backgroundColor: "white",
-    padding: "20px",
-    borderRadius: "10px",
-    textAlign: "center",
-    boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-    width: "50%",
-    maxWidth: "400px",
-  },
-  modalList: {
-    listStyleType: "none",
-    padding: 0,
-    textAlign: "left",
-    marginLeft: "20px",
-  },
-  modalCloseButton: {
-    marginTop: "10px",
-    padding: "8px 14px",
-    backgroundColor: "#dc3545",
-    color: "white",
-    border: "none",
-    borderRadius: "5px",
-    cursor: "pointer",
-  },
-  noData: {
-    textAlign: "center",
-    fontSize: "18px",
-    marginTop: "50px",
-  },
-  th: {
-    borderBottom: "1px solid #e5e7eb",
-    padding: "12px 16px",
-    fontSize: "12px",
-    fontWeight: 600,
-    textAlign: "left",
-    background: "#f9fafb",
-    color: "#6b7280",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
-    whiteSpace: "nowrap" as const,
-  },
-  td: {
-    borderBottom: "1px solid #e5e7eb",
-    padding: "14px 16px",
-    fontSize: "14px",
-    textAlign: "left",
-    color: "#374151",
-    verticalAlign: "middle" as const,
-  },
-  documentsChecklist: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-    marginTop: "15px",
-  },
-  checklistItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    padding: "10px",
-    backgroundColor: "#ffffff",
-    borderRadius: "6px",
-    border: "1px solid #e5e7eb",
-  },
-  checkIcon: {
-    fontSize: "20px",
-    fontWeight: "bold",
-    minWidth: "24px",
-    textAlign: "center",
-  },
-  checklistLabel: {
-    flex: 1,
-    fontSize: "15px",
-    fontWeight: 500,
-    color: "#1f2937",
-  },
-  viewDocumentLink: {
-    color: "#4F46E5",
-    textDecoration: "none",
-    fontSize: "14px",
-    fontWeight: 500,
-    padding: "4px 12px",
-    borderRadius: "4px",
-    backgroundColor: "#eef2ff",
-    transition: "background-color 0.2s",
-  },
-  missingDocsWarning: {
-    marginTop: "15px",
-    padding: "10px",
-    backgroundColor: "#fef3c7",
-    borderRadius: "6px",
-    color: "#92400e",
-    fontSize: "14px",
-    fontWeight: 500,
-    textAlign: "center",
-  },
-  trainingsTracker: {
-    marginTop: "15px",
-  },
-  trainingsList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-  },
-  trainingTrackerItem: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "12px",
-    backgroundColor: "#ffffff",
-    borderRadius: "6px",
-    border: "1px solid #e5e7eb",
-  },
-  trainingTrackerLeft: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-    flex: 1,
-  },
-  trainingCheckIcon: {
-    fontSize: "20px",
-    color: "#10b981",
-    fontWeight: "bold",
-    minWidth: "24px",
-    textAlign: "center",
-  },
-  trainingPendingIcon: {
-    fontSize: "20px",
-    color: "#6b7280",
-    fontWeight: "bold",
-    minWidth: "24px",
-    textAlign: "center",
-  },
-  trainingTrackerName: {
-    fontSize: "15px",
-    fontWeight: 500,
-    color: "#1f2937",
-  },
-  trainingTrackerNamePending: {
-    fontSize: "15px",
-    fontWeight: 500,
-    color: "#6b7280",
-  },
-  trainingsSubtitle: {
-    fontSize: "16px",
-    fontWeight: 600,
-    color: "#374151",
-    marginBottom: "12px",
-    marginTop: "0",
-  },
-  pendingLabel: {
-    fontSize: "13px",
-    fontWeight: 500,
-    color: "#f59e0b",
-    padding: "4px 12px",
-    borderRadius: "4px",
-    backgroundColor: "#fef3c7",
-  },
-  viewTrainingProofLink: {
-    color: "#4F46E5",
-    textDecoration: "none",
-    fontSize: "14px",
-    fontWeight: 500,
-    padding: "4px 12px",
-    borderRadius: "4px",
-    backgroundColor: "#eef2ff",
-    transition: "background-color 0.2s",
-  },
-  noTrainingsText: {
-    color: "#6b7280",
-    fontSize: "14px",
-    fontStyle: "italic",
-    textAlign: "center",
-    padding: "20px",
-  },
 };
 
 export default Profile;

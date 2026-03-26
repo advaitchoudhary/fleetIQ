@@ -29,6 +29,7 @@ import {
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md"; // Material Dashboard Icon
 import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
 
 const ADMIN_ROLES = ["admin", "company_admin", "dispatcher"];
 import { API_BASE_URL } from "../utils/env";
@@ -77,6 +78,7 @@ const Navbar: React.FC = () => {
     }
   }, [notifications]);
   const { user, logout, isInsideOrg, activeOrgName, exitOrg } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
@@ -171,7 +173,7 @@ const Navbar: React.FC = () => {
       {/* Super-admin org context banner */}
       {isInsideOrg && (
         <div style={{
-          background: "#4F46E5", color: "#fff", display: "flex", alignItems: "center",
+          background: "var(--t-accent)", color: "#fff", display: "flex", alignItems: "center",
           justifyContent: "space-between", padding: "7px 24px", fontSize: "13px", fontWeight: 500,
           position: "fixed", top: 0, zIndex: 950,
           left: isSidebarCollapsed ? "72px" : "260px",
@@ -214,7 +216,7 @@ const Navbar: React.FC = () => {
               {showNotification && (
                 <div style={styles.notificationDropdown} ref={notificationRef} data-nav-dropdown>
                   <div style={styles.notificationHeader}>
-                    <span style={{ fontWeight: 700, fontSize: "14px", color: "#111827" }}>Notifications</span>
+                    <span style={{ fontWeight: 700, fontSize: "14px", color: "var(--t-text)" }}>Notifications</span>
                     <button
                       style={styles.markAllRead}
                       onClick={handleMarkAllRead}
@@ -256,14 +258,14 @@ const Navbar: React.FC = () => {
                             <td style={{ ...styles.notificationTableCell, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                               <span>
                                 {!notification.read && (
-                                  <span style={{ color: "#4F46E5", marginRight: "6px", fontSize: "10px" }}>●</span>
+                                  <span style={{ color: "var(--t-accent)", marginRight: "6px", fontSize: "10px" }}>●</span>
                                 )}
                                 {`${notification.message} on ${new Date(
                                   notification.createdAt
                                 ).toLocaleString()}`}
                               </span>
                               <span
-                                style={{ marginLeft: "12px", color: "#9ca3af", cursor: "pointer", fontSize: "13px" }}
+                                style={{ marginLeft: "12px", color: "var(--t-text-faint)", cursor: "pointer", fontSize: "13px" }}
                                 onClick={async (e) => {
                                   e.stopPropagation(); // Prevent row click from firing
                                   try {
@@ -330,24 +332,24 @@ const Navbar: React.FC = () => {
           justifyContent: isSidebarCollapsed ? "center" : "space-between",
           padding: isSidebarCollapsed ? "0 14px" : "0 14px 0 20px",
           height: "56px",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          borderBottom: "1px solid var(--t-border)",
           flexShrink: 0,
         }}>
           {!isSidebarCollapsed && (
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <FaTruck size={18} style={{ color: "#818CF8" }} />
-              <span style={{ fontSize: "17px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
-                Fleet<span style={{ color: "#818CF8" }}>IQ</span>
+              <FaTruck size={18} style={{ color: "var(--t-accent-light)" }} />
+              <span style={{ fontSize: "17px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.3px" }}>
+                Fleet<span style={{ color: "var(--t-accent-light)" }}>IQ</span>
               </span>
             </div>
           )}
           <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             style={{
-              background: "rgba(255,255,255,0.07)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "var(--t-hover-bg)",
+              border: "1px solid var(--t-border-strong)",
               borderRadius: "8px",
-              color: "#9ca3af",
+              color: "var(--t-text-faint)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
@@ -433,6 +435,45 @@ const Navbar: React.FC = () => {
           )}
         </ul>
 
+        {/* Theme toggle */}
+        <div style={{
+          padding: isSidebarCollapsed ? "8px" : "8px 10px",
+          margin: "0 0 6px",
+          display: "flex",
+          justifyContent: isSidebarCollapsed ? "center" : "stretch",
+        }}>
+          <button
+            onClick={toggleTheme}
+            title={isDark ? "Switch to Light mode" : "Switch to Dark mode"}
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: isSidebarCollapsed ? "9px 0" : "9px 14px",
+              justifyContent: isSidebarCollapsed ? "center" : "flex-start",
+              background: "var(--t-input-bg)",
+              border: "1px solid var(--t-border)",
+              borderRadius: "10px",
+              cursor: "pointer",
+              color: "var(--t-text-faint)",
+              fontSize: "13px",
+              fontWeight: 500,
+              fontFamily: "Inter, system-ui, sans-serif",
+              transition: "background 0.15s",
+            }}
+          >
+            <span style={{ fontSize: "16px", lineHeight: 1, flexShrink: 0 }}>
+              {isDark ? "☀️" : "🌙"}
+            </span>
+            {!isSidebarCollapsed && (
+              <span style={{ color: "var(--t-text-faint)" }}>
+                {isDark ? "Light Mode" : "Dark Mode"}
+              </span>
+            )}
+          </button>
+        </div>
+
         {/* Admin profile block at bottom */}
         {ADMIN_ROLES.includes(user?.role ?? "") && (
           <div style={{
@@ -464,10 +505,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: "center",
     padding: "0 24px",
     height: "56px",
-    background: "#111827",
-    color: "#fff",
+    background: "var(--t-bg)",
+    borderBottom: "1px solid var(--t-border)",
+    color: "var(--t-text)",
     fontFamily: "Inter, system-ui, sans-serif",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+    boxShadow: "var(--t-shadow)",
     position: "fixed",
     top: 0,
     zIndex: 900,
@@ -485,7 +527,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     lineHeight: "1",
     fontWeight: 800,
     letterSpacing: "-0.3px",
-    color: "#fff",
+    color: "var(--t-text)",
   },
   notificationIconWrapper: {
     position: "relative",
@@ -500,8 +542,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: "absolute",
     top: "-10px",
     right: "-10px",
-    backgroundColor: "#dc2626",
-    color: "white",
+    backgroundColor: "var(--t-error)",
+    color: "var(--t-text)",
     borderRadius: "50%",
     fontSize: "10px",
     fontWeight: 700,
@@ -517,11 +559,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     top: "35px",
     right: "0",
     width: "380px",
-    background: "#fff",
-    color: "#374151",
+    background: "var(--t-modal-bg)",
+    color: "var(--t-text-secondary)",
     borderRadius: "12px",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 8px 30px rgba(0, 0, 0, 0.12)",
+    border: "1px solid var(--t-border)",
+    boxShadow: "var(--t-shadow-lg)",
     zIndex: 1001,
     padding: "16px",
     fontFamily: "Inter, system-ui, sans-serif",
@@ -531,16 +573,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: "center",
     justifyContent: "space-between",
     paddingBottom: "10px",
-    borderBottom: "1px solid #f3f4f6",
+    borderBottom: "1px solid var(--t-border)",
     marginBottom: "8px",
   },
   markAllRead: {
     background: "none",
     border: "none",
-    color: "#4F46E5",
+    color: "var(--t-accent-light)",
     cursor: "pointer",
-    fontSize: "13px",
+    fontSize: "12px",
     fontWeight: 600,
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   notificationTabs: {
     display: "flex",
@@ -548,12 +591,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: "10px",
   },
   tabButton: {
-    background: "#f3f4f6",
-    border: "none",
+    background: "var(--t-hover-bg)",
+    border: "1px solid var(--t-border)",
     borderRadius: "6px",
+    color: "var(--t-text-faint)",
     padding: "5px 10px",
     fontSize: "12px",
     cursor: "pointer",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   notificationList: {
     listStyle: "none",
@@ -572,24 +617,24 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: "13px",
   },
   notificationTableHeader: {
-    borderBottom: "1px solid #e5e7eb",
+    borderBottom: "1px solid var(--t-border)",
     textAlign: "left",
     paddingBottom: "6px",
-    fontSize: "11px",
+    fontSize: "9px",
     fontWeight: 700,
-    color: "#6b7280",
+    color: "var(--t-text-ghost)",
     textTransform: "uppercase",
-    letterSpacing: "0.5px",
+    letterSpacing: "0.8px",
   },
   notificationTableCell: {
-    padding: "8px 0",
-    borderBottom: "1px solid #f3f4f6",
-    fontSize: "13px",
-    color: "#374151",
+    padding: "10px 0",
+    borderBottom: "1px solid var(--t-stripe)",
+    fontSize: "12px",
+    color: "var(--t-text-muted)",
     lineHeight: "1.5",
   },
   acceptButton: {
-    background: "#4F46E5",
+    background: "var(--t-accent)",
     color: "#fff",
     border: "none",
     padding: "5px 10px",
@@ -598,15 +643,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: "pointer",
     fontSize: "12px",
     fontWeight: 600,
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   declineButton: {
-    background: "#f3f4f6",
-    color: "#374151",
-    border: "1px solid #d1d5db",
+    background: "var(--t-hover-bg)",
+    color: "var(--t-text-faint)",
+    border: "1px solid var(--t-border-strong)",
     padding: "5px 10px",
     borderRadius: "6px",
     cursor: "pointer",
     fontSize: "12px",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   authButtons: {
     display: "flex",
@@ -614,9 +661,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: "center",
   },
   logoutButton: {
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.15)",
-    color: "#fff",
+    background: "var(--t-hover-bg)",
+    border: "1px solid var(--t-border-strong)",
+    color: "var(--t-text)",
     cursor: "pointer",
     fontSize: "13px",
     fontWeight: 500,
@@ -628,9 +675,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: "background 0.2s",
   },
   changePasswordButton: {
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.15)",
-    color: "#fff",
+    background: "var(--t-hover-bg)",
+    border: "1px solid var(--t-border-strong)",
+    color: "var(--t-text)",
     cursor: "pointer",
     fontSize: "13px",
     fontWeight: 500,
@@ -649,12 +696,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     height: "100%",
     overflowY: "auto",
     overflowX: "hidden",
-    backgroundColor: "#0d1117",
-    color: "#fff",
+    backgroundColor: "var(--t-bg)",
+    color: "var(--t-text)",
     transition: "left 0.3s ease, width 0.3s ease",
     zIndex: 1000,
     fontFamily: "Inter, system-ui, sans-serif",
-    boxShadow: "4px 0 24px rgba(0,0,0,0.45)",
+    boxShadow: "var(--t-shadow)",
     display: "flex",
     flexDirection: "column",
   },
@@ -668,7 +715,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     listStyle: "none",
   },
   navLink: {
-    color: "#9ca3af",
+    color: "var(--t-text-faint)",
     textDecoration: "none",
     display: "flex",
     alignItems: "center",
@@ -703,13 +750,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "4px 24px",
     fontSize: "10px",
     fontWeight: 700,
-    color: "#374151",
+    color: "var(--t-text-ghost)",
     textTransform: "uppercase" as const,
     letterSpacing: "1.1px",
   },
   sectionDivider: {
     height: "1px",
-    background: "rgba(255,255,255,0.06)",
+    background: "var(--t-border)",
     margin: "0 14px",
   },
   adminProfile: {
@@ -718,8 +765,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: "10px",
     padding: "12px 14px",
     margin: "auto 10px 14px",
-    background: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.07)",
+    background: "var(--t-surface-alt)",
+    border: "1px solid var(--t-border)",
     borderRadius: "12px",
     flexShrink: 0,
   },
@@ -740,7 +787,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   adminName: {
     fontSize: "13px",
     fontWeight: 600,
-    color: "#f3f4f6",
+    color: "var(--t-text)",
     whiteSpace: "nowrap" as const,
     overflow: "hidden",
     textOverflow: "ellipsis",
@@ -748,7 +795,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   adminRole: {
     fontSize: "11px",
     fontWeight: 500,
-    color: "#6b7280",
+    color: "var(--t-text-dim)",
     marginTop: "1px",
   },
   driverProfile: {
@@ -783,7 +830,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   driverProfileName: {
     fontSize: "14px",
     fontWeight: 700,
-    color: "#f9fafb",
+    color: "var(--t-text)",
     whiteSpace: "nowrap" as const,
     overflow: "hidden",
     textOverflow: "ellipsis",
@@ -792,8 +839,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   driverIdBadge: {
     fontSize: "10px",
     fontWeight: 600,
-    color: "#a5b4fc",
-    background: "rgba(79,70,229,0.3)",
+    color: "var(--t-accent-light)",
+    background: "var(--t-indigo-bg)",
     borderRadius: "4px",
     padding: "2px 6px",
     display: "inline-block",
@@ -806,8 +853,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   driverOrgBadge: {
     fontSize: "10px",
     fontWeight: 600,
-    color: "#6ee7b7",
-    background: "rgba(16,185,129,0.15)",
+    color: "var(--t-success)",
+    background: "var(--t-success-bg)",
     borderRadius: "4px",
     padding: "2px 6px",
     display: "inline-block",
@@ -817,7 +864,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     maxWidth: "100%",
   },
   driverNavLink: {
-    color: "#c7d2fe",
+    color: "var(--t-text-faint)",
     textDecoration: "none",
     display: "flex",
     alignItems: "center",
@@ -865,8 +912,8 @@ style.innerHTML = `
 }
 
 nav ul li a:hover {
-  background-color: rgba(255,255,255,0.07) !important;
-  color: #e5e7eb !important;
+  background-color: var(--t-hover-bg) !important;
+  color: var(--t-text-secondary) !important;
   text-decoration: none;
 }
 

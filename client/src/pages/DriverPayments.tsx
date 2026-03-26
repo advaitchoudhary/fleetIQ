@@ -140,7 +140,7 @@ const DriverPayments: React.FC = () => {
   const onboardedCount = Object.values(onboardStatuses).filter((s) => s.onboarded).length;
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f0f4ff", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
       <Navbar />
       {/* Hero */}
       <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
@@ -163,18 +163,18 @@ const DriverPayments: React.FC = () => {
             <div style={styles.card}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
                 <FaStripe size={20} style={{ color: "#6772e5" }} />
-                <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#111827" }}>
+                <h2 style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--t-text)" }}>
                   Stripe Connect Status
                 </h2>
-                <span style={{ marginLeft: "auto", fontSize: "12px", color: "#6b7280" }}>
+                <span style={{ marginLeft: "auto", fontSize: "12px", color: "var(--t-text-dim)" }}>
                   {onboardedCount}/{drivers.length} connected
                 </span>
               </div>
 
               {loading ? (
-                <p style={{ color: "#6b7280", fontSize: "14px" }}>Loading drivers...</p>
+                <p style={{ color: "var(--t-text-dim)", fontSize: "14px" }}>Loading drivers...</p>
               ) : drivers.length === 0 ? (
-                <p style={{ color: "#6b7280", fontSize: "14px" }}>No drivers found.</p>
+                <p style={{ color: "var(--t-text-dim)", fontSize: "14px" }}>No drivers found.</p>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                   {drivers.map((d) => {
@@ -186,13 +186,13 @@ const DriverPayments: React.FC = () => {
                         onClick={() => { setSelectedDriver(d); setPreview(null); }}
                         style={{
                           ...styles.driverRow,
-                          border: selectedDriver?._id === d._id ? "2px solid #4F46E5" : "1px solid #e5e7eb",
-                          background: selectedDriver?._id === d._id ? "#eef2ff" : "#fff",
+                          border: "1px solid " + (selectedDriver?._id === d._id ? "var(--t-indigo)" : "var(--t-border)"),
+                          background: selectedDriver?._id === d._id ? "var(--t-indigo-bg)" : "var(--t-surface-alt)",
                         }}
                       >
                         <div>
-                          <div style={{ fontWeight: 600, fontSize: "14px", color: "#111827" }}>{d.name}</div>
-                          <div style={{ fontSize: "12px", color: "#6b7280" }}>{d.email}</div>
+                          <div style={{ fontWeight: 600, fontSize: "14px", color: "var(--t-text-secondary)" }}>{d.name}</div>
+                          <div style={{ fontSize: "12px", color: "var(--t-text-dim)" }}>{d.email}</div>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                           {isOnboarded ? (
@@ -216,9 +216,9 @@ const DriverPayments: React.FC = () => {
             </div>
 
             {/* Onboarding info */}
-            <div style={{ ...styles.card, background: "#f0f9ff", border: "1px solid #bae6fd", marginTop: "16px" }}>
-              <h3 style={{ margin: "0 0 8px", fontSize: "14px", fontWeight: 700, color: "#0369a1" }}>How Stripe Connect works</h3>
-              <ol style={{ margin: 0, paddingLeft: "16px", fontSize: "13px", color: "#0c4a6e", lineHeight: "1.7" }}>
+            <div style={{ ...styles.card, background: "rgba(79,70,229,0.06)", border: "1px solid rgba(79,70,229,0.2)", marginTop: "16px" }}>
+              <h3 style={{ margin: "0 0 8px", fontSize: "14px", fontWeight: 700, color: "var(--t-indigo)" }}>How Stripe Connect works</h3>
+              <ol style={{ margin: 0, paddingLeft: "16px", fontSize: "13px", color: "var(--t-text-faint)", lineHeight: "1.7" }}>
                 <li>Click <strong>Connect</strong> next to a driver to start Stripe onboarding</li>
                 <li>Driver opens the Stripe-hosted form to add bank details</li>
                 <li>Once connected, you can send payouts directly to their bank</li>
@@ -229,22 +229,22 @@ const DriverPayments: React.FC = () => {
 
           {/* Right: Initiate Payout */}
           <div style={styles.card}>
-            <h2 style={{ margin: "0 0 16px", fontSize: "16px", fontWeight: 700, color: "#111827" }}>
+            <h2 style={{ margin: "0 0 16px", fontSize: "16px", fontWeight: 700, color: "var(--t-text)" }}>
               Initiate Payout
             </h2>
 
             {!selectedDriver ? (
-              <div style={{ padding: "32px 0", textAlign: "center", color: "#9ca3af", fontSize: "14px" }}>
+              <div style={{ padding: "32px 0", textAlign: "center", color: "var(--t-text-faint)", fontSize: "14px" }}>
                 <FaDollarSign size={32} style={{ marginBottom: "8px", opacity: 0.3 }} />
                 <p style={{ margin: 0 }}>Select a driver on the left to initiate a payout</p>
               </div>
             ) : (
               <>
-                <div style={{ background: "#f9fafb", borderRadius: "8px", padding: "12px", marginBottom: "20px", border: "1px solid #e5e7eb" }}>
-                  <div style={{ fontWeight: 700, color: "#111827", fontSize: "15px" }}>{selectedDriver.name}</div>
-                  <div style={{ fontSize: "13px", color: "#6b7280" }}>{selectedDriver.email}</div>
+                <div style={{ background: "rgba(255,255,255,0.04)", borderRadius: "8px", padding: "12px", marginBottom: "20px", border: "1px solid var(--t-border)" }}>
+                  <div style={{ fontWeight: 700, color: "var(--t-text-secondary)", fontSize: "15px" }}>{selectedDriver.name}</div>
+                  <div style={{ fontSize: "13px", color: "var(--t-text-dim)" }}>{selectedDriver.email}</div>
                   {!onboardStatuses[selectedDriver._id]?.onboarded && (
-                    <div style={{ marginTop: "8px", fontSize: "12px", color: "#dc2626", background: "#fee2e2", borderRadius: "6px", padding: "6px 10px" }}>
+                    <div style={{ marginTop: "8px", fontSize: "12px", color: "var(--t-error)", background: "var(--t-error-bg)", borderRadius: "6px", padding: "6px 10px" }}>
                       ⚠️ Driver must complete Stripe onboarding before receiving payments.
                     </div>
                   )}
@@ -277,25 +277,25 @@ const DriverPayments: React.FC = () => {
 
                 {preview && (
                   <div style={{ marginTop: "20px" }}>
-                    <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "16px", marginBottom: "16px" }}>
-                      <div style={{ fontSize: "13px", color: "#6b7280", marginBottom: "4px" }}>Payout Amount</div>
-                      <div style={{ fontSize: "32px", fontWeight: 800, color: "#16a34a" }}>
+                    <div style={{ background: "var(--t-success-bg)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: "8px", padding: "16px", marginBottom: "16px" }}>
+                      <div style={{ fontSize: "13px", color: "var(--t-text-dim)", marginBottom: "4px" }}>Payout Amount</div>
+                      <div style={{ fontSize: "32px", fontWeight: 800, color: "var(--t-success)" }}>
                         ${preview.totalAmount.toFixed(2)} <span style={{ fontSize: "16px", fontWeight: 500 }}>CAD</span>
                       </div>
-                      <div style={{ fontSize: "13px", color: "#6b7280", marginTop: "4px" }}>
+                      <div style={{ fontSize: "13px", color: "var(--t-text-dim)", marginTop: "4px" }}>
                         from {preview.timesheetCount} approved timesheet{preview.timesheetCount !== 1 ? "s" : ""}
                       </div>
                     </div>
 
                     {preview.timesheets.length > 0 && (
-                      <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: "8px", overflow: "hidden", marginBottom: "16px" }}>
-                        <div style={{ padding: "10px 14px", background: "#f9fafb", fontSize: "12px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      <div style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "8px", overflow: "hidden", marginBottom: "16px" }}>
+                        <div style={{ padding: "10px 14px", background: "rgba(255,255,255,0.04)", fontSize: "12px", fontWeight: 700, color: "var(--t-text-dim)", textTransform: "uppercase", letterSpacing: "0.5px" }}>
                           Included Timesheets
                         </div>
                         {preview.timesheets.map((ts: any) => (
-                          <div key={ts._id} style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", borderBottom: "1px solid #f3f4f6", fontSize: "13px" }}>
-                            <span style={{ color: "#374151" }}>{ts.weekEnding || (ts.date ? new Date(ts.date).toLocaleDateString() : "—")}</span>
-                            <span style={{ fontWeight: 600, color: "#111827" }}>${(ts.totalAmount || 0).toFixed(2)}</span>
+                          <div key={ts._id} style={{ display: "flex", justifyContent: "space-between", padding: "10px 14px", borderBottom: "1px solid var(--t-stripe)", fontSize: "13px" }}>
+                            <span style={{ color: "var(--t-text-muted)" }}>{ts.weekEnding || (ts.date ? new Date(ts.date).toLocaleDateString() : "—")}</span>
+                            <span style={{ fontWeight: 600, color: "var(--t-text-secondary)" }}>${(ts.totalAmount || 0).toFixed(2)}</span>
                           </div>
                         ))}
                       </div>
@@ -311,7 +311,7 @@ const DriverPayments: React.FC = () => {
                         {paying ? "Processing..." : `Send $${preview.totalAmount.toFixed(2)} CAD to ${selectedDriver.name}`}
                       </button>
                     ) : (
-                      <div style={{ fontSize: "14px", color: "#6b7280", textAlign: "center", padding: "12px" }}>
+                      <div style={{ fontSize: "14px", color: "var(--t-text-dim)", textAlign: "center", padding: "12px" }}>
                         No approved timesheets found for this period.
                       </div>
                     )}
@@ -327,14 +327,14 @@ const DriverPayments: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  card: { background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", padding: "24px", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
+  card: { background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", padding: "24px", boxShadow: "var(--t-shadow)" },
   driverRow: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: "8px", cursor: "pointer", transition: "border 0.15s" },
-  connectedBadge: { display: "inline-flex", alignItems: "center", gap: "5px", padding: "4px 10px", background: "#dcfce7", color: "#166534", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
+  connectedBadge: { display: "inline-flex", alignItems: "center", gap: "5px", padding: "4px 10px", background: "var(--t-success-bg)", color: "var(--t-success)", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
   connectBtn: { display: "inline-flex", alignItems: "center", gap: "5px", padding: "5px 12px", background: "#6772e5", color: "#fff", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer" },
-  secondaryBtn: { width: "100%", padding: "10px", background: "#f3f4f6", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontWeight: 600, cursor: "pointer", color: "#374151" },
-  payBtn: { width: "100%", padding: "14px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", fontSize: "15px", fontWeight: 700, cursor: "pointer" },
-  input: { width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid #d1d5db", fontSize: "14px", color: "#111827", background: "#fff", outline: "none", boxSizing: "border-box" },
-  label: { display: "block", fontSize: "13px", fontWeight: 500, color: "#374151", marginBottom: "4px" },
+  secondaryBtn: { width: "100%", padding: "10px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontWeight: 600, cursor: "pointer", color: "var(--t-text-muted)" },
+  payBtn: { width: "100%", padding: "14px", background: "var(--t-accent)", color: "#fff", border: "none", borderRadius: "8px", fontSize: "15px", fontWeight: 700, cursor: "pointer" },
+  input: { width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid var(--t-border-strong)", fontSize: "14px", color: "var(--t-text-secondary)", background: "var(--t-input-bg)", outline: "none", boxSizing: "border-box" as const },
+  label: { display: "block", fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", marginBottom: "6px", textTransform: "uppercase" as const, letterSpacing: "0.6px" },
 };
 
 export default DriverPayments;

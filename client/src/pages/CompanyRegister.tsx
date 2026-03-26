@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { FaTruck, FaCheckCircle, FaUsers, FaCar, FaCreditCard, FaShieldAlt, FaArrowRight } from "react-icons/fa";
+import { FaTruck, FaCheckCircle, FaArrowRight } from "react-icons/fa";
 import { API_BASE_URL } from "../utils/env";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -35,7 +35,6 @@ const CompanyRegister: React.FC = () => {
 
   const extractDigits = (value: string) => {
     let digits = value.replace(/\D/g, "");
-    // Always strip the leading "1" that comes from the +1 prefix
     if (digits.startsWith("1")) digits = digits.slice(1);
     return digits.slice(0, 10);
   };
@@ -93,100 +92,85 @@ const CompanyRegister: React.FC = () => {
   const inputStyle = (field: string): React.CSSProperties => ({
     width: "100%",
     padding: "11px 14px",
-    borderRadius: "8px",
-    border: `1.5px solid ${focusedField === field ? "#4F46E5" : "#e5e7eb"}`,
+    borderRadius: "9px",
+    border: `1.5px solid ${focusedField === field ? "#7B6CF6" : "rgba(255,255,255,0.08)"}`,
     fontSize: "14px",
-    color: "#111827",
+    color: "#fff",
     outline: "none",
     boxSizing: "border-box",
-    background: focusedField === field ? "#fafafe" : "#fff",
-    transition: "border-color 0.2s, background 0.2s",
+    background: "#1A2235",
+    transition: "border-color 0.2s",
     fontFamily: "Inter, system-ui, sans-serif",
   });
 
   const labelStyle: React.CSSProperties = {
     display: "block",
-    fontSize: "12px",
-    fontWeight: 600,
-    color: "#6b7280",
-    marginBottom: "5px",
+    fontSize: "10px",
+    fontWeight: 700,
+    color: "rgba(255,255,255,0.35)",
+    marginBottom: "6px",
     textTransform: "uppercase",
-    letterSpacing: "0.4px",
+    letterSpacing: "0.7px",
   };
 
-  const benefits = [
-    { icon: <FaUsers size={15} />, text: "Manage unlimited drivers & applications" },
-    { icon: <FaCar size={15} />, text: "Full vehicle & fleet operations" },
-    { icon: <FaCreditCard size={15} />, text: "Stripe-powered driver payouts" },
-    { icon: <FaShieldAlt size={15} />, text: "Compliance & document tracking" },
+  const avatars = [
+    { initial: "S", color: "#7B6CF6" },
+    { initial: "R", color: "#06B6D4" },
+    { initial: "M", color: "#34D399" },
   ];
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", minHeight: "100vh", display: "flex" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", minHeight: "100vh", display: "flex", background: "#090D18" }}>
       <style>{`
         * { box-sizing: border-box; }
 
-        .reg-orb-1 {
-          position: absolute; width: 320px; height: 320px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(79,70,229,0.35) 0%, transparent 70%);
-          top: -80px; left: -80px; pointer-events: none;
+        .reg-left {
+          width: 42%; min-height: 100vh; padding: 48px;
+          display: flex; flex-direction: column;
+          border-right: 1px solid rgba(255,255,255,0.05);
+          position: relative; overflow: hidden;
         }
-        .reg-orb-2 {
-          position: absolute; width: 260px; height: 260px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(124,58,237,0.25) 0%, transparent 70%);
-          bottom: 80px; right: -60px; pointer-events: none;
+
+        .reg-right {
+          width: 58%; min-height: 100vh; overflow-y: auto;
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
+          padding: 48px 32px;
         }
-        .reg-orb-3 {
-          position: absolute; width: 180px; height: 180px; border-radius: 50%;
-          background: radial-gradient(circle, rgba(6,182,212,0.18) 0%, transparent 70%);
-          bottom: 260px; left: 60px; pointer-events: none;
+
+        .reg-stat-box {
+          flex: 1; background: #0F1629;
+          border: 1px solid rgba(255,255,255,0.07);
+          border-radius: 12px; padding: 18px 20px; text-align: center;
+        }
+
+        .reg-form-card {
+          background: #0F1629;
+          border-radius: 16px;
+          border: 1px solid rgba(255,255,255,0.08);
+          padding: 28px;
         }
 
         .reg-submit-btn {
-          width: 100%; padding: 13px;
-          background: linear-gradient(135deg, #4F46E5, #7c3aed);
-          color: #fff; border: none; border-radius: 10px;
+          width: 100%; padding: 14px;
+          background: #7B6CF6;
+          color: #fff; border: none; border-radius: 50px;
           font-size: 15px; font-weight: 700; cursor: pointer;
           font-family: Inter, system-ui, sans-serif;
-          box-shadow: 0 4px 20px rgba(79,70,229,0.4);
-          transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+          box-shadow: 0 4px 20px rgba(123,108,246,0.35);
+          transition: transform 0.2s, box-shadow 0.2s, background 0.2s, opacity 0.2s;
           display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .reg-submit-btn:hover:not(:disabled) {
+          background: #6D5EE8;
           transform: translateY(-1px);
-          box-shadow: 0 8px 28px rgba(79,70,229,0.55);
+          box-shadow: 0 8px 28px rgba(123,108,246,0.5);
         }
-        .reg-submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
-
-        .reg-benefit-item {
-          display: flex; align-items: center; gap: 12px;
-          padding: 12px 16px; border-radius: 10px;
-          background: rgba(255,255,255,0.06);
-          border: 1px solid rgba(255,255,255,0.1);
-          font-size: 13px; color: rgba(255,255,255,0.85); font-weight: 500;
-          transition: background 0.2s;
-        }
-        .reg-benefit-item:hover { background: rgba(255,255,255,0.1); }
-
-        .reg-plan-pill {
-          display: inline-flex; align-items: center; gap: 6px;
-          padding: 4px 12px; border-radius: 100px;
-          font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
-          background: rgba(129,140,248,0.18); color: #a5b4fc;
-          border: 1px solid rgba(129,140,248,0.3);
-          text-transform: uppercase;
-        }
-
-        .reg-stat-card {
-          flex: 1; padding: 16px 20px; border-radius: 12px;
-          background: rgba(255,255,255,0.05);
-          border: 1px solid rgba(255,255,255,0.1);
-          text-align: center;
-        }
+        .reg-submit-btn:disabled { opacity: 0.65; cursor: not-allowed; }
 
         select.reg-select {
           appearance: none;
-          background-image: url('data:image/svg+xml;utf8,<svg fill="%236b7280" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+          background-image: url('data:image/svg+xml;utf8,<svg fill="%23ffffff50" height="20" viewBox="0 0 24 24" width="20" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
           background-repeat: no-repeat;
           background-position: right 12px center;
           background-size: 18px;
@@ -194,140 +178,131 @@ const CompanyRegister: React.FC = () => {
           cursor: pointer;
         }
 
+        .reg-plan-badge {
+          display: flex; align-items: center; gap: 10px;
+          background: rgba(123,108,246,0.08);
+          border: 1px solid rgba(123,108,246,0.2);
+          border-radius: 10px; padding: 12px 16px;
+          margin-bottom: 20px;
+        }
+
+        .reg-trust-row {
+          display: flex; align-items: center; justify-content: center;
+          gap: 18px; margin-top: 20px; flex-wrap: wrap;
+        }
+
         @media (max-width: 768px) {
-          .reg-left-panel { display: none !important; }
-          .reg-right-panel { width: 100% !important; }
+          .reg-left { display: none !important; }
+          .reg-right { width: 100% !important; }
         }
       `}</style>
 
       {/* ── LEFT PANEL ── */}
-      <div
-        className="reg-left-panel"
-        style={{
-          width: "42%",
-          minHeight: "100vh",
-          background: "linear-gradient(160deg, #0A0F1E 0%, #0F172A 50%, #1A0B3E 100%)",
-          padding: "48px 48px",
-          display: "flex",
-          flexDirection: "column",
-          position: "relative",
-          overflow: "hidden",
-        }}
-      >
-        {/* Orbs */}
-        <div className="reg-orb-1" />
-        <div className="reg-orb-2" />
-        <div className="reg-orb-3" />
+      <div className="reg-left">
 
-        <div style={{ position: "relative", zIndex: 1, flex: 1, display: "flex", flexDirection: "column" }}>
-          {/* Logo */}
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "56px" }}>
-            <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "linear-gradient(135deg, #4F46E5, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <FaTruck size={18} color="#fff" />
-            </div>
-            <span style={{ fontSize: "20px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
-              Fleet<span style={{ color: "#818CF8" }}>IQ</span>
-            </span>
+        {/* Logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "44px" }}>
+          <div style={{ width: "34px", height: "34px", borderRadius: "8px", background: "linear-gradient(135deg, #7B6CF6, #4F46E5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <FaTruck size={16} color="#fff" />
           </div>
+          <span style={{ fontSize: "18px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
+            Fleet<span style={{ color: "#7B6CF6" }}>IQ</span>
+          </span>
+        </div>
 
-          {/* Heading */}
-          <div style={{ marginBottom: "40px" }}>
-            <div className="reg-plan-pill" style={{ marginBottom: "20px" }}>
-              14-day free trial
-            </div>
-            <h1 style={{
-              margin: "0 0 16px",
-              fontSize: "clamp(26px, 3vw, 36px)",
-              fontWeight: 800,
-              color: "#fff",
-              lineHeight: 1.15,
-              letterSpacing: "-0.5px",
-            }}>
-              The smartest way to run your fleet.
-            </h1>
-            <p style={{ margin: 0, fontSize: "15px", color: "rgba(255,255,255,0.55)", lineHeight: 1.7 }}>
-              Join fleet operators who've replaced spreadsheets and disconnected tools with one purpose-built platform.
-            </p>
+        {/* Badge */}
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: "6px",
+          padding: "4px 12px", borderRadius: "100px",
+          background: "rgba(123,108,246,0.12)", color: "#a78bfa",
+          border: "1px solid rgba(123,108,246,0.25)",
+          fontSize: "10px", fontWeight: 700, letterSpacing: "0.8px",
+          textTransform: "uppercase", marginBottom: "20px", width: "fit-content",
+        }}>
+          14-Day Free Trial
+        </div>
+
+        {/* Headline */}
+        <div style={{ marginBottom: "20px" }}>
+          <h1 style={{ margin: "0 0 14px", fontSize: "clamp(26px, 2.8vw, 38px)", fontWeight: 800, color: "#fff", lineHeight: 1.15, letterSpacing: "-0.5px" }}>
+            The smartest way to<br />run your <span style={{ color: "#06B6D4" }}>fleet.</span>
+          </h1>
+          <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,0.4)", lineHeight: 1.7 }}>
+            Replace spreadsheets and disconnected tools with one purpose-built platform for drivers, vehicles, timesheets, and payouts.
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div style={{ display: "flex", gap: "12px", marginBottom: "36px" }}>
+          <div className="reg-stat-box">
+            <div style={{ fontSize: "26px", fontWeight: 800, color: "#7B6CF6", lineHeight: 1 }}>34+</div>
+            <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.3)", marginTop: "6px", textTransform: "uppercase", letterSpacing: "0.7px" }}>Features</div>
           </div>
+          <div className="reg-stat-box">
+            <div style={{ fontSize: "26px", fontWeight: 800, color: "#06B6D4", lineHeight: 1 }}>100%</div>
+            <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.3)", marginTop: "6px", textTransform: "uppercase", letterSpacing: "0.7px" }}>Paperless</div>
+          </div>
+          <div className="reg-stat-box">
+            <div style={{ fontSize: "26px", fontWeight: 800, color: "#34D399", lineHeight: 1 }}>3</div>
+            <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.3)", marginTop: "6px", textTransform: "uppercase", letterSpacing: "0.7px" }}>Plans</div>
+          </div>
+        </div>
 
-          {/* Benefits */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "48px" }}>
-            {benefits.map((b, i) => (
-              <div key={i} className="reg-benefit-item">
-                <span style={{ color: "#818CF8", flexShrink: 0 }}>{b.icon}</span>
-                {b.text}
+        {/* Social proof */}
+        <div style={{
+          background: "#0F1629",
+          border: "1px solid rgba(255,255,255,0.07)",
+          borderRadius: "14px", padding: "18px 20px",
+          display: "flex", alignItems: "center", gap: "14px",
+          marginBottom: "auto",
+        }}>
+          <div style={{ display: "flex" }}>
+            {avatars.map((a, i) => (
+              <div key={i} style={{
+                width: "30px", height: "30px", borderRadius: "50%",
+                background: a.color, border: "2px solid #0F1629",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: "11px", fontWeight: 700, color: "#fff",
+                marginLeft: i === 0 ? 0 : "-8px", zIndex: 3 - i,
+                position: "relative",
+              }}>
+                {a.initial}
               </div>
             ))}
           </div>
-
-          {/* Stats */}
-          <div style={{ display: "flex", gap: "12px", marginBottom: "auto" }}>
-            <div className="reg-stat-card">
-              <div style={{ fontSize: "24px", fontWeight: 800, color: "#818CF8", lineHeight: 1 }}>34+</div>
-              <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", marginTop: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Features</div>
-            </div>
-            <div className="reg-stat-card">
-              <div style={{ fontSize: "24px", fontWeight: 800, color: "#818CF8", lineHeight: 1 }}>100%</div>
-              <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", marginTop: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Paperless</div>
-            </div>
-            <div className="reg-stat-card">
-              <div style={{ fontSize: "24px", fontWeight: 800, color: "#818CF8", lineHeight: 1 }}>3</div>
-              <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)", marginTop: "6px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Plans</div>
-            </div>
+          <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>
+            Join <strong style={{ color: "#fff" }}>fleet operators</strong> who've replaced<br />spreadsheets with FleetIQ.
           </div>
+        </div>
 
-          {/* Testimonial */}
-          <div style={{
-            marginTop: "40px",
-            padding: "20px 24px",
-            borderRadius: "14px",
-            background: "rgba(255,255,255,0.05)",
-            border: "1px solid rgba(255,255,255,0.1)",
-          }}>
-            <p style={{ margin: "0 0 12px", fontSize: "13px", color: "rgba(255,255,255,0.7)", lineHeight: 1.65, fontStyle: "italic" }}>
-              "FleetIQ cut our timesheet processing from 2 days to 20 minutes."
-            </p>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: "linear-gradient(135deg, #4F46E5, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: 700, color: "#fff" }}>S</div>
-              <div>
-                <div style={{ fontSize: "12px", fontWeight: 600, color: "#fff" }}>Sarah M.</div>
-                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}>Fleet Manager, Oakville Logistics</div>
-              </div>
-            </div>
+        {/* Footer */}
+        <div style={{ paddingTop: "32px", borderTop: "1px solid rgba(255,255,255,0.05)", marginTop: "32px" }}>
+          <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+            {["Privacy Policy", "Terms of Service", "Support"].map((link) => (
+              <span key={link} style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", cursor: "pointer" }}>{link}</span>
+            ))}
           </div>
+          <div style={{ marginTop: "8px", fontSize: "11px", color: "rgba(255,255,255,0.15)" }}>© 2024 FleetIQ Systems. All rights reserved.</div>
         </div>
       </div>
 
       {/* ── RIGHT PANEL ── */}
-      <div
-        className="reg-right-panel"
-        style={{
-          width: "58%",
-          minHeight: "100vh",
-          background: "#f9fafb",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "48px 32px",
-          overflowY: "auto",
-        }}
-      >
-        <div style={{ width: "100%", maxWidth: "480px" }}>
+      <div className="reg-right">
+        <div style={{ width: "100%", maxWidth: "500px" }}>
 
           {/* Top row */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
             <button
               onClick={() => navigate("/")}
-              style={{ background: "none", border: "none", color: "#9ca3af", cursor: "pointer", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", gap: "5px" }}
+              style={{ background: "none", border: "none", color: "rgba(255,255,255,0.35)", cursor: "pointer", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", gap: "5px" }}
             >
               ← Home
             </button>
             <div>
-              <span style={{ fontSize: "13px", color: "#6b7280", cursor: "pointer" }} onClick={() => navigate("/login")}>Already have an account? </span>
+              <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.35)" }}>Already have an account? </span>
               <button
                 onClick={() => navigate("/login")}
-                style={{ background: "none", border: "none", color: "#4F46E5", cursor: "pointer", fontWeight: 700, fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}
+                style={{ background: "none", border: "none", color: "#7B6CF6", cursor: "pointer", fontWeight: 700, fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}
               >
                 Sign in →
               </button>
@@ -335,38 +310,34 @@ const CompanyRegister: React.FC = () => {
           </div>
 
           {/* Header */}
-          <div style={{ marginBottom: "28px" }}>
-            <h2 style={{ margin: "0 0 6px", fontSize: "24px", fontWeight: 800, color: "#111827", letterSpacing: "-0.3px" }}>
-              Create your account
+          <div style={{ marginBottom: "24px" }}>
+            <h2 style={{ margin: "0 0 6px", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
+              Create your workspace
             </h2>
-            <p style={{ margin: 0, fontSize: "14px", color: "#6b7280" }}>
+            <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,0.4)" }}>
               Start your 14-day free trial — no credit card required.
             </p>
           </div>
 
-          {/* Selected plan badge */}
-          <div style={{
-            display: "flex", alignItems: "center", gap: "10px",
-            background: "#eef2ff", border: "1px solid #c7d2fe",
-            borderRadius: "10px", padding: "12px 16px", marginBottom: "24px",
-          }}>
-            <FaCheckCircle style={{ color: "#4F46E5", flexShrink: 0 }} size={16} />
+          {/* Plan badge */}
+          <div className="reg-plan-badge">
+            <FaCheckCircle style={{ color: "#7B6CF6", flexShrink: 0 }} size={15} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "11px", color: "#6b7280", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.4px" }}>Selected Plan</div>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: "#4F46E5", marginTop: "1px" }}>
+              <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.35)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>Selected Plan</div>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#a78bfa", marginTop: "1px" }}>
                 {PLAN_NAMES[form.plan] || form.plan}
               </div>
             </div>
             <button
               onClick={() => navigate("/#pricing")}
-              style={{ background: "none", border: "1px solid #c7d2fe", borderRadius: "6px", color: "#4F46E5", fontSize: "12px", cursor: "pointer", fontWeight: 600, padding: "4px 10px", fontFamily: "Inter, system-ui, sans-serif" }}
+              style={{ background: "none", border: "1px solid rgba(123,108,246,0.3)", borderRadius: "6px", color: "#a78bfa", fontSize: "11px", cursor: "pointer", fontWeight: 600, padding: "4px 10px", fontFamily: "Inter, system-ui, sans-serif" }}
             >
               Change
             </button>
           </div>
 
           {/* Form card */}
-          <div style={{ background: "#fff", borderRadius: "16px", border: "1px solid #e5e7eb", padding: "28px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+          <div className="reg-form-card">
             <form onSubmit={handleSubmit}>
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
 
@@ -431,7 +402,7 @@ const CompanyRegister: React.FC = () => {
                   <div>
                     <label style={labelStyle}>Phone</label>
                     <input
-                      style={{ ...inputStyle("phone"), borderColor: phoneError ? "#dc2626" : focusedField === "phone" ? "#4F46E5" : "#e5e7eb" }}
+                      style={{ ...inputStyle("phone"), borderColor: phoneError ? "#F87171" : focusedField === "phone" ? "#7B6CF6" : "rgba(255,255,255,0.08)" }}
                       type="tel"
                       value={form.phone}
                       onChange={(e) => { const formatted = formatPhone(e.target.value); setForm({ ...form, phone: formatted }); if (phoneError) validatePhone(formatted); }}
@@ -440,7 +411,7 @@ const CompanyRegister: React.FC = () => {
                       placeholder="+1 (555) 000-0000"
                     />
                     {phoneError && (
-                      <p style={{ margin: "5px 0 0", fontSize: "12px", color: "#dc2626" }}>{phoneError}</p>
+                      <p style={{ margin: "5px 0 0", fontSize: "12px", color: "#F87171" }}>{phoneError}</p>
                     )}
                   </div>
                   <div>
@@ -469,7 +440,7 @@ const CompanyRegister: React.FC = () => {
                 </div>
 
                 {/* Divider */}
-                <div style={{ borderTop: "1px solid #f3f4f6", margin: "4px 0" }} />
+                <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", margin: "2px 0" }} />
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                   <div>
@@ -509,11 +480,11 @@ const CompanyRegister: React.FC = () => {
                   )}
                 </button>
 
-                <p style={{ textAlign: "center", margin: 0, fontSize: "11px", color: "#9ca3af", lineHeight: 1.6 }}>
+                <p style={{ textAlign: "center", margin: 0, fontSize: "11px", color: "rgba(255,255,255,0.25)", lineHeight: 1.6 }}>
                   By continuing, you agree to our{" "}
-                  <span style={{ color: "#4F46E5", cursor: "pointer", fontWeight: 600 }} onClick={() => navigate("/terms")}>Terms of Service</span>
+                  <span style={{ color: "#a78bfa", cursor: "pointer", fontWeight: 600 }} onClick={() => navigate("/terms")}>Terms of Service</span>
                   {" "}and{" "}
-                  <span style={{ color: "#4F46E5", cursor: "pointer", fontWeight: 600 }} onClick={() => navigate("/privacy")}>Privacy Policy</span>.
+                  <span style={{ color: "#a78bfa", cursor: "pointer", fontWeight: 600 }} onClick={() => navigate("/privacy")}>Privacy Policy</span>.
                 </p>
 
               </div>
@@ -521,10 +492,10 @@ const CompanyRegister: React.FC = () => {
           </div>
 
           {/* Trust indicators */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px", marginTop: "24px", flexWrap: "wrap" }}>
+          <div className="reg-trust-row">
             {["No credit card required", "Cancel anytime", "14-day free trial"].map((t) => (
-              <div key={t} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "12px", color: "#9ca3af" }}>
-                <FaCheckCircle size={10} style={{ color: "#4F46E5" }} />
+              <div key={t} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>
+                <FaCheckCircle size={10} style={{ color: "#7B6CF6" }} />
                 {t}
               </div>
             ))}

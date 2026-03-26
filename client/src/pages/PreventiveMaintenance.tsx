@@ -7,9 +7,9 @@ const MAINTENANCE_TYPES = ["preventive", "inspection", "tire", "oil_change", "ot
 const VEHICLE_TYPES = ["truck", "trailer", "van", "pickup", "other"];
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  on_track: { bg: "#d1fae5", color: "#065f46" },
-  due_soon: { bg: "#fef3c7", color: "#92400e" },
-  overdue: { bg: "#fee2e2", color: "#991b1b" },
+  on_track: { bg: "var(--t-success-bg)", color: "var(--t-success)" },
+  due_soon: { bg: "var(--t-warning-bg)", color: "var(--t-warning)" },
+  overdue: { bg: "var(--t-error-bg)", color: "var(--t-error)" },
 };
 
 const emptyTemplateForm = {
@@ -253,8 +253,8 @@ const PreventiveMaintenance: React.FC = () => {
 
         {dueSchedules.length > 0 && (
           <div style={styles.alertBanner}>
-            {overdueCount > 0 && <span style={{ color: "#dc2626", fontWeight: 700 }}>🔴 {overdueCount} overdue </span>}
-            {dueSoonCount > 0 && <span style={{ color: "#92400e", fontWeight: 700 }}>⚠ {dueSoonCount} due soon</span>}
+            {overdueCount > 0 && <span style={{ color: "var(--t-error)", fontWeight: 700 }}>🔴 {overdueCount} overdue </span>}
+            {dueSoonCount > 0 && <span style={{ color: "var(--t-warning)", fontWeight: 700 }}>⚠ {dueSoonCount} due soon</span>}
             <span style={{ marginLeft: "8px" }}>— review schedules below</span>
           </div>
         )}
@@ -286,17 +286,17 @@ const PreventiveMaintenance: React.FC = () => {
               </thead>
               <tbody>
                 {filteredSchedules.length === 0 ? (
-                  <tr><td colSpan={8} style={{ ...styles.td, textAlign: "center", color: "#6b7280", padding: "40px" }}>No schedules yet. Assign a PM template to a vehicle.</td></tr>
+                  <tr><td colSpan={8} style={{ ...styles.td, textAlign: "center", color: "var(--t-text-dim)", padding: "40px" }}>No schedules yet. Assign a PM template to a vehicle.</td></tr>
                 ) : filteredSchedules.map((s) => (
                   <tr key={s._id} style={styles.tr}>
-                    <td style={styles.td}><strong>{s.vehicleId?.unitNumber || "—"}</strong> <span style={{ color: "#6b7280", fontSize: "12px" }}>{s.vehicleId?.make}</span></td>
+                    <td style={styles.td}><strong>{s.vehicleId?.unitNumber || "—"}</strong> <span style={{ color: "var(--t-text-dim)", fontSize: "12px" }}>{s.vehicleId?.make}</span></td>
                     <td style={styles.td}>{s.templateId?.name || "—"}</td>
                     <td style={styles.td}>{s.lastCompletedDate ? new Date(s.lastCompletedDate).toLocaleDateString() : "—"}</td>
                     <td style={styles.td}>{s.lastCompletedOdometer ? `${s.lastCompletedOdometer.toLocaleString()} km` : "—"}</td>
                     <td style={styles.td}>{s.nextDueDate ? new Date(s.nextDueDate).toLocaleDateString() : "—"}</td>
                     <td style={styles.td}>{s.nextDueOdometer ? `${s.nextDueOdometer.toLocaleString()} km` : "—"}</td>
                     <td style={styles.td}>
-                      <span style={{ ...styles.badge, background: STATUS_COLORS[s.status]?.bg || "#f3f4f6", color: STATUS_COLORS[s.status]?.color || "#374151" }}>
+                      <span style={{ ...styles.badge, background: STATUS_COLORS[s.status]?.bg || "var(--t-hover-bg)", color: STATUS_COLORS[s.status]?.color || "var(--t-text-faint)" }}>
                         {s.status?.replace("_", " ")}
                       </span>
                     </td>
@@ -304,14 +304,14 @@ const PreventiveMaintenance: React.FC = () => {
                       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                         <button style={styles.iconBtn} title="Edit" onClick={() => openEditSchedule(s)}><FaEdit size={13} /></button>
                         <button
-                          style={{ ...styles.iconBtn, color: "#059669" }}
+                          style={{ ...styles.iconBtn, color: "var(--t-success)" }}
                           onClick={() => handleGenerate(s._id)}
                           disabled={generating === s._id}
                           title="Generate maintenance work order"
                         >
                           <FaWrench size={13} />
                         </button>
-                        <button style={{ ...styles.iconBtn, color: "#dc2626" }} title="Delete" onClick={() => { setSelectedItem(s); setDeleteType("schedule"); setIsDeleteModalOpen(true); }}><FaTrashAlt size={13} /></button>
+                        <button style={{ ...styles.iconBtn, color: "var(--t-error)" }} title="Delete" onClick={() => { setSelectedItem(s); setDeleteType("schedule"); setIsDeleteModalOpen(true); }}><FaTrashAlt size={13} /></button>
                       </div>
                     </td>
                   </tr>
@@ -331,7 +331,7 @@ const PreventiveMaintenance: React.FC = () => {
               </thead>
               <tbody>
                 {filteredTemplates.length === 0 ? (
-                  <tr><td colSpan={8} style={{ ...styles.td, textAlign: "center", color: "#6b7280", padding: "40px" }}>No templates yet. Create your first PM template.</td></tr>
+                  <tr><td colSpan={8} style={{ ...styles.td, textAlign: "center", color: "var(--t-text-dim)", padding: "40px" }}>No templates yet. Create your first PM template.</td></tr>
                 ) : filteredTemplates.map((t) => (
                   <tr key={t._id} style={styles.tr}>
                     <td style={styles.td}><strong>{t.name}</strong></td>
@@ -340,11 +340,11 @@ const PreventiveMaintenance: React.FC = () => {
                     <td style={styles.td}>{t.intervalDays ? `${t.intervalDays} days` : "—"}</td>
                     <td style={styles.td}>{t.estimatedCost ? `$${t.estimatedCost}` : "—"}</td>
                     <td style={styles.td}>{t.vendor || "—"}</td>
-                    <td style={styles.td}><span style={{ color: t.isActive ? "#059669" : "#6b7280", fontWeight: 600 }}>{t.isActive ? "Yes" : "No"}</span></td>
+                    <td style={styles.td}><span style={{ color: t.isActive ? "var(--t-success)" : "var(--t-text-dim)", fontWeight: 600 }}>{t.isActive ? "Yes" : "No"}</span></td>
                     <td style={styles.td}>
                       <div style={{ display: "flex", gap: "6px" }}>
                         <button style={styles.iconBtn} title="Edit" onClick={() => openEditTemplate(t)}><FaEdit size={13} /></button>
-                        <button style={{ ...styles.iconBtn, color: "#dc2626" }} title="Delete" onClick={() => { setSelectedItem(t); setDeleteType("template"); setIsDeleteModalOpen(true); }}><FaTrashAlt size={13} /></button>
+                        <button style={{ ...styles.iconBtn, color: "var(--t-error)" }} title="Delete" onClick={() => { setSelectedItem(t); setDeleteType("template"); setIsDeleteModalOpen(true); }}><FaTrashAlt size={13} /></button>
                       </div>
                     </td>
                   </tr>
@@ -460,10 +460,10 @@ const PreventiveMaintenance: React.FC = () => {
         <div style={styles.modalOverlay}>
           <div style={{ ...styles.modal, maxWidth: "420px" }}>
             <h2 style={styles.modalTitle}>Delete {deleteType === "template" ? "Template" : "Schedule"}?</h2>
-            <p style={{ color: "#6b7280", marginBottom: "24px" }}>This cannot be undone.</p>
+            <p style={{ color: "var(--t-text-dim)", marginBottom: "24px" }}>This cannot be undone.</p>
             <div style={styles.modalActions}>
               <button style={styles.cancelBtn} onClick={() => setIsDeleteModalOpen(false)}>Cancel</button>
-              <button style={{ ...styles.primaryBtn, background: "#dc2626" }} onClick={handleDelete}>Delete</button>
+              <button style={{ ...styles.primaryBtn, background: "var(--t-error)" }} onClick={handleDelete}>Delete</button>
             </div>
           </div>
         </div>
@@ -473,33 +473,33 @@ const PreventiveMaintenance: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#f0f4ff", fontFamily: "Inter, system-ui, sans-serif" },
+  wrapper: { minHeight: "100vh", background: "var(--t-bg)", fontFamily: "Inter, system-ui, sans-serif" },
   container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
-  primaryBtn: { padding: "10px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
-  secondaryBtn: { padding: "10px 18px", background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
-  alertBanner: { background: "#fef3c7", border: "1px solid #fbbf24", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "#92400e" },
-  tabRow: { display: "flex", gap: "8px", marginBottom: "20px", borderBottom: "1px solid #e5e7eb" },
-  tab: { padding: "10px 20px", background: "none", border: "none", borderBottom: "2px solid transparent", cursor: "pointer", fontSize: "14px", fontWeight: 600, color: "#6b7280", fontFamily: "Inter, system-ui, sans-serif", marginBottom: "-1px" },
-  activeTab: { color: "#4F46E5", borderBottom: "2px solid #4F46E5" },
+  primaryBtn: { padding: "10px 18px", background: "var(--t-accent)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
+  secondaryBtn: { padding: "10px 18px", background: "var(--t-hover-bg)", color: "var(--t-text-faint)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
+  alertBanner: { background: "var(--t-warning-bg)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "var(--t-warning)" },
+  tabRow: { display: "flex", gap: "8px", marginBottom: "20px", borderBottom: "1px solid var(--t-border)" },
+  tab: { padding: "10px 20px", background: "none", border: "none", borderBottom: "2px solid transparent", cursor: "pointer", fontSize: "14px", fontWeight: 600, color: "var(--t-text-dim)", fontFamily: "Inter, system-ui, sans-serif", marginBottom: "-1px" },
+  activeTab: { color: "var(--t-indigo)", borderBottom: "2px solid var(--t-indigo)" },
   filtersRow: { marginBottom: "16px" },
-  searchInput: { width: "300px", padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" },
-  tableWrapper: { background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", overflowX: "auto", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
+  searchInput: { width: "300px", padding: "9px 14px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-input-bg)", color: "var(--t-text-secondary)" },
+  tableWrapper: { background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", overflowX: "auto", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
   table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
-  th: { padding: "12px 16px", textAlign: "left", background: "#f5f3ff", borderBottom: "2px solid #e0e7ff", fontWeight: 700, color: "#6366f1", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
-  tr: { borderBottom: "1px solid #f0f0ff" },
-  td: { padding: "14px 16px", color: "#374151", verticalAlign: "middle" },
+  th: { padding: "12px 16px", textAlign: "left", background: "var(--t-surface-alt)", borderBottom: "1px solid var(--t-border)", fontWeight: 700, color: "var(--t-indigo)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
+  tr: { borderBottom: "1px solid var(--t-stripe)" },
+  td: { padding: "14px 16px", color: "var(--t-text-muted)", verticalAlign: "middle" },
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
-  iconBtn: { background: "#f3f4f6", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "#374151", display: "flex", alignItems: "center" },
-  emptyState: { textAlign: "center", padding: "60px 0", color: "#6b7280", fontSize: "15px" },
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
-  modal: { background: "#fff", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "#111827" },
+  iconBtn: { background: "var(--t-hover-bg)", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "var(--t-text-faint)", display: "flex", alignItems: "center" },
+  emptyState: { textAlign: "center", padding: "60px 0", color: "var(--t-text-dim)", fontSize: "15px" },
+  modalOverlay: { position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
+  modal: { background: "var(--t-surface)", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "var(--t-shadow-lg)", border: "1px solid var(--t-border)" },
+  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "var(--t-text)" },
   formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "4px" },
   formGroup: { marginBottom: "16px" },
-  label: { display: "block", fontSize: "13px", fontWeight: 500, color: "#374151", marginBottom: "4px" },
-  input: { width: "100%", padding: "9px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", color: "#111827", background: "#fff", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
+  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
+  input: { width: "100%", padding: "9px 12px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", color: "var(--t-text-secondary)", background: "var(--t-input-bg)", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
   modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
-  cancelBtn: { padding: "10px 20px", background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
+  cancelBtn: { padding: "10px 20px", background: "var(--t-hover-bg)", color: "var(--t-text-faint)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
 };
 
 export default PreventiveMaintenance;

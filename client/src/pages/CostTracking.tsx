@@ -188,8 +188,8 @@ const CostTracking: React.FC = () => {
             const y = padT + innerH - f * innerH;
             return (
               <g key={f}>
-                <line x1={padL} y1={y} x2={chartW - padR} y2={y} stroke="#e5e7eb" strokeWidth={1} />
-                <text x={padL - 6} y={y + 4} textAnchor="end" fontSize={10} fill="#9ca3af">
+                <line x1={padL} y1={y} x2={chartW - padR} y2={y} stroke="var(--t-border)" strokeWidth={1} />
+                <text x={padL - 6} y={y + 4} textAnchor="end" fontSize={10} fill="var(--t-text-faint)">
                   ${((f * maxCost) / 1000).toFixed(1)}k
                 </text>
               </g>
@@ -197,25 +197,25 @@ const CostTracking: React.FC = () => {
           })}
           {/* Month labels */}
           {trend.map((t, i) => (
-            <text key={i} x={toX(i)} y={chartH - 6} textAnchor="middle" fontSize={10} fill="#6b7280">{t.label}</text>
+            <text key={i} x={toX(i)} y={chartH - 6} textAnchor="middle" fontSize={10} fill="var(--t-text-dim)" style={{ fill: "var(--t-text-dim)" }}>{t.label}</text>
           ))}
           {/* Lines */}
-          <polyline points={mPoints} fill="none" stroke="#4F46E5" strokeWidth={2.5} strokeLinejoin="round" />
-          <polyline points={fPoints} fill="none" stroke="#0891b2" strokeWidth={2.5} strokeLinejoin="round" />
+          <polyline points={mPoints} fill="none" stroke="var(--t-accent)" strokeWidth={2.5} strokeLinejoin="round" />
+          <polyline points={fPoints} fill="none" stroke="var(--t-info)" strokeWidth={2.5} strokeLinejoin="round" />
           {/* Dots */}
           {trend.map((t, i) => (
             <g key={i}>
-              <circle cx={toX(i)} cy={toY(t.maintenanceCost)} r={4} fill="#4F46E5" />
-              <circle cx={toX(i)} cy={toY(t.fuelCost)} r={4} fill="#0891b2" />
+              <circle cx={toX(i)} cy={toY(t.maintenanceCost)} r={4} fill="var(--t-accent)" />
+              <circle cx={toX(i)} cy={toY(t.fuelCost)} r={4} fill="var(--t-info)" />
             </g>
           ))}
         </svg>
         <div style={{ display: "flex", gap: "20px", marginTop: "8px", justifyContent: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px" }}>
-            <div style={{ width: "14px", height: "3px", background: "#4F46E5", borderRadius: "2px" }} /> Maintenance
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "var(--t-text-muted)" }}>
+            <div style={{ width: "14px", height: "3px", background: "var(--t-accent)", borderRadius: "2px" }} /> Maintenance
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px" }}>
-            <div style={{ width: "14px", height: "3px", background: "#0891b2", borderRadius: "2px" }} /> Fuel
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: "var(--t-text-muted)" }}>
+            <div style={{ width: "14px", height: "3px", background: "var(--t-info)", borderRadius: "2px" }} /> Fuel
           </div>
         </div>
       </div>
@@ -252,7 +252,7 @@ const CostTracking: React.FC = () => {
             {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model}</option>)}
           </select>
           <input type="date" style={styles.dateInput} value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-          <span style={{ color: "#6b7280", fontSize: "14px" }}>to</span>
+          <span style={{ color: "var(--t-text-faint)", fontSize: "14px" }}>to</span>
           <input type="date" style={styles.dateInput} value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
           <button style={styles.filterBtn} onClick={fetchAll}>Apply</button>
           <button style={{ ...styles.filterBtn, background: "rgba(255,255,255,0.15)", color: "#fff", border: "1px solid rgba(255,255,255,0.25)" }} onClick={handleExport}>Export</button>
@@ -301,17 +301,17 @@ const CostTracking: React.FC = () => {
                   <tr key={row.vehicleId} style={styles.tr}>
                     <td style={styles.td}>
                       <strong>{row.vehicle?.unitNumber || "—"}</strong>
-                      <span style={{ color: "#6b7280", marginLeft: "8px", fontSize: "13px" }}>{row.vehicle?.make} {row.vehicle?.model}</span>
+                      <span style={{ color: "var(--t-text-faint)", marginLeft: "8px", fontSize: "13px" }}>{row.vehicle?.make} {row.vehicle?.model}</span>
                     </td>
                     <td style={styles.td}>${row.maintenanceCost.toFixed(2)}</td>
                     <td style={styles.td}>${row.fuelCost.toFixed(2)}</td>
-                    <td style={{ ...styles.td, fontWeight: 700, color: "#4F46E5" }}>${row.totalCost.toFixed(2)}</td>
+                    <td style={{ ...styles.td, fontWeight: 700, color: "var(--t-indigo)" }}>${row.totalCost.toFixed(2)}</td>
                     <td style={styles.td}>{row.jobCount}</td>
                     <td style={styles.td}>{row.litres.toFixed(1)} L</td>
                   </tr>
                 ))}
                 {(!summary?.rows || summary.rows.length === 0) && (
-                  <tr><td colSpan={6} style={{ ...styles.td, textAlign: "center", color: "#6b7280", padding: "40px" }}>No cost data for selected period.</td></tr>
+                  <tr><td colSpan={6} style={{ ...styles.td, textAlign: "center", color: "var(--t-text-dim)", padding: "40px" }}>No cost data for selected period.</td></tr>
                 )}
               </tbody>
             </table>
@@ -355,10 +355,10 @@ const CostTracking: React.FC = () => {
                     <div key={c._id} style={{ marginBottom: "16px" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px", fontSize: "14px" }}>
                         <span style={{ fontWeight: 600 }}>{TYPE_LABELS[c._id] || c._id}</span>
-                        <span style={{ color: "#6b7280" }}>${c.totalCost.toFixed(2)} · {c.count} job{c.count !== 1 ? "s" : ""} · {pct.toFixed(1)}%</span>
+                        <span style={{ color: "var(--t-text-faint)" }}>${c.totalCost.toFixed(2)} · {c.count} job{c.count !== 1 ? "s" : ""} · {pct.toFixed(1)}%</span>
                       </div>
-                      <div style={{ background: "#f3f4f6", borderRadius: "100px", height: "8px" }}>
-                        <div style={{ background: "#4F46E5", borderRadius: "100px", height: "8px", width: `${pct}%`, transition: "width 0.4s" }} />
+                      <div style={{ background: "var(--t-border)", borderRadius: "100px", height: "8px" }}>
+                        <div style={{ background: "var(--t-accent)", borderRadius: "100px", height: "8px", width: `${pct}%`, transition: "width 0.4s" }} />
                       </div>
                     </div>
                   );
@@ -373,26 +373,26 @@ const CostTracking: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#f0f4ff", fontFamily: "Inter, system-ui, sans-serif" },
+  wrapper: { minHeight: "100vh", background: "var(--t-bg)", fontFamily: "Inter, system-ui, sans-serif" },
   container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
   filtersRow: { display: "flex", gap: "10px", marginBottom: "24px", flexWrap: "wrap", alignItems: "center" },
-  select: { padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#fff" },
-  dateInput: { padding: "9px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" },
-  filterBtn: { padding: "9px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" },
+  select: { padding: "9px 14px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-select-bg)", color: "var(--t-text-secondary)" },
+  dateInput: { padding: "9px 12px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-input-bg)", color: "var(--t-text-secondary)" },
+  filterBtn: { padding: "9px 18px", background: "var(--t-accent)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" },
-  statCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e0e7ff", textAlign: "center", boxShadow: "0 1px 6px rgba(79,70,229,0.06)" },
-  statValue: { fontSize: "24px", fontWeight: 800, color: "#4F46E5" },
-  statLabel: { fontSize: "13px", color: "#6b7280", marginTop: "4px" },
-  tabRow: { display: "flex", gap: "8px", marginBottom: "20px", borderBottom: "1px solid #e5e7eb", paddingBottom: "0" },
-  tab: { padding: "10px 20px", background: "none", border: "none", borderBottom: "2px solid transparent", cursor: "pointer", fontSize: "14px", fontWeight: 600, color: "#6b7280", fontFamily: "Inter, system-ui, sans-serif", marginBottom: "-1px" },
-  activeTab: { color: "#4F46E5", borderBottom: "2px solid #4F46E5" },
-  tableWrapper: { background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", overflowX: "auto", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
-  card: { background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", padding: "24px", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
+  statCard: { background: "var(--t-surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--t-border)", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
+  statValue: { fontSize: "24px", fontWeight: 800, color: "var(--t-indigo)" },
+  statLabel: { fontSize: "13px", color: "var(--t-text-dim)", marginTop: "4px" },
+  tabRow: { display: "flex", gap: "8px", marginBottom: "20px", borderBottom: "1px solid var(--t-border)", paddingBottom: "0" },
+  tab: { padding: "10px 20px", background: "none", border: "none", borderBottom: "2px solid transparent", cursor: "pointer", fontSize: "14px", fontWeight: 600, color: "var(--t-text-dim)", fontFamily: "Inter, system-ui, sans-serif", marginBottom: "-1px" },
+  activeTab: { color: "var(--t-indigo)", borderBottom: "2px solid var(--t-indigo)" },
+  tableWrapper: { background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", overflowX: "auto", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
+  card: { background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", padding: "24px", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
   table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
-  th: { padding: "12px 16px", textAlign: "left", background: "#f5f3ff", borderBottom: "2px solid #e0e7ff", fontWeight: 700, color: "#6366f1", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
-  tr: { borderBottom: "1px solid #f0f0ff" },
-  td: { padding: "14px 16px", color: "#374151", verticalAlign: "middle" },
-  emptyState: { textAlign: "center", padding: "60px 0", color: "#6b7280", fontSize: "15px" },
+  th: { padding: "12px 16px", textAlign: "left", background: "var(--t-surface-alt)", borderBottom: "1px solid var(--t-border)", fontWeight: 700, color: "var(--t-indigo)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
+  tr: { borderBottom: "1px solid var(--t-stripe)" },
+  td: { padding: "14px 16px", color: "var(--t-text-muted)", verticalAlign: "middle" },
+  emptyState: { textAlign: "center", padding: "60px 0", color: "var(--t-text-dim)", fontSize: "15px" },
 };
 
 export default CostTracking;

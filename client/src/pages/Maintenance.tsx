@@ -6,10 +6,10 @@ import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  scheduled: { bg: "#dbeafe", color: "#1d4ed8" },
-  in_progress: { bg: "#fef9c3", color: "#854d0e" },
-  completed: { bg: "#dcfce7", color: "#166534" },
-  cancelled: { bg: "#f3f4f6", color: "#6b7280" },
+  scheduled: { bg: "var(--t-indigo-bg)", color: "var(--t-indigo)" },
+  in_progress: { bg: "var(--t-warning-bg)", color: "var(--t-warning)" },
+  completed: { bg: "var(--t-success-bg)", color: "var(--t-success)" },
+  cancelled: { bg: "var(--t-hover-bg)", color: "var(--t-text-faint)" },
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -205,7 +205,7 @@ const Maintenance: React.FC = () => {
   });
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f0f4ff", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
       <Navbar />
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
@@ -239,13 +239,13 @@ const Maintenance: React.FC = () => {
 
         {/* Due Alerts Panel */}
         {showAlerts && dueAlerts.length > 0 && (
-          <div style={{ background: "#fefce8", border: "1px solid #fef08a", borderRadius: "12px", padding: "16px", marginBottom: "20px" }}>
-            <h3 style={{ margin: "0 0 12px", fontSize: "14px", fontWeight: 700, color: "#854d0e" }}>Maintenance Due Within 14 Days</h3>
+          <div style={{ background: "rgba(245,158,11,0.07)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "12px", padding: "16px", marginBottom: "20px" }}>
+            <h3 style={{ margin: "0 0 12px", fontSize: "14px", fontWeight: 700, color: "var(--t-warning)" }}>Maintenance Due Within 14 Days</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               {dueAlerts.map((alert: any) => (
-                <div key={alert._id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", color: "#713f12" }}>
+                <div key={alert._id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", color: "var(--t-text-muted)" }}>
                   <span><strong>{vehicleMap[alert.vehicleId?._id || alert.vehicleId] || "Vehicle"}</strong> — {alert.title}</span>
-                  <span style={{ color: "#854d0e" }}>{alert.scheduledDate ? new Date(alert.scheduledDate).toLocaleDateString() : "TBD"}</span>
+                  <span style={{ color: "var(--t-warning)" }}>{alert.scheduledDate ? new Date(alert.scheduledDate).toLocaleDateString() : "TBD"}</span>
                 </div>
               ))}
             </div>
@@ -255,7 +255,7 @@ const Maintenance: React.FC = () => {
         {/* Filters */}
         <div style={{ display: "flex", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
           <div style={{ position: "relative", flex: "1", minWidth: "240px" }}>
-            <FaSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af" }} />
+            <FaSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--t-text-faint)" }} />
             <input
               placeholder="Search by title, vendor, vehicle..."
               value={searchText}
@@ -275,9 +275,9 @@ const Maintenance: React.FC = () => {
         {/* Table */}
         <div style={styles.tableContainer}>
           {loading ? (
-            <div style={{ padding: "40px", textAlign: "center", color: "#6b7280" }}>Loading maintenance records...</div>
+            <div style={{ padding: "40px", textAlign: "center", color: "var(--t-text-dim)" }}>Loading maintenance records...</div>
           ) : filtered.length === 0 ? (
-            <div style={{ padding: "40px", textAlign: "center", color: "#6b7280" }}>
+            <div style={{ padding: "40px", textAlign: "center", color: "var(--t-text-dim)" }}>
               {records.length === 0 ? "No maintenance records yet. Schedule your first one." : "No records match your filters."}
             </div>
           ) : (
@@ -295,7 +295,7 @@ const Maintenance: React.FC = () => {
                   const vId = r.vehicleId?._id || r.vehicleId;
                   return (
                     <tr key={r._id} style={styles.tr}>
-                      <td style={{ ...styles.td, fontWeight: 600, color: "#111827" }}>{vehicleMap[vId] || "—"}</td>
+                      <td style={{ ...styles.td, fontWeight: 600, color: "var(--t-text-secondary)" }}>{vehicleMap[vId] || "—"}</td>
                       <td style={styles.td}>{r.title}</td>
                       <td style={styles.td}>{TYPE_LABELS[r.type] || r.type}</td>
                       <td style={styles.td}>{r.scheduledDate ? new Date(r.scheduledDate).toLocaleDateString() : "—"}</td>
@@ -308,7 +308,7 @@ const Maintenance: React.FC = () => {
                       <td style={styles.td}>
                         <div style={{ display: "flex", gap: "8px" }}>
                           <button onClick={() => openEditModal(r)} style={styles.iconBtn} title="Edit"><FaEdit size={14} /></button>
-                          <button onClick={() => { setSelectedRecord(r); setIsDeleteModalOpen(true); }} style={{ ...styles.iconBtn, color: "#dc2626" }} title="Delete"><FaTrashAlt size={14} /></button>
+                          <button onClick={() => { setSelectedRecord(r); setIsDeleteModalOpen(true); }} style={{ ...styles.iconBtn, color: "var(--t-error)" }} title="Delete"><FaTrashAlt size={14} /></button>
                         </div>
                       </td>
                     </tr>
@@ -399,12 +399,12 @@ const Maintenance: React.FC = () => {
         <div style={styles.overlay}>
           <div style={{ ...styles.modal, maxWidth: "420px" }}>
             <h2 style={styles.modalTitle}>Delete Record</h2>
-            <p style={{ color: "#374151", marginBottom: "24px" }}>
+            <p style={{ color: "var(--t-text-muted)", marginBottom: "24px" }}>
               Are you sure you want to delete <strong>{selectedRecord.title}</strong>?
             </p>
             <div style={styles.modalActions}>
               <button onClick={() => setIsDeleteModalOpen(false)} style={styles.secondaryBtn}>Cancel</button>
-              <button onClick={handleDelete} style={{ ...styles.primaryBtn, background: "#dc2626" }}>Delete</button>
+              <button onClick={handleDelete} style={{ ...styles.primaryBtn, background: "var(--t-error)" }}>Delete</button>
             </div>
           </div>
         </div>
@@ -414,21 +414,21 @@ const Maintenance: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  primaryBtn: { background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" },
-  secondaryBtn: { background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 500, cursor: "pointer" },
-  iconBtn: { background: "#f3f4f6", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "#374151", display: "flex", alignItems: "center" },
-  tableContainer: { background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", overflow: "hidden", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" },
+  primaryBtn: { background: "var(--t-accent)", color: "#fff", border: "none", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" },
+  secondaryBtn: { background: "var(--t-hover-bg)", color: "var(--t-text-faint)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 500, cursor: "pointer" },
+  iconBtn: { background: "var(--t-hover-bg)", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "var(--t-text-faint)", display: "flex", alignItems: "center" },
+  tableContainer: { background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", overflow: "hidden", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
   table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
-  tableHeaderRow: { background: "#f5f3ff", borderBottom: "2px solid #e0e7ff" },
-  th: { padding: "13px 16px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#6366f1", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
-  tr: { borderBottom: "1px solid #f0f0ff" },
-  td: { padding: "14px 16px", color: "#374151", verticalAlign: "middle" },
+  tableHeaderRow: { background: "var(--t-surface-alt)", borderBottom: "1px solid var(--t-border)" },
+  th: { padding: "13px 16px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "var(--t-indigo)", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
+  tr: { borderBottom: "1px solid var(--t-stripe)" },
+  td: { padding: "14px 16px", color: "var(--t-text-muted)", verticalAlign: "middle" },
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600, textTransform: "capitalize" },
-  input: { width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid #d1d5db", fontSize: "14px", color: "#111827", background: "#fff", outline: "none", boxSizing: "border-box" },
-  label: { display: "block", fontSize: "13px", fontWeight: 500, color: "#374151", marginBottom: "4px" },
-  overlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "16px" },
-  modal: { background: "#fff", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "640px", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "#111827" },
+  input: { width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid var(--t-border-strong)", fontSize: "14px", color: "var(--t-text-secondary)", background: "var(--t-input-bg)", outline: "none", boxSizing: "border-box" },
+  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
+  overlay: { position: "fixed", inset: 0, background: "var(--t-modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "16px" },
+  modal: { background: "var(--t-surface)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "640px", maxHeight: "90vh", overflowY: "auto", boxShadow: "var(--t-shadow-lg)", border: "1px solid var(--t-border)" },
+  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "var(--t-text)" },
   formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" },
   modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
 };

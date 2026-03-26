@@ -300,18 +300,18 @@ const Invoice: React.FC = () => {
   const isDisabled = !selectedDriver || selectedDriver === "__placeholder__";
 
   const STATUS_BADGE: Record<string, { bg: string; border: string; color: string; label: string }> = {
-    approved: { bg: "rgba(16,185,129,0.12)",  border: "rgba(16,185,129,0.25)",  color: "#34d399", label: "Approved" },
-    rejected: { bg: "rgba(239,68,68,0.1)",    border: "rgba(239,68,68,0.25)",   color: "#f87171", label: "Rejected" },
-    pending:  { bg: "rgba(234,179,8,0.1)",    border: "rgba(234,179,8,0.25)",   color: "#fbbf24", label: "Pending"  },
+    approved: { bg: "var(--t-success-bg)",  border: "rgba(16,185,129,0.25)",  color: "var(--t-success)", label: "Approved" },
+    rejected: { bg: "var(--t-error-bg)",    border: "rgba(239,68,68,0.25)",   color: "var(--t-error)", label: "Rejected" },
+    pending:  { bg: "var(--t-warning-bg)",    border: "rgba(234,179,8,0.25)",   color: "var(--t-warning)", label: "Pending"  },
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", minHeight: "100vh", color: "#fff" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh", color: "var(--t-text)" }}>
       <Navbar />
       <style>{`
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
-        input:focus, select:focus, textarea:focus { border-color: #4F46E5 !important; box-shadow: 0 0 0 3px rgba(79,70,229,0.15) !important; outline: none; }
-        select option { background: #1a1d27; color: #f3f4f6; }
+        input:focus, select:focus, textarea:focus { border-color: var(--t-accent) !important; box-shadow: 0 0 0 3px rgba(79,70,229,0.15) !important; outline: none; }
+        select option { background: var(--t-surface); color: var(--t-text); }
       `}</style>
 
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "36px 40px" }}>
@@ -319,10 +319,10 @@ const Invoice: React.FC = () => {
         {/* ── Page Header ── */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "16px", marginBottom: "32px" }}>
           <div>
-            <h1 style={{ margin: "0 0 6px", fontSize: "28px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.5px" }}>
+            <h1 style={{ margin: "0 0 6px", fontSize: "28px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>
               Generate Invoice
             </h1>
-            <p style={{ margin: 0, fontSize: "14px", color: "#6b7280" }}>
+            <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>
               Create and distribute billing for active fleet drivers.
             </p>
           </div>
@@ -330,14 +330,14 @@ const Invoice: React.FC = () => {
             <button
               onClick={generatePDF}
               disabled={isDisabled}
-              style={{ display: "inline-flex", alignItems: "center", gap: "7px", padding: "10px 20px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "10px", color: isDisabled ? "#4b5563" : "#e5e7eb", fontSize: "13px", fontWeight: 600, cursor: isDisabled ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
+              style={{ display: "inline-flex", alignItems: "center", gap: "7px", padding: "10px 20px", background: "var(--t-hover-bg)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "10px", color: isDisabled ? "var(--t-text-ghost)" : "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: isDisabled ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
             >
               <FaFilePdf size={13} /> Generate PDF
             </button>
             <button
               onClick={generateAndSendPDF}
               disabled={isDisabled}
-              style={{ display: "inline-flex", alignItems: "center", gap: "7px", padding: "10px 20px", background: isDisabled ? "#2d2f3a" : "#4F46E5", border: "none", borderRadius: "10px", color: isDisabled ? "#4b5563" : "#fff", fontSize: "13px", fontWeight: 600, cursor: isDisabled ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: isDisabled ? "none" : "0 4px 14px rgba(79,70,229,0.35)" }}
+              style={{ display: "inline-flex", alignItems: "center", gap: "7px", padding: "10px 20px", background: isDisabled ? "var(--t-hover-bg)" : "var(--t-accent)", border: "none", borderRadius: "10px", color: isDisabled ? "var(--t-text-ghost)" : "#fff", fontSize: "13px", fontWeight: 600, cursor: isDisabled ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: isDisabled ? "none" : "0 4px 14px rgba(79,70,229,0.35)" }}
             >
               <FaArrowRight size={12} /> Send Email
             </button>
@@ -354,9 +354,9 @@ const Invoice: React.FC = () => {
             <div style={styles.card}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "22px" }}>
                 <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: "rgba(79,70,229,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="14" height="14" viewBox="0 0 20 20" fill="#818CF8"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L13 10.414V17a1 1 0 01-1.447.894l-4-2A1 1 0 017 15v-4.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 20 20" fill="var(--t-indigo)"><path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L13 10.414V17a1 1 0 01-1.447.894l-4-2A1 1 0 017 15v-4.586L3.293 6.707A1 1 0 013 6V4z"/></svg>
                 </div>
-                <h2 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#f3f4f6" }}>Invoice Settings</h2>
+                <h2 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "var(--t-text)" }}>Invoice Settings</h2>
               </div>
 
               {/* Driver */}
@@ -403,10 +403,10 @@ const Invoice: React.FC = () => {
 
             {/* Dynamic Population info box */}
             <div style={{ background: "rgba(79,70,229,0.08)", border: "1px solid rgba(79,70,229,0.2)", borderRadius: "12px", padding: "16px 18px", display: "flex", gap: "12px" }}>
-              <FaInfoCircle size={16} style={{ color: "#818CF8", flexShrink: 0, marginTop: "1px" }} />
+              <FaInfoCircle size={16} style={{ color: "var(--t-indigo)", flexShrink: 0, marginTop: "1px" }} />
               <div>
-                <div style={{ fontSize: "13px", fontWeight: 700, color: "#a5b4fc", marginBottom: "6px" }}>Dynamic Population</div>
-                <div style={{ fontSize: "12px", color: "#6b7280", lineHeight: 1.65 }}>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--t-indigo)", marginBottom: "6px" }}>Dynamic Population</div>
+                <div style={{ fontSize: "12px", color: "var(--t-text-dim)", lineHeight: 1.65 }}>
                   Timesheets and billing metrics will automatically pull from driver data once a driver and period are confirmed.
                 </div>
               </div>
@@ -422,10 +422,10 @@ const Invoice: React.FC = () => {
               {/* FROM */}
               <div style={styles.card}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
-                  <span style={{ fontSize: "10px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "1px" }}>From (Organization)</span>
+                  <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-dim)", textTransform: "uppercase", letterSpacing: "1px" }}>From (Organization)</span>
                   <button
                     onClick={() => {}}
-                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#9ca3af" }}
+                    style={{ background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "6px", width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--t-text-faint)" }}
                     title="Edit"
                   >
                     ✎
@@ -433,23 +433,23 @@ const Invoice: React.FC = () => {
                 </div>
                 {fromDetails.name ? (
                   <div>
-                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#f3f4f6", marginBottom: "8px" }}>{fromDetails.name}</div>
-                    {fromDetails.address && <div style={{ fontSize: "12px", color: "#9ca3af", marginBottom: "3px" }}>{fromDetails.address}</div>}
-                    {fromDetails.email && <div style={{ fontSize: "12px", color: "#818CF8" }}>{fromDetails.email}</div>}
-                    {fromDetails.phone && <div style={{ fontSize: "12px", color: "#9ca3af", marginTop: "3px" }}>{fromDetails.phone}</div>}
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--t-text)", marginBottom: "8px" }}>{fromDetails.name}</div>
+                    {fromDetails.address && <div style={{ fontSize: "12px", color: "var(--t-text-faint)", marginBottom: "3px" }}>{fromDetails.address}</div>}
+                    {fromDetails.email && <div style={{ fontSize: "12px", color: "var(--t-indigo)" }}>{fromDetails.email}</div>}
+                    {fromDetails.phone && <div style={{ fontSize: "12px", color: "var(--t-text-faint)", marginTop: "3px" }}>{fromDetails.phone}</div>}
                   </div>
                 ) : (
-                  <div style={{ fontSize: "13px", color: "#4b5563" }}>Loading org profile…</div>
+                  <div style={{ fontSize: "13px", color: "var(--t-text-ghost)" }}>Loading org profile…</div>
                 )}
               </div>
 
               {/* TO */}
               <div style={styles.card}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
-                  <span style={{ fontSize: "10px", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "1px" }}>To (Driver)</span>
+                  <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-dim)", textTransform: "uppercase", letterSpacing: "1px" }}>To (Driver)</span>
                   <button
                     onClick={() => {}}
-                    style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "#9ca3af" }}
+                    style={{ background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "6px", width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--t-text-faint)" }}
                     title="Edit"
                   >
                     ✎
@@ -457,15 +457,15 @@ const Invoice: React.FC = () => {
                 </div>
                 {selectedDriver === "__placeholder__" ? (
                   <div>
-                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#374151", marginBottom: "6px" }}>No Driver Selected</div>
-                    <div style={{ fontSize: "12px", color: "#4b5563", lineHeight: 1.6 }}>Select a driver from settings to populate contact details and tax ID.</div>
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--t-text-muted)", marginBottom: "6px" }}>No Driver Selected</div>
+                    <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", lineHeight: 1.6 }}>Select a driver from settings to populate contact details and tax ID.</div>
                   </div>
                 ) : (
                   <div>
-                    <div style={{ fontSize: "16px", fontWeight: 700, color: "#f3f4f6", marginBottom: "8px" }}>{toDetails.name}</div>
-                    {toDetails.businessName && <div style={{ fontSize: "12px", color: "#9ca3af", marginBottom: "3px" }}>{toDetails.businessName}</div>}
-                    {toDetails.contact && <div style={{ fontSize: "12px", color: "#9ca3af", marginBottom: "3px" }}>{toDetails.contact}</div>}
-                    {toDetails.gst && <div style={{ fontSize: "12px", color: "#818CF8" }}>GST/HST: {toDetails.gst}</div>}
+                    <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--t-text)", marginBottom: "8px" }}>{toDetails.name}</div>
+                    {toDetails.businessName && <div style={{ fontSize: "12px", color: "var(--t-text-faint)", marginBottom: "3px" }}>{toDetails.businessName}</div>}
+                    {toDetails.contact && <div style={{ fontSize: "12px", color: "var(--t-text-faint)", marginBottom: "3px" }}>{toDetails.contact}</div>}
+                    {toDetails.gst && <div style={{ fontSize: "12px", color: "var(--t-indigo)" }}>GST/HST: {toDetails.gst}</div>}
                   </div>
                 )}
               </div>
@@ -474,26 +474,26 @@ const Invoice: React.FC = () => {
             {/* Timesheets & Activities */}
             <div style={styles.card}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px" }}>
-                <h2 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#f3f4f6" }}>Timesheets & Activities</h2>
-                <button style={{ background: "none", border: "none", color: "#818CF8", fontSize: "11px", fontWeight: 700, cursor: "pointer", letterSpacing: "0.5px", fontFamily: "Inter, system-ui, sans-serif" }}>
+                <h2 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "var(--t-text)" }}>Timesheets & Activities</h2>
+                <button style={{ background: "none", border: "none", color: "var(--t-indigo)", fontSize: "11px", fontWeight: 700, cursor: "pointer", letterSpacing: "0.5px", fontFamily: "Inter, system-ui, sans-serif" }}>
                   + MANUAL ENTRY
                 </button>
               </div>
 
               {/* Table header */}
-              <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1.4fr 1fr 0.8fr 0.8fr", gap: "0", borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "10px", marginBottom: "4px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1.4fr 1fr 0.8fr 0.8fr", gap: "0", borderBottom: "1px solid var(--t-border)", paddingBottom: "10px", marginBottom: "4px" }}>
                 {["DATE / REFERENCE", "DESCRIPTION", "QUANTITY / HRS", "RATE", "AMOUNT"].map((h) => (
-                  <div key={h} style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", padding: "0 8px" }}>{h}</div>
+                  <div key={h} style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", padding: "0 8px" }}>{h}</div>
                 ))}
               </div>
 
               {timesheets.length === 0 ? (
                 <div style={{ padding: "48px 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-                  <FaClipboardList size={32} style={{ color: "#374151" }} />
-                  <div style={{ fontSize: "14px", fontWeight: 600, color: "#4b5563" }}>
+                  <FaClipboardList size={32} style={{ color: "var(--t-text-muted)" }} />
+                  <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--t-text-ghost)" }}>
                     {selectedDriver === "__placeholder__" ? "Select a driver to view active timesheets" : "No timesheets found for the selected period."}
                   </div>
-                  <div style={{ fontSize: "12px", color: "#374151" }}>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-muted)" }}>
                     {selectedDriver === "__placeholder__" ? "Telematics will sync shift data here" : "Try adjusting the billing period."}
                   </div>
                 </div>
@@ -508,15 +508,15 @@ const Invoice: React.FC = () => {
                     const rowAmt = (hrs * rate).toFixed(2);
                     const badge = STATUS_BADGE[t.status] || STATUS_BADGE.pending;
                     return (
-                      <div key={t._id} style={{ display: "grid", gridTemplateColumns: "1.2fr 1.4fr 1fr 0.8fr 0.8fr", borderBottom: "1px solid rgba(255,255,255,0.04)", padding: "12px 0" }}>
-                        <div style={{ fontSize: "13px", color: "#9ca3af", padding: "0 8px" }}>{t.date}</div>
+                      <div key={t._id} style={{ display: "grid", gridTemplateColumns: "1.2fr 1.4fr 1fr 0.8fr 0.8fr", borderBottom: "1px solid var(--t-stripe)", padding: "12px 0" }}>
+                        <div style={{ fontSize: "13px", color: "var(--t-text-faint)", padding: "0 8px" }}>{t.date}</div>
                         <div style={{ padding: "0 8px" }}>
-                          <div style={{ fontSize: "13px", color: "#f3f4f6", fontWeight: 500 }}>{t.category}</div>
+                          <div style={{ fontSize: "13px", color: "var(--t-text)", fontWeight: 500 }}>{t.category}</div>
                           <span style={{ fontSize: "10px", fontWeight: 600, color: badge.color, background: badge.bg, border: `1px solid ${badge.border}`, padding: "1px 7px", borderRadius: "20px", marginTop: "3px", display: "inline-block" }}>{badge.label}</span>
                         </div>
-                        <div style={{ fontSize: "13px", color: "#9ca3af", padding: "0 8px" }}>{hrs.toFixed(2)} hrs</div>
-                        <div style={{ fontSize: "13px", color: "#9ca3af", padding: "0 8px" }}>${rate.toFixed(2)}</div>
-                        <div style={{ fontSize: "13px", fontWeight: 600, color: "#f3f4f6", padding: "0 8px" }}>${rowAmt}</div>
+                        <div style={{ fontSize: "13px", color: "var(--t-text-faint)", padding: "0 8px" }}>{hrs.toFixed(2)} hrs</div>
+                        <div style={{ fontSize: "13px", color: "var(--t-text-faint)", padding: "0 8px" }}>${rate.toFixed(2)}</div>
+                        <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--t-text)", padding: "0 8px" }}>${rowAmt}</div>
                       </div>
                     );
                   })}
@@ -524,30 +524,30 @@ const Invoice: React.FC = () => {
               )}
 
               {/* Summary */}
-              <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#6b7280", marginBottom: "10px" }}>
-                  <span>Subtotal</span><span style={{ color: "#9ca3af" }}>${subtotal.toFixed(2)}</span>
+              <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid var(--t-border)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "var(--t-text-dim)", marginBottom: "10px" }}>
+                  <span>Subtotal</span><span style={{ color: "var(--t-text-faint)" }}>${subtotal.toFixed(2)}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "#6b7280", paddingBottom: "14px", marginBottom: "14px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <span>HST (13%)</span><span style={{ color: "#9ca3af" }}>${hst.toFixed(2)}</span>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "var(--t-text-dim)", paddingBottom: "14px", marginBottom: "14px", borderBottom: "1px solid var(--t-border)" }}>
+                  <span>HST (13%)</span><span style={{ color: "var(--t-text-faint)" }}>${hst.toFixed(2)}</span>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "15px", fontWeight: 700, color: "#f3f4f6" }}>Total Amount</span>
-                  <span style={{ fontSize: "22px", fontWeight: 800, color: "#818CF8" }}>${total.toFixed(2)}</span>
+                  <span style={{ fontSize: "15px", fontWeight: 700, color: "var(--t-text)" }}>Total Amount</span>
+                  <span style={{ fontSize: "22px", fontWeight: 800, color: "var(--t-indigo)" }}>${total.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
             {/* Invoice Notes */}
             <div style={styles.card}>
-              <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", textTransform: "uppercase", letterSpacing: "1px", display: "block", marginBottom: "10px" }}>
+              <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", textTransform: "uppercase", letterSpacing: "1px", display: "block", marginBottom: "10px" }}>
                 Invoice Notes & Internal Memo
               </label>
               <textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Enter any additional payment terms or operational notes here..."
-                style={{ width: "100%", minHeight: "100px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px", padding: "12px 14px", fontSize: "13px", color: "#9ca3af", resize: "vertical", outline: "none", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box", lineHeight: 1.65 }}
+                style={{ width: "100%", minHeight: "100px", background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "12px 14px", fontSize: "13px", color: "var(--t-text-faint)", resize: "vertical", outline: "none", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box", lineHeight: 1.65 }}
               />
             </div>
 
@@ -560,8 +560,8 @@ const Invoice: React.FC = () => {
 
 const styles: { [key: string]: CSSProperties } = {
   card: {
-    background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    background: "var(--t-surface-alt)",
+    border: "1px solid var(--t-border)",
     borderRadius: "14px",
     padding: "22px",
   },
@@ -569,7 +569,7 @@ const styles: { [key: string]: CSSProperties } = {
     display: "block",
     fontSize: "10px",
     fontWeight: 700,
-    color: "#4b5563",
+    color: "var(--t-text-ghost)",
     textTransform: "uppercase",
     letterSpacing: "0.8px",
     marginBottom: "7px",
@@ -578,10 +578,10 @@ const styles: { [key: string]: CSSProperties } = {
     width: "100%",
     padding: "9px 12px",
     borderRadius: "8px",
-    border: "1px solid rgba(255,255,255,0.1)",
+    border: "1px solid var(--t-border)",
     fontSize: "13px",
-    color: "#f3f4f6",
-    background: "rgba(255,255,255,0.05)",
+    color: "var(--t-text)",
+    background: "var(--t-input-bg)",
     outline: "none",
     boxSizing: "border-box" as const,
     fontFamily: "Inter, system-ui, sans-serif",

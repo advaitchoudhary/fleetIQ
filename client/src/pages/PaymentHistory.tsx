@@ -5,10 +5,10 @@ import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  paid: { bg: "#dcfce7", color: "#166534" },
-  processing: { bg: "#dbeafe", color: "#1d4ed8" },
-  pending: { bg: "#fef9c3", color: "#854d0e" },
-  failed: { bg: "#fee2e2", color: "#991b1b" },
+  paid: { bg: "var(--t-success-bg)", color: "var(--t-success)" },
+  processing: { bg: "var(--t-info-bg)", color: "var(--t-info)" },
+  pending: { bg: "var(--t-warning-bg)", color: "var(--t-warning)" },
+  failed: { bg: "var(--t-error-bg)", color: "var(--t-error)" },
 };
 
 const STATUS_ICONS: Record<string, React.ReactNode> = {
@@ -84,28 +84,28 @@ const PaymentHistory: React.FC = () => {
   });
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
       <Navbar />
       <div style={{ padding: "24px", maxWidth: "1100px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ marginBottom: "24px" }}>
-          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "#111827", display: "flex", alignItems: "center", gap: "10px" }}>
-            <FaHistory style={{ color: "#4F46E5" }} /> Payment History
+          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "var(--t-text)", display: "flex", alignItems: "center", gap: "10px" }}>
+            <FaHistory style={{ color: "var(--t-indigo)" }} /> Payment History
           </h1>
-          <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "14px" }}>All driver payouts</p>
+          <p style={{ margin: "4px 0 0", color: "var(--t-text-dim)", fontSize: "14px" }}>All driver payouts</p>
         </div>
 
         {/* Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "16px", marginBottom: "24px" }}>
           {[
-            { label: "Total Payouts", value: payments.length, color: "#4F46E5" },
-            { label: "Total Paid", value: `$${totalPaid.toFixed(2)}`, color: "#16a34a" },
-            { label: "Paid", value: payments.filter((p) => p.status === "paid").length, color: "#16a34a" },
-            { label: "Failed", value: totalFailed, color: "#dc2626" },
+            { label: "Total Payouts", value: payments.length, color: "var(--t-indigo)" },
+            { label: "Total Paid", value: `$${totalPaid.toFixed(2)}`, color: "var(--t-success)" },
+            { label: "Paid", value: payments.filter((p) => p.status === "paid").length, color: "var(--t-success)" },
+            { label: "Failed", value: totalFailed, color: "var(--t-error)" },
           ].map((s) => (
             <div key={s.label} style={styles.statCard}>
               <div style={{ fontSize: "22px", fontWeight: 700, color: s.color }}>{s.value}</div>
-              <div style={{ fontSize: "13px", color: "#6b7280", marginTop: "4px" }}>{s.label}</div>
+              <div style={{ fontSize: "13px", color: "var(--t-text-dim)", marginTop: "4px" }}>{s.label}</div>
             </div>
           ))}
         </div>
@@ -113,7 +113,7 @@ const PaymentHistory: React.FC = () => {
         {/* Filters */}
         <div style={{ display: "flex", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
           <div style={{ position: "relative", flex: "1", minWidth: "200px" }}>
-            <FaSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af" }} />
+            <FaSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--t-text-faint)" }} />
             <input
               placeholder="Search by driver or transfer ID..."
               value={searchText}
@@ -137,9 +137,9 @@ const PaymentHistory: React.FC = () => {
         {/* Table */}
         <div style={styles.tableContainer}>
           {loading ? (
-            <div style={{ padding: "40px", textAlign: "center", color: "#6b7280" }}>Loading payment history...</div>
+            <div style={{ padding: "40px", textAlign: "center", color: "var(--t-text-dim)" }}>Loading payment history...</div>
           ) : filtered.length === 0 ? (
-            <div style={{ padding: "40px", textAlign: "center", color: "#6b7280" }}>
+            <div style={{ padding: "40px", textAlign: "center", color: "var(--t-text-dim)" }}>
               {payments.length === 0 ? "No payments yet. Initiate your first payout from the Driver Payments page." : "No payments match your filters."}
             </div>
           ) : (
@@ -159,8 +159,8 @@ const PaymentHistory: React.FC = () => {
                   return (
                     <tr key={p._id} style={styles.tr}>
                       <td style={styles.td}>{new Date(p.createdAt).toLocaleDateString()}</td>
-                      <td style={{ ...styles.td, fontWeight: 600, color: "#111827" }}>{driverName}</td>
-                      <td style={{ ...styles.td, fontWeight: 700, color: p.status === "paid" ? "#16a34a" : "#374151" }}>
+                      <td style={{ ...styles.td, fontWeight: 600, color: "var(--t-text-secondary)" }}>{driverName}</td>
+                      <td style={{ ...styles.td, fontWeight: 700, color: p.status === "paid" ? "var(--t-success)" : "var(--t-text-muted)" }}>
                         ${amountCad.toFixed(2)} CAD
                       </td>
                       <td style={styles.td}>
@@ -174,14 +174,14 @@ const PaymentHistory: React.FC = () => {
                           {STATUS_ICONS[p.status]} {p.status}
                         </span>
                       </td>
-                      <td style={{ ...styles.td, fontFamily: "monospace", fontSize: "12px", color: "#6b7280" }}>
+                      <td style={{ ...styles.td, fontFamily: "monospace", fontSize: "12px", color: "var(--t-text-dim)" }}>
                         {p.stripeTransferId ? (
                           <span title={p.stripeTransferId}>
                             {p.stripeTransferId.slice(0, 20)}...
                           </span>
                         ) : (
                           p.failureReason ? (
-                            <span style={{ color: "#dc2626" }}>{p.failureReason.slice(0, 30)}</span>
+                            <span style={{ color: "var(--t-error)" }}>{p.failureReason.slice(0, 30)}</span>
                           ) : "—"
                         )}
                       </td>
@@ -198,15 +198,15 @@ const PaymentHistory: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  statCard: { background: "#fff", borderRadius: "12px", border: "1px solid #e5e7eb", padding: "20px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
-  tableContainer: { background: "#fff", borderRadius: "12px", border: "1px solid #e5e7eb", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+  statCard: { background: "var(--t-surface)", borderRadius: "12px", border: "1px solid var(--t-border)", padding: "20px" },
+  tableContainer: { background: "var(--t-surface)", borderRadius: "12px", border: "1px solid var(--t-border)", overflow: "hidden" },
   table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
-  tableHeaderRow: { background: "#f9fafb", borderBottom: "1px solid #e5e7eb" },
-  th: { padding: "12px 16px", textAlign: "left", fontSize: "12px", fontWeight: 600, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.5px", whiteSpace: "nowrap" },
-  tr: { borderBottom: "1px solid #f3f4f6" },
-  td: { padding: "14px 16px", color: "#374151", verticalAlign: "middle" },
+  tableHeaderRow: { background: "var(--t-surface-alt)", borderBottom: "1px solid var(--t-border)" },
+  th: { padding: "12px 16px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", textTransform: "uppercase", letterSpacing: "0.8px", whiteSpace: "nowrap" },
+  tr: { borderBottom: "1px solid var(--t-stripe)" },
+  td: { padding: "14px 16px", color: "var(--t-text-muted)", verticalAlign: "middle" },
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
-  input: { width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid #d1d5db", fontSize: "14px", color: "#111827", background: "#fff", outline: "none", boxSizing: "border-box" },
+  input: { width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid var(--t-border-strong)", fontSize: "14px", color: "var(--t-text-secondary)", background: "var(--t-input-bg)", outline: "none", boxSizing: "border-box" as const },
 };
 
 export default PaymentHistory;

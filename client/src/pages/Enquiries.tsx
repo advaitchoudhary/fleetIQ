@@ -27,7 +27,7 @@ const Enquiries: React.FC = () => {
   }, []);
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f0f4ff", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
     <Navbar />
 
     {/* Hero */}
@@ -44,9 +44,9 @@ const Enquiries: React.FC = () => {
 
     <div style={styles.container}>
       {loading ? (
-        <p style={{ color: "#6b7280", fontSize: "15px" }}>Loading enquiries...</p>
+        <p style={{ color: "var(--t-text-dim)", fontSize: "15px" }}>Loading enquiries...</p>
       ) : enquiries.length === 0 ? (
-        <p style={{ color: "#6b7280", fontSize: "15px" }}>No enquiries yet.</p>
+        <p style={{ color: "var(--t-text-dim)", fontSize: "15px" }}>No enquiries yet.</p>
       ) : (
         <div style={styles.tableWrapper}>
           <table style={styles.table}>
@@ -84,9 +84,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   tableWrapper: {
     borderRadius: "16px",
-    border: "1px solid #e0e7ff",
-    boxShadow: "0 2px 16px rgba(79,70,229,0.07)",
-    backgroundColor: "#fff",
+    border: "1px solid var(--t-border)",
+    boxShadow: "var(--t-shadow)",
+    backgroundColor: "var(--t-surface)",
     overflowX: "auto",
   },
   table: {
@@ -95,13 +95,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: "14px",
   },
   th: {
-    borderBottom: "2px solid #e0e7ff",
+    borderBottom: "1px solid var(--t-border)",
     padding: "12px 16px",
     fontSize: "10px",
     fontWeight: 700,
     textAlign: "left",
-    backgroundColor: "#f5f3ff",
-    color: "#6366f1",
+    backgroundColor: "var(--t-surface-alt)",
+    color: "var(--t-indigo)",
     textTransform: "uppercase",
     letterSpacing: "0.7px",
     whiteSpace: "nowrap",
@@ -110,11 +110,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "14px 16px",
     fontSize: "14px",
     textAlign: "left",
-    color: "#374151",
-    borderBottom: "1px solid #f0f0ff",
+    color: "var(--t-text-muted)",
+    borderBottom: "1px solid var(--t-input-bg)",
   },
   row: {
-    backgroundColor: "#f9fafb",
+    backgroundColor: "var(--t-stripe)",
   },
 };
 

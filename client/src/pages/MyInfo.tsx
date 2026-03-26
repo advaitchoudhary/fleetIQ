@@ -77,7 +77,7 @@ const MyInfo: React.FC = () => {
     fetchDriverDetails();
   }, []);
 
-  if (!driver || !formData) return <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontFamily: "Inter, system-ui, sans-serif", color: "#6b7280", fontSize: "15px" }}>Loading...</div>;
+  if (!driver || !formData) return <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", color: "var(--t-text-faint)", fontSize: "15px" }}>Loading...</div>;
 
   // Check for missing required forms
   const missingForms = [];
@@ -131,7 +131,7 @@ const MyInfo: React.FC = () => {
               }}
               onMouseLeave={(e) => {
                 if (uploadingForm !== formKey) {
-                  e.currentTarget.style.backgroundColor = "#4F46E5";
+                  e.currentTarget.style.backgroundColor = "var(--t-accent)";
                 }
               }}
             >
@@ -233,7 +233,7 @@ const MyInfo: React.FC = () => {
   const trainingsCompleted = (driver.trainings || []).filter((t: any) => t.proofDocument).length;
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f0f4ff", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
       <style>{`
         @media (max-width: 1024px) {
           [data-mi-container] { padding: 24px 20px !important; }
@@ -257,10 +257,11 @@ const MyInfo: React.FC = () => {
           [data-mi-title] { font-size: 20px !important; }
           [data-mi-section] { padding: 12px !important; border-radius: 12px !important; }
         }
-        [data-mi-edit-btn]:hover { background: rgba(255,255,255,0.25) !important; }
+        [data-mi-edit-btn]:hover { background: rgba(255,255,255,0.2) !important; }
         [data-mi-save-btn]:hover { background: #4338ca !important; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79,70,229,0.45) !important; }
-        [data-mi-form-card-inner]:hover { box-shadow: 0 4px 16px rgba(79,70,229,0.1) !important; transform: translateY(-1px); }
-        [data-mi-training-card-inner]:hover { box-shadow: 0 4px 16px rgba(79,70,229,0.1) !important; transform: translateY(-1px); }
+        [data-mi-form-card-inner]:hover { box-shadow: 0 4px 16px rgba(79,70,229,0.15) !important; transform: translateY(-1px); border-color: rgba(79,70,229,0.25) !important; }
+        [data-mi-training-card-inner]:hover { box-shadow: 0 4px 16px rgba(79,70,229,0.15) !important; transform: translateY(-1px); border-color: rgba(79,70,229,0.25) !important; }
+        input[data-mi-input]:focus { outline: none; border-color: #4F46E5 !important; box-shadow: 0 0 0 3px rgba(79,70,229,0.15); }
       `}</style>
       <Navbar />
 
@@ -279,7 +280,7 @@ const MyInfo: React.FC = () => {
               {driver.organizationId?.name && (
                 <span style={styles.heroBadgeOrg}>{driver.organizationId.name}</span>
               )}
-              <span style={{ ...styles.heroBadgeStatus, background: driver.status === "Active" ? "rgba(16,185,129,0.2)" : "rgba(107,114,128,0.2)", border: driver.status === "Active" ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(107,114,128,0.4)", color: driver.status === "Active" ? "#6ee7b7" : "#9ca3af" }}>
+              <span style={{ ...styles.heroBadgeStatus, background: driver.status === "Active" ? "rgba(16,185,129,0.2)" : "rgba(107,114,128,0.2)", border: driver.status === "Active" ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(107,114,128,0.4)", color: driver.status === "Active" ? "var(--t-success)" : "var(--t-text-faint)" }}>
                 ● {driver.status || "Active"}
               </span>
             </div>
@@ -317,7 +318,7 @@ const MyInfo: React.FC = () => {
           </div>
         )}
         <div style={styles.profileCard} data-mi-card>
-          <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#111827", margin: "0 0 20px", paddingBottom: "14px", borderBottom: "1px solid #e0e7ff", display: "flex", alignItems: "center", gap: "8px" }}>
+          <h3 style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-faint)", margin: "0 0 20px", paddingBottom: "14px", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", gap: "8px", textTransform: "uppercase", letterSpacing: "1px" }}>
             Driver Information
           </h3>
           <div style={styles.profileInfo} data-mi-info-grid>
@@ -600,7 +601,7 @@ const MyInfo: React.FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             if (uploadingTraining !== trainingName) {
-                              e.currentTarget.style.backgroundColor = "#4F46E5";
+                              e.currentTarget.style.backgroundColor = "var(--t-accent)";
                             }
                           }}
                         >
@@ -655,7 +656,7 @@ const MyInfo: React.FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             if (uploadingTraining !== trainingName) {
-                              e.currentTarget.style.backgroundColor = "#4F46E5";
+                              e.currentTarget.style.backgroundColor = "var(--t-accent)";
                             }
                           }}
                         >
@@ -807,7 +808,8 @@ const MyInfo: React.FC = () => {
 
 const styles: { [key: string]: React.CSSProperties } = {
   hero: {
-    background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)",
+    background: "linear-gradient(135deg, #0A0F1E 0%, var(--t-bg) 55%, var(--t-surface) 100%)",
+    borderBottom: "1px solid rgba(255,255,255,0.06)",
     padding: "36px 40px 32px",
   },
   heroInner: {
@@ -820,9 +822,9 @@ const styles: { [key: string]: React.CSSProperties } = {
   heroAvatar: {
     width: "72px",
     height: "72px",
-    borderRadius: "50%",
-    background: "linear-gradient(135deg, rgba(79,70,229,0.7), rgba(99,102,241,0.5))",
-    border: "2px solid rgba(129,140,248,0.5)",
+    borderRadius: "14px",
+    background: "linear-gradient(135deg, #4F46E5, #7c3aed)",
+    border: "1px solid rgba(129,140,248,0.35)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -847,18 +849,18 @@ const styles: { [key: string]: React.CSSProperties } = {
   heroBadgeId: {
     fontSize: "11px",
     fontWeight: 700,
-    color: "#a5b4fc",
-    background: "rgba(79,70,229,0.3)",
-    border: "1px solid rgba(129,140,248,0.4)",
+    color: "var(--t-indigo)",
+    background: "var(--t-indigo-bg)",
+    border: "1px solid rgba(79,70,229,0.3)",
     borderRadius: "6px",
     padding: "3px 10px",
   },
   heroBadgeOrg: {
     fontSize: "11px",
     fontWeight: 700,
-    color: "#6ee7b7",
-    background: "rgba(16,185,129,0.15)",
-    border: "1px solid rgba(16,185,129,0.35)",
+    color: "var(--t-success)",
+    background: "rgba(16,185,129,0.1)",
+    border: "1px solid rgba(16,185,129,0.25)",
     borderRadius: "6px",
     padding: "3px 10px",
   },
@@ -870,46 +872,48 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   heroStats: {
     display: "flex",
-    gap: "24px",
+    gap: "32px",
   },
   heroStat: {
     display: "flex",
     flexDirection: "column" as const,
-    gap: "2px",
+    gap: "3px",
   },
   heroStatNum: {
     fontSize: "20px",
     fontWeight: 800,
-    color: "#fff",
+    color: "var(--t-indigo)",
     lineHeight: 1,
   },
   heroStatLabel: {
-    fontSize: "11px",
-    color: "rgba(255,255,255,0.55)",
-    fontWeight: 500,
+    fontSize: "10px",
+    color: "rgba(255,255,255,0.4)",
+    fontWeight: 600,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.6px",
   },
   heroEditBtn: {
     marginLeft: "auto",
     flexShrink: 0,
-    background: "rgba(255,255,255,0.15)",
-    border: "1px solid rgba(255,255,255,0.25)",
-    color: "#fff",
+    background: "var(--t-border)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    color: "var(--t-text-secondary)",
     borderRadius: "10px",
     padding: "10px 20px",
     fontSize: "13px",
     fontWeight: 600,
     cursor: "pointer",
     transition: "background 0.2s",
-    backdropFilter: "blur(8px)",
     alignSelf: "flex-start",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   container: {
     maxWidth: "1200px",
     margin: "0 auto",
-    padding: "28px 24px 40px",
+    padding: "28px 24px 60px",
   },
   saveBtn: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: "var(--t-accent)",
     color: "#fff",
     padding: "12px 28px",
     borderRadius: "10px",
@@ -919,11 +923,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: "pointer",
     marginTop: "24px",
     transition: "all 0.2s ease",
-    boxShadow: "0 4px 14px rgba(79,70,229,0.35)",
+    boxShadow: "0 4px 14px rgba(79,70,229,0.4)",
     letterSpacing: "0.2px",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   button: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: "var(--t-accent)",
     color: "#fff",
     padding: "10px 22px",
     borderRadius: "8px",
@@ -932,19 +937,20 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     cursor: "pointer",
     transition: "background-color 0.2s ease",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   profileCard: {
-    backgroundColor: "#ffffff",
+    backgroundColor: "var(--t-surface)",
     padding: "28px 32px",
     borderRadius: "16px",
-    border: "1px solid #e0e7ff",
-    boxShadow: "0 1px 8px rgba(79,70,229,0.06)",
+    border: "1px solid rgba(255,255,255,0.07)",
+    boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
     marginBottom: "20px",
   },
   profileTitle: {
     margin: "16px 0",
     fontSize: "26px",
-    color: "#111827",
+    color: "var(--t-text-secondary)",
     fontWeight: 700,
     letterSpacing: "-0.3px",
   },
@@ -953,26 +959,26 @@ const styles: { [key: string]: React.CSSProperties } = {
     gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
     gap: "4px 32px",
     fontSize: "14px",
-    color: "#374151",
+    color: "var(--t-text-secondary)",
     textAlign: "left",
   },
   infoItem: {
     display: "flex",
     flexDirection: "column" as const,
-    gap: "3px",
+    gap: "4px",
     padding: "12px 0",
-    borderBottom: "1px solid #f3f4f6",
+    borderBottom: "1px solid rgba(255,255,255,0.05)",
   },
   infoLabel: {
-    fontSize: "11px",
+    fontSize: "9px",
     fontWeight: 700,
-    color: "#6b7280",
+    color: "var(--t-text-ghost)",
     textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
+    letterSpacing: "0.8px",
   },
   infoValue: {
-    fontSize: "15px",
-    color: "#111827",
+    fontSize: "14px",
+    color: "var(--t-text-secondary)",
     fontWeight: 500,
   },
   formField: {
@@ -983,50 +989,53 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   inputField: {
     padding: "10px 14px",
-    border: "1px solid #d1d5db",
+    border: "1px solid rgba(255,255,255,0.1)",
     borderRadius: "8px",
     fontSize: "14px",
-    backgroundColor: "#fff",
+    backgroundColor: "var(--t-input-bg)",
+    color: "var(--t-text-secondary)",
     transition: "border-color 0.2s",
     width: "100%",
     boxSizing: "border-box" as const,
     fontFamily: "Inter, system-ui, sans-serif",
   },
   labelText: {
-    fontWeight: 600,
-    fontSize: "12px",
-    color: "#6b7280",
+    fontWeight: 700,
+    fontSize: "9px",
+    color: "var(--t-text-ghost)",
     textTransform: "uppercase" as const,
-    letterSpacing: "0.4px",
+    letterSpacing: "0.8px",
   },
   section: {
-    marginTop: "20px",
+    marginTop: "16px",
     textAlign: "left" as const,
     padding: "28px 32px",
-    backgroundColor: "#ffffff",
+    backgroundColor: "var(--t-surface)",
     borderRadius: "16px",
-    border: "1px solid #e0e7ff",
-    boxShadow: "0 1px 8px rgba(79,70,229,0.06)",
+    border: "1px solid rgba(255,255,255,0.07)",
+    boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
   },
   sectionTitle: {
-    fontSize: "16px",
+    fontSize: "10px",
+    fontWeight: 700,
     marginBottom: "8px",
     marginTop: 0,
-    borderBottom: "1px solid #e0e7ff",
+    borderBottom: "1px solid rgba(255,255,255,0.07)",
     paddingBottom: "14px",
-    color: "#111827",
-    fontWeight: 700,
+    color: "var(--t-text-faint)",
     display: "flex",
     alignItems: "center",
     gap: "8px",
+    textTransform: "uppercase" as const,
+    letterSpacing: "1px",
   },
   sectionDescription: {
-    fontSize: "14px",
-    color: "#6b7280",
+    fontSize: "13px",
+    color: "var(--t-text-dim)",
     marginBottom: "20px",
     marginTop: "10px",
     textAlign: "left" as const,
-    lineHeight: "1.5",
+    lineHeight: "1.6",
   },
   formsGrid: {
     display: "grid",
@@ -1035,19 +1044,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: "16px",
   },
   formCard: {
-    backgroundColor: "#fafbff",
+    backgroundColor: "var(--t-surface-alt)",
     padding: "18px",
     borderRadius: "12px",
-    border: "1px solid #e0e7ff",
+    border: "1px solid rgba(255,255,255,0.07)",
     textAlign: "center" as const,
-    transition: "box-shadow 0.2s, transform 0.2s",
+    transition: "box-shadow 0.2s, transform 0.2s, border-color 0.2s",
   },
   formTitle: {
-    fontSize: "13px",
+    fontSize: "12px",
     fontWeight: 600,
     marginBottom: "14px",
     marginTop: 0,
-    color: "#1e1b4b",
+    color: "var(--t-text-secondary)",
     lineHeight: "1.4",
   },
   formUploaded: {
@@ -1066,55 +1075,57 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: "inline-block",
     padding: "3px 10px",
     borderRadius: "20px",
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: 600,
-    backgroundColor: "#ecfdf5",
-    color: "#059669",
-    border: "1px solid #a7f3d0",
+    backgroundColor: "var(--t-success-bg)",
+    color: "var(--t-success)",
+    border: "1px solid rgba(16,185,129,0.25)",
   },
   formStatusRequired: {
     display: "inline-block",
     padding: "3px 10px",
     borderRadius: "20px",
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: 600,
-    backgroundColor: "#fffbeb",
-    color: "#d97706",
-    border: "1px solid #fde68a",
+    backgroundColor: "var(--t-warning-bg)",
+    color: "var(--t-warning)",
+    border: "1px solid rgba(245,158,11,0.25)",
   },
   viewLink: {
-    color: "#4F46E5",
+    color: "var(--t-indigo)",
     textDecoration: "none",
-    fontSize: "13px",
+    fontSize: "12px",
     fontWeight: 600,
   },
   downloadButton: {
-    backgroundColor: "#ecfdf5",
-    color: "#059669",
+    backgroundColor: "rgba(16,185,129,0.1)",
+    color: "var(--t-success)",
     padding: "6px 12px",
     borderRadius: "7px",
-    border: "1px solid #a7f3d0",
-    fontSize: "12px",
+    border: "1px solid rgba(16,185,129,0.2)",
+    fontSize: "11px",
     fontWeight: 600,
     cursor: "pointer",
     transition: "background-color 0.2s ease",
     display: "inline-block",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   uploadButton: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: "var(--t-accent)",
     color: "#fff",
     padding: "6px 12px",
     borderRadius: "7px",
     border: "none",
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: 600,
     cursor: "pointer",
     transition: "background-color 0.2s ease",
     display: "inline-block",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   warningBanner: {
-    backgroundColor: "#fffbeb",
-    border: "1px solid #fde68a",
+    backgroundColor: "rgba(245,158,11,0.08)",
+    border: "1px solid rgba(245,158,11,0.2)",
     borderRadius: "12px",
     padding: "14px 20px",
     marginBottom: "20px",
@@ -1123,8 +1134,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: "10px",
   },
   warningText: {
-    color: "#92400e",
-    fontSize: "14px",
+    color: "var(--t-warning)",
+    fontSize: "13px",
     margin: 0,
     lineHeight: "1.5",
   },
@@ -1135,19 +1146,19 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginTop: "16px",
   },
   trainingCard: {
-    backgroundColor: "#fafbff",
+    backgroundColor: "var(--t-surface-alt)",
     padding: "18px",
     borderRadius: "12px",
-    border: "1px solid #e0e7ff",
+    border: "1px solid rgba(255,255,255,0.07)",
     textAlign: "center" as const,
-    transition: "box-shadow 0.2s, transform 0.2s",
+    transition: "box-shadow 0.2s, transform 0.2s, border-color 0.2s",
   },
   trainingTitle: {
-    fontSize: "13px",
+    fontSize: "12px",
     fontWeight: 600,
     marginBottom: "14px",
     marginTop: 0,
-    color: "#1e1b4b",
+    color: "var(--t-text-secondary)",
     lineHeight: "1.4",
   },
   trainingUploaded: {
@@ -1166,21 +1177,21 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: "inline-block",
     padding: "3px 10px",
     borderRadius: "20px",
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: 600,
-    backgroundColor: "#ecfdf5",
-    color: "#059669",
-    border: "1px solid #a7f3d0",
+    backgroundColor: "var(--t-success-bg)",
+    color: "var(--t-success)",
+    border: "1px solid rgba(16,185,129,0.25)",
   },
   trainingStatusPending: {
     display: "inline-block",
     padding: "3px 10px",
     borderRadius: "20px",
-    fontSize: "12px",
+    fontSize: "11px",
     fontWeight: 600,
-    backgroundColor: "#f3f4f6",
-    color: "#6b7280",
-    border: "1px solid #d1d5db",
+    backgroundColor: "var(--t-input-bg)",
+    color: "var(--t-text-dim)",
+    border: "1px solid rgba(255,255,255,0.08)",
   },
 };
 

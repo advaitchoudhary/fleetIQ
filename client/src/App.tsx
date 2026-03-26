@@ -37,10 +37,12 @@ const Tracking = React.lazy(() => import("./pages/Tracking"));
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App: React.FC = () => {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <Routes>
         {/* Public Routes */}
@@ -264,6 +266,7 @@ const App: React.FC = () => {
         />
       </Routes>
     </AuthProvider>
+    </ThemeProvider>
   );
 };
 
