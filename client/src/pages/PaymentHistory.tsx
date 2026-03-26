@@ -18,23 +18,6 @@ const STATUS_ICONS: Record<string, React.ReactNode> = {
   failed: <FaTimesCircle size={12} />,
 };
 
-const DEMO_DRIVERS_PH = [
-  { _id: "demo-d1", name: "Marcus Webb" },
-  { _id: "demo-d3", name: "Tyler Osei" },
-  { _id: "demo-d5", name: "James Kowalski" },
-  { _id: "demo-d2", name: "Priya Sehgal" },
-];
-
-const DEMO_PAYMENTS = [
-  { _id: "demo-pay1", driverId: { _id: "demo-d1", name: "Marcus Webb" },   amount: 243000, status: "paid",       periodFrom: "2026-03-01", periodTo: "2026-03-15", timesheetIds: ["ts1","ts2","ts3"], stripeTransferId: "tr_3Px1Demo1MarcusWebb001", createdAt: "2026-03-17T14:32:00Z" },
-  { _id: "demo-pay2", driverId: { _id: "demo-d3", name: "Tyler Osei" },    amount: 285000, status: "paid",       periodFrom: "2026-03-01", periodTo: "2026-03-15", timesheetIds: ["ts4","ts5","ts6"], stripeTransferId: "tr_3Px2Demo2TylerOsei0001", createdAt: "2026-03-17T14:45:00Z" },
-  { _id: "demo-pay3", driverId: { _id: "demo-d5", name: "James Kowalski" }, amount: 265000, status: "paid",       periodFrom: "2026-03-01", periodTo: "2026-03-15", timesheetIds: ["ts7","ts8"],       stripeTransferId: "tr_3Px3Demo3JamesKowal001", createdAt: "2026-03-17T15:10:00Z" },
-  { _id: "demo-pay4", driverId: { _id: "demo-d2", name: "Priya Sehgal" },  amount: 190000, status: "failed",     periodFrom: "2026-03-01", periodTo: "2026-03-15", timesheetIds: ["ts9"],             stripeTransferId: null, failureReason: "Bank account not linked — Stripe onboarding incomplete.", createdAt: "2026-03-17T15:22:00Z" },
-  { _id: "demo-pay5", driverId: { _id: "demo-d1", name: "Marcus Webb" },   amount: 220000, status: "paid",       periodFrom: "2026-02-14", periodTo: "2026-02-28", timesheetIds: ["ts10","ts11"],     stripeTransferId: "tr_3Px4Demo4MarcusWebb002", createdAt: "2026-03-01T09:15:00Z" },
-  { _id: "demo-pay6", driverId: { _id: "demo-d3", name: "Tyler Osei" },    amount: 230000, status: "paid",       periodFrom: "2026-02-14", periodTo: "2026-02-28", timesheetIds: ["ts12","ts13"],     stripeTransferId: "tr_3Px5Demo5TylerOsei0002", createdAt: "2026-03-01T09:30:00Z" },
-  { _id: "demo-pay7", driverId: { _id: "demo-d5", name: "James Kowalski" }, amount: 215000, status: "processing", periodFrom: "2026-03-16", periodTo: "2026-03-31", timesheetIds: ["ts14","ts15"],     stripeTransferId: null, createdAt: "2026-04-01T10:05:00Z" },
-  { _id: "demo-pay8", driverId: { _id: "demo-d1", name: "Marcus Webb" },   amount: 270000, status: "paid",       periodFrom: "2026-02-01", periodTo: "2026-02-13", timesheetIds: ["ts16","ts17","ts18"], stripeTransferId: "tr_3Px6Demo6MarcusWebb003", createdAt: "2026-02-14T08:50:00Z" },
-];
 
 const PaymentHistory: React.FC = () => {
   const [payments, setPayments] = useState<any[]>([]);
@@ -55,12 +38,12 @@ const PaymentHistory: React.FC = () => {
           axios.get(`${API_BASE_URL}/payments`, { headers }),
           axios.get(`${API_BASE_URL}/drivers`, { headers }),
         ]);
-        setPayments(payRes.data.length > 0 ? payRes.data : DEMO_PAYMENTS);
-        setDrivers(drvRes.data.length > 0 ? drvRes.data : DEMO_DRIVERS_PH);
+        setPayments(payRes.data || []);
+        setDrivers(drvRes.data || []);
       } catch (err) {
         console.error("Failed to fetch payment history", err);
-        setPayments(DEMO_PAYMENTS);
-        setDrivers(DEMO_DRIVERS_PH);
+        setPayments([]);
+        setDrivers([]);
       } finally {
         setLoading(false);
       }

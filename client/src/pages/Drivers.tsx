@@ -15,13 +15,6 @@ import { format, parseISO } from "date-fns";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
-const DEMO_DRIVERS = [
-  { _id: "demo-d1", name: "Marcus Webb", email: "m.webb@fleetmail.ca", contact: "647-555-0191", address: "412 Lakeshore Blvd W, Toronto, ON M5V 1A3", hst_gst: "873456789RT0001", business_name: "Webb Transport Inc.", status: "Active", username: "mwebb", licence: "AZ", licence_expiry_date: "2028-03-14", backhaulRate: 220, comboRate: 270, regularBannerRate: 240, wholesaleRate: 210, voilaRate: 250, tcsLinehaulTrentonRate: 300, trainings: "WHMIS, TDG, Forklift", workStatus: "Full-time", sinNo: "***-**-1234" },
-  { _id: "demo-d2", name: "Priya Sehgal", email: "p.sehgal@fleetmail.ca", contact: "905-555-0238", address: "88 Queensway E, Mississauga, ON L5A 1S3", hst_gst: "", business_name: "", status: "Active", username: "psehgal", licence: "DZ", licence_expiry_date: "2027-09-30", backhaulRate: 190, comboRate: 230, regularBannerRate: 205, wholesaleRate: 180, voilaRate: 215, tcsLinehaulTrentonRate: 260, trainings: "WHMIS, Smart Serve", workStatus: "Part-time", sinNo: "***-**-5678" },
-  { _id: "demo-d3", name: "Tyler Osei", email: "t.osei@fleetmail.ca", contact: "416-555-0347", address: "2201 Eglinton Ave E, Scarborough, ON M1L 2M3", hst_gst: "902345678RT0001", business_name: "Osei Logistics", status: "Active", username: "tosei", licence: "AZ", licence_expiry_date: "2029-01-22", backhaulRate: 230, comboRate: 285, regularBannerRate: 250, wholesaleRate: 220, voilaRate: 260, tcsLinehaulTrentonRate: 315, trainings: "WHMIS, TDG, Air Brake", workStatus: "Full-time", sinNo: "***-**-9012" },
-  { _id: "demo-d4", name: "Fatima Al-Rashid", email: "f.alrashid@fleetmail.ca", contact: "289-555-0154", address: "550 Bronte Rd, Oakville, ON L6L 6L1", hst_gst: "", business_name: "", status: "Inactive", username: "falrashid", licence: "G", licence_expiry_date: "2026-06-18", backhaulRate: 160, comboRate: 195, regularBannerRate: 175, wholesaleRate: 155, voilaRate: 180, tcsLinehaulTrentonRate: 220, trainings: "WHMIS", workStatus: "Seasonal", sinNo: "***-**-3456" },
-  { _id: "demo-d5", name: "James Kowalski", email: "j.kowalski@fleetmail.ca", contact: "519-555-0267", address: "1040 Dundas St E, London, ON N5W 3A8", hst_gst: "834567890RT0001", business_name: "JK Freight Solutions", status: "Active", username: "jkowalski", licence: "AZ", licence_expiry_date: "2027-11-05", backhaulRate: 215, comboRate: 265, regularBannerRate: 235, wholesaleRate: 205, voilaRate: 245, tcsLinehaulTrentonRate: 290, trainings: "WHMIS, TDG, Forklift, Air Brake", workStatus: "Full-time", sinNo: "***-**-7890" },
-];
 
 const WORK_AUTH_OPTIONS = [
   { value: "Canadian Citizen",                       hasExpiry: false },
@@ -180,7 +173,7 @@ const Drivers: React.FC = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         const drivers = response.data;
-        setData(drivers.length > 0 ? drivers : DEMO_DRIVERS);
+        setData(drivers);
         setLoading(false);
       } catch (err: any) {
         console.error(err);
@@ -188,7 +181,7 @@ const Drivers: React.FC = () => {
         if (err.response?.status === 404) {
           setData([]);
         } else {
-          setData(DEMO_DRIVERS);
+          setData([]);
         }
         setLoading(false);
       }

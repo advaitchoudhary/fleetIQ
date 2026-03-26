@@ -16,64 +16,6 @@ const TYPE_LABELS: Record<string, string> = {
   annual: "Annual",
 };
 
-const DEMO_VEHICLES_INS = [
-  { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth", model: "T680" },
-  { _id: "demo-v2", unitNumber: "U-102", make: "Freightliner", model: "Cascadia" },
-  { _id: "demo-v3", unitNumber: "U-103", make: "Ford", model: "Transit 350" },
-  { _id: "demo-v5", unitNumber: "U-105", make: "Ram", model: "1500 Classic" },
-];
-
-const DEMO_INSPECTIONS = [
-  {
-    _id: "demo-i1", vehicleId: "demo-v1", type: "pre_trip", date: "2026-03-20", odometer: 156340,
-    driverId: "D001", status: "satisfactory", notes: "All systems checked and operational.",
-    checklist: [
-      { category: "Lights", item: "Headlights", status: "ok", notes: "" },
-      { category: "Lights", item: "Tail Lights", status: "ok", notes: "" },
-      { category: "Lights", item: "Turn Signals", status: "ok", notes: "" },
-      { category: "Brakes", item: "Air Brake Pressure", status: "ok", notes: "" },
-      { category: "Brakes", item: "Parking Brake", status: "ok", notes: "" },
-      { category: "Tires", item: "Tire Pressure (All)", status: "ok", notes: "" },
-      { category: "Tires", item: "Tire Tread Depth", status: "ok", notes: "" },
-      { category: "Engine", item: "Engine Oil Level", status: "ok", notes: "" },
-      { category: "Engine", item: "Coolant Level", status: "ok", notes: "" },
-    ],
-  },
-  {
-    _id: "demo-i2", vehicleId: "demo-v2", type: "pre_trip", date: "2026-03-19", odometer: 204780,
-    driverId: "D003", status: "defects_noted", notes: "Front brake pads flagged for immediate replacement.",
-    checklist: [
-      { category: "Brakes", item: "Front Brake Pad Thickness", status: "defect", notes: "Below minimum — pads worn to 2mm. Replacement ordered." },
-      { category: "Brakes", item: "Air Brake Pressure", status: "ok", notes: "" },
-      { category: "Lights", item: "Headlights", status: "ok", notes: "" },
-      { category: "Lights", item: "Tail Lights", status: "ok", notes: "" },
-      { category: "Tires", item: "Tire Pressure (All)", status: "ok", notes: "" },
-      { category: "Engine", item: "Engine Oil Level", status: "ok", notes: "" },
-    ],
-  },
-  {
-    _id: "demo-i3", vehicleId: "demo-v3", type: "post_trip", date: "2026-03-18", odometer: 34560,
-    driverId: "D005", status: "satisfactory", notes: "No issues noted on return.",
-    checklist: [
-      { category: "Lights", item: "Headlights", status: "ok", notes: "" },
-      { category: "Lights", item: "Hazard Lights", status: "ok", notes: "" },
-      { category: "Tires", item: "Tire Pressure (All)", status: "ok", notes: "" },
-      { category: "Body", item: "Cargo Doors", status: "ok", notes: "" },
-      { category: "Body", item: "Exterior Damage Check", status: "ok", notes: "" },
-    ],
-  },
-  {
-    _id: "demo-i4", vehicleId: "demo-v1", type: "annual", date: "2025-04-10", odometer: 142000,
-    driverId: "", status: "satisfactory", notes: "MTO annual CVIP — passed with no defects.",
-    checklist: [
-      { category: "Brakes", item: "Brake Lining Thickness", status: "ok", notes: "" },
-      { category: "Steering", item: "Steering Play", status: "ok", notes: "" },
-      { category: "Lighting", item: "All Exterior Lights", status: "ok", notes: "" },
-      { category: "Frame", item: "Frame Integrity", status: "ok", notes: "" },
-      { category: "Engine", item: "Exhaust Emissions", status: "ok", notes: "" },
-    ],
-  },
-];
 
 const Inspections: React.FC = () => {
   const [inspections, setInspections] = useState<any[]>([]);
@@ -106,13 +48,13 @@ const Inspections: React.FC = () => {
         axios.get(`${API_BASE_URL}/vehicles`, { headers }),
         axios.get(`${API_BASE_URL}/inspections/default-checklist`, { headers }),
       ]);
-      setInspections(inspRes.data.length > 0 ? inspRes.data : DEMO_INSPECTIONS);
-      setVehicles(vehRes.data.length > 0 ? vehRes.data : DEMO_VEHICLES_INS);
+      setInspections(inspRes.data || []);
+      setVehicles(vehRes.data || []);
       setDefaultChecklist(checkRes.data);
     } catch (err) {
       console.error("Failed to fetch inspections", err);
-      setInspections(DEMO_INSPECTIONS);
-      setVehicles(DEMO_VEHICLES_INS);
+      setInspections([]);
+      setVehicles([]);
     } finally {
       setLoading(false);
     }
