@@ -303,64 +303,86 @@ const FuelLogs: React.FC = () => {
 
       {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div style={styles.overlay}>
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>{editingLog ? "Edit Fuel Log" : "Log Fuel-Up"}</h2>
-            <div style={styles.formGrid}>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={styles.label}>Vehicle *</label>
-                <select style={styles.input} value={form.vehicleId} onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}>
-                  <option value="">Select vehicle...</option>
-                  {vehicles.map((v) => <option key={v._id} value={v._id}>{vehicleMap[v._id]}</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={styles.label}>Date</label>
-                <input style={styles.input} type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
-              </div>
-              <div>
-                <label style={styles.label}>Odometer (km)</label>
-                <input style={styles.input} type="number" value={form.odometer} onChange={(e) => setForm({ ...form, odometer: e.target.value })} />
-              </div>
-              <div>
-                <label style={styles.label}>Litres *</label>
-                <input style={styles.input} type="number" step="0.1" value={form.litres} onChange={(e) => setForm({ ...form, litres: e.target.value })} placeholder="e.g. 120.5" />
-              </div>
-              <div>
-                <label style={styles.label}>Price per Litre ($) *</label>
-                <input style={styles.input} type="number" step="0.001" value={form.pricePerLitre} onChange={(e) => setForm({ ...form, pricePerLitre: e.target.value })} placeholder="e.g. 1.589" />
-              </div>
-              <div>
-                <label style={styles.label}>Fuel Type</label>
-                <select style={styles.input} value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })}>
-                  <option value="diesel">Diesel</option>
-                  <option value="gasoline">Gasoline</option>
-                  <option value="electric">Electric</option>
-                  <option value="hybrid">Hybrid</option>
-                </select>
-              </div>
-              <div>
-                <label style={styles.label}>Estimated Total</label>
-                <div style={{ padding: "9px 12px", background: "var(--t-surface-alt)", borderRadius: "8px", border: "1px solid var(--t-border)", fontSize: "14px", fontWeight: 600, color: "var(--t-indigo)" }}>
-                  {form.litres && form.pricePerLitre ? `$${(Number(form.litres) * Number(form.pricePerLitre)).toFixed(2)}` : "—"}
+        <div
+          style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "700px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaGasPump size={18} color="var(--t-indigo)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>{editingLog ? "Edit Fuel Log" : "Log Fuel-Up"}</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>Record vehicle fuel consumption details</div>
                 </div>
               </div>
-              <div>
-                <label style={styles.label}>Fuel Station</label>
-                <input style={styles.input} value={form.fuelStation} onChange={(e) => setForm({ ...form, fuelStation: e.target.value })} placeholder="e.g. Petro-Canada" />
-              </div>
-              <div>
-                <label style={styles.label}>City</label>
-                <input style={styles.input} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-              </div>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={styles.label}>Notes</label>
-                <textarea style={{ ...styles.input, height: "64px", resize: "vertical" }} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              <button onClick={() => setIsModalOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ ...styles.formGrid, marginTop: "24px" }}>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={styles.label}>Vehicle *</label>
+                  <select style={styles.input} value={form.vehicleId} onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}>
+                    <option value="">Select vehicle...</option>
+                    {vehicles.map((v) => <option key={v._id} value={v._id}>{vehicleMap[v._id]}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={styles.label}>Date</label>
+                  <input style={styles.input} type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+                </div>
+                <div>
+                  <label style={styles.label}>Odometer (km)</label>
+                  <input style={styles.input} type="number" value={form.odometer} onChange={(e) => setForm({ ...form, odometer: e.target.value })} />
+                </div>
+                <div>
+                  <label style={styles.label}>Litres *</label>
+                  <input style={styles.input} type="number" step="0.1" value={form.litres} onChange={(e) => setForm({ ...form, litres: e.target.value })} placeholder="e.g. 120.5" />
+                </div>
+                <div>
+                  <label style={styles.label}>Price per Litre ($) *</label>
+                  <input style={styles.input} type="number" step="0.001" value={form.pricePerLitre} onChange={(e) => setForm({ ...form, pricePerLitre: e.target.value })} placeholder="e.g. 1.589" />
+                </div>
+                <div>
+                  <label style={styles.label}>Fuel Type</label>
+                  <select style={styles.input} value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })}>
+                    <option value="diesel">Diesel</option>
+                    <option value="gasoline">Gasoline</option>
+                    <option value="electric">Electric</option>
+                    <option value="hybrid">Hybrid</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={styles.label}>Estimated Total</label>
+                  <div style={{ padding: "9px 12px", background: "var(--t-surface-alt)", borderRadius: "8px", border: "1px solid var(--t-border)", fontSize: "14px", fontWeight: 600, color: "var(--t-indigo)" }}>
+                    {form.litres && form.pricePerLitre ? `$${(Number(form.litres) * Number(form.pricePerLitre)).toFixed(2)}` : "—"}
+                  </div>
+                </div>
+                <div>
+                  <label style={styles.label}>Fuel Station</label>
+                  <input style={styles.input} value={form.fuelStation} onChange={(e) => setForm({ ...form, fuelStation: e.target.value })} placeholder="e.g. Petro-Canada" />
+                </div>
+                <div>
+                  <label style={styles.label}>City</label>
+                  <input style={styles.input} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+                </div>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={styles.label}>Notes</label>
+                  <textarea style={{ ...styles.input, height: "64px", resize: "vertical" }} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+                </div>
               </div>
             </div>
-            <div style={styles.modalActions}>
-              <button onClick={() => setIsModalOpen(false)} style={styles.secondaryBtn}>Cancel</button>
-              <button onClick={handleSave} style={styles.primaryBtn} disabled={saving}>
+            {/* Footer */}
+            <div style={{ padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 }}>
+              <button onClick={() => setIsModalOpen(false)} style={{ padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Cancel</button>
+              <button onClick={handleSave} style={{ padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} disabled={saving}>
                 {saving ? "Saving..." : editingLog ? "Update" : "Log Fuel-Up"}
               </button>
             </div>
@@ -370,15 +392,37 @@ const FuelLogs: React.FC = () => {
 
       {/* Delete Confirmation */}
       {isDeleteModalOpen && selectedLog && (
-        <div style={styles.overlay}>
-          <div style={{ ...styles.modal, maxWidth: "420px" }}>
-            <h2 style={styles.modalTitle}>Delete Fuel Log</h2>
-            <p style={{ color: "var(--t-text-muted)", marginBottom: "24px" }}>
-              Delete this fuel entry for <strong>{vehicleMap[selectedLog.vehicleId?._id || selectedLog.vehicleId]}</strong> on {selectedLog.date ? new Date(selectedLog.date).toLocaleDateString(undefined, { timeZone: "UTC" }) : ""}?
-            </p>
-            <div style={styles.modalActions}>
-              <button onClick={() => setIsDeleteModalOpen(false)} style={styles.secondaryBtn}>Cancel</button>
-              <button onClick={handleDelete} style={{ ...styles.primaryBtn, background: "var(--t-error)" }}>Delete</button>
+        <div
+          style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+          onClick={() => setIsDeleteModalOpen(false)}
+        >
+          <div
+            style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "420px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaTrashAlt size={18} color="var(--t-indigo)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Delete Fuel Log</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>This action cannot be undone</div>
+                </div>
+              </div>
+              <button onClick={() => setIsDeleteModalOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <p style={{ color: "var(--t-text-muted)", marginTop: "24px", marginBottom: 0 }}>
+                Delete this fuel entry for <strong>{vehicleMap[selectedLog.vehicleId?._id || selectedLog.vehicleId]}</strong> on {selectedLog.date ? new Date(selectedLog.date).toLocaleDateString(undefined, { timeZone: "UTC" }) : ""}?
+              </p>
+            </div>
+            {/* Footer */}
+            <div style={{ padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 }}>
+              <button onClick={() => setIsDeleteModalOpen(false)} style={{ padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Cancel</button>
+              <button onClick={handleDelete} style={{ padding: "10px 20px", background: "var(--t-error)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Delete</button>
             </div>
           </div>
         </div>
@@ -398,13 +442,9 @@ const styles: Record<string, React.CSSProperties> = {
   th: { padding: "13px 16px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "var(--t-indigo)", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
   tr: { borderBottom: "1px solid var(--t-stripe)" },
   td: { padding: "14px 16px", color: "var(--t-text-muted)", verticalAlign: "middle" },
-  input: { width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid var(--t-border-strong)", fontSize: "14px", color: "var(--t-text-secondary)", background: "var(--t-input-bg)", outline: "none", boxSizing: "border-box" },
-  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
-  overlay: { position: "fixed", inset: 0, background: "var(--t-modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "16px" },
-  modal: { background: "var(--t-surface)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "620px", maxHeight: "90vh", overflowY: "auto", boxShadow: "var(--t-shadow-lg)", border: "1px solid var(--t-border)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "var(--t-text)" },
+  input: { width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" },
+  label: { fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" },
   formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" },
-  modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
 };
 
 export default FuelLogs;

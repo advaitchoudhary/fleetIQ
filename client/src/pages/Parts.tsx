@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { FaBox, FaPlus, FaEdit, FaTrashAlt, FaSearch, FaCheckCircle } from "react-icons/fa";
+import { FaBox, FaPlus, FaEdit, FaTrashAlt, FaSearch, FaCheckCircle, FaWrench } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
@@ -307,59 +307,76 @@ const Parts: React.FC = () => {
 
       {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>{editingPart ? "Edit Part" : "Add Part"}</h2>
-            <div style={styles.formGrid}>
-              {[
-                { label: "Part Name *", key: "name", type: "text" },
-                { label: "Part Number", key: "partNumber", type: "text" },
-                { label: "Quantity", key: "quantity", type: "number" },
-                { label: "Minimum Quantity", key: "minimumQuantity", type: "number" },
-                { label: "Unit Cost ($)", key: "unitCost", type: "number" },
-                { label: "Supplier", key: "supplier", type: "text" },
-                { label: "Location (shelf/bin)", key: "location", type: "text" },
-              ].map(({ label, key, type }) => (
-                <div key={key} style={styles.formGroup}>
-                  <label style={styles.label}>{label}</label>
-                  <input
-                    type={type}
-                    style={styles.input}
-                    value={(form as any)[key]}
-                    onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                    min={type === "number" ? "0" : undefined}
-                  />
+        <div style={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
+          <div style={{ ...styles.modal, maxWidth: "700px" }} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaEdit size={16} color="var(--t-indigo)" />
                 </div>
-              ))}
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>{editingPart ? "Edit Part" : "Add Part"}</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>{editingPart ? "Update part details" : "Add a new part to inventory"}</div>
+                </div>
+              </div>
+              <button style={styles.closeBtn} onClick={() => setIsModalOpen(false)}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ height: "24px" }} />
+              <div style={styles.formGrid}>
+                {[
+                  { label: "Part Name *", key: "name", type: "text" },
+                  { label: "Part Number", key: "partNumber", type: "text" },
+                  { label: "Quantity", key: "quantity", type: "number" },
+                  { label: "Minimum Quantity", key: "minimumQuantity", type: "number" },
+                  { label: "Unit Cost ($)", key: "unitCost", type: "number" },
+                  { label: "Supplier", key: "supplier", type: "text" },
+                  { label: "Location (shelf/bin)", key: "location", type: "text" },
+                ].map(({ label, key, type }) => (
+                  <div key={key} style={styles.formGroup}>
+                    <label style={styles.label}>{label}</label>
+                    <input
+                      type={type}
+                      style={styles.input}
+                      value={(form as any)[key]}
+                      onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
+                      min={type === "number" ? "0" : undefined}
+                    />
+                  </div>
+                ))}
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Category</label>
+                  <select style={styles.input} value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}>
+                    {CATEGORIES.map((c) => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                  </select>
+                </div>
+              </div>
               <div style={styles.formGroup}>
-                <label style={styles.label}>Category</label>
-                <select style={styles.input} value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}>
-                  {CATEGORIES.map((c) => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
+                <label style={styles.label}>Compatible Vehicles</label>
+                <select
+                  multiple
+                  style={{ ...styles.input, height: "90px" }}
+                  value={form.compatibleVehicles}
+                  onChange={(e) => setForm((f) => ({ ...f, compatibleVehicles: Array.from(e.target.selectedOptions, (o) => o.value) }))}
+                >
+                  {vehicles.map((v) => (
+                    <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model}</option>
+                  ))}
                 </select>
               </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Description</label>
+                <textarea style={{ ...styles.input, height: "70px" }} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Notes</label>
+                <textarea style={{ ...styles.input, height: "60px" }} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
+              </div>
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Compatible Vehicles</label>
-              <select
-                multiple
-                style={{ ...styles.input, height: "90px" }}
-                value={form.compatibleVehicles}
-                onChange={(e) => setForm((f) => ({ ...f, compatibleVehicles: Array.from(e.target.selectedOptions, (o) => o.value) }))}
-              >
-                {vehicles.map((v) => (
-                  <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model}</option>
-                ))}
-              </select>
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Description</label>
-              <textarea style={{ ...styles.input, height: "70px" }} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Notes</label>
-              <textarea style={{ ...styles.input, height: "60px" }} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
-            </div>
-            <div style={styles.modalActions}>
+            {/* Footer */}
+            <div style={styles.modalFooter}>
               <button style={styles.cancelBtn} onClick={() => setIsModalOpen(false)}>Cancel</button>
               <button style={styles.primaryBtn} onClick={handleSave} disabled={saving}>
                 {saving ? "Saving..." : editingPart ? "Update" : "Add Part"}
@@ -371,44 +388,58 @@ const Parts: React.FC = () => {
 
       {/* Use Part Modal */}
       {isUseModalOpen && selectedPart && (
-        <div style={styles.modalOverlay}>
-          <div style={{ ...styles.modal, maxWidth: "480px" }}>
-            <h2 style={styles.modalTitle}>Use Part: {selectedPart.name}</h2>
-            <p style={{ color: "var(--t-text-dim)", marginBottom: "16px", fontSize: "14px" }}>
-              Available stock: <strong>{selectedPart.quantity}</strong>
-            </p>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Vehicle (optional)</label>
-              <select
-                style={styles.input}
-                value={useForm.vehicleId}
-                onChange={(e) => {
-                  setUseForm((f) => ({ ...f, vehicleId: e.target.value, maintenanceId: "" }));
-                  fetchVehicleMaintenance(e.target.value);
-                }}
-              >
-                <option value="">— Select vehicle —</option>
-                {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model}</option>)}
-              </select>
+        <div style={styles.modalOverlay} onClick={() => setIsUseModalOpen(false)}>
+          <div style={{ ...styles.modal, maxWidth: "480px" }} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaWrench size={16} color="var(--t-indigo)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Use Part</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>{selectedPart.name} — Available: <strong>{selectedPart.quantity}</strong></div>
+                </div>
+              </div>
+              <button style={styles.closeBtn} onClick={() => setIsUseModalOpen(false)}>✕</button>
             </div>
-            {vehicleMaintenance.length > 0 && (
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ height: "24px" }} />
               <div style={styles.formGroup}>
-                <label style={styles.label}>Link to Maintenance Job (optional)</label>
-                <select style={styles.input} value={useForm.maintenanceId} onChange={(e) => setUseForm((f) => ({ ...f, maintenanceId: e.target.value }))}>
-                  <option value="">— Select job —</option>
-                  {vehicleMaintenance.map((m) => <option key={m._id} value={m._id}>{m.title} ({m.status})</option>)}
+                <label style={styles.label}>Vehicle (optional)</label>
+                <select
+                  style={styles.input}
+                  value={useForm.vehicleId}
+                  onChange={(e) => {
+                    setUseForm((f) => ({ ...f, vehicleId: e.target.value, maintenanceId: "" }));
+                    fetchVehicleMaintenance(e.target.value);
+                  }}
+                >
+                  <option value="">— Select vehicle —</option>
+                  {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model}</option>)}
                 </select>
               </div>
-            )}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Quantity Used *</label>
-              <input type="number" min="1" max={selectedPart.quantity} style={styles.input} value={useForm.quantityUsed} onChange={(e) => setUseForm((f) => ({ ...f, quantityUsed: e.target.value }))} />
+              {vehicleMaintenance.length > 0 && (
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Link to Maintenance Job (optional)</label>
+                  <select style={styles.input} value={useForm.maintenanceId} onChange={(e) => setUseForm((f) => ({ ...f, maintenanceId: e.target.value }))}>
+                    <option value="">— Select job —</option>
+                    {vehicleMaintenance.map((m) => <option key={m._id} value={m._id}>{m.title} ({m.status})</option>)}
+                  </select>
+                </div>
+              )}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Quantity Used *</label>
+                <input type="number" min="1" max={selectedPart.quantity} style={styles.input} value={useForm.quantityUsed} onChange={(e) => setUseForm((f) => ({ ...f, quantityUsed: e.target.value }))} />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Notes</label>
+                <textarea style={{ ...styles.input, height: "60px" }} value={useForm.notes} onChange={(e) => setUseForm((f) => ({ ...f, notes: e.target.value }))} />
+              </div>
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Notes</label>
-              <textarea style={{ ...styles.input, height: "60px" }} value={useForm.notes} onChange={(e) => setUseForm((f) => ({ ...f, notes: e.target.value }))} />
-            </div>
-            <div style={styles.modalActions}>
+            {/* Footer */}
+            <div style={styles.modalFooter}>
               <button style={styles.cancelBtn} onClick={() => setIsUseModalOpen(false)}>Cancel</button>
               <button style={styles.primaryBtn} onClick={handleUsePart} disabled={saving}>{saving ? "Saving..." : "Use Part"}</button>
             </div>
@@ -418,15 +449,32 @@ const Parts: React.FC = () => {
 
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedPart && (
-        <div style={styles.modalOverlay}>
-          <div style={{ ...styles.modal, maxWidth: "420px" }}>
-            <h2 style={styles.modalTitle}>Delete Part?</h2>
-            <p style={{ color: "var(--t-text-dim)", marginBottom: "24px" }}>
-              Are you sure you want to delete <strong>{selectedPart.name}</strong>? This cannot be undone.
-            </p>
-            <div style={styles.modalActions}>
+        <div style={styles.modalOverlay} onClick={() => setIsDeleteModalOpen(false)}>
+          <div style={{ ...styles.modal, maxWidth: "420px" }} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaTrashAlt size={16} color="var(--t-indigo)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Delete Part?</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>This action cannot be undone</div>
+                </div>
+              </div>
+              <button style={styles.closeBtn} onClick={() => setIsDeleteModalOpen(false)}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ height: "24px" }} />
+              <p style={{ color: "var(--t-text-dim)", fontSize: "14px", margin: 0 }}>
+                Are you sure you want to delete <strong>{selectedPart.name}</strong>? This cannot be undone.
+              </p>
+            </div>
+            {/* Footer */}
+            <div style={styles.modalFooter}>
               <button style={styles.cancelBtn} onClick={() => setIsDeleteModalOpen(false)}>Cancel</button>
-              <button style={{ ...styles.primaryBtn, background: "var(--t-error)" }} onClick={handleDelete}>Delete</button>
+              <button style={styles.deleteBtn} onClick={handleDelete}>Delete</button>
             </div>
           </div>
         </div>
@@ -438,7 +486,7 @@ const Parts: React.FC = () => {
 const styles: Record<string, React.CSSProperties> = {
   wrapper: { minHeight: "100vh", background: "var(--t-bg)", fontFamily: "Inter, system-ui, sans-serif" },
   container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
-  primaryBtn: { padding: "10px 18px", background: "var(--t-accent)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
+  primaryBtn: { padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" },
   alertBanner: { background: "var(--t-warning-bg)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "var(--t-warning)" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" },
   statCard: { background: "var(--t-surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--t-border)", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
@@ -455,15 +503,16 @@ const styles: Record<string, React.CSSProperties> = {
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
   iconBtn: { background: "var(--t-hover-bg)", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "var(--t-text-faint)", display: "flex", alignItems: "center" },
   emptyState: { textAlign: "center", padding: "60px 0", color: "var(--t-text-dim)", fontSize: "15px" },
-  modalOverlay: { position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
-  modal: { background: "var(--t-surface)", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "var(--t-shadow-lg)", border: "1px solid var(--t-border)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "var(--t-text)" },
+  modalOverlay: { position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" },
+  modal: { background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" },
+  closeBtn: { width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", flexShrink: 0 },
   formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" },
   formGroup: { marginBottom: "16px" },
-  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
-  input: { width: "100%", padding: "9px 12px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", color: "var(--t-text-secondary)", background: "var(--t-input-bg)", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
-  modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
-  cancelBtn: { padding: "10px 20px", background: "var(--t-hover-bg)", color: "var(--t-text-faint)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
+  label: { fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" },
+  input: { width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" },
+  modalFooter: { padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 },
+  cancelBtn: { padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" },
+  deleteBtn: { padding: "10px 20px", background: "var(--t-error)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" },
 };
 
 export default Parts;

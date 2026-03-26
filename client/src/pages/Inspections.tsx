@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { FaCheckSquare, FaPlus, FaSearch, FaEye } from "react-icons/fa";
+import { FaCheckSquare, FaPlus, FaSearch, FaEye, FaClipboardCheck } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
@@ -232,80 +232,101 @@ const Inspections: React.FC = () => {
 
       {/* New Inspection Modal */}
       {isModalOpen && (
-        <div style={styles.overlay}>
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>New Inspection (DVIR)</h2>
-            <div style={styles.formGrid}>
-              <div>
-                <label style={styles.label}>Vehicle *</label>
-                <select style={styles.input} value={form.vehicleId} onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}>
-                  <option value="">Select vehicle...</option>
-                  {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} {v.make ? `— ${v.make} ${v.model}` : ""}</option>)}
-                </select>
-              </div>
-              <div>
-                <label style={styles.label}>Inspection Type</label>
-                <select style={styles.input} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                  <option value="pre_trip">Pre-Trip</option>
-                  <option value="post_trip">Post-Trip</option>
-                  <option value="annual">Annual</option>
-                </select>
-              </div>
-              <div>
-                <label style={styles.label}>Date</label>
-                <input style={styles.input} type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
-              </div>
-              <div>
-                <label style={styles.label}>Odometer (km)</label>
-                <input style={styles.input} type="number" value={form.odometer} onChange={(e) => setForm({ ...form, odometer: e.target.value })} />
-              </div>
-            </div>
-
-            {/* Checklist */}
-            <div style={{ marginTop: "8px" }}>
-              <h3 style={{ fontSize: "15px", fontWeight: 700, color: "var(--t-text-secondary)", marginBottom: "12px" }}>Inspection Checklist</h3>
-              {checklist.length === 0 && <p style={{ color: "var(--t-text-dim)", fontSize: "13px" }}>Loading checklist...</p>}
-              {Array.from(new Set(checklist.map((c) => c.category))).map((cat) => (
-                <div key={cat as string} style={{ marginBottom: "16px" }}>
-                  <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--t-text-dim)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>{cat as string}</div>
-                  {checklist.filter((c) => c.category === cat).map((item, idx) => {
-                    const realIdx = checklist.indexOf(item);
-                    return (
-                      <div key={idx} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 0", borderBottom: "1px solid var(--t-border)" }}>
-                        <div style={{ flex: 1, fontSize: "13px", color: "var(--t-text-muted)" }}>{item.item}</div>
-                        <div style={{ display: "flex", gap: "8px" }}>
-                          <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "13px", cursor: "pointer", color: item.status === "ok" ? "var(--t-success)" : "var(--t-text-dim)" }}>
-                            <input type="radio" name={`item-${realIdx}`} value="ok" checked={item.status === "ok"} onChange={() => handleChecklistChange(realIdx, "status", "ok")} />
-                            OK
-                          </label>
-                          <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "13px", cursor: "pointer", color: item.status === "defect" ? "var(--t-error)" : "var(--t-text-dim)" }}>
-                            <input type="radio" name={`item-${realIdx}`} value="defect" checked={item.status === "defect"} onChange={() => handleChecklistChange(realIdx, "status", "defect")} />
-                            Defect
-                          </label>
-                        </div>
-                        {item.status === "defect" && (
-                          <input
-                            placeholder="Describe defect..."
-                            value={item.notes || ""}
-                            onChange={(e) => handleChecklistChange(realIdx, "notes", e.target.value)}
-                            style={{ ...styles.input, maxWidth: "220px", fontSize: "12px" }}
-                          />
-                        )}
-                      </div>
-                    );
-                  })}
+        <div
+          style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "700px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaClipboardCheck size={18} color="var(--t-indigo)" />
                 </div>
-              ))}
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>New Inspection (DVIR)</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>Submit a Driver Vehicle Inspection Report</div>
+                </div>
+              </div>
+              <button onClick={() => setIsModalOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
             </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ ...styles.formGrid, marginTop: "24px" }}>
+                <div>
+                  <label style={styles.label}>Vehicle *</label>
+                  <select style={styles.input} value={form.vehicleId} onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}>
+                    <option value="">Select vehicle...</option>
+                    {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} {v.make ? `— ${v.make} ${v.model}` : ""}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={styles.label}>Inspection Type</label>
+                  <select style={styles.input} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+                    <option value="pre_trip">Pre-Trip</option>
+                    <option value="post_trip">Post-Trip</option>
+                    <option value="annual">Annual</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={styles.label}>Date</label>
+                  <input style={styles.input} type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} />
+                </div>
+                <div>
+                  <label style={styles.label}>Odometer (km)</label>
+                  <input style={styles.input} type="number" value={form.odometer} onChange={(e) => setForm({ ...form, odometer: e.target.value })} />
+                </div>
+              </div>
 
-            <div style={{ marginTop: "16px" }}>
-              <label style={styles.label}>Additional Notes</label>
-              <textarea style={{ ...styles.input, height: "64px", resize: "vertical" }} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              {/* Checklist */}
+              <div style={{ marginTop: "8px" }}>
+                <h3 style={{ fontSize: "15px", fontWeight: 700, color: "var(--t-text-secondary)", marginBottom: "12px" }}>Inspection Checklist</h3>
+                {checklist.length === 0 && <p style={{ color: "var(--t-text-dim)", fontSize: "13px" }}>Loading checklist...</p>}
+                {Array.from(new Set(checklist.map((c) => c.category))).map((cat) => (
+                  <div key={cat as string} style={{ marginBottom: "16px" }}>
+                    <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--t-text-dim)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>{cat as string}</div>
+                    {checklist.filter((c) => c.category === cat).map((item, idx) => {
+                      const realIdx = checklist.indexOf(item);
+                      return (
+                        <div key={idx} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 0", borderBottom: "1px solid var(--t-border)" }}>
+                          <div style={{ flex: 1, fontSize: "13px", color: "var(--t-text-muted)" }}>{item.item}</div>
+                          <div style={{ display: "flex", gap: "8px" }}>
+                            <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "13px", cursor: "pointer", color: item.status === "ok" ? "var(--t-success)" : "var(--t-text-dim)" }}>
+                              <input type="radio" name={`item-${realIdx}`} value="ok" checked={item.status === "ok"} onChange={() => handleChecklistChange(realIdx, "status", "ok")} />
+                              OK
+                            </label>
+                            <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "13px", cursor: "pointer", color: item.status === "defect" ? "var(--t-error)" : "var(--t-text-dim)" }}>
+                              <input type="radio" name={`item-${realIdx}`} value="defect" checked={item.status === "defect"} onChange={() => handleChecklistChange(realIdx, "status", "defect")} />
+                              Defect
+                            </label>
+                          </div>
+                          {item.status === "defect" && (
+                            <input
+                              placeholder="Describe defect..."
+                              value={item.notes || ""}
+                              onChange={(e) => handleChecklistChange(realIdx, "notes", e.target.value)}
+                              style={{ ...styles.input, maxWidth: "220px", fontSize: "12px" }}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ marginTop: "16px" }}>
+                <label style={styles.label}>Additional Notes</label>
+                <textarea style={{ ...styles.input, height: "64px", resize: "vertical" }} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              </div>
             </div>
-
-            <div style={styles.modalActions}>
-              <button onClick={() => setIsModalOpen(false)} style={styles.secondaryBtn}>Cancel</button>
-              <button onClick={handleSave} style={styles.primaryBtn} disabled={saving}>
+            {/* Footer */}
+            <div style={{ padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 }}>
+              <button onClick={() => setIsModalOpen(false)} style={{ padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Cancel</button>
+              <button onClick={handleSave} style={{ padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} disabled={saving}>
                 {saving ? "Submitting..." : "Submit Inspection"}
               </button>
             </div>
@@ -315,55 +336,72 @@ const Inspections: React.FC = () => {
 
       {/* View Inspection Modal */}
       {viewingInspection && (
-        <div style={styles.overlay}>
-          <div style={styles.modal}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
-              <div>
-                <h2 style={{ ...styles.modalTitle, margin: 0 }}>Inspection Report</h2>
-                <p style={{ margin: "4px 0 0", color: "var(--t-text-dim)", fontSize: "13px" }}>
-                  {TYPE_LABELS[viewingInspection.type]} — {viewingInspection.date ? new Date(viewingInspection.date).toLocaleDateString(undefined, { timeZone: "UTC" }) : ""}
-                </p>
-              </div>
-              <span style={{ ...styles.badge, ...STATUS_COLORS[viewingInspection.status], fontSize: "13px", padding: "4px 12px" }}>
-                {viewingInspection.status?.replace(/_/g, " ")}
-              </span>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px", fontSize: "13px" }}>
-              <div><span style={{ color: "var(--t-text-dim)" }}>Vehicle:</span> <strong>{vehicleMap[viewingInspection.vehicleId?._id || viewingInspection.vehicleId] || "—"}</strong></div>
-              <div><span style={{ color: "var(--t-text-dim)" }}>Driver:</span> <strong>{viewingInspection.driverId?.name || "—"}</strong></div>
-              <div><span style={{ color: "var(--t-text-dim)" }}>Odometer:</span> <strong>{viewingInspection.odometer != null ? `${viewingInspection.odometer.toLocaleString()} km` : "—"}</strong></div>
-              <div><span style={{ color: "var(--t-text-dim)" }}>Defects:</span> <strong style={{ color: (viewingInspection.checklistItems || []).filter((c: any) => c.status === "defect").length > 0 ? "var(--t-error)" : "var(--t-success)" }}>
-                {(viewingInspection.checklistItems || []).filter((c: any) => c.status === "defect").length} found
-              </strong></div>
-            </div>
-
-            {Object.entries(groupedChecklist).map(([cat, items]: any) => (
-              <div key={cat} style={{ marginBottom: "16px" }}>
-                <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--t-text-dim)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>{cat}</div>
-                {items.map((item: any, idx: number) => (
-                  <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--t-border)", fontSize: "13px" }}>
-                    <span style={{ color: "var(--t-text-muted)" }}>{item.item}</span>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      {item.notes && <span style={{ color: "var(--t-text-faint)", fontSize: "12px" }}>{item.notes}</span>}
-                      <span style={{ ...styles.badge, ...(item.status === "ok" ? { background: "var(--t-success-bg)", color: "var(--t-success)" } : { background: "var(--t-error-bg)", color: "var(--t-error)" }) }}>
-                        {item.status}
-                      </span>
-                    </div>
+        <div
+          style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+          onClick={() => setViewingInspection(null)}
+        >
+          <div
+            style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "700px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaClipboardCheck size={18} color="var(--t-indigo)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Inspection Report</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>
+                    {TYPE_LABELS[viewingInspection.type]} — {viewingInspection.date ? new Date(viewingInspection.date).toLocaleDateString(undefined, { timeZone: "UTC" }) : ""}
                   </div>
-                ))}
+                </div>
               </div>
-            ))}
-
-            {viewingInspection.notes && (
-              <div style={{ marginTop: "16px", padding: "12px 16px", background: "var(--t-surface-alt)", borderRadius: "8px", border: "1px solid var(--t-border)" }}>
-                <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--t-text-dim)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Additional Notes</div>
-                <p style={{ margin: 0, fontSize: "13px", color: "var(--t-text-muted)" }}>{viewingInspection.notes}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ ...styles.badge, ...STATUS_COLORS[viewingInspection.status], fontSize: "13px", padding: "4px 12px" }}>
+                  {viewingInspection.status?.replace(/_/g, " ")}
+                </span>
+                <button onClick={() => setViewingInspection(null)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
               </div>
-            )}
+            </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginTop: "24px", marginBottom: "20px", fontSize: "13px" }}>
+                <div><span style={{ color: "var(--t-text-dim)" }}>Vehicle:</span> <strong>{vehicleMap[viewingInspection.vehicleId?._id || viewingInspection.vehicleId] || "—"}</strong></div>
+                <div><span style={{ color: "var(--t-text-dim)" }}>Driver:</span> <strong>{viewingInspection.driverId?.name || "—"}</strong></div>
+                <div><span style={{ color: "var(--t-text-dim)" }}>Odometer:</span> <strong>{viewingInspection.odometer != null ? `${viewingInspection.odometer.toLocaleString()} km` : "—"}</strong></div>
+                <div><span style={{ color: "var(--t-text-dim)" }}>Defects:</span> <strong style={{ color: (viewingInspection.checklistItems || []).filter((c: any) => c.status === "defect").length > 0 ? "var(--t-error)" : "var(--t-success)" }}>
+                  {(viewingInspection.checklistItems || []).filter((c: any) => c.status === "defect").length} found
+                </strong></div>
+              </div>
 
-            <div style={styles.modalActions}>
-              <button onClick={() => setViewingInspection(null)} style={styles.secondaryBtn}>Close</button>
+              {Object.entries(groupedChecklist).map(([cat, items]: any) => (
+                <div key={cat} style={{ marginBottom: "16px" }}>
+                  <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--t-text-dim)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "8px" }}>{cat}</div>
+                  {items.map((item: any, idx: number) => (
+                    <div key={idx} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--t-border)", fontSize: "13px" }}>
+                      <span style={{ color: "var(--t-text-muted)" }}>{item.item}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        {item.notes && <span style={{ color: "var(--t-text-faint)", fontSize: "12px" }}>{item.notes}</span>}
+                        <span style={{ ...styles.badge, ...(item.status === "ok" ? { background: "var(--t-success-bg)", color: "var(--t-success)" } : { background: "var(--t-error-bg)", color: "var(--t-error)" }) }}>
+                          {item.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+
+              {viewingInspection.notes && (
+                <div style={{ marginTop: "16px", padding: "12px 16px", background: "var(--t-surface-alt)", borderRadius: "8px", border: "1px solid var(--t-border)" }}>
+                  <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--t-text-dim)", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "6px" }}>Additional Notes</div>
+                  <p style={{ margin: 0, fontSize: "13px", color: "var(--t-text-muted)" }}>{viewingInspection.notes}</p>
+                </div>
+              )}
+            </div>
+            {/* Footer */}
+            <div style={{ padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 }}>
+              <button onClick={() => setViewingInspection(null)} style={{ padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Close</button>
             </div>
           </div>
         </div>
@@ -384,13 +422,9 @@ const styles: Record<string, React.CSSProperties> = {
   tr: { borderBottom: "1px solid var(--t-stripe)" },
   td: { padding: "14px 16px", color: "var(--t-text-muted)", verticalAlign: "middle" },
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600, textTransform: "capitalize" },
-  input: { width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid var(--t-border-strong)", fontSize: "14px", color: "var(--t-text-secondary)", background: "var(--t-input-bg)", outline: "none", boxSizing: "border-box" },
-  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
-  overlay: { position: "fixed", inset: 0, background: "var(--t-modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "16px" },
-  modal: { background: "var(--t-surface)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "680px", maxHeight: "90vh", overflowY: "auto", boxShadow: "var(--t-shadow-lg)", border: "1px solid var(--t-border)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "var(--t-text)" },
+  input: { width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" },
+  label: { fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" },
   formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" },
-  modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
 };
 
 export default Inspections;

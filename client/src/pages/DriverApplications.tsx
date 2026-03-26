@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Navbar from "./Navbar";
 import { API_BASE_URL, FILE_BASE_URL } from "../utils/env";
-import { FaCheck, FaTimes, FaEye, FaClipboardList } from "react-icons/fa";
+import { FaCheck, FaTimes, FaEye, FaClipboardList, FaClipboard } from "react-icons/fa";
 
 interface DriverApplication {
   _id: string;
@@ -281,18 +281,23 @@ const DriverApplications: React.FC = () => {
         {isViewModalOpen && selectedApplication && (
           <div style={styles.modalOverlay} onClick={() => setIsViewModalOpen(false)}>
             <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+              {/* Header */}
               <div style={styles.modalHeader}>
-                <div>
-                  <h2 style={styles.modalTitle}>Application Details</h2>
-                  <p style={styles.modalSubtitle}>{selectedApplication.name} — {formatDate(selectedApplication.createdAt)}</p>
+                <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                  <div style={styles.modalIconBox}><FaClipboard size={17} color="var(--t-indigo)" /></div>
+                  <div>
+                    <h2 style={styles.modalTitle}>Application Details</h2>
+                    <p style={styles.modalSubtitle}>{selectedApplication.name} — {formatDate(selectedApplication.createdAt)}</p>
+                  </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                   <span style={{ ...styles.statusBadge, backgroundColor: getStatusColor(selectedApplication.status) }}>
                     {selectedApplication.status}
                   </span>
-                  <button style={styles.closeButton} onClick={() => setIsViewModalOpen(false)}>×</button>
+                  <button style={styles.closeButton} onClick={() => setIsViewModalOpen(false)}>✕</button>
                 </div>
               </div>
+              {/* Body */}
               <div style={styles.modalBody}>
                 <div style={styles.detailCard}>
                   <h3 style={styles.detailCardTitle}>Personal Information</h3>
@@ -383,6 +388,28 @@ const DriverApplications: React.FC = () => {
                   </div>
                 )}
               </div>
+              {/* Footer */}
+              <div style={styles.modalFooter}>
+                {selectedApplication.status === "Pending" && (
+                  <>
+                    <button
+                      style={styles.rejectModalButton}
+                      onClick={() => { setIsViewModalOpen(false); openActionModal(selectedApplication, "reject"); }}
+                    >
+                      Reject
+                    </button>
+                    <button
+                      style={styles.approveModalButton}
+                      onClick={() => { setIsViewModalOpen(false); openActionModal(selectedApplication, "approve"); }}
+                    >
+                      Approve
+                    </button>
+                  </>
+                )}
+                {selectedApplication.status !== "Pending" && (
+                  <button style={styles.cancelButton} onClick={() => setIsViewModalOpen(false)}>Close</button>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -390,13 +417,28 @@ const DriverApplications: React.FC = () => {
         {/* Action Modal (Approve/Reject) */}
         {isActionModalOpen && selectedApplication && (
           <div style={styles.modalOverlay} onClick={() => setIsActionModalOpen(false)}>
-            <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div style={{ ...styles.modalContent, maxWidth: "480px" }} onClick={(e) => e.stopPropagation()}>
+              {/* Header */}
               <div style={styles.modalHeader}>
-                <h2>{actionType === "approve" ? "Approve Application" : "Reject Application"}</h2>
-                <button style={styles.closeButton} onClick={() => setIsActionModalOpen(false)}>
-                  ×
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                  <div style={{
+                    ...styles.modalIconBox,
+                    background: actionType === "approve" ? "var(--t-success-bg)" : "var(--t-error-bg)",
+                    border: actionType === "approve" ? "1px solid rgba(16,185,129,0.25)" : "1px solid rgba(239,68,68,0.25)",
+                  }}>
+                    {actionType === "approve"
+                      ? <FaCheck size={16} color="var(--t-success)" />
+                      : <FaTimes size={16} color="var(--t-error)" />
+                    }
+                  </div>
+                  <div>
+                    <h2 style={styles.modalTitle}>{actionType === "approve" ? "Approve Application" : "Reject Application"}</h2>
+                    <p style={styles.modalSubtitle}>{selectedApplication.name} — {selectedApplication.email}</p>
+                  </div>
+                </div>
+                <button style={styles.closeButton} onClick={() => setIsActionModalOpen(false)}>✕</button>
               </div>
+              {/* Body */}
               <div style={styles.modalBody}>
                 {approvalResult ? (
                   <div style={styles.approvalResult}>
@@ -414,21 +456,9 @@ const DriverApplications: React.FC = () => {
                       ⚠️ Please share these credentials with the driver. They can change their password after
                       logging in.
                     </p>
-                    <button
-                      style={styles.confirmButton}
-                      onClick={() => {
-                        setIsActionModalOpen(false);
-                        setApprovalResult(null);
-                      }}
-                    >
-                      Close
-                    </button>
                   </div>
                 ) : (
                   <>
-                    <p style={{ color: "var(--t-text-muted)" }}>
-                      <strong style={{ color: "var(--t-text-secondary)" }}>Applicant:</strong> {selectedApplication.name} ({selectedApplication.email})
-                    </p>
                     <div style={styles.formGroup}>
                       <label style={styles.label}>
                         Admin Notes {actionType === "reject" ? "(required)" : "(optional)"}
@@ -445,24 +475,39 @@ const DriverApplications: React.FC = () => {
                         required={actionType === "reject"}
                       />
                     </div>
-                    <div style={styles.modalActions}>
-                      <button
-                        style={styles.cancelButton}
-                        onClick={() => setIsActionModalOpen(false)}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        style={
-                          actionType === "approve"
-                            ? styles.approveModalButton
-                            : styles.rejectModalButton
-                        }
-                        onClick={actionType === "approve" ? handleApprove : handleReject}
-                      >
-                        {actionType === "approve" ? "Approve" : "Reject"}
-                      </button>
-                    </div>
+                  </>
+                )}
+              </div>
+              {/* Footer */}
+              <div style={styles.modalFooter}>
+                {approvalResult ? (
+                  <button
+                    style={styles.confirmButton}
+                    onClick={() => {
+                      setIsActionModalOpen(false);
+                      setApprovalResult(null);
+                    }}
+                  >
+                    Close
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      style={styles.cancelButton}
+                      onClick={() => setIsActionModalOpen(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      style={
+                        actionType === "approve"
+                          ? styles.approveModalButton
+                          : styles.rejectModalButton
+                      }
+                      onClick={actionType === "approve" ? handleApprove : handleReject}
+                    >
+                      {actionType === "approve" ? "Approve" : "Reject"}
+                    </button>
                   </>
                 )}
               </div>
@@ -626,67 +671,84 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   modalOverlay: {
     position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "var(--t-modal-overlay)",
+    inset: 0,
+    background: "var(--t-modal-overlay)",
+    zIndex: 2000,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 1000,
     padding: "20px",
-    backdropFilter: "blur(4px)",
   },
   modalContent: {
-    backgroundColor: "var(--t-surface)",
+    background: "var(--t-surface)",
     borderRadius: "16px",
-    maxWidth: "720px",
-    width: "100%",
-    maxHeight: "90vh",
-    overflowY: "auto",
-    boxShadow: "var(--t-shadow-lg)",
     border: "1px solid var(--t-border)",
+    width: "100%",
+    maxWidth: "700px",
+    maxHeight: "90vh",
+    display: "flex",
+    flexDirection: "column",
+    boxShadow: "var(--t-shadow-lg)",
   },
   modalHeader: {
+    flexShrink: 0,
+    padding: "24px 28px",
+    borderBottom: "1px solid var(--t-hover-bg)",
     display: "flex",
+    alignItems: "center",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    padding: "24px 28px 20px",
-    borderBottom: "1px solid var(--t-border)",
+  },
+  modalIconBox: {
+    width: "42px",
+    height: "42px",
+    borderRadius: "12px",
+    background: "var(--t-indigo-bg)",
+    border: "1px solid rgba(79,70,229,0.25)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
   modalTitle: {
-    fontSize: "20px",
-    fontWeight: 700,
+    fontSize: "18px",
+    fontWeight: 800,
     color: "var(--t-text)",
     margin: 0,
   },
   modalSubtitle: {
-    fontSize: "13px",
-    color: "var(--t-text-faint)",
-    margin: "4px 0 0 0",
+    fontSize: "12px",
+    color: "var(--t-text-ghost)",
+    margin: "2px 0 0 0",
   },
   closeButton: {
-    background: "var(--t-hover-bg)",
-    border: "1px solid var(--t-border-strong)",
-    fontSize: "20px",
-    cursor: "pointer",
-    color: "var(--t-text-faint)",
-    padding: 0,
     width: "32px",
     height: "32px",
+    borderRadius: "8px",
+    background: "var(--t-hover-bg)",
+    border: "1px solid var(--t-border-strong)",
+    color: "var(--t-text-faint)",
+    cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: "8px",
-    transition: "color 0.2s",
+    fontSize: "14px",
     flexShrink: 0,
   },
   modalBody: {
     padding: "24px 28px",
+    overflowY: "auto",
+    flexGrow: 1,
     display: "flex",
     flexDirection: "column",
     gap: "20px",
+  },
+  modalFooter: {
+    padding: "16px 28px",
+    borderTop: "1px solid var(--t-hover-bg)",
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: "10px",
+    flexShrink: 0,
   },
   detailCard: {
     backgroundColor: "var(--t-surface-alt)",
@@ -752,73 +814,70 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: "20px",
   },
   label: {
-    display: "block",
-    marginBottom: "8px",
-    fontSize: "11px",
+    fontSize: "10px",
     fontWeight: 700,
     color: "var(--t-text-ghost)",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.6px",
+    letterSpacing: "0.8px",
+    display: "block",
+    marginBottom: "7px",
   },
   textarea: {
     width: "100%",
-    padding: "12px",
-    fontSize: "14px",
-    borderRadius: "8px",
+    padding: "11px 14px",
+    background: "var(--t-input-bg)",
     border: "1px solid var(--t-border-strong)",
-    backgroundColor: "var(--t-input-bg)",
-    color: "var(--t-text-secondary)",
+    borderRadius: "8px",
+    color: "var(--t-text)",
+    fontSize: "14px",
+    fontFamily: "Inter, system-ui, sans-serif",
+    boxSizing: "border-box",
     minHeight: "100px",
     resize: "vertical",
-    fontFamily: "inherit",
     outline: "none",
-    boxSizing: "border-box",
-  },
-  modalActions: {
-    display: "flex",
-    gap: "12px",
-    justifyContent: "flex-end",
-    marginTop: "24px",
   },
   cancelButton: {
-    padding: "10px 20px",
+    padding: "10px 18px",
+    background: "var(--t-hover-bg)",
+    border: "1px solid var(--t-border)",
     borderRadius: "8px",
-    border: "1px solid var(--t-border-strong)",
-    backgroundColor: "var(--t-input-bg)",
-    color: "var(--t-text-muted)",
-    cursor: "pointer",
-    fontSize: "14px",
+    color: "var(--t-text-secondary)",
+    fontSize: "13px",
     fontWeight: 600,
+    cursor: "pointer",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   approveModalButton: {
     padding: "10px 20px",
-    borderRadius: "8px",
+    background: "var(--t-success)",
     border: "none",
-    backgroundColor: "var(--t-success)",
+    borderRadius: "8px",
     color: "#fff",
+    fontSize: "13px",
+    fontWeight: 700,
     cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: 600,
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   rejectModalButton: {
     padding: "10px 20px",
-    borderRadius: "8px",
+    background: "var(--t-error)",
     border: "none",
-    backgroundColor: "var(--t-error)",
+    borderRadius: "8px",
     color: "#fff",
+    fontSize: "13px",
+    fontWeight: 700,
     cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: 600,
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   confirmButton: {
     padding: "10px 20px",
-    borderRadius: "8px",
+    background: "var(--t-accent)",
     border: "none",
-    backgroundColor: "var(--t-accent)",
+    borderRadius: "8px",
     color: "#fff",
+    fontSize: "13px",
+    fontWeight: 700,
     cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: 600,
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   approvalResult: {
     textAlign: "center",
@@ -846,17 +905,13 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   previewOverlay: {
     position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "var(--t-modal-overlay)",
+    inset: 0,
+    background: "var(--t-modal-overlay)",
+    zIndex: 2000,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 2000,
     padding: "20px",
-    backdropFilter: "blur(4px)",
   },
   previewContainer: {
     backgroundColor: "var(--t-surface)",

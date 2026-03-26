@@ -374,90 +374,126 @@ const Vehicles: React.FC = () => {
 
       {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div style={styles.overlay}>
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>{editingVehicle ? "Edit Vehicle" : "Add Vehicle"}</h2>
-            <div style={styles.formGrid}>
-              <div>
-                <label style={styles.label}>Unit Number *</label>
-                <input style={styles.input} value={form.unitNumber} onChange={(e) => setForm({ ...form, unitNumber: e.target.value })} placeholder="e.g. Truck-001" />
+        <div
+          style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "700px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--t-indigo)" }}>
+                  <FaEdit size={16} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>{editingVehicle ? "Edit Vehicle" : "Add Vehicle"}</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>{editingVehicle ? "Update vehicle details" : "Add a new vehicle to your fleet"}</div>
+                </div>
               </div>
-              <div>
-                <label style={styles.label}>Make</label>
-                <input style={styles.input} value={form.make} onChange={(e) => setForm({ ...form, make: e.target.value })} placeholder="e.g. Freightliner" />
+              <button onClick={() => setIsModalOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              {/* Section: Basic Info */}
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "24px 0 20px" }}>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1.2px", whiteSpace: "nowrap" }}>BASIC INFO</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
               </div>
-              <div>
-                <label style={styles.label}>Model</label>
-                <input style={styles.input} value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} placeholder="e.g. Cascadia" />
+              <div style={styles.formGrid}>
+                <div>
+                  <label style={styles.label}>Unit Number *</label>
+                  <input style={styles.input} value={form.unitNumber} onChange={(e) => setForm({ ...form, unitNumber: e.target.value })} placeholder="e.g. Truck-001" />
+                </div>
+                <div>
+                  <label style={styles.label}>Make</label>
+                  <input style={styles.input} value={form.make} onChange={(e) => setForm({ ...form, make: e.target.value })} placeholder="e.g. Freightliner" />
+                </div>
+                <div>
+                  <label style={styles.label}>Model</label>
+                  <input style={styles.input} value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} placeholder="e.g. Cascadia" />
+                </div>
+                <div>
+                  <label style={styles.label}>Year</label>
+                  <input style={styles.input} type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="e.g. 2021" />
+                </div>
+                <div>
+                  <label style={styles.label}>VIN</label>
+                  <input style={styles.input} value={form.vin} onChange={(e) => setForm({ ...form, vin: e.target.value })} placeholder="17-character VIN" />
+                </div>
+                <div>
+                  <label style={styles.label}>License Plate</label>
+                  <input style={styles.input} value={form.licensePlate} onChange={(e) => setForm({ ...form, licensePlate: e.target.value })} />
+                </div>
+                <div>
+                  <label style={styles.label}>Type</label>
+                  <select style={styles.input} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+                    <option value="truck">Truck</option>
+                    <option value="trailer">Trailer</option>
+                    <option value="van">Van</option>
+                    <option value="pickup">Pickup</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={styles.label}>Status</label>
+                  <select style={styles.input} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="in_maintenance">In Maintenance</option>
+                    <option value="out_of_service">Out of Service</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label style={styles.label}>Year</label>
-                <input style={styles.input} type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="e.g. 2021" />
+              {/* Section: Details */}
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "24px 0 20px" }}>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1.2px", whiteSpace: "nowrap" }}>DETAILS</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
               </div>
-              <div>
-                <label style={styles.label}>VIN</label>
-                <input style={styles.input} value={form.vin} onChange={(e) => setForm({ ...form, vin: e.target.value })} placeholder="17-character VIN" />
-              </div>
-              <div>
-                <label style={styles.label}>License Plate</label>
-                <input style={styles.input} value={form.licensePlate} onChange={(e) => setForm({ ...form, licensePlate: e.target.value })} />
-              </div>
-              <div>
-                <label style={styles.label}>Type</label>
-                <select style={styles.input} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                  <option value="truck">Truck</option>
-                  <option value="trailer">Trailer</option>
-                  <option value="van">Van</option>
-                  <option value="pickup">Pickup</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              <div>
-                <label style={styles.label}>Status</label>
-                <select style={styles.input} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="in_maintenance">In Maintenance</option>
-                  <option value="out_of_service">Out of Service</option>
-                </select>
-              </div>
-              <div>
-                <label style={styles.label}>Odometer (km)</label>
-                <input style={styles.input} type="number" value={form.odometer} onChange={(e) => setForm({ ...form, odometer: e.target.value })} />
-              </div>
-              <div>
-                <label style={styles.label}>Ownership</label>
-                <select style={styles.input} value={form.ownership} onChange={(e) => setForm({ ...form, ownership: e.target.value })}>
-                  <option value="owned">Owned</option>
-                  <option value="leased">Leased</option>
-                  <option value="rented">Rented</option>
-                </select>
-              </div>
-              <div>
-                <label style={styles.label}>Fuel Type</label>
-                <select style={styles.input} value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })}>
-                  <option value="diesel">Diesel</option>
-                  <option value="gasoline">Gasoline</option>
-                  <option value="electric">Electric</option>
-                  <option value="hybrid">Hybrid</option>
-                </select>
-              </div>
-              <div>
-                <label style={styles.label}>Insurance Expiry</label>
-                <input style={styles.input} type="date" value={form.insuranceExpiry} onChange={(e) => setForm({ ...form, insuranceExpiry: e.target.value })} />
-              </div>
-              <div>
-                <label style={styles.label}>Registration Expiry</label>
-                <input style={styles.input} type="date" value={form.registrationExpiry} onChange={(e) => setForm({ ...form, registrationExpiry: e.target.value })} />
-              </div>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={styles.label}>Notes</label>
-                <textarea style={{ ...styles.input, height: "72px", resize: "vertical" }} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              <div style={styles.formGrid}>
+                <div>
+                  <label style={styles.label}>Odometer (km)</label>
+                  <input style={styles.input} type="number" value={form.odometer} onChange={(e) => setForm({ ...form, odometer: e.target.value })} />
+                </div>
+                <div>
+                  <label style={styles.label}>Ownership</label>
+                  <select style={styles.input} value={form.ownership} onChange={(e) => setForm({ ...form, ownership: e.target.value })}>
+                    <option value="owned">Owned</option>
+                    <option value="leased">Leased</option>
+                    <option value="rented">Rented</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={styles.label}>Fuel Type</label>
+                  <select style={styles.input} value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })}>
+                    <option value="diesel">Diesel</option>
+                    <option value="gasoline">Gasoline</option>
+                    <option value="electric">Electric</option>
+                    <option value="hybrid">Hybrid</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={styles.label}>Insurance Expiry</label>
+                  <input style={styles.input} type="date" value={form.insuranceExpiry} onChange={(e) => setForm({ ...form, insuranceExpiry: e.target.value })} />
+                </div>
+                <div>
+                  <label style={styles.label}>Registration Expiry</label>
+                  <input style={styles.input} type="date" value={form.registrationExpiry} onChange={(e) => setForm({ ...form, registrationExpiry: e.target.value })} />
+                </div>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={styles.label}>Notes</label>
+                  <textarea style={{ ...styles.input, height: "72px", resize: "vertical" }} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+                </div>
               </div>
             </div>
-            <div style={styles.modalActions}>
-              <button onClick={() => setIsModalOpen(false)} style={styles.secondaryBtn}>Cancel</button>
-              <button onClick={handleSave} style={styles.primaryBtn} disabled={saving}>
+            {/* Footer */}
+            <div style={{ padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 }}>
+              <button onClick={() => setIsModalOpen(false)} style={{ padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Cancel</button>
+              <button onClick={handleSave} style={{ padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} disabled={saving}>
                 {saving ? "Saving..." : editingVehicle ? "Update Vehicle" : "Add Vehicle"}
               </button>
             </div>
@@ -467,30 +503,51 @@ const Vehicles: React.FC = () => {
 
       {/* Assign Driver Modal */}
       {isAssignModalOpen && assigningVehicle && (
-        <div style={styles.overlay}>
-          <div style={{ ...styles.modal, maxWidth: "440px" }}>
-            <h2 style={styles.modalTitle}>Assign Driver — {assigningVehicle.unitNumber}</h2>
-            <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
-              Select a driver to assign to this vehicle, or unassign the current driver.
-            </p>
-            <label style={styles.label}>Driver</label>
-            <select
-              style={{ ...styles.input, marginBottom: 24 }}
-              value={selectedDriverId}
-              onChange={(e) => setSelectedDriverId(e.target.value)}
-            >
-              <option value="">— Unassign —</option>
-              {drivers.map((d: any) => (
-                <option key={d._id} value={d._id}>
-                  {d.name} ({d.username})
-                </option>
-              ))}
-            </select>
-            <div style={styles.modalActions}>
-              <button onClick={() => setIsAssignModalOpen(false)} style={styles.secondaryBtn} disabled={assigning}>
+        <div
+          style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+          onClick={() => setIsAssignModalOpen(false)}
+        >
+          <div
+            style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "440px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--t-indigo)" }}>
+                  <FaUserPlus size={16} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Assign Driver</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>{assigningVehicle.unitNumber} — select or unassign a driver</div>
+                </div>
+              </div>
+              <button onClick={() => setIsAssignModalOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ marginTop: "24px" }}>
+                <label style={styles.label}>Driver</label>
+                <select
+                  style={styles.input}
+                  value={selectedDriverId}
+                  onChange={(e) => setSelectedDriverId(e.target.value)}
+                >
+                  <option value="">— Unassign —</option>
+                  {drivers.map((d: any) => (
+                    <option key={d._id} value={d._id}>
+                      {d.name} ({d.username})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            {/* Footer */}
+            <div style={{ padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 }}>
+              <button onClick={() => setIsAssignModalOpen(false)} style={{ padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} disabled={assigning}>
                 Cancel
               </button>
-              <button onClick={handleAssignDriver} style={styles.primaryBtn} disabled={assigning}>
+              <button onClick={handleAssignDriver} style={{ padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} disabled={assigning}>
                 {assigning ? "Saving..." : "Confirm"}
               </button>
             </div>
@@ -500,15 +557,37 @@ const Vehicles: React.FC = () => {
 
       {/* Delete Confirmation */}
       {isDeleteModalOpen && selectedVehicle && (
-        <div style={styles.overlay}>
-          <div style={{ ...styles.modal, maxWidth: "420px" }}>
-            <h2 style={styles.modalTitle}>Delete Vehicle</h2>
-            <p style={{ color: "var(--t-text-muted)", marginBottom: "24px" }}>
-              Are you sure you want to delete <strong>{selectedVehicle.unitNumber}</strong>? This action cannot be undone.
-            </p>
-            <div style={styles.modalActions}>
-              <button onClick={() => setIsDeleteModalOpen(false)} style={styles.secondaryBtn} disabled={deleting}>Cancel</button>
-              <button onClick={handleDelete} style={{ ...styles.primaryBtn, background: "var(--t-error)" }} disabled={deleting}>
+        <div
+          style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+          onClick={() => setIsDeleteModalOpen(false)}
+        >
+          <div
+            style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "420px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--t-indigo)" }}>
+                  <FaTrashAlt size={16} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Delete Vehicle</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>This action cannot be undone</div>
+                </div>
+              </div>
+              <button onClick={() => setIsDeleteModalOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <p style={{ marginTop: "24px", textAlign: "center", color: "var(--t-text-muted)", fontSize: "14px", lineHeight: 1.6 }}>
+                Are you sure you want to delete <strong>{selectedVehicle.unitNumber}</strong>? This action cannot be undone.
+              </p>
+            </div>
+            {/* Footer */}
+            <div style={{ padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 }}>
+              <button onClick={() => setIsDeleteModalOpen(false)} style={{ padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} disabled={deleting}>Cancel</button>
+              <button onClick={handleDelete} style={{ padding: "10px 20px", background: "var(--t-error)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} disabled={deleting}>
                 {deleting ? "Deleting..." : "Delete"}
               </button>
             </div>
@@ -604,62 +683,29 @@ const styles: Record<string, React.CSSProperties> = {
   },
   input: {
     width: "100%",
-    padding: "9px 12px",
+    padding: "11px 14px",
     borderRadius: "8px",
     border: "1px solid var(--t-border-strong)",
     fontSize: "14px",
-    color: "var(--t-text-secondary)",
+    color: "var(--t-text)",
     background: "var(--t-input-bg)",
     outline: "none",
     boxSizing: "border-box",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   label: {
     display: "block",
-    fontSize: "9px",
+    fontSize: "10px",
     fontWeight: 700,
     color: "var(--t-text-ghost)",
-    marginBottom: "4px",
-    textTransform: "uppercase",
+    marginBottom: "7px",
     letterSpacing: "0.8px",
-  },
-  overlay: {
-    position: "fixed",
-    inset: 0,
-    background: "var(--t-modal-overlay)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 2000,
-    padding: "16px",
-  },
-  modal: {
-    background: "var(--t-surface)",
-    borderRadius: "16px",
-    padding: "28px",
-    width: "100%",
-    maxWidth: "700px",
-    maxHeight: "90vh",
-    overflowY: "auto",
-    boxShadow: "var(--t-shadow-lg)",
-    border: "1px solid var(--t-border)",
-  },
-  modalTitle: {
-    margin: "0 0 20px",
-    fontSize: "20px",
-    fontWeight: 700,
-    color: "var(--t-text)",
   },
   formGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "16px",
     marginBottom: "16px",
-  },
-  modalActions: {
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: "12px",
-    marginTop: "24px",
   },
 };
 

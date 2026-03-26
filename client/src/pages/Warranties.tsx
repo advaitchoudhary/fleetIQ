@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { FaShieldAlt, FaPlus, FaEdit, FaTrashAlt, FaFileAlt } from "react-icons/fa";
+import { FaShieldAlt, FaPlus, FaEdit, FaTrashAlt, FaFileAlt, FaWrench } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
@@ -347,45 +347,62 @@ const Warranties: React.FC = () => {
 
       {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>{editingWarranty ? "Edit Warranty" : "Add Warranty"}</h2>
-            <div style={styles.formGrid}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Vehicle *</label>
-                <select style={styles.input} value={form.vehicleId} onChange={(e) => setForm((f) => ({ ...f, vehicleId: e.target.value }))}>
-                  <option value="">— Select vehicle —</option>
-                  {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model} ({v.year})</option>)}
-                </select>
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Warranty Type</label>
-                <select style={styles.input} value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
-                  {WARRANTY_TYPES.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-                </select>
-              </div>
-              {[
-                { label: "Title *", key: "title" }, { label: "Provider", key: "provider" },
-                { label: "Policy Number", key: "policyNumber" }, { label: "Start Date", key: "startDate", type: "date" },
-                { label: "Expiry Date", key: "expiryDate", type: "date" },
-                { label: "Mileage Limit (km)", key: "mileageLimit", type: "number" },
-                { label: "Current Mileage (km)", key: "currentMileage", type: "number" },
-              ].map(({ label, key, type }) => (
-                <div key={key} style={styles.formGroup}>
-                  <label style={styles.label}>{label}</label>
-                  <input type={type || "text"} style={styles.input} value={(form as any)[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />
+        <div style={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
+          <div style={{ ...styles.modal, maxWidth: "700px" }} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaEdit size={16} color="var(--t-indigo)" />
                 </div>
-              ))}
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>{editingWarranty ? "Edit Warranty" : "Add Warranty"}</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>{editingWarranty ? "Update warranty details" : "Register a new warranty"}</div>
+                </div>
+              </div>
+              <button style={styles.closeBtn} onClick={() => setIsModalOpen(false)}>✕</button>
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Coverage Details</label>
-              <textarea style={{ ...styles.input, height: "70px" }} value={form.coverageDetails} onChange={(e) => setForm((f) => ({ ...f, coverageDetails: e.target.value }))} />
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ height: "24px" }} />
+              <div style={styles.formGrid}>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Vehicle *</label>
+                  <select style={styles.input} value={form.vehicleId} onChange={(e) => setForm((f) => ({ ...f, vehicleId: e.target.value }))}>
+                    <option value="">— Select vehicle —</option>
+                    {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model} ({v.year})</option>)}
+                  </select>
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Warranty Type</label>
+                  <select style={styles.input} value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
+                    {WARRANTY_TYPES.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                  </select>
+                </div>
+                {[
+                  { label: "Title *", key: "title" }, { label: "Provider", key: "provider" },
+                  { label: "Policy Number", key: "policyNumber" }, { label: "Start Date", key: "startDate", type: "date" },
+                  { label: "Expiry Date", key: "expiryDate", type: "date" },
+                  { label: "Mileage Limit (km)", key: "mileageLimit", type: "number" },
+                  { label: "Current Mileage (km)", key: "currentMileage", type: "number" },
+                ].map(({ label, key, type }) => (
+                  <div key={key} style={styles.formGroup}>
+                    <label style={styles.label}>{label}</label>
+                    <input type={type || "text"} style={styles.input} value={(form as any)[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />
+                  </div>
+                ))}
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Coverage Details</label>
+                <textarea style={{ ...styles.input, height: "70px" }} value={form.coverageDetails} onChange={(e) => setForm((f) => ({ ...f, coverageDetails: e.target.value }))} />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Notes</label>
+                <textarea style={{ ...styles.input, height: "60px" }} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
+              </div>
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Notes</label>
-              <textarea style={{ ...styles.input, height: "60px" }} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
-            </div>
-            <div style={styles.modalActions}>
+            {/* Footer */}
+            <div style={styles.modalFooter}>
               <button style={styles.cancelBtn} onClick={() => setIsModalOpen(false)}>Cancel</button>
               <button style={styles.primaryBtn} onClick={handleSave} disabled={saving}>{saving ? "Saving..." : editingWarranty ? "Update" : "Add Warranty"}</button>
             </div>
@@ -395,28 +412,45 @@ const Warranties: React.FC = () => {
 
       {/* Claim Modal */}
       {isClaimModalOpen && selectedWarranty && (
-        <div style={styles.modalOverlay}>
-          <div style={{ ...styles.modal, maxWidth: "480px" }}>
-            <h2 style={styles.modalTitle}>File Claim: {selectedWarranty.title}</h2>
-            {[
-              { label: "Claim Date", key: "claimDate", type: "date" },
-              { label: "Claim Amount ($)", key: "claimAmount", type: "number" },
-              { label: "Claim Number", key: "claimNumber" },
-            ].map(({ label, key, type }) => (
-              <div key={key} style={styles.formGroup}>
-                <label style={styles.label}>{label}</label>
-                <input type={type || "text"} style={styles.input} value={(claimForm as any)[key]} onChange={(e) => setClaimForm((f) => ({ ...f, [key]: e.target.value }))} />
+        <div style={styles.modalOverlay} onClick={() => setIsClaimModalOpen(false)}>
+          <div style={{ ...styles.modal, maxWidth: "480px" }} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaFileAlt size={16} color="var(--t-indigo)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>File Claim</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>{selectedWarranty.title}</div>
+                </div>
               </div>
-            ))}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Description *</label>
-              <textarea style={{ ...styles.input, height: "70px" }} value={claimForm.description} onChange={(e) => setClaimForm((f) => ({ ...f, description: e.target.value }))} />
+              <button style={styles.closeBtn} onClick={() => setIsClaimModalOpen(false)}>✕</button>
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Notes</label>
-              <textarea style={{ ...styles.input, height: "60px" }} value={claimForm.notes} onChange={(e) => setClaimForm((f) => ({ ...f, notes: e.target.value }))} />
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ height: "24px" }} />
+              {[
+                { label: "Claim Date", key: "claimDate", type: "date" },
+                { label: "Claim Amount ($)", key: "claimAmount", type: "number" },
+                { label: "Claim Number", key: "claimNumber" },
+              ].map(({ label, key, type }) => (
+                <div key={key} style={styles.formGroup}>
+                  <label style={styles.label}>{label}</label>
+                  <input type={type || "text"} style={styles.input} value={(claimForm as any)[key]} onChange={(e) => setClaimForm((f) => ({ ...f, [key]: e.target.value }))} />
+                </div>
+              ))}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Description *</label>
+                <textarea style={{ ...styles.input, height: "70px" }} value={claimForm.description} onChange={(e) => setClaimForm((f) => ({ ...f, description: e.target.value }))} />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Notes</label>
+                <textarea style={{ ...styles.input, height: "60px" }} value={claimForm.notes} onChange={(e) => setClaimForm((f) => ({ ...f, notes: e.target.value }))} />
+              </div>
             </div>
-            <div style={styles.modalActions}>
+            {/* Footer */}
+            <div style={styles.modalFooter}>
               <button style={styles.cancelBtn} onClick={() => setIsClaimModalOpen(false)}>Cancel</button>
               <button style={styles.primaryBtn} onClick={handleAddClaim} disabled={saving}>{saving ? "Saving..." : "Submit Claim"}</button>
             </div>
@@ -426,13 +460,30 @@ const Warranties: React.FC = () => {
 
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedWarranty && (
-        <div style={styles.modalOverlay}>
-          <div style={{ ...styles.modal, maxWidth: "420px" }}>
-            <h2 style={styles.modalTitle}>Delete Warranty?</h2>
-            <p style={{ color: "var(--t-text-dim)", marginBottom: "24px" }}>Delete <strong>{selectedWarranty.title}</strong>? This cannot be undone.</p>
-            <div style={styles.modalActions}>
+        <div style={styles.modalOverlay} onClick={() => setIsDeleteModalOpen(false)}>
+          <div style={{ ...styles.modal, maxWidth: "420px" }} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaTrashAlt size={16} color="var(--t-indigo)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Delete Warranty?</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>This action cannot be undone</div>
+                </div>
+              </div>
+              <button style={styles.closeBtn} onClick={() => setIsDeleteModalOpen(false)}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ height: "24px" }} />
+              <p style={{ color: "var(--t-text-dim)", fontSize: "14px", margin: 0 }}>Delete <strong>{selectedWarranty.title}</strong>? This cannot be undone.</p>
+            </div>
+            {/* Footer */}
+            <div style={styles.modalFooter}>
               <button style={styles.cancelBtn} onClick={() => setIsDeleteModalOpen(false)}>Cancel</button>
-              <button style={{ ...styles.primaryBtn, background: "var(--t-error)" }} onClick={handleDelete}>Delete</button>
+              <button style={styles.deleteBtn} onClick={handleDelete}>Delete</button>
             </div>
           </div>
         </div>
@@ -444,7 +495,7 @@ const Warranties: React.FC = () => {
 const styles: Record<string, React.CSSProperties> = {
   wrapper: { minHeight: "100vh", background: "var(--t-bg)", fontFamily: "Inter, system-ui, sans-serif" },
   container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
-  primaryBtn: { padding: "10px 18px", background: "var(--t-accent)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
+  primaryBtn: { padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" },
   alertBanner: { background: "var(--t-warning-bg)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "var(--t-warning)" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" },
   statCard: { background: "var(--t-surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--t-border)", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
@@ -461,15 +512,16 @@ const styles: Record<string, React.CSSProperties> = {
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
   iconBtn: { background: "var(--t-hover-bg)", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "var(--t-text-faint)", display: "flex", alignItems: "center" },
   emptyState: { textAlign: "center", padding: "60px 0", color: "var(--t-text-dim)", fontSize: "15px" },
-  modalOverlay: { position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
-  modal: { background: "var(--t-surface)", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "var(--t-shadow-lg)", border: "1px solid var(--t-border)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "var(--t-text)" },
+  modalOverlay: { position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" },
+  modal: { background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" },
+  closeBtn: { width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", flexShrink: 0 },
   formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" },
   formGroup: { marginBottom: "16px" },
-  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
-  input: { width: "100%", padding: "9px 12px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", color: "var(--t-text-secondary)", background: "var(--t-input-bg)", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
-  modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
-  cancelBtn: { padding: "10px 20px", background: "var(--t-hover-bg)", color: "var(--t-text-faint)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
+  label: { fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" },
+  input: { width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" },
+  modalFooter: { padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 },
+  cancelBtn: { padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" },
+  deleteBtn: { padding: "10px 20px", background: "var(--t-error)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" },
 };
 
 export default Warranties;

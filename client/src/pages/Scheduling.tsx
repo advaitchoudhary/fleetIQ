@@ -271,39 +271,63 @@ const Scheduling: React.FC = () => {
 
       {/* Schedule Modal */}
       {isModalOpen && (
-        <div style={styles.modalOverlay}>
-          <div style={{ ...styles.modal, maxWidth: "480px" }}>
-            <h2 style={styles.modalTitle}>Schedule Maintenance</h2>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Vehicle *</label>
-              <select style={styles.input} value={form.vehicleId} onChange={(e) => setForm((f) => ({ ...f, vehicleId: e.target.value }))}>
-                <option value="">— Select vehicle —</option>
-                {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model}</option>)}
-              </select>
+        <div
+          style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "480px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaCalendarAlt size={18} color="var(--t-indigo)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Schedule Maintenance</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>Add a new maintenance event to the calendar</div>
+                </div>
+              </div>
+              <button onClick={() => setIsModalOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Title *</label>
-              <input style={styles.input} value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="e.g. Oil Change" />
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ marginTop: "24px" }}>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Vehicle *</label>
+                  <select style={styles.input} value={form.vehicleId} onChange={(e) => setForm((f) => ({ ...f, vehicleId: e.target.value }))}>
+                    <option value="">— Select vehicle —</option>
+                    {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model}</option>)}
+                  </select>
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Title *</label>
+                  <input style={styles.input} value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="e.g. Oil Change" />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Type</label>
+                  <select style={styles.input} value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
+                    {["preventive", "corrective", "inspection", "tire", "oil_change", "other"].map((t) => (
+                      <option key={t} value={t}>{t.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Scheduled Date *</label>
+                  <input type="date" style={styles.input} value={form.scheduledDate} onChange={(e) => setForm((f) => ({ ...f, scheduledDate: e.target.value }))} />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Notes</label>
+                  <textarea style={{ ...styles.input, height: "70px" }} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
+                </div>
+              </div>
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Type</label>
-              <select style={styles.input} value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
-                {["preventive", "corrective", "inspection", "tire", "oil_change", "other"].map((t) => (
-                  <option key={t} value={t}>{t.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>
-                ))}
-              </select>
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Scheduled Date *</label>
-              <input type="date" style={styles.input} value={form.scheduledDate} onChange={(e) => setForm((f) => ({ ...f, scheduledDate: e.target.value }))} />
-            </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Notes</label>
-              <textarea style={{ ...styles.input, height: "70px" }} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
-            </div>
-            <div style={styles.modalActions}>
-              <button style={styles.cancelBtn} onClick={() => setIsModalOpen(false)}>Cancel</button>
-              <button style={styles.primaryBtn} onClick={handleSchedule} disabled={saving}>{saving ? "Saving..." : "Schedule"}</button>
+            {/* Footer */}
+            <div style={{ padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 }}>
+              <button style={{ padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} onClick={() => setIsModalOpen(false)}>Cancel</button>
+              <button style={{ padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} onClick={handleSchedule} disabled={saving}>{saving ? "Saving..." : "Schedule"}</button>
             </div>
           </div>
         </div>
@@ -328,14 +352,9 @@ const styles: Record<string, React.CSSProperties> = {
   eventChip: { background: "var(--t-select-bg)", borderRadius: "6px", padding: "8px 12px", border: "1px solid var(--t-border)" },
   sidebar: { background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", padding: "20px", position: "sticky", top: "20px", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
   upcomingItem: { background: "var(--t-surface-alt)", borderRadius: "8px", padding: "10px 12px" },
-  modalOverlay: { position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
-  modal: { background: "var(--t-surface)", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "var(--t-shadow-lg)", border: "1px solid var(--t-border)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "var(--t-text)" },
   formGroup: { marginBottom: "16px" },
-  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
-  input: { width: "100%", padding: "9px 12px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", color: "var(--t-text-secondary)", background: "var(--t-input-bg)", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
-  modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
-  cancelBtn: { padding: "10px 20px", background: "var(--t-hover-bg)", color: "var(--t-text-faint)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
+  label: { fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" },
+  input: { width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" },
 };
 
 export default Scheduling;

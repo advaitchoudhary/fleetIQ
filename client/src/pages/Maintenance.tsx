@@ -322,71 +322,107 @@ const Maintenance: React.FC = () => {
 
       {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div style={styles.overlay}>
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>{editingRecord ? "Edit Maintenance Record" : "Schedule Maintenance"}</h2>
-            <div style={styles.formGrid}>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={styles.label}>Vehicle *</label>
-                <select style={styles.input} value={form.vehicleId} onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}>
-                  <option value="">Select vehicle...</option>
-                  {vehicles.map((v) => (
-                    <option key={v._id} value={v._id}>{v.unitNumber} {v.make ? `— ${v.make} ${v.model}` : ""}</option>
-                  ))}
-                </select>
+        <div
+          style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "700px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--t-indigo)" }}>
+                  <FaEdit size={16} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>{editingRecord ? "Edit Maintenance Record" : "Schedule Maintenance"}</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>{editingRecord ? "Update maintenance record details" : "Create a new maintenance work order"}</div>
+                </div>
               </div>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={styles.label}>Title *</label>
-                <input style={styles.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Oil change, Tire rotation" />
+              <button onClick={() => setIsModalOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              {/* Section: Assignment */}
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "24px 0 20px" }}>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1.2px", whiteSpace: "nowrap" }}>ASSIGNMENT</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
               </div>
-              <div>
-                <label style={styles.label}>Type</label>
-                <select style={styles.input} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                  <option value="preventive">Preventive</option>
-                  <option value="corrective">Corrective</option>
-                  <option value="inspection">Inspection</option>
-                  <option value="tire">Tire</option>
-                  <option value="oil_change">Oil Change</option>
-                  <option value="other">Other</option>
-                </select>
+              <div style={styles.formGrid}>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={styles.label}>Vehicle *</label>
+                  <select style={styles.input} value={form.vehicleId} onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}>
+                    <option value="">Select vehicle...</option>
+                    {vehicles.map((v) => (
+                      <option key={v._id} value={v._id}>{v.unitNumber} {v.make ? `— ${v.make} ${v.model}` : ""}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={styles.label}>Title *</label>
+                  <input style={styles.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Oil change, Tire rotation" />
+                </div>
               </div>
-              <div>
-                <label style={styles.label}>Status</label>
-                <select style={styles.input} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                  <option value="scheduled">Scheduled</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
+              {/* Section: Details */}
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "24px 0 20px" }}>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1.2px", whiteSpace: "nowrap" }}>DETAILS</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
               </div>
-              <div>
-                <label style={styles.label}>Scheduled Date</label>
-                <input style={styles.input} type="date" value={form.scheduledDate} onChange={(e) => setForm({ ...form, scheduledDate: e.target.value })} />
-              </div>
-              <div>
-                <label style={styles.label}>Completed Date</label>
-                <input style={styles.input} type="date" value={form.completedDate} onChange={(e) => setForm({ ...form, completedDate: e.target.value })} />
-              </div>
-              <div>
-                <label style={styles.label}>Odometer (km)</label>
-                <input style={styles.input} type="number" value={form.odometer} onChange={(e) => setForm({ ...form, odometer: e.target.value })} />
-              </div>
-              <div>
-                <label style={styles.label}>Cost ($)</label>
-                <input style={styles.input} type="number" step="0.01" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} />
-              </div>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={styles.label}>Vendor / Shop</label>
-                <input style={styles.input} value={form.vendor} onChange={(e) => setForm({ ...form, vendor: e.target.value })} placeholder="e.g. Bob's Auto Shop" />
-              </div>
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={styles.label}>Description</label>
-                <textarea style={{ ...styles.input, height: "72px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              <div style={styles.formGrid}>
+                <div>
+                  <label style={styles.label}>Type</label>
+                  <select style={styles.input} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+                    <option value="preventive">Preventive</option>
+                    <option value="corrective">Corrective</option>
+                    <option value="inspection">Inspection</option>
+                    <option value="tire">Tire</option>
+                    <option value="oil_change">Oil Change</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={styles.label}>Status</label>
+                  <select style={styles.input} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                    <option value="scheduled">Scheduled</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={styles.label}>Scheduled Date</label>
+                  <input style={styles.input} type="date" value={form.scheduledDate} onChange={(e) => setForm({ ...form, scheduledDate: e.target.value })} />
+                </div>
+                <div>
+                  <label style={styles.label}>Completed Date</label>
+                  <input style={styles.input} type="date" value={form.completedDate} onChange={(e) => setForm({ ...form, completedDate: e.target.value })} />
+                </div>
+                <div>
+                  <label style={styles.label}>Odometer (km)</label>
+                  <input style={styles.input} type="number" value={form.odometer} onChange={(e) => setForm({ ...form, odometer: e.target.value })} />
+                </div>
+                <div>
+                  <label style={styles.label}>Cost ($)</label>
+                  <input style={styles.input} type="number" step="0.01" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} />
+                </div>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={styles.label}>Vendor / Shop</label>
+                  <input style={styles.input} value={form.vendor} onChange={(e) => setForm({ ...form, vendor: e.target.value })} placeholder="e.g. Bob's Auto Shop" />
+                </div>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={styles.label}>Description</label>
+                  <textarea style={{ ...styles.input, height: "72px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                </div>
               </div>
             </div>
-            <div style={styles.modalActions}>
-              <button onClick={() => setIsModalOpen(false)} style={styles.secondaryBtn}>Cancel</button>
-              <button onClick={handleSave} style={styles.primaryBtn} disabled={saving}>
+            {/* Footer */}
+            <div style={{ padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 }}>
+              <button onClick={() => setIsModalOpen(false)} style={{ padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Cancel</button>
+              <button onClick={handleSave} style={{ padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} disabled={saving}>
                 {saving ? "Saving..." : editingRecord ? "Update" : "Schedule"}
               </button>
             </div>
@@ -396,15 +432,37 @@ const Maintenance: React.FC = () => {
 
       {/* Delete Confirmation */}
       {isDeleteModalOpen && selectedRecord && (
-        <div style={styles.overlay}>
-          <div style={{ ...styles.modal, maxWidth: "420px" }}>
-            <h2 style={styles.modalTitle}>Delete Record</h2>
-            <p style={{ color: "var(--t-text-muted)", marginBottom: "24px" }}>
-              Are you sure you want to delete <strong>{selectedRecord.title}</strong>?
-            </p>
-            <div style={styles.modalActions}>
-              <button onClick={() => setIsDeleteModalOpen(false)} style={styles.secondaryBtn}>Cancel</button>
-              <button onClick={handleDelete} style={{ ...styles.primaryBtn, background: "var(--t-error)" }}>Delete</button>
+        <div
+          style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+          onClick={() => setIsDeleteModalOpen(false)}
+        >
+          <div
+            style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "420px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--t-indigo)" }}>
+                  <FaTrashAlt size={16} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Delete Record</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>This action cannot be undone</div>
+                </div>
+              </div>
+              <button onClick={() => setIsDeleteModalOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <p style={{ marginTop: "24px", textAlign: "center", color: "var(--t-text-muted)", fontSize: "14px", lineHeight: 1.6 }}>
+                Are you sure you want to delete <strong>{selectedRecord.title}</strong>? This action cannot be undone.
+              </p>
+            </div>
+            {/* Footer */}
+            <div style={{ padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 }}>
+              <button onClick={() => setIsDeleteModalOpen(false)} style={{ padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Cancel</button>
+              <button onClick={handleDelete} style={{ padding: "10px 20px", background: "var(--t-error)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Delete</button>
             </div>
           </div>
         </div>
@@ -424,13 +482,9 @@ const styles: Record<string, React.CSSProperties> = {
   tr: { borderBottom: "1px solid var(--t-stripe)" },
   td: { padding: "14px 16px", color: "var(--t-text-muted)", verticalAlign: "middle" },
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600, textTransform: "capitalize" },
-  input: { width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid var(--t-border-strong)", fontSize: "14px", color: "var(--t-text-secondary)", background: "var(--t-input-bg)", outline: "none", boxSizing: "border-box" },
-  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
-  overlay: { position: "fixed", inset: 0, background: "var(--t-modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "16px" },
-  modal: { background: "var(--t-surface)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "640px", maxHeight: "90vh", overflowY: "auto", boxShadow: "var(--t-shadow-lg)", border: "1px solid var(--t-border)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "var(--t-text)" },
+  input: { width: "100%", padding: "11px 14px", borderRadius: "8px", border: "1px solid var(--t-border-strong)", fontSize: "14px", color: "var(--t-text)", background: "var(--t-input-bg)", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
+  label: { display: "block", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", marginBottom: "7px", letterSpacing: "0.8px" },
   formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" },
-  modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
 };
 
 export default Maintenance;
