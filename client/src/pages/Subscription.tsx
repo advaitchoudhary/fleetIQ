@@ -64,11 +64,11 @@ const PLANS = [
 ];
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  trialing: { bg: "rgba(79,70,229,0.15)", color: "#818CF8" },
-  active: { bg: "rgba(16,185,129,0.12)", color: "#34d399" },
-  past_due: { bg: "rgba(234,179,8,0.12)", color: "#fbbf24" },
-  cancelled: { bg: "rgba(239,68,68,0.12)", color: "#fca5a5" },
-  inactive: { bg: "rgba(107,114,128,0.12)", color: "#9ca3af" },
+  trialing: { bg: "var(--t-indigo-bg)", color: "var(--t-indigo)" },
+  active: { bg: "var(--t-success-bg)", color: "var(--t-success)" },
+  past_due: { bg: "var(--t-warning-bg)", color: "var(--t-warning)" },
+  cancelled: { bg: "var(--t-error-bg)", color: "var(--t-error)" },
+  inactive: { bg: "rgba(107,114,128,0.12)", color: "var(--t-text-faint)" },
 };
 
 const Subscription: React.FC = () => {
@@ -143,11 +143,11 @@ const Subscription: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", minHeight: "100vh" }}>
+      <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
         <Navbar />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", flexDirection: "column", gap: "12px" }}>
-          <div style={{ width: "40px", height: "40px", border: "4px solid #e5e7eb", borderTop: "4px solid #4F46E5", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-          <p style={{ color: "#6b7280", fontSize: "14px" }}>Loading subscription details...</p>
+          <div style={{ width: "40px", height: "40px", border: "4px solid var(--t-text-secondary)", borderTop: "4px solid var(--t-accent)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+          <p style={{ color: "var(--t-text-dim)", fontSize: "14px" }}>Loading subscription details...</p>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       </div>
@@ -155,7 +155,7 @@ const Subscription: React.FC = () => {
   }
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
       <Navbar />
       {/* Hero */}
       <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
@@ -174,11 +174,11 @@ const Subscription: React.FC = () => {
 
         {/* Current Plan Banner */}
         {!loading && (
-          <div style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", padding: "20px 24px", marginBottom: "28px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", boxShadow: "0 4px 24px rgba(0,0,0,0.4)" }}>
+          <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "20px 24px", marginBottom: "28px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px", boxShadow: "var(--t-shadow)" }}>
             <div>
-              <div style={{ fontSize: "13px", color: "#6b7280", marginBottom: "4px" }}>Current Plan</div>
+              <div style={{ fontSize: "13px", color: "var(--t-text-dim)", marginBottom: "4px" }}>Current Plan</div>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <span style={{ fontSize: "20px", fontWeight: 700, color: "#f3f4f6", textTransform: "capitalize" }}>
+                <span style={{ fontSize: "20px", fontWeight: 700, color: "var(--t-text)", textTransform: "capitalize" }}>
                   {currentPlan ? PLANS.find((p) => p.key === currentPlan)?.name || currentPlan : "No active plan"}
                 </span>
                 <span style={{ ...styles.badge, background: sc.bg, color: sc.color, textTransform: "capitalize" }}>
@@ -186,14 +186,14 @@ const Subscription: React.FC = () => {
                 </span>
               </div>
               {subscription?.trialEndsAt && currentStatus === "trialing" && (
-                <div style={{ fontSize: "13px", color: trialDaysLeft !== null && trialDaysLeft <= 3 ? "#b45309" : "#6b7280", marginTop: "4px" }}>
+                <div style={{ fontSize: "13px", color: trialDaysLeft !== null && trialDaysLeft <= 3 ? "var(--t-warning)" : "var(--t-text-dim)", marginTop: "4px" }}>
                   {trialDaysLeft !== null && trialDaysLeft > 0
                     ? `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in trial (ends ${new Date(subscription.trialEndsAt).toLocaleDateString()})`
                     : `Trial ended ${new Date(subscription.trialEndsAt).toLocaleDateString()}`}
                 </div>
               )}
               {subscription?.currentPeriodEnd && currentStatus === "active" && (
-                <div style={{ fontSize: "13px", color: "#6b7280", marginTop: "4px" }}>
+                <div style={{ fontSize: "13px", color: "var(--t-text-dim)", marginTop: "4px" }}>
                   Next billing date: {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
                 </div>
               )}
@@ -208,7 +208,7 @@ const Subscription: React.FC = () => {
 
         {/* Past-due warning */}
         {currentStatus === "past_due" && (
-          <div style={{ background: "rgba(234,179,8,0.08)", border: "1px solid rgba(234,179,8,0.2)", borderRadius: "10px", padding: "14px 18px", marginBottom: "20px", fontSize: "14px", color: "#fbbf24" }}>
+          <div style={{ background: "rgba(234,179,8,0.08)", border: "1px solid rgba(234,179,8,0.2)", borderRadius: "10px", padding: "14px 18px", marginBottom: "20px", fontSize: "14px", color: "var(--t-warning)" }}>
             ⚠️ Your last payment failed. Please update your payment method in the billing portal to restore access.
           </div>
         )}
@@ -217,15 +217,15 @@ const Subscription: React.FC = () => {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", marginBottom: "24px" }}>
           <button
             onClick={() => setBilling("monthly")}
-            style={{ ...styles.toggleBtn, background: billing === "monthly" ? "#4F46E5" : "rgba(255,255,255,0.06)", color: billing === "monthly" ? "#fff" : "#9ca3af" }}
+            style={{ ...styles.toggleBtn, background: billing === "monthly" ? "var(--t-accent)" : "var(--t-hover-bg)", color: billing === "monthly" ? "#fff" : "var(--t-text-faint)" }}
           >
             Monthly
           </button>
           <button
             onClick={() => setBilling("annual")}
-            style={{ ...styles.toggleBtn, background: billing === "annual" ? "#4F46E5" : "rgba(255,255,255,0.06)", color: billing === "annual" ? "#fff" : "#9ca3af" }}
+            style={{ ...styles.toggleBtn, background: billing === "annual" ? "var(--t-accent)" : "var(--t-hover-bg)", color: billing === "annual" ? "#fff" : "var(--t-text-faint)" }}
           >
-            Annual <span style={{ marginLeft: "6px", fontSize: "11px", background: billing === "annual" ? "rgba(255,255,255,0.25)" : "rgba(16,185,129,0.15)", color: billing === "annual" ? "#fff" : "#34d399", borderRadius: "10px", padding: "2px 7px" }}>Save 20%</span>
+            Annual <span style={{ marginLeft: "6px", fontSize: "11px", background: billing === "annual" ? "rgba(255,255,255,0.25)" : "rgba(16,185,129,0.15)", color: billing === "annual" ? "#fff" : "var(--t-success)", borderRadius: "10px", padding: "2px 7px" }}>Save 20%</span>
           </button>
         </div>
 
@@ -238,34 +238,34 @@ const Subscription: React.FC = () => {
               <div
                 key={plan.key}
                 style={{
-                  background: "#161b22",
+                  background: "var(--t-surface)",
                   borderRadius: "16px",
-                  border: isCurrent ? "2px solid #4F46E5" : plan.key === "bundle" ? "2px solid rgba(79,70,229,0.3)" : "1px solid rgba(255,255,255,0.08)",
+                  border: isCurrent ? "2px solid var(--t-accent)" : plan.key === "bundle" ? "2px solid var(--t-indigo-bg)" : "1px solid var(--t-border)",
                   padding: "24px",
                   position: "relative",
-                  boxShadow: isCurrent ? "0 0 0 4px rgba(79,70,229,0.1)" : "none",
+                  boxShadow: isCurrent ? "0 0 0 4px var(--t-indigo-bg)" : "none",
                 }}
               >
                 {plan.badge && (
-                  <div style={{ position: "absolute", top: "-12px", left: "50%", transform: "translateX(-50%)", background: "#4F46E5", color: "#fff", fontSize: "11px", fontWeight: 700, padding: "4px 14px", borderRadius: "20px" }}>
+                  <div style={{ position: "absolute", top: "-12px", left: "50%", transform: "translateX(-50%)", background: "var(--t-accent)", color: "#fff", fontSize: "11px", fontWeight: 700, padding: "4px 14px", borderRadius: "20px" }}>
                     {plan.badge}
                   </div>
                 )}
                 {isCurrent && (
                   <div style={{ position: "absolute", top: "16px", right: "16px" }}>
-                    <FaCheckCircle style={{ color: "#4F46E5" }} size={18} />
+                    <FaCheckCircle style={{ color: "var(--t-indigo)" }} size={18} />
                   </div>
                 )}
-                <h3 style={{ margin: "0 0 4px", fontSize: "16px", fontWeight: 700, color: "#f3f4f6" }}>{plan.name}</h3>
-                <p style={{ margin: "0 0 16px", fontSize: "13px", color: "#6b7280" }}>{plan.description}</p>
+                <h3 style={{ margin: "0 0 4px", fontSize: "16px", fontWeight: 700, color: "var(--t-text)" }}>{plan.name}</h3>
+                <p style={{ margin: "0 0 16px", fontSize: "13px", color: "var(--t-text-dim)" }}>{plan.description}</p>
                 <div style={{ marginBottom: "20px" }}>
-                  <span style={{ fontSize: "36px", fontWeight: 800, color: "#f3f4f6" }}>{price}</span>
-                  <span style={{ fontSize: "14px", color: "#6b7280" }}>/month{billing === "annual" ? " (billed annually)" : ""}</span>
+                  <span style={{ fontSize: "36px", fontWeight: 800, color: "var(--t-text)" }}>{price}</span>
+                  <span style={{ fontSize: "14px", color: "var(--t-text-dim)" }}>/month{billing === "annual" ? " (billed annually)" : ""}</span>
                 </div>
                 <ul style={{ margin: "0 0 24px", paddingLeft: "0", listStyle: "none", display: "flex", flexDirection: "column", gap: "8px" }}>
                   {plan.features.map((f) => (
-                    <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "13px", color: "#d1d5db" }}>
-                      <FaCheckCircle style={{ color: "#4F46E5", marginTop: "2px", flexShrink: 0 }} size={13} />
+                    <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "13px", color: "var(--t-text-muted)" }}>
+                      <FaCheckCircle style={{ color: "var(--t-indigo)", marginTop: "2px", flexShrink: 0 }} size={13} />
                       {f}
                     </li>
                   ))}
@@ -280,7 +280,7 @@ const Subscription: React.FC = () => {
                     disabled={redirecting === plan.key}
                     style={{
                       ...styles.selectBtn,
-                      background: plan.key === "bundle" ? "#4F46E5" : "#111827",
+                      background: plan.key === "bundle" ? "var(--t-accent)" : "var(--t-bg)",
                     }}
                   >
                     {redirecting === plan.key ? "Redirecting..." : (
@@ -297,7 +297,7 @@ const Subscription: React.FC = () => {
           })}
         </div>
 
-        <p style={{ textAlign: "center", marginTop: "20px", fontSize: "13px", color: "#9ca3af" }}>
+        <p style={{ textAlign: "center", marginTop: "20px", fontSize: "13px", color: "var(--t-text-faint)" }}>
           All plans include a 14-day free trial. No credit card required to start. Cancel anytime.
         </p>
       </div>
@@ -307,10 +307,10 @@ const Subscription: React.FC = () => {
 
 const styles: Record<string, React.CSSProperties> = {
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
-  portalBtn: { display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", fontWeight: 600, cursor: "pointer", color: "#d1d5db" },
+  portalBtn: { display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontWeight: 600, cursor: "pointer", color: "var(--t-text-muted)" },
   toggleBtn: { padding: "8px 20px", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "4px" },
   selectBtn: { width: "100%", padding: "12px", color: "#fff", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" },
-  currentPlanBtn: { width: "100%", padding: "12px", background: "rgba(79,70,229,0.12)", color: "#818CF8", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 700, cursor: "default", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" },
+  currentPlanBtn: { width: "100%", padding: "12px", background: "var(--t-indigo-bg)", color: "var(--t-indigo)", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 700, cursor: "default", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" },
 };
 
 export default Subscription;

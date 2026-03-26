@@ -64,12 +64,12 @@ const Login: React.FC = () => {
     width: "100%",
     padding: "11px 14px",
     borderRadius: "8px",
-    border: `1.5px solid ${focusedField === field ? "#4F46E5" : "#e5e7eb"}`,
+    border: `1.5px solid ${focusedField === field ? "var(--t-accent)" : "var(--t-input-border)"}`,
     fontSize: "14px",
-    color: "#111827",
+    color: "var(--t-text-secondary)",
     outline: "none",
     boxSizing: "border-box",
-    background: focusedField === field ? "#fafafe" : "#fff",
+    background: "var(--t-input-bg)",
     transition: "border-color 0.2s, background 0.2s",
     fontFamily: "Inter, system-ui, sans-serif",
   });
@@ -203,7 +203,7 @@ const Login: React.FC = () => {
             <div style={{
               display: "inline-flex", alignItems: "center", gap: "6px",
               padding: "4px 12px", borderRadius: "100px",
-              background: "rgba(129,140,248,0.18)", color: "#a5b4fc",
+              background: "rgba(129,140,248,0.18)", color: "var(--t-indigo)",
               border: "1px solid rgba(129,140,248,0.3)",
               fontSize: "11px", fontWeight: 700, letterSpacing: "0.5px",
               textTransform: "uppercase", marginBottom: "20px",
@@ -245,7 +245,7 @@ const Login: React.FC = () => {
               Live Dashboard
             </div>
             {[
-              { label: "Active Drivers", value: "24", color: "#a5b4fc" },
+              { label: "Active Drivers", value: "24", color: "var(--t-indigo)" },
               { label: "Payouts This Month", value: "$18,430", color: "#34d399" },
               { label: "Vehicles On-Road", value: "18", color: "#38bdf8" },
             ].map((row) => (
@@ -282,7 +282,7 @@ const Login: React.FC = () => {
         style={{
           width: "58%",
           minHeight: "100vh",
-          background: "#f9fafb",
+          background: "var(--t-bg)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -293,10 +293,10 @@ const Login: React.FC = () => {
       >
         {/* Top-right link — pinned, not in the flow */}
         <div style={{ position: "absolute", top: "28px", right: "32px" }}>
-          <span style={{ fontSize: "13px", color: "#6b7280", cursor: "pointer" }} onClick={() => navigate("/register")}>Don't have an account? </span>
+          <span style={{ fontSize: "13px", color: "var(--t-text-dim)", cursor: "pointer" }} onClick={() => navigate("/register")}>Don't have an account? </span>
           <button
             onClick={() => navigate("/register")}
-            style={{ background: "none", border: "none", color: "#4F46E5", cursor: "pointer", fontWeight: 700, fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}
+            style={{ background: "none", border: "none", color: "var(--t-accent)", cursor: "pointer", fontWeight: 700, fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}
           >
             Sign up →
           </button>
@@ -305,14 +305,14 @@ const Login: React.FC = () => {
         <div style={{ width: "100%", maxWidth: "420px" }} className="login-form-card">
 
           {/* Form card */}
-          <div style={{ background: "#fff", borderRadius: "16px", border: "1px solid #e5e7eb", padding: "32px 28px", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+          <div style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", padding: "32px 28px", boxShadow: "var(--t-shadow)" }}>
 
             {/* Header inside card */}
             <div style={{ marginBottom: "24px" }}>
-              <h2 style={{ margin: "0 0 6px", fontSize: "24px", fontWeight: 800, color: "#111827", letterSpacing: "-0.3px" }}>
+              <h2 style={{ margin: "0 0 6px", fontSize: "24px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.3px" }}>
                 Welcome back
               </h2>
-              <p style={{ margin: 0, fontSize: "14px", color: "#6b7280" }}>
+              <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>
                 Sign in to your FleetIQ account to continue.
               </p>
             </div>
@@ -322,7 +322,7 @@ const Login: React.FC = () => {
 
                 {/* Role toggle */}
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#6b7280", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.4px" }}>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--t-text-dim)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.4px" }}>
                     Sign in as
                   </label>
                   <div style={{ display: "flex", gap: "8px" }}>
@@ -345,14 +345,14 @@ const Login: React.FC = () => {
 
                 {/* Error */}
                 {loginError && (
-                  <div style={{ color: "#dc2626", fontSize: "13px", padding: "10px 14px", backgroundColor: "#fef2f2", borderRadius: "8px", border: "1px solid #fecaca" }}>
+                  <div style={{ color: "var(--t-error)", fontSize: "13px", padding: "10px 14px", backgroundColor: "var(--t-error-bg)", borderRadius: "8px", border: "1px solid var(--t-error)" }}>
                     {loginError}
                   </div>
                 )}
 
                 {/* Email / Username */}
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#6b7280", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--t-text-dim)", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>
                     {role === "driver" ? "Username" : "Email"}
                   </label>
                   {role === "driver" ? (
@@ -382,7 +382,7 @@ const Login: React.FC = () => {
 
                 {/* Password */}
                 <div>
-                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "#6b7280", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>
+                  <label style={{ display: "block", fontSize: "12px", fontWeight: 600, color: "var(--t-text-dim)", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.4px" }}>
                     Password
                   </label>
                   <input
@@ -406,7 +406,7 @@ const Login: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => navigate("/")}
-                    style={{ background: "none", border: "none", color: "#9ca3af", cursor: "pointer", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}
+                    style={{ background: "none", border: "none", color: "var(--t-text-faint)", cursor: "pointer", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}
                   >
                     ← Back to homepage
                   </button>
@@ -419,8 +419,8 @@ const Login: React.FC = () => {
           {/* Trust indicators */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px", marginTop: "24px", flexWrap: "wrap" }}>
             {["Secure login", "256-bit encrypted", "SOC 2 ready"].map((t) => (
-              <div key={t} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "12px", color: "#9ca3af" }}>
-                <FaCheckCircle size={10} style={{ color: "#4F46E5" }} />
+              <div key={t} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "12px", color: "var(--t-text-faint)" }}>
+                <FaCheckCircle size={10} style={{ color: "var(--t-accent)" }} />
                 {t}
               </div>
             ))}

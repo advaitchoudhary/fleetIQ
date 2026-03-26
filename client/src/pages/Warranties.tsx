@@ -7,17 +7,17 @@ const WARRANTY_TYPES = ["manufacturer", "extended", "part", "tire", "battery", "
 const CLAIM_STATUSES = ["submitted", "approved", "denied", "pending"];
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  active: { bg: "rgba(16,185,129,0.15)", color: "#6ee7b7" },
-  expired: { bg: "rgba(255,255,255,0.06)", color: "#9ca3af" },
-  claimed: { bg: "rgba(99,102,241,0.15)", color: "#a5b4fc" },
-  voided: { bg: "rgba(239,68,68,0.15)", color: "#fca5a5" },
+  active: { bg: "var(--t-success-bg)", color: "var(--t-success)" },
+  expired: { bg: "var(--t-hover-bg)", color: "var(--t-text-faint)" },
+  claimed: { bg: "var(--t-indigo-bg)", color: "var(--t-indigo)" },
+  voided: { bg: "var(--t-error-bg)", color: "var(--t-error)" },
 };
 
 const CLAIM_STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  submitted: { bg: "rgba(245,158,11,0.15)", color: "#fcd34d" },
-  approved: { bg: "rgba(16,185,129,0.15)", color: "#6ee7b7" },
-  denied: { bg: "rgba(239,68,68,0.15)", color: "#fca5a5" },
-  pending: { bg: "rgba(99,102,241,0.15)", color: "#a5b4fc" },
+  submitted: { bg: "var(--t-warning-bg)", color: "var(--t-warning)" },
+  approved: { bg: "var(--t-success-bg)", color: "var(--t-success)" },
+  denied: { bg: "var(--t-error-bg)", color: "var(--t-error)" },
+  pending: { bg: "var(--t-indigo-bg)", color: "var(--t-indigo)" },
 };
 
 const emptyForm = {
@@ -218,10 +218,10 @@ const Warranties: React.FC = () => {
             { icon: "📋", title: "Claims Management", body: "File and track warranty claims against any registered warranty. Record claim amounts, approval status, and claim reference numbers for your audit trail." },
             { icon: "🔔", title: "Expiry Alerts", body: "FleetIQ automatically flags warranties expiring within 30 days so you can renew coverage or plan replacements before you're exposed to uninsured repair costs." },
           ].map((card) => (
-            <div key={card.title} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", padding: "16px 18px" }}>
+            <div key={card.title} style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "16px 18px" }}>
               <div style={{ fontSize: "20px", marginBottom: "6px" }}>{card.icon}</div>
-              <div style={{ fontWeight: 700, fontSize: "13px", color: "#e5e7eb", marginBottom: "4px" }}>{card.title}</div>
-              <div style={{ fontSize: "12.5px", color: "#6b7280", lineHeight: "1.55" }}>{card.body}</div>
+              <div style={{ fontWeight: 700, fontSize: "13px", color: "var(--t-text-secondary)", marginBottom: "4px" }}>{card.title}</div>
+              <div style={{ fontSize: "12.5px", color: "var(--t-text-dim)", lineHeight: "1.55" }}>{card.body}</div>
             </div>
           ))}
         </div>
@@ -278,12 +278,12 @@ const Warranties: React.FC = () => {
                       <td style={styles.td}>{w.type}</td>
                       <td style={styles.td}>{w.provider || "—"}</td>
                       <td style={styles.td}>
-                        <span style={{ color: isExpiringSoon(w) && w.status === "active" ? "#fca5a5" : "#d1d5db", fontWeight: isExpiringSoon(w) ? 700 : 400 }}>
+                        <span style={{ color: isExpiringSoon(w) && w.status === "active" ? "var(--t-error)" : "var(--t-text-muted)", fontWeight: isExpiringSoon(w) ? 700 : 400 }}>
                           {w.expiryDate ? new Date(w.expiryDate).toLocaleDateString() : "—"}
                         </span>
                       </td>
                       <td style={styles.td}>
-                        <span style={{ ...styles.badge, background: STATUS_COLORS[w.status]?.bg || "rgba(255,255,255,0.06)", color: STATUS_COLORS[w.status]?.color || "#9ca3af" }}>
+                        <span style={{ ...styles.badge, background: STATUS_COLORS[w.status]?.bg || "var(--t-hover-bg)", color: STATUS_COLORS[w.status]?.color || "var(--t-text-faint)" }}>
                           {w.status}
                         </span>
                       </td>
@@ -291,27 +291,27 @@ const Warranties: React.FC = () => {
                       <td style={styles.td} onClick={(e) => e.stopPropagation()}>
                         <div style={{ display: "flex", gap: "6px" }}>
                           <button style={styles.iconBtn} title="Edit" onClick={() => openEdit(w)}><FaEdit size={13} /></button>
-                          <button style={{ ...styles.iconBtn, color: "#1e40af" }} title="File Claim" onClick={() => { setSelectedWarranty(w); setClaimForm({ ...emptyClaimForm }); setIsClaimModalOpen(true); }}><FaFileAlt size={13} /></button>
-                          <button style={{ ...styles.iconBtn, color: "#dc2626" }} title="Delete" onClick={() => { setSelectedWarranty(w); setIsDeleteModalOpen(true); }}><FaTrashAlt size={13} /></button>
+                          <button style={{ ...styles.iconBtn, color: "var(--t-info)" }} title="File Claim" onClick={() => { setSelectedWarranty(w); setClaimForm({ ...emptyClaimForm }); setIsClaimModalOpen(true); }}><FaFileAlt size={13} /></button>
+                          <button style={{ ...styles.iconBtn, color: "var(--t-error)" }} title="Delete" onClick={() => { setSelectedWarranty(w); setIsDeleteModalOpen(true); }}><FaTrashAlt size={13} /></button>
                         </div>
                       </td>
                     </tr>
                     {expandedId === w._id && (
                       <tr>
-                        <td colSpan={8} style={{ padding: "0 16px 16px", background: "rgba(255,255,255,0.02)" }}>
-                          <div style={{ padding: "12px 0", fontSize: "13px", color: "#d1d5db" }}>
+                        <td colSpan={8} style={{ padding: "0 16px 16px", background: "var(--t-stripe)" }}>
+                          <div style={{ padding: "12px 0", fontSize: "13px", color: "var(--t-text-muted)" }}>
                             {w.coverageDetails && <p style={{ marginBottom: "8px" }}><strong>Coverage:</strong> {w.coverageDetails}</p>}
                             {w.mileageLimit && <p style={{ marginBottom: "8px" }}><strong>Mileage Limit:</strong> {w.mileageLimit.toLocaleString()} km</p>}
                             {w.policyNumber && <p style={{ marginBottom: "8px" }}><strong>Policy #:</strong> {w.policyNumber}</p>}
                             <strong>Claims:</strong>
                             {(!w.claims || w.claims.length === 0) ? (
-                              <span style={{ color: "#9ca3af", marginLeft: "8px" }}>No claims filed</span>
+                              <span style={{ color: "var(--t-text-faint)", marginLeft: "8px" }}>No claims filed</span>
                             ) : (
                               <table style={{ width: "100%", marginTop: "8px", borderCollapse: "collapse" }}>
                                 <thead>
                                   <tr>
                                     {["Date", "Description", "Claimed", "Approved", "Status", "Claim #"].map((h) => (
-                                      <th key={h} style={{ ...styles.th, background: "rgba(255,255,255,0.04)" }}>{h}</th>
+                                      <th key={h} style={{ ...styles.th, background: "var(--t-surface-alt)" }}>{h}</th>
                                     ))}
                                   </tr>
                                 </thead>
@@ -323,7 +323,7 @@ const Warranties: React.FC = () => {
                                       <td style={styles.td}>${(c.claimAmount || 0).toFixed(2)}</td>
                                       <td style={styles.td}>${(c.approvedAmount || 0).toFixed(2)}</td>
                                       <td style={styles.td}>
-                                        <span style={{ ...styles.badge, background: CLAIM_STATUS_COLORS[c.status]?.bg || "rgba(255,255,255,0.06)", color: CLAIM_STATUS_COLORS[c.status]?.color || "#9ca3af" }}>
+                                        <span style={{ ...styles.badge, background: CLAIM_STATUS_COLORS[c.status]?.bg || "var(--t-hover-bg)", color: CLAIM_STATUS_COLORS[c.status]?.color || "var(--t-text-faint)" }}>
                                           {c.status}
                                         </span>
                                       </td>
@@ -429,10 +429,10 @@ const Warranties: React.FC = () => {
         <div style={styles.modalOverlay}>
           <div style={{ ...styles.modal, maxWidth: "420px" }}>
             <h2 style={styles.modalTitle}>Delete Warranty?</h2>
-            <p style={{ color: "#6b7280", marginBottom: "24px" }}>Delete <strong>{selectedWarranty.title}</strong>? This cannot be undone.</p>
+            <p style={{ color: "var(--t-text-dim)", marginBottom: "24px" }}>Delete <strong>{selectedWarranty.title}</strong>? This cannot be undone.</p>
             <div style={styles.modalActions}>
               <button style={styles.cancelBtn} onClick={() => setIsDeleteModalOpen(false)}>Cancel</button>
-              <button style={{ ...styles.primaryBtn, background: "#dc2626" }} onClick={handleDelete}>Delete</button>
+              <button style={{ ...styles.primaryBtn, background: "var(--t-error)" }} onClick={handleDelete}>Delete</button>
             </div>
           </div>
         </div>
@@ -442,34 +442,34 @@ const Warranties: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#0d1117", fontFamily: "Inter, system-ui, sans-serif" },
+  wrapper: { minHeight: "100vh", background: "var(--t-bg)", fontFamily: "Inter, system-ui, sans-serif" },
   container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
-  primaryBtn: { padding: "10px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
-  alertBanner: { background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "#fcd34d" },
+  primaryBtn: { padding: "10px 18px", background: "var(--t-accent)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
+  alertBanner: { background: "var(--t-warning-bg)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "var(--t-warning)" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" },
-  statCard: { background: "#161b22", borderRadius: "12px", padding: "20px", border: "1px solid rgba(255,255,255,0.07)", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
-  statValue: { fontSize: "28px", fontWeight: 800, color: "#818CF8" },
-  statLabel: { fontSize: "13px", color: "#6b7280", marginTop: "4px" },
+  statCard: { background: "var(--t-surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--t-border)", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
+  statValue: { fontSize: "28px", fontWeight: 800, color: "var(--t-indigo)" },
+  statLabel: { fontSize: "13px", color: "var(--t-text-dim)", marginTop: "4px" },
   filtersRow: { display: "flex", gap: "12px", marginBottom: "20px", flexWrap: "wrap" },
-  searchInput: { flex: 1, minWidth: "220px", padding: "9px 14px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "rgba(255,255,255,0.05)", color: "#e5e7eb" },
-  select: { padding: "9px 14px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#1c2128", color: "#e5e7eb" },
-  tableWrapper: { overflowX: "auto", background: "#161b22", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.07)", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
+  searchInput: { flex: 1, minWidth: "220px", padding: "9px 14px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-input-bg)", color: "var(--t-text-secondary)" },
+  select: { padding: "9px 14px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-select-bg)", color: "var(--t-text-secondary)" },
+  tableWrapper: { overflowX: "auto", background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
   table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
-  th: { padding: "13px 16px", textAlign: "left", background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.08)", fontWeight: 700, color: "#818CF8", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
-  tr: { borderBottom: "1px solid rgba(255,255,255,0.05)", cursor: "pointer" },
-  td: { padding: "14px 16px", color: "#d1d5db", verticalAlign: "middle" },
+  th: { padding: "13px 16px", textAlign: "left", background: "var(--t-surface-alt)", borderBottom: "1px solid var(--t-border)", fontWeight: 700, color: "var(--t-indigo)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
+  tr: { borderBottom: "1px solid var(--t-stripe)", cursor: "pointer" },
+  td: { padding: "14px 16px", color: "var(--t-text-muted)", verticalAlign: "middle" },
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
-  iconBtn: { background: "rgba(255,255,255,0.06)", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "#9ca3af", display: "flex", alignItems: "center" },
-  emptyState: { textAlign: "center", padding: "60px 0", color: "#6b7280", fontSize: "15px" },
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
-  modal: { background: "#161b22", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.08)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "#f3f4f6" },
+  iconBtn: { background: "var(--t-hover-bg)", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "var(--t-text-faint)", display: "flex", alignItems: "center" },
+  emptyState: { textAlign: "center", padding: "60px 0", color: "var(--t-text-dim)", fontSize: "15px" },
+  modalOverlay: { position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
+  modal: { background: "var(--t-surface)", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "var(--t-shadow-lg)", border: "1px solid var(--t-border)" },
+  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "var(--t-text)" },
   formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" },
   formGroup: { marginBottom: "16px" },
-  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "#4b5563", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
-  input: { width: "100%", padding: "9px 12px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", color: "#e5e7eb", background: "rgba(255,255,255,0.05)", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
+  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
+  input: { width: "100%", padding: "9px 12px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", color: "var(--t-text-secondary)", background: "var(--t-input-bg)", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
   modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
-  cancelBtn: { padding: "10px 20px", background: "rgba(255,255,255,0.06)", color: "#9ca3af", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
+  cancelBtn: { padding: "10px 20px", background: "var(--t-hover-bg)", color: "var(--t-text-faint)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
 };
 
 export default Warranties;

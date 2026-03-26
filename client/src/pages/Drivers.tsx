@@ -388,32 +388,32 @@ const Drivers: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", minHeight: "100vh", background: "#0d1117", color: "#fff" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", minHeight: "100vh", background: "var(--t-bg)", color: "var(--t-text)" }}>
       <style>{`
-        input::placeholder { color: #4b5563; }
-        select option { background: #161b22; color: #f3f4f6; }
-        input:focus, select:focus { outline: none; border-color: #4F46E5 !important; box-shadow: 0 0 0 3px rgba(79,70,229,0.15) !important; }
+        input::placeholder { color: var(--t-text-ghost); }
+        select option { background: var(--t-surface); color: var(--t-text); }
+        input:focus, select:focus { outline: none; border-color: var(--t-accent) !important; box-shadow: 0 0 0 3px var(--t-indigo-bg) !important; }
       `}</style>
       <Navbar />
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "32px 40px" }}>
 
         {/* Breadcrumb */}
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
           <span>FLEET</span>
-          <span style={{ color: "#374151" }}>›</span>
-          <span style={{ color: "#9ca3af" }}>DRIVERS</span>
+          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
+          <span style={{ color: "var(--t-text-faint)" }}>DRIVERS</span>
         </div>
 
         {/* Page Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" as const }}>
           <div>
-            <h1 style={{ margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.5px" }}>Driver Management</h1>
-            <p style={{ margin: 0, fontSize: "14px", color: "#6b7280" }}>Manage driver profiles, rates & credentials for the entire logistical network.</p>
+            <h1 style={{ margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>Driver Management</h1>
+            <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>Manage driver profiles, rates & credentials for the entire logistical network.</p>
           </div>
           <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
             <button
               onClick={() => navigate("/driver-applications")}
-              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "10px", color: "#e5e7eb", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", position: "relative" as const }}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "10px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", position: "relative" as const }}
             >
               <FaClipboard size={13} /> Driver Applications
               {pendingApplicationsCount > 0 && (
@@ -422,7 +422,7 @@ const Drivers: React.FC = () => {
             </button>
             <button
               onClick={() => { setIsAddModalOpen(true); setAddFieldErrors({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" }); }}
-              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "#4F46E5", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}
             >
               + Add Driver
             </button>
@@ -432,19 +432,19 @@ const Drivers: React.FC = () => {
         {/* Search + Sort */}
         <div style={{ display: "flex", gap: "12px", marginBottom: "16px", alignItems: "center" }}>
           <div style={{ flex: 1, position: "relative" as const }}>
-            <span style={{ position: "absolute" as const, left: "14px", top: "50%", transform: "translateY(-50%)", color: "#4b5563", pointerEvents: "none" as const, fontSize: "14px" }}>🔍</span>
+            <span style={{ position: "absolute" as const, left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--t-text-ghost)", pointerEvents: "none" as const, fontSize: "14px" }}>🔍</span>
             <input
               type="text"
               placeholder="Search by name, email, or badge ID..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              style={{ width: "100%", padding: "11px 16px 11px 40px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+              style={{ width: "100%", padding: "11px 16px 11px 40px", background: "var(--t-input-bg)", border: "1px solid var(--t-border)", borderRadius: "10px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
             />
           </div>
           <select
             value={sortOrder}
             onChange={(e) => setSortOrder(e.target.value as "highest" | "lowest" | "none")}
-            style={{ padding: "11px 36px 11px 14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "10px", color: "#f3f4f6", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer", minWidth: "200px", appearance: "none" as const, WebkitAppearance: "none" as const }}
+            style={{ padding: "11px 36px 11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border)", borderRadius: "10px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer", minWidth: "200px", appearance: "none" as const, WebkitAppearance: "none" as const }}
           >
             <option value="none">Sort by: Active Hours</option>
             <option value="highest">Highest Hours</option>
@@ -453,12 +453,12 @@ const Drivers: React.FC = () => {
         </div>
 
         {/* Table Card */}
-        <div style={{ background: "#161b22", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: "24px" }}>
+        <div style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", overflow: "hidden", marginBottom: "24px" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <tr style={{ borderBottom: "1px solid var(--t-hover-bg)" }}>
                 {["S.NO", "DRIVER", "CONTACT INFORMATION", "STATUS", "HOURS (WK)", "WORK AUTHORIZATION", "ACTIONS"].map((h) => (
-                  <th key={h} style={{ padding: "14px 16px", textAlign: "left" as const, fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", whiteSpace: "nowrap" as const }}>
+                  <th key={h} style={{ padding: "14px 16px", textAlign: "left" as const, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", whiteSpace: "nowrap" as const }}>
                     {h}
                   </th>
                 ))}
@@ -467,16 +467,16 @@ const Drivers: React.FC = () => {
             <tbody>
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: "48px", textAlign: "center" as const, color: "#4b5563", fontSize: "14px" }}>No matching drivers found.</td>
+                  <td colSpan={7} style={{ padding: "48px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "14px" }}>No matching drivers found.</td>
                 </tr>
               ) : (
                 filteredData.map((driver: any, idx: number) => {
                   const isDemo = String(driver._id).startsWith("demo-");
                   const statusCfg: Record<string, { bg: string; border: string; color: string }> = {
-                    active:     { bg: "rgba(16,185,129,0.12)",  border: "rgba(16,185,129,0.3)",  color: "#34d399" },
-                    inactive:   { bg: "rgba(234,179,8,0.1)",    border: "rgba(234,179,8,0.3)",   color: "#fbbf24" },
-                    suspended:  { bg: "rgba(239,68,68,0.1)",    border: "rgba(239,68,68,0.3)",   color: "#f87171" },
-                    "on leave": { bg: "rgba(234,179,8,0.1)",    border: "rgba(234,179,8,0.3)",   color: "#fbbf24" },
+                    active:     { bg: "var(--t-success-bg)", border: "rgba(16,185,129,0.3)",  color: "var(--t-success)" },
+                    inactive:   { bg: "var(--t-warning-bg)", border: "rgba(234,179,8,0.3)",   color: "var(--t-warning)" },
+                    suspended:  { bg: "var(--t-error-bg)",   border: "rgba(239,68,68,0.3)",   color: "var(--t-error)" },
+                    "on leave": { bg: "var(--t-warning-bg)", border: "rgba(234,179,8,0.3)",   color: "var(--t-warning)" },
                   };
                   const statusKey = (driver.status || "active").toLowerCase();
                   const badge = statusCfg[statusKey] || statusCfg.active;
@@ -489,13 +489,13 @@ const Drivers: React.FC = () => {
                   return (
                     <tr
                       key={driver._id}
-                      style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", cursor: isDemo ? "default" : "pointer", transition: "background 0.15s" }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.02)")}
+                      style={{ borderBottom: "1px solid var(--t-stripe)", cursor: isDemo ? "default" : "pointer", transition: "background 0.15s" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--t-stripe)")}
                       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                       onClick={() => { if (!isDemo) navigate("/profile", { state: { driver } }); }}
                     >
                       {/* S.NO */}
-                      <td style={{ padding: "18px 16px", fontSize: "13px", color: "#4b5563", fontWeight: 500, width: "60px" }}>
+                      <td style={{ padding: "18px 16px", fontSize: "13px", color: "var(--t-text-ghost)", fontWeight: 500, width: "60px" }}>
                         {String(idx + 1).padStart(2, "0")}
                       </td>
 
@@ -506,19 +506,19 @@ const Drivers: React.FC = () => {
                             <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: avatarColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: 700, color: "#fff" }}>
                               {initials}
                             </div>
-                            <div style={{ position: "absolute" as const, bottom: "1px", right: "1px", width: "9px", height: "9px", borderRadius: "50%", background: statusKey === "active" ? "#10b981" : statusKey === "suspended" ? "#ef4444" : "#f59e0b", border: "1.5px solid #161b22" }} />
+                            <div style={{ position: "absolute" as const, bottom: "1px", right: "1px", width: "9px", height: "9px", borderRadius: "50%", background: statusKey === "active" ? "var(--t-success)" : statusKey === "suspended" ? "var(--t-error)" : "var(--t-warning)", border: "1.5px solid var(--t-surface)" }} />
                           </div>
                           <div>
-                            <div style={{ fontSize: "14px", fontWeight: 700, color: "#f3f4f6", borderLeft: "2px solid #4F46E5", paddingLeft: "8px" }}>{driver.name}</div>
-                            <div style={{ fontSize: "11px", color: "#4b5563", paddingLeft: "8px", marginTop: "2px" }}>ID: {driverId}</div>
+                            <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--t-text)", borderLeft: "2px solid var(--t-accent)", paddingLeft: "8px" }}>{driver.name}</div>
+                            <div style={{ fontSize: "11px", color: "var(--t-text-ghost)", paddingLeft: "8px", marginTop: "2px" }}>ID: {driverId}</div>
                           </div>
                         </div>
                       </td>
 
                       {/* CONTACT */}
                       <td style={{ padding: "18px 16px" }}>
-                        <div style={{ fontSize: "13px", color: "#9ca3af" }}>{driver.email}</div>
-                        <div style={{ fontSize: "12px", color: "#4b5563", marginTop: "3px" }}>{driver.contact || "—"}</div>
+                        <div style={{ fontSize: "13px", color: "var(--t-text-faint)" }}>{driver.email}</div>
+                        <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "3px" }}>{driver.contact || "—"}</div>
                       </td>
 
                       {/* STATUS */}
@@ -530,14 +530,14 @@ const Drivers: React.FC = () => {
 
                       {/* HOURS */}
                       <td style={{ padding: "18px 16px", minWidth: "80px" }}>
-                        <div style={{ fontSize: "16px", fontWeight: 700, color: "#f3f4f6" }}>{hours.toFixed(1)}</div>
-                        <div style={{ height: "2px", width: "56px", background: "rgba(255,255,255,0.08)", borderRadius: "2px", marginTop: "5px" }}>
-                          <div style={{ width: `${Math.min(100, hours / 60 * 100)}%`, height: "100%", background: statusKey === "suspended" ? "#ef4444" : "#4F46E5", borderRadius: "2px" }} />
+                        <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--t-text)" }}>{hours.toFixed(1)}</div>
+                        <div style={{ height: "2px", width: "56px", background: "var(--t-border)", borderRadius: "2px", marginTop: "5px" }}>
+                          <div style={{ width: `${Math.min(100, hours / 60 * 100)}%`, height: "100%", background: statusKey === "suspended" ? "var(--t-error)" : "var(--t-accent)", borderRadius: "2px" }} />
                         </div>
                       </td>
 
                       {/* WORK AUTH */}
-                      <td style={{ padding: "18px 16px", fontSize: "13px", color: "#9ca3af" }}>
+                      <td style={{ padding: "18px 16px", fontSize: "13px", color: "var(--t-text-faint)" }}>
                         {driver.workStatus || "—"}
                       </td>
 
@@ -546,13 +546,13 @@ const Drivers: React.FC = () => {
                         <div style={{ display: "flex", gap: "8px" }} onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => { if (!isDemo) handleEdit(driver); }}
-                            style={{ width: "30px", height: "30px", borderRadius: "8px", background: "rgba(79,70,229,0.12)", border: "1px solid rgba(79,70,229,0.25)", color: "#818CF8", display: "flex", alignItems: "center", justifyContent: "center", cursor: isDemo ? "not-allowed" : "pointer", opacity: isDemo ? 0.3 : 1 }}
+                            style={{ width: "30px", height: "30px", borderRadius: "8px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", color: "var(--t-indigo)", display: "flex", alignItems: "center", justifyContent: "center", cursor: isDemo ? "not-allowed" : "pointer", opacity: isDemo ? 0.3 : 1 }}
                           >
                             <FaEdit size={11} />
                           </button>
                           <button
                             onClick={() => { if (!isDemo) handleDelete(driver); }}
-                            style={{ width: "30px", height: "30px", borderRadius: "8px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171", display: "flex", alignItems: "center", justifyContent: "center", cursor: isDemo ? "not-allowed" : "pointer", opacity: isDemo ? 0.3 : 1 }}
+                            style={{ width: "30px", height: "30px", borderRadius: "8px", background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.2)", color: "var(--t-error)", display: "flex", alignItems: "center", justifyContent: "center", cursor: isDemo ? "not-allowed" : "pointer", opacity: isDemo ? 0.3 : 1 }}
                           >
                             <FaTrashAlt size={11} />
                           </button>
@@ -566,9 +566,9 @@ const Drivers: React.FC = () => {
           </table>
 
           {/* Table footer */}
-          <div style={{ padding: "14px 20px", borderTop: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span style={{ fontSize: "13px", color: "#4b5563" }}>
-              Showing <strong style={{ color: "#9ca3af" }}>1–{filteredData.length}</strong> of <strong style={{ color: "#9ca3af" }}>{data.length}</strong> drivers
+          <div style={{ padding: "14px 20px", borderTop: "1px solid var(--t-input-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: "13px", color: "var(--t-text-ghost)" }}>
+              Showing <strong style={{ color: "var(--t-text-faint)" }}>1–{filteredData.length}</strong> of <strong style={{ color: "var(--t-text-faint)" }}>{data.length}</strong> drivers
             </span>
           </div>
         </div>
@@ -588,29 +588,29 @@ const Drivers: React.FC = () => {
           const compliantPct = totalFleet > 0 ? (compliantCount / totalFleet) * 100 : 0;
 
           const statCards = [
-            { icon: "👥", badge: null as string | null, label: "TOTAL FLEET", value: String(totalFleet), sub: "Active personnel across all regions", subColor: "#6b7280", accentRgb: "79,70,229", progress: null as number | null },
-            { icon: "✅", badge: null, label: "COMPLIANT", value: String(compliantCount), sub: null as string | null, subColor: "#6b7280", accentRgb: "16,185,129", progress: compliantPct },
-            { icon: "📋", badge: null, label: "LICENSE RENEWAL", value: String(renewalCount).padStart(2, "0"), sub: "Action required within 15 days", subColor: "#f59e0b", accentRgb: "245,158,11", progress: null },
-            { icon: "⏱", badge: null, label: "AVG. WEEKLY HRS", value: avgHrs.toFixed(1), sub: "Optimal fatigue management score", subColor: "#6b7280", accentRgb: "129,140,248", progress: null },
+            { icon: "👥", badge: null as string | null, label: "TOTAL FLEET", value: String(totalFleet), sub: "Active personnel across all regions", subColor: "var(--t-text-dim)", accentRgb: "79,70,229", progress: null as number | null },
+            { icon: "✅", badge: null, label: "COMPLIANT", value: String(compliantCount), sub: null as string | null, subColor: "var(--t-text-dim)", accentRgb: "16,185,129", progress: compliantPct },
+            { icon: "📋", badge: null, label: "LICENSE RENEWAL", value: String(renewalCount).padStart(2, "0"), sub: "Action required within 15 days", subColor: "var(--t-warning)", accentRgb: "245,158,11", progress: null },
+            { icon: "⏱", badge: null, label: "AVG. WEEKLY HRS", value: avgHrs.toFixed(1), sub: "Optimal fatigue management score", subColor: "var(--t-text-dim)", accentRgb: "129,140,248", progress: null },
           ];
 
           return (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
               {statCards.map((c) => (
-                <div key={c.label} style={{ background: "#161b22", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.06)", padding: "20px 22px" }}>
+                <div key={c.label} style={{ background: "var(--t-surface)", borderRadius: "14px", border: "1px solid var(--t-hover-bg)", padding: "20px 22px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "14px" }}>
                     <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: `rgba(${c.accentRgb},0.15)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>
                       {c.icon}
                     </div>
                     {c.badge && (
-                      <span style={{ fontSize: "11px", fontWeight: 700, color: "#34d399", background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: "20px", padding: "2px 8px" }}>{c.badge}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-success)", background: "var(--t-success-bg)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: "20px", padding: "2px 8px" }}>{c.badge}</span>
                     )}
                   </div>
-                  <div style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px", marginBottom: "6px" }}>{c.label}</div>
-                  <div style={{ fontSize: "28px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.5px", marginBottom: "6px" }}>{c.value}</div>
+                  <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "6px" }}>{c.label}</div>
+                  <div style={{ fontSize: "28px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px", marginBottom: "6px" }}>{c.value}</div>
                   {c.progress !== null && (
-                    <div style={{ height: "3px", borderRadius: "3px", background: "rgba(255,255,255,0.08)", marginBottom: "6px" }}>
-                      <div style={{ width: `${c.progress}%`, height: "100%", borderRadius: "3px", background: "#10b981" }} />
+                    <div style={{ height: "3px", borderRadius: "3px", background: "var(--t-border)", marginBottom: "6px" }}>
+                      <div style={{ width: `${c.progress}%`, height: "100%", borderRadius: "3px", background: "var(--t-success)" }} />
                     </div>
                   )}
                   {c.sub && (
@@ -626,21 +626,21 @@ const Drivers: React.FC = () => {
 
       {/* Add Driver Modal */}
       {isAddModalOpen && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }} onClick={() => setIsAddModalOpen(false)}>
-          <div style={{ background: "#141921", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.08)", width: "100%", maxWidth: "920px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(0,0,0,0.6)" }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }} onClick={() => setIsAddModalOpen(false)}>
+          <div style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "920px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" }} onClick={(e) => e.stopPropagation()}>
 
             {/* Header */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "24px 28px", borderBottom: "1px solid rgba(255,255,255,0.06)", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", flexShrink: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "rgba(79,70,229,0.15)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <FaEdit size={16} color="#818CF8" />
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaEdit size={16} color="var(--t-indigo)" />
                 </div>
                 <div>
-                  <div style={{ fontSize: "18px", fontWeight: 800, color: "#f9fafb" }}>Add New Driver</div>
-                  <div style={{ fontSize: "12px", color: "#4b5563", marginTop: "2px" }}>Create a new driver profile and credentials</div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Add New Driver</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>Create a new driver profile and credentials</div>
                 </div>
               </div>
-              <button onClick={() => setIsAddModalOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#9ca3af", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
+              <button onClick={() => setIsAddModalOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
             </div>
 
             {/* Body */}
@@ -648,70 +648,70 @@ const Drivers: React.FC = () => {
 
               {/* IDENTITY & CREDENTIALS */}
               <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "24px 0 20px" }}>
-                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
-                <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1.2px", whiteSpace: "nowrap" as const }}>IDENTITY & CREDENTIALS</span>
-                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1.2px", whiteSpace: "nowrap" as const }}>IDENTITY & CREDENTIALS</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", marginBottom: "14px" }}>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>FULL NAME</label>
-                  <input type="text" placeholder="Enter name" style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>FULL NAME</label>
+                  <input type="text" placeholder="Enter name" style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => setSelectedDriver({ ...selectedDriver, name: e.target.value })} />
                 </div>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>EMAIL ADDRESS</label>
-                  <input type="email" placeholder="Enter email" style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>EMAIL ADDRESS</label>
+                  <input type="email" placeholder="Enter email" style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => setSelectedDriver({ ...selectedDriver, email: e.target.value })} />
                 </div>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>USERNAME</label>
-                  <input type="text" placeholder="Enter username" value={selectedDriver.username} style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>USERNAME</label>
+                  <input type="text" placeholder="Enter username" value={selectedDriver.username} style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => { const v = e.target.value.trim(); setSelectedDriver({ ...selectedDriver, username: v }); checkUsernameExists(v); }} />
-                  {usernameError && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#f87171" }}>{usernameError}</p>}
+                  {usernameError && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{usernameError}</p>}
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", marginBottom: "14px" }}>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>CONTACT NO.</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>CONTACT NO.</label>
                   <input type="text" placeholder="+1 (416) 555-0191" value={selectedDriver.contact}
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${addFieldErrors.contact ? "#ef4444" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${addFieldErrors.contact ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => { const formatted = formatContact(e.target.value); setSelectedDriver({ ...selectedDriver, contact: formatted }); const digits = formatted.replace(/^\+1[\s\-\(]*/, "").replace(/\D/g, ""); setAddFieldErrors((prev) => ({ ...prev, contact: digits.length > 0 && digits.length < 10 ? "Enter a valid 10-digit phone number." : "" })); }} />
-                  {addFieldErrors.contact && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#f87171" }}>{addFieldErrors.contact}</p>}
+                  {addFieldErrors.contact && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{addFieldErrors.contact}</p>}
                 </div>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>BUSINESS NAME</label>
-                  <input type="text" placeholder="Enter business name" style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>BUSINESS NAME</label>
+                  <input type="text" placeholder="Enter business name" style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => setSelectedDriver({ ...selectedDriver, business_name: e.target.value })} />
                 </div>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>HST/GST NUMBER</label>
-                  <input type="text" placeholder="Enter HST/GST number" style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>HST/GST NUMBER</label>
+                  <input type="text" placeholder="Enter HST/GST number" style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => setSelectedDriver({ ...selectedDriver, hst_gst: e.target.value })} />
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", marginBottom: "14px" }}>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>SIN NO.</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>SIN NO.</label>
                   <input type="text" placeholder="XXX-XXX-XXX" value={selectedDriver.sinNo}
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${addFieldErrors.sinNo ? "#ef4444" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${addFieldErrors.sinNo ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => { const formatted = formatSIN(e.target.value); setSelectedDriver({ ...selectedDriver, sinNo: formatted }); const digits = formatted.replace(/\D/g, ""); setAddFieldErrors((prev) => ({ ...prev, sinNo: digits.length > 0 && digits.length < 9 ? "SIN must be 9 digits." : digits.length === 0 ? "SIN No. is required." : "" })); }} />
-                  {addFieldErrors.sinNo && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#f87171" }}>{addFieldErrors.sinNo}</p>}
+                  {addFieldErrors.sinNo && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{addFieldErrors.sinNo}</p>}
                 </div>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTHORIZATION</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTHORIZATION</label>
                   <select value={selectedDriver.workStatus}
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, cursor: "pointer" }}
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, cursor: "pointer" }}
                     onChange={(e) => { setSelectedDriver({ ...selectedDriver, workStatus: e.target.value, workAuthExpiry: "" }); setShowAddWorkAuthPicker(false); }}>
                     <option value="">Select work authorization</option>
                     {WORK_AUTH_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.value}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>STATUS</label>
-                  <select style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, cursor: "pointer" }}
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>STATUS</label>
+                  <select style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, cursor: "pointer" }}
                     onChange={(e) => setSelectedDriver({ ...selectedDriver, status: e.target.value })}>
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
@@ -722,18 +722,18 @@ const Drivers: React.FC = () => {
 
               {/* RATE CONFIGURATION */}
               <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "28px 0 20px" }}>
-                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
-                <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1.2px", whiteSpace: "nowrap" as const }}>RATE CONFIGURATION</span>
-                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1.2px", whiteSpace: "nowrap" as const }}>RATE CONFIGURATION</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
                 {([["BACKHAUL RATE", "backhaulRate"], ["COMBO RATE", "comboRate"], ["EXTRA SHEET/E.W", "extraSheetEWRate"], ["REGULAR/BANNER", "regularBannerRate"]] as [string, string][]).map(([label, field]) => (
-                  <div key={field} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", padding: "14px 16px" }}>
-                    <div style={{ fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", marginBottom: "10px" }}>{label}</div>
+                  <div key={field} style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "14px 16px" }}>
+                    <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", marginBottom: "10px" }}>{label}</div>
                     <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ fontSize: "14px", fontWeight: 700, color: "#4b5563" }}>$</span>
-                      <input type="number" placeholder="0.00" style={{ flex: 1, background: "none", border: "none", color: "#f3f4f6", fontSize: "16px", fontWeight: 700, fontFamily: "Inter, system-ui, sans-serif", outline: "none", width: "100%", padding: 0 }}
+                      <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--t-text-ghost)" }}>$</span>
+                      <input type="number" placeholder="0.00" style={{ flex: 1, background: "none", border: "none", color: "var(--t-text)", fontSize: "16px", fontWeight: 700, fontFamily: "Inter, system-ui, sans-serif", outline: "none", width: "100%", padding: 0 }}
                         onChange={(e) => setSelectedDriver({ ...selectedDriver, [field]: e.target.value })} />
                     </div>
                   </div>
@@ -742,11 +742,11 @@ const Drivers: React.FC = () => {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
                 {([["WHOLESALE RATE", "wholesaleRate"], ["VOILA RATE", "voilaRate"], ["TCS LINEHAUL TRENTON", "tcsLinehaulTrentonRate"]] as [string, string][]).map(([label, field]) => (
-                  <div key={field} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", padding: "14px 16px" }}>
-                    <div style={{ fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", marginBottom: "10px" }}>{label}</div>
+                  <div key={field} style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "14px 16px" }}>
+                    <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", marginBottom: "10px" }}>{label}</div>
                     <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ fontSize: "14px", fontWeight: 700, color: "#4b5563" }}>$</span>
-                      <input type="number" placeholder="0.00" style={{ flex: 1, background: "none", border: "none", color: "#f3f4f6", fontSize: "16px", fontWeight: 700, fontFamily: "Inter, system-ui, sans-serif", outline: "none", width: "100%", padding: 0 }}
+                      <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--t-text-ghost)" }}>$</span>
+                      <input type="number" placeholder="0.00" style={{ flex: 1, background: "none", border: "none", color: "var(--t-text)", fontSize: "16px", fontWeight: 700, fontFamily: "Inter, system-ui, sans-serif", outline: "none", width: "100%", padding: 0 }}
                         onChange={(e) => setSelectedDriver({ ...selectedDriver, [field]: e.target.value })} />
                     </div>
                   </div>
@@ -755,25 +755,25 @@ const Drivers: React.FC = () => {
 
               {/* LICENSING & EXPIRY */}
               <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "28px 0 20px" }}>
-                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
-                <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1.2px", whiteSpace: "nowrap" as const }}>LICENSING & EXPIRY</span>
-                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1.2px", whiteSpace: "nowrap" as const }}>LICENSING & EXPIRY</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: workAuthNeedsExpiry(selectedDriver.workStatus) ? "1fr 1fr 1fr" : "1fr 1fr", gap: "14px", marginBottom: "14px" }}>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>LICENCE CLASS</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>LICENCE CLASS</label>
                   <input type="text" placeholder="e.g. AZ, DZ, G" value={selectedDriver.licence}
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${addFieldErrors.licence ? "#ef4444" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${addFieldErrors.licence ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => { const upper = e.target.value.toUpperCase(); setSelectedDriver({ ...selectedDriver, licence: upper }); setAddFieldErrors((prev) => ({ ...prev, licence: upper.trim() === "" ? "Licence class is required." : "" })); }} />
-                  {addFieldErrors.licence && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#f87171" }}>{addFieldErrors.licence}</p>}
+                  {addFieldErrors.licence && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{addFieldErrors.licence}</p>}
                 </div>
                 <div style={{ position: "relative" as const }}>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>LICENCE EXPIRY DATE</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>LICENCE EXPIRY DATE</label>
                   <div onClick={() => setShowAddExpiryPicker(v => !v)}
-                    style={{ padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${addFieldErrors.licence_expiry_date?.startsWith("Warning") ? "#d97706" : addFieldErrors.licence_expiry_date ? "#ef4444" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
-                    <span style={{ color: selectedDriver.licence_expiry_date ? "#f3f4f6" : "#4b5563" }}>{selectedDriver.licence_expiry_date ? format(parseISO(selectedDriver.licence_expiry_date), "MMM d, yyyy") : "Select expiry date"}</span>
-                    <FaCalendarAlt size={13} style={{ color: "#4b5563" }} />
+                    style={{ padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${addFieldErrors.licence_expiry_date?.startsWith("Warning") ? "var(--t-warning)" : addFieldErrors.licence_expiry_date ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+                    <span style={{ color: selectedDriver.licence_expiry_date ? "var(--t-text)" : "var(--t-text-ghost)" }}>{selectedDriver.licence_expiry_date ? format(parseISO(selectedDriver.licence_expiry_date), "MMM d, yyyy") : "Select expiry date"}</span>
+                    <FaCalendarAlt size={13} style={{ color: "var(--t-text-ghost)" }} />
                   </div>
                   {showAddExpiryPicker && (<>
                     <div onClick={() => setShowAddExpiryPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
@@ -783,15 +783,15 @@ const Drivers: React.FC = () => {
                         styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }} />
                     </div>
                   </>)}
-                  {addFieldErrors.licence_expiry_date && <p style={{ margin: "4px 0 0", fontSize: "11px", color: addFieldErrors.licence_expiry_date.startsWith("Warning") ? "#d97706" : "#f87171" }}>{addFieldErrors.licence_expiry_date}</p>}
+                  {addFieldErrors.licence_expiry_date && <p style={{ margin: "4px 0 0", fontSize: "11px", color: addFieldErrors.licence_expiry_date.startsWith("Warning") ? "var(--t-warning)" : "var(--t-error)" }}>{addFieldErrors.licence_expiry_date}</p>}
                 </div>
                 {workAuthNeedsExpiry(selectedDriver.workStatus) && (
                   <div style={{ position: "relative" as const }}>
-                    <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTH EXPIRY</label>
+                    <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTH EXPIRY</label>
                     <div onClick={() => setShowAddWorkAuthPicker(v => !v)}
-                      style={{ padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
-                      <span style={{ color: selectedDriver.workAuthExpiry ? "#f3f4f6" : "#4b5563" }}>{selectedDriver.workAuthExpiry ? format(parseISO(selectedDriver.workAuthExpiry), "MMM d, yyyy") : "Select expiry date"}</span>
-                      <FaCalendarAlt size={13} style={{ color: "#4b5563" }} />
+                      style={{ padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+                      <span style={{ color: selectedDriver.workAuthExpiry ? "var(--t-text)" : "var(--t-text-ghost)" }}>{selectedDriver.workAuthExpiry ? format(parseISO(selectedDriver.workAuthExpiry), "MMM d, yyyy") : "Select expiry date"}</span>
+                      <FaCalendarAlt size={13} style={{ color: "var(--t-text-ghost)" }} />
                     </div>
                     {showAddWorkAuthPicker && (<>
                       <div onClick={() => setShowAddWorkAuthPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
@@ -807,21 +807,21 @@ const Drivers: React.FC = () => {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>PASSWORD</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>PASSWORD</label>
                   <div style={{ display: "flex", gap: "8px" }}>
                     <input type="text" value={selectedDriver.password} placeholder="Enter password"
-                      style={{ flex: 1, padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" }}
+                      style={{ flex: 1, padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" }}
                       onChange={(e) => setSelectedDriver({ ...selectedDriver, password: e.target.value })} />
                     <button onClick={() => handleCopyPassword(selectedDriver.password)}
-                      style={{ padding: "11px 14px", background: "rgba(79,70,229,0.12)", border: "1px solid rgba(79,70,229,0.25)", borderRadius: "8px", color: "#818CF8", cursor: "pointer", display: "flex", alignItems: "center" }}>
+                      style={{ padding: "11px 14px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", borderRadius: "8px", color: "var(--t-indigo)", cursor: "pointer", display: "flex", alignItems: "center" }}>
                       <FaClipboard size={13} />
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>ADDRESS</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>ADDRESS</label>
                   <input type="text" placeholder="Enter address"
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => setSelectedDriver({ ...selectedDriver, address: e.target.value })} />
                 </div>
               </div>
@@ -829,8 +829,8 @@ const Drivers: React.FC = () => {
             </div>
 
             {/* Footer */}
-            <div style={{ padding: "20px 28px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "flex-end", gap: "12px", flexShrink: 0 }}>
-              <button onClick={() => setIsAddModalOpen(false)} style={{ padding: "11px 20px", background: "none", border: "none", color: "#6b7280", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+            <div style={{ padding: "20px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "12px", flexShrink: 0 }}>
+              <button onClick={() => setIsAddModalOpen(false)} style={{ padding: "11px 20px", background: "none", border: "none", color: "var(--t-text-dim)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
                 Close without saving
               </button>
               <button
@@ -843,7 +843,7 @@ const Drivers: React.FC = () => {
                   if (errors.sinNo || errors.contact || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning"))) return;
                   createDriver({ ...selectedDriver, username: (selectedDriver.username || "").trim() });
                 }}
-                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "11px 22px", background: "#4F46E5", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}
+                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "11px 22px", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}
               >
                 ✓ Add Driver Profile
               </button>
@@ -854,21 +854,21 @@ const Drivers: React.FC = () => {
 
       {/* Edit Driver Modal */}
       {isEditModalOpen && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: "#141921", borderRadius: "16px", maxWidth: "960px", width: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.08)" }}>
+        <div style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", backdropFilter: "blur(4px)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ background: "var(--t-surface)", borderRadius: "16px", maxWidth: "960px", width: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)", border: "1px solid var(--t-border)" }}>
 
             {/* Modal Header */}
-            <div style={{ padding: "24px 28px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+            <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                 <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: "linear-gradient(135deg,#4F46E5,#7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <FaEdit size={16} color="#fff" />
                 </div>
                 <div>
-                  <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "#f9fafb" }}>Edit Driver Profile</h2>
-                  <p style={{ margin: "3px 0 0", fontSize: "12px", color: "#6b7280" }}>Update credentials, rates, and licensing information</p>
+                  <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Edit Driver Profile</h2>
+                  <p style={{ margin: "3px 0 0", fontSize: "12px", color: "var(--t-text-dim)" }}>Update credentials, rates, and licensing information</p>
                 </div>
               </div>
-              <button onClick={() => { setIsEditModalOpen(false); setUsernameError(""); }} style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#9ca3af", borderRadius: "8px", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "16px", fontFamily: "Inter, system-ui, sans-serif" }}>✕</button>
+              <button onClick={() => { setIsEditModalOpen(false); setUsernameError(""); }} style={{ background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", borderRadius: "8px", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "16px", fontFamily: "Inter, system-ui, sans-serif" }}>✕</button>
             </div>
 
             {/* Modal Body */}
@@ -876,61 +876,61 @@ const Drivers: React.FC = () => {
 
               {/* Section: Identity & Credentials */}
               <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
-                <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>IDENTITY &amp; CREDENTIALS</span>
-                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>IDENTITY &amp; CREDENTIALS</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", marginBottom: "16px" }}>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>FULL NAME</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>FULL NAME</label>
                   <input type="text" defaultValue={selectedDriver?.name}
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => handleInputChange("name", e.target.value)} />
                 </div>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>EMAIL ADDRESS</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>EMAIL ADDRESS</label>
                   <input type="email" defaultValue={selectedDriver?.email}
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => handleInputChange("email", e.target.value)} />
                 </div>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>USERNAME</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>USERNAME</label>
                   <input type="text" placeholder="Enter username" defaultValue={selectedDriver?.username}
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${usernameError ? "#dc2626" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${usernameError ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => handleUsernameChangeEdit(e.target.value)} />
-                  {usernameError && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "#f87171" }}>{usernameError}</p>}
+                  {usernameError && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{usernameError}</p>}
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", marginBottom: "16px" }}>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>CONTACT NUMBER</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>CONTACT NUMBER</label>
                   <input type="text" placeholder="+1 (416) 555-0191" value={selectedDriver?.contact || ""}
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${editFieldErrors.contact ? "#dc2626" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${editFieldErrors.contact ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => {
                       const formatted = formatContact(e.target.value);
                       handleInputChange("contact", formatted);
                       const digits = formatted.replace(/\D/g, "");
                       setEditFieldErrors((prev) => ({ ...prev, contact: digits.length > 0 && digits.length < 10 ? "Enter a valid 10-digit phone number." : "" }));
                     }} />
-                  {editFieldErrors.contact && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "#f87171" }}>{editFieldErrors.contact}</p>}
+                  {editFieldErrors.contact && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{editFieldErrors.contact}</p>}
                 </div>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>SIN NUMBER</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>SIN NUMBER</label>
                   <input type="text" placeholder="XXX-XXX-XXX" value={selectedDriver?.sinNo || ""}
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${editFieldErrors.sinNo ? "#dc2626" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${editFieldErrors.sinNo ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => {
                       const formatted = formatSIN(e.target.value);
                       handleInputChange("sinNo", formatted);
                       const digits = formatted.replace(/\D/g, "");
                       setEditFieldErrors((prev) => ({ ...prev, sinNo: digits.length > 0 && digits.length < 9 ? "SIN must be 9 digits." : digits.length === 0 ? "SIN No. is required." : "" }));
                     }} />
-                  {editFieldErrors.sinNo && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "#f87171" }}>{editFieldErrors.sinNo}</p>}
+                  {editFieldErrors.sinNo && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{editFieldErrors.sinNo}</p>}
                 </div>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>STATUS</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>STATUS</label>
                   <select value={selectedDriver?.status || "Active"}
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, cursor: "pointer" }}
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, cursor: "pointer" }}
                     onChange={(e) => handleInputChange("status", e.target.value)}>
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
@@ -941,33 +941,33 @@ const Drivers: React.FC = () => {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>HST / GST NUMBER</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>HST / GST NUMBER</label>
                   <input type="text" placeholder="e.g. 123456789RT0001" defaultValue={selectedDriver?.hst_gst}
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => handleInputChange("hst_gst", e.target.value)} />
                 </div>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>BUSINESS NAME</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>BUSINESS NAME</label>
                   <input type="text" placeholder="Optional — if incorporated" defaultValue={selectedDriver?.business_name}
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => handleInputChange("business_name", e.target.value)} />
                 </div>
               </div>
 
               {/* Section: Rate Configuration */}
               <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
-                <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>RATE CONFIGURATION</span>
-                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>RATE CONFIGURATION</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
                 {([["BACKHAUL RATE", "backhaulRate"], ["COMBO RATE", "comboRate"], ["EXTRA SHEET / E.W", "extraSheetEWRate"], ["REGULAR / BANNER", "regularBannerRate"]] as [string, string][]).map(([label, field]) => (
-                  <div key={field} style={{ background: "rgba(79,70,229,0.08)", border: "1px solid rgba(79,70,229,0.18)", borderRadius: "10px", padding: "14px" }}>
-                    <label style={{ fontSize: "9px", fontWeight: 700, color: "#818CF8", letterSpacing: "0.8px", display: "block", marginBottom: "8px" }}>{label}</label>
+                  <div key={field} style={{ background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.18)", borderRadius: "10px", padding: "14px" }}>
+                    <label style={{ fontSize: "9px", fontWeight: 700, color: "var(--t-indigo)", letterSpacing: "0.8px", display: "block", marginBottom: "8px" }}>{label}</label>
                     <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ fontSize: "14px", color: "#6b7280" }}>$</span>
+                      <span style={{ fontSize: "14px", color: "var(--t-text-dim)" }}>$</span>
                       <input type="number" defaultValue={selectedDriver?.[field]}
-                        style={{ flex: 1, padding: "8px 10px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "6px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", width: "100%", boxSizing: "border-box" as const }}
+                        style={{ flex: 1, padding: "8px 10px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "6px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", width: "100%", boxSizing: "border-box" as const }}
                         onChange={(e) => handleInputChange(field, e.target.value)} />
                     </div>
                   </div>
@@ -976,12 +976,12 @@ const Drivers: React.FC = () => {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
                 {([["WHOLESALE RATE", "wholesaleRate"], ["VOILA RATE", "voilaRate"], ["TCS LINEHAUL TRENTON", "tcsLinehaulTrentonRate"]] as [string, string][]).map(([label, field]) => (
-                  <div key={field} style={{ background: "rgba(79,70,229,0.08)", border: "1px solid rgba(79,70,229,0.18)", borderRadius: "10px", padding: "14px" }}>
-                    <label style={{ fontSize: "9px", fontWeight: 700, color: "#818CF8", letterSpacing: "0.8px", display: "block", marginBottom: "8px" }}>{label}</label>
+                  <div key={field} style={{ background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.18)", borderRadius: "10px", padding: "14px" }}>
+                    <label style={{ fontSize: "9px", fontWeight: 700, color: "var(--t-indigo)", letterSpacing: "0.8px", display: "block", marginBottom: "8px" }}>{label}</label>
                     <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ fontSize: "14px", color: "#6b7280" }}>$</span>
+                      <span style={{ fontSize: "14px", color: "var(--t-text-dim)" }}>$</span>
                       <input type="number" defaultValue={selectedDriver?.[field]}
-                        style={{ flex: 1, padding: "8px 10px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "6px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", width: "100%", boxSizing: "border-box" as const }}
+                        style={{ flex: 1, padding: "8px 10px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "6px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", width: "100%", boxSizing: "border-box" as const }}
                         onChange={(e) => handleInputChange(field, e.target.value)} />
                     </div>
                   </div>
@@ -990,55 +990,55 @@ const Drivers: React.FC = () => {
 
               {/* Section: Licensing & Expiry */}
               <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
-                <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>LICENSING &amp; EXPIRY</span>
-                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>LICENSING &amp; EXPIRY</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>LICENCE CLASS</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>LICENCE CLASS</label>
                   <input type="text" placeholder="e.g. AZ, DZ, G" value={selectedDriver?.licence || ""}
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${editFieldErrors.licence ? "#dc2626" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${editFieldErrors.licence ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => {
                       const upper = e.target.value.toUpperCase();
                       handleInputChange("licence", upper);
                       setEditFieldErrors((prev) => ({ ...prev, licence: upper.trim() === "" ? "Licence class is required." : "" }));
                     }} />
-                  {editFieldErrors.licence && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "#f87171" }}>{editFieldErrors.licence}</p>}
+                  {editFieldErrors.licence && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{editFieldErrors.licence}</p>}
                 </div>
                 <div style={{ position: "relative" as const }}>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>LICENCE EXPIRY DATE</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>LICENCE EXPIRY DATE</label>
                   <div onClick={() => setShowEditExpiryPicker(v => !v)}
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: `1px solid ${editFieldErrors.licence_expiry_date?.startsWith("Warning") ? "#d97706" : editFieldErrors.licence_expiry_date ? "#dc2626" : "rgba(255,255,255,0.09)"}`, borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" as const }}>
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${editFieldErrors.licence_expiry_date?.startsWith("Warning") ? "var(--t-warning)" : editFieldErrors.licence_expiry_date ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" as const }}>
                     {(() => {
                       const raw = selectedDriver?.licence_expiry_date;
                       const dateStr = raw ? (raw.includes("T") ? raw.split("T")[0] : raw) : "";
-                      return <span style={{ color: dateStr ? "#f3f4f6" : "#4b5563" }}>{dateStr ? format(parseISO(dateStr), "MMM d, yyyy") : "Select expiry date"}</span>;
+                      return <span style={{ color: dateStr ? "var(--t-text)" : "var(--t-text-ghost)" }}>{dateStr ? format(parseISO(dateStr), "MMM d, yyyy") : "Select expiry date"}</span>;
                     })()}
-                    <FaCalendarAlt size={13} style={{ color: "#4b5563" }} />
+                    <FaCalendarAlt size={13} style={{ color: "var(--t-text-ghost)" }} />
                   </div>
                   {showEditExpiryPicker && (
                     <>
                       <div onClick={() => setShowEditExpiryPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
-                      <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#1e2433", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                      <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "var(--t-select-bg)", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", border: "1px solid var(--t-border-strong)" }}>
                         <DayPicker mode="single"
                           selected={(() => { const raw = selectedDriver?.licence_expiry_date; const s = raw ? (raw.includes("T") ? raw.split("T")[0] : raw) : ""; return s ? parseISO(s) : undefined; })()}
                           onSelect={(d) => { if (d) { const dateStr = format(d, "yyyy-MM-dd"); handleInputChange("licence_expiry_date", dateStr); setEditFieldErrors((prev) => ({ ...prev, licence_expiry_date: validateExpiryDate(dateStr) })); setShowEditExpiryPicker(false); } }}
-                          styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0", color: "#f3f4f6" } as React.CSSProperties }} />
+                          styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0", color: "var(--t-text)" } as React.CSSProperties }} />
                       </div>
                     </>
                   )}
                   {editFieldErrors.licence_expiry_date && (
-                    <p style={{ margin: "5px 0 0", fontSize: "11px", color: editFieldErrors.licence_expiry_date.startsWith("Warning") ? "#fbbf24" : "#f87171" }}>{editFieldErrors.licence_expiry_date}</p>
+                    <p style={{ margin: "5px 0 0", fontSize: "11px", color: editFieldErrors.licence_expiry_date.startsWith("Warning") ? "var(--t-warning)" : "var(--t-error)" }}>{editFieldErrors.licence_expiry_date}</p>
                   )}
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 <div>
-                  <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTHORIZATION</label>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTHORIZATION</label>
                   <select value={selectedDriver?.workStatus || ""}
-                    style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: selectedDriver?.workStatus ? "#f3f4f6" : "#4b5563", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, cursor: "pointer" }}
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: selectedDriver?.workStatus ? "var(--t-text)" : "var(--t-text-ghost)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, cursor: "pointer" }}
                     onChange={(e) => { handleInputChange("workStatus", e.target.value); handleInputChange("workAuthExpiry", ""); setShowEditWorkAuthPicker(false); }}>
                     <option value="">Select work authorization</option>
                     {WORK_AUTH_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.value}</option>)}
@@ -1046,22 +1046,22 @@ const Drivers: React.FC = () => {
                 </div>
                 {workAuthNeedsExpiry(selectedDriver?.workStatus) && (
                   <div style={{ position: "relative" as const }}>
-                    <label style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTH EXPIRY DATE</label>
+                    <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTH EXPIRY DATE</label>
                     <div onClick={() => setShowEditWorkAuthPicker(v => !v)}
-                      style={{ width: "100%", padding: "11px 14px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: "8px", color: "#f3f4f6", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" as const }}>
-                      <span style={{ color: selectedDriver?.workAuthExpiry ? "#f3f4f6" : "#4b5563" }}>
+                      style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" as const }}>
+                      <span style={{ color: selectedDriver?.workAuthExpiry ? "var(--t-text)" : "var(--t-text-ghost)" }}>
                         {selectedDriver?.workAuthExpiry ? format(parseISO(selectedDriver.workAuthExpiry), "MMM d, yyyy") : "Select expiry date"}
                       </span>
-                      <FaCalendarAlt size={13} style={{ color: "#4b5563" }} />
+                      <FaCalendarAlt size={13} style={{ color: "var(--t-text-ghost)" }} />
                     </div>
                     {showEditWorkAuthPicker && (
                       <>
                         <div onClick={() => setShowEditWorkAuthPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
-                        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#1e2433", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "var(--t-select-bg)", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", border: "1px solid var(--t-border-strong)" }}>
                           <DayPicker mode="single"
                             selected={selectedDriver?.workAuthExpiry ? parseISO(selectedDriver.workAuthExpiry) : undefined}
                             onSelect={(d) => { if (d) { handleInputChange("workAuthExpiry", format(d, "yyyy-MM-dd")); setShowEditWorkAuthPicker(false); } }}
-                            styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0", color: "#f3f4f6" } as React.CSSProperties }} />
+                            styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0", color: "var(--t-text)" } as React.CSSProperties }} />
                         </div>
                       </>
                     )}
@@ -1071,33 +1071,33 @@ const Drivers: React.FC = () => {
 
               {/* Section: Payout History */}
               <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
-                <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>PAYOUT HISTORY</span>
-                <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.06)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>PAYOUT HISTORY</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
               </div>
 
               {payoutsLoading ? (
-                <div style={{ padding: "24px", textAlign: "center" as const, color: "#4b5563", fontSize: "13px" }}>Loading payouts…</div>
+                <div style={{ padding: "24px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "13px" }}>Loading payouts…</div>
               ) : driverPayouts.length === 0 ? (
-                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: "10px", padding: "28px", textAlign: "center" as const }}>
-                  <p style={{ margin: 0, color: "#4b5563", fontSize: "13px" }}>No payouts recorded for this driver yet.</p>
+                <div style={{ background: "var(--t-surface-alt)", border: "1px dashed var(--t-border)", borderRadius: "10px", padding: "28px", textAlign: "center" as const }}>
+                  <p style={{ margin: 0, color: "var(--t-text-ghost)", fontSize: "13px" }}>No payouts recorded for this driver yet.</p>
                 </div>
               ) : (
-                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", overflow: "hidden" }}>
+                <div style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", overflow: "hidden" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
                     <thead>
-                      <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                      <tr style={{ borderBottom: "1px solid var(--t-hover-bg)" }}>
                         {["DATE", "PERIOD", "AMOUNT (CAD)", "TIMESHEETS", "STATUS"].map((h) => (
-                          <th key={h} style={{ padding: "11px 14px", textAlign: "left" as const, fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>{h}</th>
+                          <th key={h} style={{ padding: "11px 14px", textAlign: "left" as const, fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {driverPayouts.map((p: any, i: number) => {
                         const statusCfg: Record<string, { bg: string; color: string }> = {
-                          paid:       { bg: "rgba(16,185,129,0.12)",  color: "#34d399" },
-                          pending:    { bg: "rgba(234,179,8,0.1)",    color: "#fbbf24" },
-                          processing: { bg: "rgba(59,130,246,0.12)",  color: "#60a5fa" },
-                          failed:     { bg: "rgba(239,68,68,0.1)",    color: "#f87171" },
+                          paid:       { bg: "var(--t-success-bg)", color: "var(--t-success)" },
+                          pending:    { bg: "var(--t-warning-bg)", color: "var(--t-warning)" },
+                          processing: { bg: "var(--t-info-bg)",    color: "var(--t-info)" },
+                          failed:     { bg: "var(--t-error-bg)",   color: "var(--t-error)" },
                         };
                         const sc = statusCfg[p.status] || statusCfg.pending;
                         const paidDate = p.paidAt ? format(new Date(p.paidAt), "MMM d, yyyy") : (p.createdAt ? format(new Date(p.createdAt), "MMM d, yyyy") : "—");
@@ -1106,11 +1106,11 @@ const Drivers: React.FC = () => {
                           : "—";
                         const amountCad = ((p.amount || 0) / 100).toFixed(2);
                         return (
-                          <tr key={p._id || i} style={{ borderBottom: i < driverPayouts.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none", background: i % 2 === 1 ? "rgba(255,255,255,0.015)" : "transparent" }}>
-                            <td style={{ padding: "12px 14px", fontSize: "13px", color: "#e5e7eb" }}>{paidDate}</td>
-                            <td style={{ padding: "12px 14px", fontSize: "13px", color: "#9ca3af" }}>{periodStr}</td>
-                            <td style={{ padding: "12px 14px", fontSize: "13px", color: "#f9fafb", fontWeight: 600 }}>${amountCad}</td>
-                            <td style={{ padding: "12px 14px", fontSize: "12px", color: "#6b7280" }}>{(p.timesheetIds || []).length} sheet{(p.timesheetIds || []).length !== 1 ? "s" : ""}</td>
+                          <tr key={p._id || i} style={{ borderBottom: i < driverPayouts.length - 1 ? "1px solid var(--t-stripe)" : "none", background: i % 2 === 1 ? "var(--t-stripe)" : "transparent" }}>
+                            <td style={{ padding: "12px 14px", fontSize: "13px", color: "var(--t-text-secondary)" }}>{paidDate}</td>
+                            <td style={{ padding: "12px 14px", fontSize: "13px", color: "var(--t-text-faint)" }}>{periodStr}</td>
+                            <td style={{ padding: "12px 14px", fontSize: "13px", color: "var(--t-text)", fontWeight: 600 }}>${amountCad}</td>
+                            <td style={{ padding: "12px 14px", fontSize: "12px", color: "var(--t-text-dim)" }}>{(p.timesheetIds || []).length} sheet{(p.timesheetIds || []).length !== 1 ? "s" : ""}</td>
                             <td style={{ padding: "12px 14px" }}>
                               <span style={{ display: "inline-flex", alignItems: "center", padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, background: sc.bg, color: sc.color, textTransform: "capitalize" as const }}>{p.status}</span>
                             </td>
@@ -1125,9 +1125,9 @@ const Drivers: React.FC = () => {
             </div>
 
             {/* Modal Footer */}
-            <div style={{ padding: "20px 28px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "flex-end", gap: "12px", flexShrink: 0 }}>
+            <div style={{ padding: "20px 28px", borderTop: "1px solid var(--t-border)", display: "flex", justifyContent: "flex-end", gap: "12px", flexShrink: 0 }}>
               <button onClick={() => { setIsEditModalOpen(false); setUsernameError(""); }}
-                style={{ padding: "11px 20px", background: "none", border: "none", color: "#6b7280", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                style={{ padding: "11px 20px", background: "none", border: "none", color: "var(--t-text-dim)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
                 Close without saving
               </button>
               <button
@@ -1145,7 +1145,7 @@ const Drivers: React.FC = () => {
                   if (errors.sinNo || errors.contact || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning"))) return;
                   updateDriver(selectedDriver);
                 }}
-                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "11px 22px", background: "#4F46E5", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}>
+                style={{ display: "flex", alignItems: "center", gap: "8px", padding: "11px 22px", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}>
                 ✓ Update Driver Records
               </button>
             </div>
@@ -1194,7 +1194,7 @@ const styles: { [key: string]: CSSProperties } = {
   pageTitle: {
     fontSize: "24px",
     fontWeight: 700,
-    color: "#111827",
+    color: "var(--t-text)",
     marginBottom: "24px",
   },
   headerWrapper: {
@@ -1205,10 +1205,10 @@ const styles: { [key: string]: CSSProperties } = {
     justifyContent: "space-between",
     alignItems: "center",
     padding: "12px 18px",
-    backgroundColor: "#ffffff",
-    border: "1px solid #e0e7ff",
+    backgroundColor: "var(--t-surface)",
+    border: "1px solid var(--t-border)",
     borderRadius: "12px",
-    boxShadow: "0 1px 6px rgba(79,70,229,0.06)",
+    boxShadow: "var(--t-shadow)",
     gap: "16px",
     marginBottom: "16px",
   },
@@ -1223,34 +1223,34 @@ const styles: { [key: string]: CSSProperties } = {
     top: "50%",
     transform: "translateY(-50%)",
     fontSize: "14px",
-    color: "#9ca3af",
+    color: "var(--t-text-faint)",
     pointerEvents: "none",
   },
   searchInput: {
     padding: "8px 14px 8px 32px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    backgroundColor: "#f9fafb",
+    border: "1px solid var(--t-input-border)",
+    backgroundColor: "var(--t-input-bg)",
     fontSize: "13px",
-    color: "#374151",
+    color: "var(--t-text-secondary)",
     width: "220px",
     outline: "none",
   },
   filterDropdown: {
     padding: "8px 14px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    backgroundColor: "#f9fafb",
+    border: "1px solid var(--t-input-border)",
+    backgroundColor: "var(--t-select-bg)",
     fontSize: "13px",
-    color: "#374151",
+    color: "var(--t-text-secondary)",
     cursor: "pointer",
     outline: "none",
   },
   tableWrapper: {
-    backgroundColor: "#fff",
+    backgroundColor: "var(--t-surface)",
     borderRadius: "16px",
-    border: "1px solid #e0e7ff",
-    boxShadow: "0 2px 16px rgba(79,70,229,0.07)",
+    border: "1px solid var(--t-border)",
+    boxShadow: "var(--t-shadow)",
     overflowX: "auto",
   },
   table: {
@@ -1262,19 +1262,19 @@ const styles: { [key: string]: CSSProperties } = {
     fontSize: "10px",
     fontWeight: 700,
     textAlign: "left",
-    backgroundColor: "#f5f3ff",
-    color: "#6366f1",
-    borderBottom: "2px solid #e0e7ff",
+    backgroundColor: "var(--t-indigo-bg)",
+    color: "var(--t-indigo)",
+    borderBottom: "2px solid var(--t-border)",
     textTransform: "uppercase" as const,
     letterSpacing: "0.7px",
     whiteSpace: "nowrap" as const,
   },
   td: {
-    borderBottom: "1px solid #f0f0ff",
+    borderBottom: "1px solid var(--t-stripe)",
     padding: "14px 18px",
     fontSize: "14px",
     textAlign: "left",
-    color: "#374151",
+    color: "var(--t-text-muted)",
     cursor: "pointer",
   },
   actionButtons: {
@@ -1283,23 +1283,23 @@ const styles: { [key: string]: CSSProperties } = {
     justifyContent: "center",
   },
   iconEdit: {
-    color: "#4F46E5",
+    color: "var(--t-accent)",
     cursor: "pointer",
     fontSize: "15px",
     padding: "6px",
     borderRadius: "6px",
-    backgroundColor: "#eef2ff",
+    backgroundColor: "var(--t-indigo-bg)",
   },
   iconDelete: {
-    color: "#dc2626",
+    color: "var(--t-error)",
     cursor: "pointer",
     fontSize: "15px",
     padding: "6px",
     borderRadius: "6px",
-    backgroundColor: "#fef2f2",
+    backgroundColor: "var(--t-error-bg)",
   },
   addDriverButton: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: "var(--t-accent)",
     color: "#fff",
     border: "none",
     padding: "8px 18px",
@@ -1310,7 +1310,7 @@ const styles: { [key: string]: CSSProperties } = {
     whiteSpace: "nowrap" as const,
   },
   driverApplicationsButton: {
-    backgroundColor: "#059669",
+    backgroundColor: "var(--t-success)",
     color: "#fff",
     border: "none",
     padding: "8px 18px",
@@ -1326,7 +1326,7 @@ const styles: { [key: string]: CSSProperties } = {
     whiteSpace: "nowrap" as const,
   },
   notificationBadge: {
-    backgroundColor: "#dc2626",
+    backgroundColor: "var(--t-error)",
     color: "#fff",
     borderRadius: "50%",
     minWidth: "20px",
@@ -1348,7 +1348,7 @@ const styles: { [key: string]: CSSProperties } = {
     left: 0,
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: "var(--t-modal-overlay)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -1356,20 +1356,20 @@ const styles: { [key: string]: CSSProperties } = {
     backdropFilter: "blur(4px)",
   },
   modal: {
-    backgroundColor: "#fff",
+    backgroundColor: "var(--t-surface)",
     padding: "28px",
     borderRadius: "16px",
     width: "90%",
     maxWidth: "600px",
     maxHeight: "85vh",
     overflowY: "auto",
-    boxShadow: "0 24px 48px rgba(0, 0, 0, 0.16)",
+    boxShadow: "var(--t-shadow-lg)",
   },
   modalTitle: {
     fontSize: "20px",
     fontWeight: 700,
     marginBottom: "24px",
-    color: "#111827",
+    color: "var(--t-text)",
   },
   formGroup: {
     marginBottom: "16px",
@@ -1377,23 +1377,23 @@ const styles: { [key: string]: CSSProperties } = {
   fieldError: {
     margin: "4px 0 0",
     fontSize: "12px",
-    color: "#dc2626",
+    color: "var(--t-error)",
   },
   label: {
     display: "block",
     marginBottom: "6px",
     fontSize: "13px",
     fontWeight: 600,
-    color: "#6b7280",
+    color: "var(--t-text-dim)",
   },
   input: {
     width: "100%",
     padding: "10px 12px",
     fontSize: "14px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    backgroundColor: "#f9fafb",
-    color: "#111827",
+    border: "1px solid var(--t-input-border)",
+    backgroundColor: "var(--t-input-bg)",
+    color: "var(--t-text-secondary)",
     outline: "none",
     boxSizing: "border-box",
   },
@@ -1403,10 +1403,10 @@ const styles: { [key: string]: CSSProperties } = {
     gap: "10px",
     marginTop: "24px",
     paddingTop: "16px",
-    borderTop: "1px solid #f3f4f6",
+    borderTop: "1px solid var(--t-border)",
   },
   addButton: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: "var(--t-accent)",
     color: "#fff",
     border: "none",
     padding: "10px 20px",
@@ -1416,7 +1416,7 @@ const styles: { [key: string]: CSSProperties } = {
     fontWeight: 600,
   },
   editButton: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: "var(--t-accent)",
     color: "#fff",
     border: "none",
     cursor: "pointer",
@@ -1426,9 +1426,9 @@ const styles: { [key: string]: CSSProperties } = {
     fontWeight: 600,
   },
   closeButton: {
-    backgroundColor: "#fff",
-    color: "#374151",
-    border: "1px solid #d1d5db",
+    backgroundColor: "var(--t-surface)",
+    color: "var(--t-text-secondary)",
+    border: "1px solid var(--t-border-strong)",
     cursor: "pointer",
     padding: "10px 20px",
     fontSize: "14px",
@@ -1436,7 +1436,7 @@ const styles: { [key: string]: CSSProperties } = {
     fontWeight: 600,
   },
   deleteButton: {
-    backgroundColor: "#dc2626",
+    backgroundColor: "var(--t-error)",
     color: "#fff",
     border: "none",
     borderRadius: "8px",
@@ -1457,7 +1457,7 @@ const styles: { [key: string]: CSSProperties } = {
     border: "none",
     cursor: "pointer",
     fontSize: "16px",
-    color: "#6b7280",
+    color: "var(--t-text-dim)",
   },
 };
 

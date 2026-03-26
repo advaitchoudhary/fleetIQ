@@ -435,11 +435,11 @@ const DetailedTimesheet: React.FC = () => {
     }
   };
 
-  if (loading) return <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", color: "#6b7280", fontSize: "15px" }}>Loading...</div>;
-  if (!timesheet) return <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", color: "#6b7280", fontSize: "15px" }}>No timesheet found.</div>;
+  if (loading) return <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", color: "var(--t-text-dim)", fontSize: "15px" }}>Loading...</div>;
+  if (!timesheet) return <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", color: "var(--t-text-dim)", fontSize: "15px" }}>No timesheet found.</div>;
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#0d1117", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "var(--t-bg)", minHeight: "100vh" }}>
     <Navbar />
 
     {/* Page Header Bar */}
@@ -449,8 +449,8 @@ const DetailedTimesheet: React.FC = () => {
         title="Go back to timesheets list (or press Escape)"
         style={{
           display: "flex", alignItems: "center", gap: "6px",
-          padding: "7px 14px", background: "rgba(255,255,255,0.06)",
-          color: "#9ca3af", border: "1px solid rgba(255,255,255,0.1)",
+          padding: "7px 14px", background: "var(--t-hover-bg)",
+          color: "var(--t-text-faint)", border: "1px solid rgba(255,255,255,0.1)",
           borderRadius: "8px", fontSize: "12px", fontWeight: 700,
           cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif",
           letterSpacing: "0.3px",
@@ -459,15 +459,15 @@ const DetailedTimesheet: React.FC = () => {
         <FaArrowLeft size={10} /> BACK TO LIST
       </button>
       <div style={{ textAlign: "center" as const }}>
-        <h1 style={{ margin: 0, fontSize: "20px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.3px" }}>
+        <h1 style={{ margin: 0, fontSize: "20px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.3px" }}>
           Timesheet: TS-{String(timesheet._id || "").slice(-6).toUpperCase()}
         </h1>
-        <p style={{ margin: 0, fontSize: "12px", color: "#4b5563" }}>Last synced: 2 minutes ago</p>
+        <p style={{ margin: 0, fontSize: "12px", color: "var(--t-text-ghost)" }}>Last synced: 2 minutes ago</p>
       </div>
       <span style={{
         padding: "5px 12px", borderRadius: "6px", fontSize: "11px", fontWeight: 700,
-        background: timesheet.status === "approved" ? "rgba(16,185,129,0.15)" : timesheet.status === "rejected" ? "rgba(239,68,68,0.15)" : "rgba(251,191,36,0.15)",
-        color: timesheet.status === "approved" ? "#34d399" : timesheet.status === "rejected" ? "#f87171" : "#fbbf24",
+        background: timesheet.status === "approved" ? "var(--t-success-bg)" : timesheet.status === "rejected" ? "var(--t-error-bg)" : "var(--t-warning-bg)",
+        color: timesheet.status === "approved" ? "var(--t-success)" : timesheet.status === "rejected" ? "#f87171" : "var(--t-warning)",
         border: `1px solid ${timesheet.status === "approved" ? "rgba(16,185,129,0.3)" : timesheet.status === "rejected" ? "rgba(239,68,68,0.3)" : "rgba(251,191,36,0.3)"}`,
         letterSpacing: "0.8px", textTransform: "uppercase" as const,
       }}>
@@ -480,9 +480,9 @@ const DetailedTimesheet: React.FC = () => {
       <div style={{ flex: 1, display: "flex", flexDirection: "column" as const, gap: "16px" }}>
 
         {/* OVERVIEW Card */}
-        <div style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "20px 24px" }}>
-          <p style={{ margin: "0 0 16px", fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px", display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4F46E5", display: "inline-block" }} /> OVERVIEW
+        <div style={{ background: "var(--t-surface)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "20px 24px" }}>
+          <p style={{ margin: "0 0 16px", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", display: "flex", alignItems: "center", gap: "6px" }}>
+            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--t-accent)", display: "inline-block" }} /> OVERVIEW
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px" }}>
             {([
@@ -492,16 +492,16 @@ const DetailedTimesheet: React.FC = () => {
               ["VEHICLE ID", timesheet.vehicleID || "—"],
             ] as [string, string][]).map(([label, value]) => (
               <div key={label}>
-                <p style={{ margin: "0 0 3px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>{label}</p>
-                <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "#e5e7eb" }}>{value}</p>
+                <p style={{ margin: "0 0 3px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>{label}</p>
+                <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "var(--t-text-secondary)" }}>{value}</p>
               </div>
             ))}
           </div>
         </div>
 
         {/* SHIFT METRICS Card */}
-        <div style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "20px 24px" }}>
-          <p style={{ margin: "0 0 14px", fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px" }}>SHIFT METRICS</p>
+        <div style={{ background: "var(--t-surface)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "20px 24px" }}>
+          <p style={{ margin: "0 0 14px", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>SHIFT METRICS</p>
           {([
             ["🕐", "Start / End Time", `${timesheet.startTime || "—"} — ${timesheet.endTime || "—"}`],
             ["⏱", "Total Duration", timesheet.totalHours ? `${timesheet.totalHours} hrs` : "—"],
@@ -509,25 +509,25 @@ const DetailedTimesheet: React.FC = () => {
             ["📦", "Job Category", timesheet.category || "—"],
           ] as [string, string, string][]).map(([icon, label, value]) => (
             <div key={label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-              <span style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "#6b7280" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", color: "var(--t-text-dim)" }}>
                 <span>{icon}</span>{label}
               </span>
-              <span style={{ fontSize: "13px", fontWeight: 700, color: "#f9fafb" }}>{value}</span>
+              <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--t-text)" }}>{value}</span>
             </div>
           ))}
         </div>
 
         {/* LOGISTICS IDS Card */}
-        <div style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "20px 24px" }}>
-          <p style={{ margin: "0 0 16px", fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px" }}>LOGISTICS IDS</p>
+        <div style={{ background: "var(--t-surface)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "20px 24px" }}>
+          <p style={{ margin: "0 0 16px", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>LOGISTICS IDS</p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             {([
               ["TRIP NUMBER", timesheet.tripNumber ? `#TRP-${timesheet.tripNumber}` : "—"],
               ["LOAD ID", timesheet.loadID ? `#LOD-${timesheet.loadID}` : "—"],
             ] as [string, string][]).map(([label, value]) => (
-              <div key={label} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "10px", padding: "14px" }}>
-                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>{label}</p>
-                <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#818CF8" }}>{value}</p>
+              <div key={label} style={{ background: "var(--t-surface-alt)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "10px", padding: "14px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>{label}</p>
+                <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "var(--t-indigo)" }}>{value}</p>
               </div>
             ))}
           </div>
@@ -535,8 +535,8 @@ const DetailedTimesheet: React.FC = () => {
 
         {/* Attachments */}
         {Array.isArray(timesheet.attachments) && timesheet.attachments.length > 0 && (
-          <div style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "20px 24px" }}>
-            <p style={{ margin: "0 0 16px", fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px" }}>ATTACHMENTS</p>
+          <div style={{ background: "var(--t-surface)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "20px 24px" }}>
+            <p style={{ margin: "0 0 16px", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>ATTACHMENTS</p>
             <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "12px" }}>
               {timesheet.attachments.map((src: string, idx: number) => (
                 <img
@@ -565,12 +565,12 @@ const DetailedTimesheet: React.FC = () => {
       </div>
 
       {/* Right Side: Editable Form */}
-      <div style={{ flex: 1, background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "28px", overflowY: "auto" as const, maxHeight: "calc(100vh - 140px)" }}>
+      <div style={{ flex: 1, background: "var(--t-surface)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "28px", overflowY: "auto" as const, maxHeight: "calc(100vh - 140px)" }}>
         <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "24px", paddingBottom: "20px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(79,70,229,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: "16px" }}>✎</div>
           <div>
-            <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#f9fafb" }}>Modify Timesheet</h2>
-            <p style={{ margin: 0, fontSize: "13px", color: "#6b7280" }}>Update the records for {driversMap[timesheet.driver] || timesheet.driverName || timesheet.driver || "driver"}</p>
+            <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "var(--t-text)" }}>Modify Timesheet</h2>
+            <p style={{ margin: 0, fontSize: "13px", color: "var(--t-text-dim)" }}>Update the records for {driversMap[timesheet.driver] || timesheet.driverName || timesheet.driver || "driver"}</p>
           </div>
         </div>
         {
@@ -606,7 +606,7 @@ const DetailedTimesheet: React.FC = () => {
                   <React.Fragment key={key}>
                     {/* Section header for Extra Worksheet */}
                     {key === "extraWorkSheet" && !inExtra && (inExtra = true) && (
-                      <h4 style={{ gridColumn: "1 / -1", marginTop: "24px", color: "#9ca3af", fontSize: "10px", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "1px" }}>Extra Worksheet</h4>
+                      <h4 style={{ gridColumn: "1 / -1", marginTop: "24px", color: "var(--t-text-faint)", fontSize: "10px", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "1px" }}>Extra Worksheet</h4>
                     )}
                     {/* Render extra worksheet fields conditionally */}
                     {key === "extraWorkSheet" ? (
@@ -798,7 +798,7 @@ const DetailedTimesheet: React.FC = () => {
                   </React.Fragment>
                 ))}
                 {/* --- Extra Delay Custom Block (dropdown + checkboxes + forms) --- */}
-                <h4 style={{ gridColumn: "1 / -1", marginTop: "24px", color: "#9ca3af", fontSize: "10px", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "1px" }}>Delays</h4>
+                <h4 style={{ gridColumn: "1 / -1", marginTop: "24px", color: "var(--t-text-faint)", fontSize: "10px", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "1px" }}>Delays</h4>
                 {/* Improved "Was there an Extra Delay?" field - standardized dropdown + check icon */}
                 <div style={styles.formRowWide}>
                   <label style={styles.formLabel}>
@@ -827,13 +827,13 @@ const DetailedTimesheet: React.FC = () => {
                 </div>
                 {/* Delay Types Checkboxes */}
                 {(formData.extraDelay === "yes") && (
-                  <div style={{ marginBottom: "16px", marginLeft: 4, padding: "12px 16px", background: "rgba(255,255,255,0.03)", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
-                    <label style={{ fontSize: "13px", fontWeight: 600, color: "#9ca3af" }}>
+                  <div style={{ marginBottom: "16px", marginLeft: 4, padding: "12px 16px", background: "var(--t-surface-alt)", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <label style={{ fontSize: "13px", fontWeight: 600, color: "var(--t-text-faint)" }}>
                       Select Delay Types:
                     </label>
                     <div style={{ display: "flex", flexDirection: "row", gap: "24px", marginTop: "10px" }}>
                       {["Store Delay", "Road Delay", "Other Delay"].map((type) => (
-                        <label key={type} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", color: "#e5e7eb", cursor: "pointer" }}>
+                        <label key={type} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", color: "var(--t-text-secondary)", cursor: "pointer" }}>
                           <input
                             type="checkbox"
                             checked={selectedDelayTypes.includes(type)}
@@ -843,7 +843,7 @@ const DetailedTimesheet: React.FC = () => {
                                 : selectedDelayTypes.filter((t) => t !== type);
                               setSelectedDelayTypes(updated);
                             }}
-                            style={{ width: "16px", height: "16px", accentColor: "#4F46E5" }}
+                            style={{ width: "16px", height: "16px", accentColor: "var(--t-indigo)" }}
                           />
                           {type}
                         </label>
@@ -902,8 +902,8 @@ const DetailedTimesheet: React.FC = () => {
                         disabled
                         style={{
                           ...styles.input,
-                          backgroundColor: "#f9f9f9",
-                          color: "#888"
+                          backgroundColor: "var(--t-hover-bg)",
+                          color: "var(--t-text-ghost)"
                         }}
                       />
                       {/* No correct-info icon for duration */}
@@ -978,8 +978,8 @@ const DetailedTimesheet: React.FC = () => {
                         disabled
                         style={{
                           ...styles.input,
-                          backgroundColor: "#f9f9f9",
-                          color: "#888"
+                          backgroundColor: "var(--t-hover-bg)",
+                          color: "var(--t-text-ghost)"
                         }}
                       />
                       {/* No correct-info icon for duration */}
@@ -1091,11 +1091,11 @@ const DetailedTimesheet: React.FC = () => {
             padding: "8px 16px",
             borderRadius: "8px",
             border: "1px solid rgba(255,255,255,0.1)",
-            background: resetHover ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)",
+            background: resetHover ? "var(--t-border)" : "rgba(255,255,255,0.04)",
             cursor: "pointer",
             fontSize: "13px",
             fontWeight: 600,
-            color: "#9ca3af",
+            color: "var(--t-text-faint)",
             transition: "background 0.2s",
             fontFamily: "Inter, system-ui, sans-serif",
           }}
@@ -1155,8 +1155,8 @@ const DetailedTimesheet: React.FC = () => {
                   fontWeight: 700,
                   cursor: approveDisabledFull ? "not-allowed" : "pointer",
                   fontFamily: "Inter, system-ui, sans-serif",
-                  background: approveDisabledFull ? "rgba(255,255,255,0.06)" : "#4F46E5",
-                  color: approveDisabledFull ? "#4b5563" : "#fff",
+                  background: approveDisabledFull ? "var(--t-hover-bg)" : "var(--t-accent)",
+                  color: approveDisabledFull ? "var(--t-text-ghost)" : "#fff",
                   boxShadow: approveDisabledFull ? "none" : "0 4px 14px rgba(79,70,229,0.35)",
                 }}
               >
@@ -1171,7 +1171,7 @@ const DetailedTimesheet: React.FC = () => {
                     alert("Failed to reject timesheet.");
                   }
                 }}
-                style={{ padding: "11px 20px", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "10px", fontSize: "14px", fontWeight: 700, cursor: "pointer", background: "rgba(239,68,68,0.1)", color: "#f87171", fontFamily: "Inter, system-ui, sans-serif" }}
+                style={{ padding: "11px 20px", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "10px", fontSize: "14px", fontWeight: 700, cursor: "pointer", background: "var(--t-error-bg)", color: "var(--t-error)", fontFamily: "Inter, system-ui, sans-serif" }}
               >
                 Discard
               </button>
@@ -1201,7 +1201,7 @@ const DetailedTimesheet: React.FC = () => {
                 position: "absolute",
                 top: "-12px",
                 right: "-12px",
-                background: "#fff",
+                background: "var(--t-surface)",
                 border: "none",
                 borderRadius: "50%",
                 width: "32px",
@@ -1223,7 +1223,7 @@ const DetailedTimesheet: React.FC = () => {
                 maxHeight: "95vh",
                 maxWidth: "90vw",
                 borderRadius: "12px",
-                background: "#fff"
+                background: "var(--t-surface)"
               }}
             />
           </div>
@@ -1237,13 +1237,13 @@ const DetailedTimesheet: React.FC = () => {
 const styles: Record<string, React.CSSProperties> = {
   section: { margin: "16px 0" },
   label: { fontWeight: "bold" as const },
-  select: { padding: "10px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", fontSize: "14px", backgroundColor: "#1c2128", color: "#e5e7eb" },
+  select: { padding: "10px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", fontSize: "14px", backgroundColor: "var(--t-select-bg)", color: "var(--t-text-secondary)" },
   supportingFields: { marginTop: "10px" },
-  input: { padding: "10px 12px", marginBottom: "8px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", fontSize: "14px", backgroundColor: "rgba(255,255,255,0.05)", color: "#e5e7eb" },
+  input: { padding: "10px 12px", marginBottom: "8px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", fontSize: "14px", backgroundColor: "var(--t-input-bg)", color: "var(--t-text-secondary)" },
   formLabel: {
     fontWeight: 600,
     fontSize: "13px",
-    color: "#6b7280",
+    color: "var(--t-text-dim)",
   },
   formInput: {
     width: "100%",
@@ -1251,8 +1251,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "14px",
     border: "1px solid rgba(255,255,255,0.1)",
     borderRadius: "8px",
-    backgroundColor: "rgba(255,255,255,0.05)",
-    color: "#e5e7eb",
+    backgroundColor: "var(--t-input-bg)",
+    color: "var(--t-text-secondary)",
   },
   formSelect: {
     width: "100%",
@@ -1261,8 +1261,8 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "14px",
     border: "1px solid rgba(255,255,255,0.1)",
     borderRadius: "8px",
-    backgroundColor: "#1c2128",
-    color: "#e5e7eb",
+    backgroundColor: "var(--t-select-bg)",
+    color: "var(--t-text-secondary)",
   },
   formTextarea: {
     width: "100%",
@@ -1271,8 +1271,8 @@ const styles: Record<string, React.CSSProperties> = {
     border: "1px solid rgba(255,255,255,0.1)",
     borderRadius: "8px",
     resize: "vertical" as const,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    color: "#e5e7eb",
+    backgroundColor: "var(--t-input-bg)",
+    color: "var(--t-text-secondary)",
   },
   formRow: {
     marginBottom: "12px",
@@ -1293,7 +1293,7 @@ const styles: Record<string, React.CSSProperties> = {
     border: "none",
     cursor: "pointer",
     fontSize: "18px",
-    color: "#10b981",
+    color: "var(--t-success)",
   },
   readOnlyInput: {
     width: "100%",
@@ -1301,20 +1301,20 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "14px",
     border: "1px solid rgba(255,255,255,0.06)",
     borderRadius: "8px",
-    backgroundColor: "rgba(255,255,255,0.02)",
-    color: "#4b5563",
+    backgroundColor: "var(--t-stripe)",
+    color: "var(--t-text-ghost)",
   },
   delaySectionCard: {
     border: "1px solid rgba(255,255,255,0.08)",
     borderRadius: "12px",
     padding: "20px",
     marginBottom: "16px",
-    backgroundColor: "rgba(255,255,255,0.02)",
+    backgroundColor: "var(--t-stripe)",
   },
   delaySectionTitle: {
     fontSize: "13px",
     fontWeight: 700,
-    color: "#9ca3af",
+    color: "var(--t-text-faint)",
     marginTop: 0,
     marginBottom: "16px",
     textTransform: "uppercase" as const,
@@ -1330,7 +1330,7 @@ const styles: Record<string, React.CSSProperties> = {
     minWidth: 60,
     fontSize: "13px",
     fontWeight: 600,
-    color: "#6b7280",
+    color: "var(--t-text-dim)",
   },
 };
 

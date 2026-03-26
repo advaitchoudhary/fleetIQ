@@ -12,34 +12,34 @@ import {
 } from "react-icons/fa";
 
 const STATUS_CFG: Record<string, { bg: string; border: string; color: string; label: string }> = {
-  trialing:  { bg: "rgba(16,185,129,0.12)",  border: "rgba(16,185,129,0.3)",  color: "#34d399", label: "ACTIVE"    },
-  active:    { bg: "rgba(16,185,129,0.12)",  border: "rgba(16,185,129,0.3)",  color: "#34d399", label: "ACTIVE"    },
-  past_due:  { bg: "rgba(234,179,8,0.12)",   border: "rgba(234,179,8,0.3)",   color: "#fbbf24", label: "PAST DUE"  },
-  cancelled: { bg: "rgba(239,68,68,0.12)",   border: "rgba(239,68,68,0.3)",   color: "#f87171", label: "CANCELLED" },
-  inactive:  { bg: "rgba(107,114,128,0.12)", border: "rgba(107,114,128,0.3)", color: "#9ca3af", label: "NO PLAN"   },
+  trialing:  { bg: "var(--t-success-bg)",  border: "rgba(16,185,129,0.3)",  color: "var(--t-success)", label: "ACTIVE"    },
+  active:    { bg: "var(--t-success-bg)",  border: "rgba(16,185,129,0.3)",  color: "var(--t-success)", label: "ACTIVE"    },
+  past_due:  { bg: "var(--t-warning-bg)",   border: "rgba(234,179,8,0.3)",   color: "var(--t-warning)", label: "PAST DUE"  },
+  cancelled: { bg: "var(--t-error-bg)",   border: "rgba(239,68,68,0.3)",   color: "var(--t-error)", label: "CANCELLED" },
+  inactive:  { bg: "rgba(107,114,128,0.12)", border: "rgba(107,114,128,0.3)", color: "var(--t-text-faint)", label: "NO PLAN"   },
 };
 
 const DRIVER_FEATURES = [
-  { icon: FaUsers,         title: "Drivers",          desc: "View all drivers, filter by status and manage compliance.",             path: "/users",               accent: "#818CF8", badge: null         },
-  { icon: FaClipboardList, title: "Applications",      desc: "Onboard new fleet operators and manage driver background checks.",      path: "/driver-applications", accent: "#818CF8", badge: null         },
-  { icon: FaFileAlt,       title: "Timesheets",        desc: "Approve hours worked and manage shift rotations for the fleet.",        path: "/applications",        accent: "#f59e0b", badge: "pending"    },
-  { icon: FaCreditCard,    title: "Payments",          desc: "Execute payroll, review expenses and track operator bonuses.",          path: "/payments",            accent: "#818CF8", badge: null         },
-  { icon: FaHistory,       title: "Payment History",   desc: "Full audit trail of all driver payouts and transactions.",             path: "/payment-history",     accent: "#818CF8", badge: null         },
-  { icon: FaFileAlt,       title: "Invoices",          desc: "Generate and export driver invoices as PDF documents.",               path: "/invoice",             accent: "#818CF8", badge: null         },
-  { icon: FaEnvelope,      title: "Enquiries",         desc: "Read and respond to contact form submissions from drivers.",           path: "/enquiries",           accent: "#818CF8", badge: null         },
+  { icon: FaUsers,         title: "Drivers",          desc: "View all drivers, filter by status and manage compliance.",             path: "/users",               accent: "var(--t-indigo)", badge: null         },
+  { icon: FaClipboardList, title: "Applications",      desc: "Onboard new fleet operators and manage driver background checks.",      path: "/driver-applications", accent: "var(--t-indigo)", badge: null         },
+  { icon: FaFileAlt,       title: "Timesheets",        desc: "Approve hours worked and manage shift rotations for the fleet.",        path: "/applications",        accent: "var(--t-warning)", badge: "pending"    },
+  { icon: FaCreditCard,    title: "Payments",          desc: "Execute payroll, review expenses and track operator bonuses.",          path: "/payments",            accent: "var(--t-indigo)", badge: null         },
+  { icon: FaHistory,       title: "Payment History",   desc: "Full audit trail of all driver payouts and transactions.",             path: "/payment-history",     accent: "var(--t-indigo)", badge: null         },
+  { icon: FaFileAlt,       title: "Invoices",          desc: "Generate and export driver invoices as PDF documents.",               path: "/invoice",             accent: "var(--t-indigo)", badge: null         },
+  { icon: FaEnvelope,      title: "Enquiries",         desc: "Read and respond to contact form submissions from drivers.",           path: "/enquiries",           accent: "var(--t-indigo)", badge: null         },
 ];
 
 const VEHICLE_FEATURES = [
-  { icon: FaTruck,       title: "Vehicles",          desc: "Full fleet registry — VIN, plates, insurance and real-time status.",  path: "/vehicles",               accent: "#22d3ee", badge: null },
-  { icon: FaWrench,      title: "Maintenance",       desc: "Log preventive and corrective maintenance across all units.",         path: "/maintenance",            accent: "#22d3ee", badge: null },
-  { icon: FaCheckSquare, title: "Inspections",       desc: "DVIR pre/post-trip and annual inspection management.",               path: "/inspections",            accent: "#22d3ee", badge: null },
-  { icon: FaGasPump,     title: "Fuel Logs",         desc: "Track fuel fills and calculate L/100km per vehicle.",               path: "/fuel-logs",              accent: "#22d3ee", badge: null },
-  { icon: FaBox,         title: "Parts Inventory",   desc: "Manage parts stock with low-stock alerts and reorder tracking.",    path: "/parts",                  accent: "#22d3ee", badge: null },
-  { icon: FaShieldAlt,   title: "Warranties",        desc: "Track warranties, expiry dates and manage claims.",                path: "/warranties",             accent: "#22d3ee", badge: null },
-  { icon: FaHistory,     title: "Service History",   desc: "Full service timeline and cost history per vehicle.",              path: "/service-history",        accent: "#22d3ee", badge: null },
-  { icon: FaChartBar,    title: "Cost Tracking",     desc: "Fleet cost dashboard and 6-month expense trends.",                path: "/cost-tracking",          accent: "#22d3ee", badge: null },
-  { icon: FaTools,       title: "Preventive Maint.", desc: "PM templates, schedules and overdue alert management.",            path: "/preventive-maintenance", accent: "#22d3ee", badge: null },
-  { icon: FaCalendarAlt, title: "Scheduling",        desc: "Calendar view of all upcoming fleet maintenance events.",          path: "/scheduling",             accent: "#22d3ee", badge: null },
+  { icon: FaTruck,       title: "Vehicles",          desc: "Full fleet registry — VIN, plates, insurance and real-time status.",  path: "/vehicles",               accent: "var(--t-info)", badge: null },
+  { icon: FaWrench,      title: "Maintenance",       desc: "Log preventive and corrective maintenance across all units.",         path: "/maintenance",            accent: "var(--t-info)", badge: null },
+  { icon: FaCheckSquare, title: "Inspections",       desc: "DVIR pre/post-trip and annual inspection management.",               path: "/inspections",            accent: "var(--t-info)", badge: null },
+  { icon: FaGasPump,     title: "Fuel Logs",         desc: "Track fuel fills and calculate L/100km per vehicle.",               path: "/fuel-logs",              accent: "var(--t-info)", badge: null },
+  { icon: FaBox,         title: "Parts Inventory",   desc: "Manage parts stock with low-stock alerts and reorder tracking.",    path: "/parts",                  accent: "var(--t-info)", badge: null },
+  { icon: FaShieldAlt,   title: "Warranties",        desc: "Track warranties, expiry dates and manage claims.",                path: "/warranties",             accent: "var(--t-info)", badge: null },
+  { icon: FaHistory,     title: "Service History",   desc: "Full service timeline and cost history per vehicle.",              path: "/service-history",        accent: "var(--t-info)", badge: null },
+  { icon: FaChartBar,    title: "Cost Tracking",     desc: "Fleet cost dashboard and 6-month expense trends.",                path: "/cost-tracking",          accent: "var(--t-info)", badge: null },
+  { icon: FaTools,       title: "Preventive Maint.", desc: "PM templates, schedules and overdue alert management.",            path: "/preventive-maintenance", accent: "var(--t-info)", badge: null },
+  { icon: FaCalendarAlt, title: "Scheduling",        desc: "Calendar view of all upcoming fleet maintenance events.",          path: "/scheduling",             accent: "var(--t-info)", badge: null },
 ];
 
 interface FleetStats { vehicles: number; drivers: number; pendingTimesheets: number; }
@@ -88,7 +88,7 @@ const AdminHome: React.FC = () => {
   const planLabel = plan === "bundle" ? "Fleet Bundle" : plan === "driver" ? "Driver Management" : plan === "vehicle" ? "Vehicle & Fleet Operations" : null;
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", minHeight: "100vh", color: "#fff" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh", color: "var(--t-text)" }}>
       <Navbar />
 
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "36px 40px" }}>
@@ -96,12 +96,12 @@ const AdminHome: React.FC = () => {
         {/* ── Welcome Header ── */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "16px", marginBottom: "36px" }}>
           <div>
-            <h1 style={{ margin: "0 0 10px", fontSize: "30px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.5px" }}>
+            <h1 style={{ margin: "0 0 10px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>
               Welcome back, {adminName}
             </h1>
             {!loading && (
               <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "13px", color: "#6b7280" }}>
+                <span style={{ fontSize: "13px", color: "var(--t-text-dim)" }}>
                   {status === "trialing" ? "Trial Status:" : "Plan Status:"}
                 </span>
                 <span style={{
@@ -111,8 +111,8 @@ const AdminHome: React.FC = () => {
                 }}>
                   {sc.label}{trialDaysLeft !== null && status === "trialing" ? ` • ${trialDaysLeft} DAYS REMAINING` : ""}
                 </span>
-                {planLabel && <span style={{ fontSize: "13px", color: "#4b5563" }}>·</span>}
-                {planLabel && <span style={{ fontSize: "13px", color: "#6b7280" }}>{planLabel}</span>}
+                {planLabel && <span style={{ fontSize: "13px", color: "var(--t-text-ghost)" }}>·</span>}
+                {planLabel && <span style={{ fontSize: "13px", color: "var(--t-text-dim)" }}>{planLabel}</span>}
               </div>
             )}
           </div>
@@ -120,7 +120,7 @@ const AdminHome: React.FC = () => {
             onClick={() => navigate("/vehicles")}
             style={{
               display: "inline-flex", alignItems: "center", gap: "8px",
-              padding: "12px 22px", background: "#4F46E5", border: "none",
+              padding: "12px 22px", background: "var(--t-accent)", border: "none",
               borderRadius: "10px", color: "#fff", fontSize: "14px", fontWeight: 600,
               cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif",
               boxShadow: "0 4px 14px rgba(79,70,229,0.35)",
@@ -137,37 +137,37 @@ const AdminHome: React.FC = () => {
               {
                 label: "TOTAL VEHICLES",
                 value: stats.vehicles,
-                accent: "#4F46E5",
+                accent: "var(--t-accent)",
                 sub: "Total registered",
-                subColor: "#6b7280",
+                subColor: "var(--t-text-dim)",
               },
               {
                 label: "TOTAL DRIVERS",
                 value: stats.drivers,
-                accent: "#4F46E5",
+                accent: "var(--t-accent)",
                 sub: "Active fleet drivers",
-                subColor: "#6b7280",
+                subColor: "var(--t-text-dim)",
               },
               {
                 label: "PENDING TIMESHEETS",
                 value: stats.pendingTimesheets,
-                accent: stats.pendingTimesheets > 0 ? "#f59e0b" : "#22c55e",
+                accent: stats.pendingTimesheets > 0 ? "var(--t-warning)" : "var(--t-success)",
                 sub: stats.pendingTimesheets > 0 ? "Requires Attention" : "All clear",
-                subColor: stats.pendingTimesheets > 0 ? "#f59e0b" : "#34d399",
+                subColor: stats.pendingTimesheets > 0 ? "var(--t-warning)" : "var(--t-success)",
               },
             ].map((s) => (
               <div key={s.label} style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.07)",
+                background: "var(--t-surface-alt)",
+                border: "1px solid var(--t-border)",
                 borderLeft: `3px solid ${s.accent}`,
                 borderRadius: "12px",
                 padding: "24px 28px",
               }}>
-                <div style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "14px" }}>
+                <div style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "14px" }}>
                   {s.label}
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: "12px" }}>
-                  <span style={{ fontSize: "40px", fontWeight: 800, color: "#f9fafb", lineHeight: 1 }}>{s.value}</span>
+                  <span style={{ fontSize: "40px", fontWeight: 800, color: "var(--t-text)", lineHeight: 1 }}>{s.value}</span>
                   <span style={{ fontSize: "12px", color: s.subColor, fontWeight: 500 }}>{s.sub}</span>
                 </div>
               </div>
@@ -178,9 +178,9 @@ const AdminHome: React.FC = () => {
         {/* Past-due warning */}
         {status === "past_due" && (
           <div style={{
-            background: "rgba(234,179,8,0.08)", border: "1px solid rgba(234,179,8,0.2)",
+            background: "var(--t-warning-bg)", border: "1px solid rgba(234,179,8,0.2)",
             borderRadius: "10px", padding: "14px 18px", marginBottom: "32px",
-            fontSize: "13px", color: "#fbbf24", display: "flex", alignItems: "center", gap: "10px",
+            fontSize: "13px", color: "var(--t-warning)", display: "flex", alignItems: "center", gap: "10px",
           }}>
             <FaExclamationCircle size={14} /> Your last payment failed. Please update your payment method to restore full access.
           </div>
@@ -193,7 +193,7 @@ const AdminHome: React.FC = () => {
           unlocked={showDriver}
           loading={loading}
           navigate={navigate}
-          accentColor="#4F46E5"
+          accentColor="var(--t-accent)"
           pendingTimesheets={stats?.pendingTimesheets ?? 0}
           upgradePlan="driver"
         />
@@ -205,7 +205,7 @@ const AdminHome: React.FC = () => {
           unlocked={showVehicle}
           loading={loading}
           navigate={navigate}
-          accentColor="#0891b2"
+          accentColor="var(--t-info)"
           pendingTimesheets={0}
           upgradePlan="vehicle"
         />
@@ -234,13 +234,13 @@ const FeatureSection: React.FC<FeatureSectionProps> = ({
     {/* Section header */}
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#f3f4f6", letterSpacing: "-0.2px" }}>{title}</h2>
+        <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "var(--t-text)", letterSpacing: "-0.2px" }}>{title}</h2>
         {!loading && (
           unlocked
-            ? <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#34d399", background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)", padding: "2px 10px", borderRadius: "20px" }}>
+            ? <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "var(--t-success)", background: "var(--t-success-bg)", border: "1px solid rgba(16,185,129,0.2)", padding: "2px 10px", borderRadius: "20px" }}>
                 <FaCheckCircle size={9} /> Included
               </span>
-            : <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#6b7280", background: "rgba(107,114,128,0.08)", border: "1px solid rgba(107,114,128,0.15)", padding: "2px 10px", borderRadius: "20px" }}>
+            : <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "var(--t-text-dim)", background: "rgba(107,114,128,0.08)", border: "1px solid rgba(107,114,128,0.15)", padding: "2px 10px", borderRadius: "20px" }}>
                 <FaLock size={9} /> Not in your plan
               </span>
         )}
@@ -265,8 +265,8 @@ const FeatureSection: React.FC<FeatureSectionProps> = ({
             key={f.path}
             onClick={() => unlocked && navigate(f.path)}
             style={{
-              background: "rgba(255,255,255,0.03)",
-              border: `1px solid ${unlocked ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)"}`,
+              background: "var(--t-surface-alt)",
+              border: `1px solid ${unlocked ? "var(--t-border)" : "var(--t-surface-alt)"}`,
               borderRadius: "14px",
               padding: "22px",
               cursor: unlocked ? "pointer" : "default",
@@ -277,12 +277,12 @@ const FeatureSection: React.FC<FeatureSectionProps> = ({
             onMouseEnter={(e) => {
               if (!unlocked) return;
               e.currentTarget.style.borderColor = `${f.accent}44`;
-              e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+              e.currentTarget.style.background = "var(--t-hover-bg)";
             }}
             onMouseLeave={(e) => {
               if (!unlocked) return;
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
-              e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+              e.currentTarget.style.borderColor = "var(--t-border)";
+              e.currentTarget.style.background = "var(--t-surface-alt)";
             }}
           >
             {/* Top row */}
@@ -291,7 +291,7 @@ const FeatureSection: React.FC<FeatureSectionProps> = ({
                 width: "44px", height: "44px", borderRadius: "12px",
                 background: unlocked ? `${f.accent}1a` : "rgba(107,114,128,0.1)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                color: unlocked ? f.accent : "#6b7280",
+                color: unlocked ? f.accent : "var(--t-text-dim)",
                 flexShrink: 0,
               }}>
                 <Icon size={20} />
@@ -299,7 +299,7 @@ const FeatureSection: React.FC<FeatureSectionProps> = ({
               <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
                 {showBadge && (
                   <span style={{
-                    fontSize: "10px", fontWeight: 700, color: "#f59e0b",
+                    fontSize: "10px", fontWeight: 700, color: "var(--t-warning)",
                     background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)",
                     padding: "2px 8px", borderRadius: "20px", whiteSpace: "nowrap",
                   }}>
@@ -307,17 +307,17 @@ const FeatureSection: React.FC<FeatureSectionProps> = ({
                   </span>
                 )}
                 {!unlocked
-                  ? <FaLock size={12} style={{ color: "#374151" }} />
-                  : <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", color: "#4b5563" }}>
+                  ? <FaLock size={12} style={{ color: "var(--t-text-ghost)" }} />
+                  : <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: "var(--t-input-bg)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--t-text-ghost)" }}>
                       <FaExternalLinkAlt size={11} />
                     </div>
                 }
               </div>
             </div>
-            <div style={{ fontSize: "15px", fontWeight: 700, color: unlocked ? "#f3f4f6" : "#374151", marginBottom: "6px" }}>
+            <div style={{ fontSize: "15px", fontWeight: 700, color: unlocked ? "var(--t-text)" : "var(--t-text-ghost)", marginBottom: "6px" }}>
               {f.title}
             </div>
-            <div style={{ fontSize: "12px", color: "#6b7280", lineHeight: 1.65 }}>
+            <div style={{ fontSize: "12px", color: "var(--t-text-dim)", lineHeight: 1.65 }}>
               {f.desc}
             </div>
           </div>

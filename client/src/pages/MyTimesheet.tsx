@@ -174,7 +174,7 @@ const MyTimesheet: React.FC = () => {
       cell: ({ row }: { row: { original: Timesheet } }) => {
         const attachments = row.original.attachments || [];
         if (attachments.length === 0) {
-          return <span style={{ color: "#9ca3af", fontSize: "13px" }}>No Attachments</span>;
+          return <span style={{ color: "var(--t-text-faint)", fontSize: "13px" }}>No Attachments</span>;
         }
         return (
           <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
@@ -314,13 +314,13 @@ const MyTimesheet: React.FC = () => {
   });
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#0d1117", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "var(--t-bg)", minHeight: "100vh" }}>
       <style>{`
         [data-ts-stat] { transition: transform 0.18s ease; cursor: default; }
         [data-ts-stat]:hover { transform: translateY(-3px); }
         [data-ts-row]:hover td { background: rgba(79,70,229,0.06) !important; }
         [data-ts-pill] { transition: all 0.15s ease; }
-        [data-ts-pill]:hover { background: rgba(79,70,229,0.2) !important; color: #818CF8 !important; border-color: rgba(79,70,229,0.4) !important; }
+        [data-ts-pill]:hover { background: rgba(79,70,229,0.2) !important; color: var(--t-indigo) !important; border-color: rgba(79,70,229,0.4) !important; }
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1) opacity(0.4); }
         @media (max-width: 1024px) {
           [data-ts-hero-inner] { flex-direction: column !important; gap: 20px !important; }
@@ -343,17 +343,17 @@ const MyTimesheet: React.FC = () => {
           <div style={{ display: "flex", alignItems: "center", gap: "16px", flexShrink: 0 }}>
             <div style={tsAvatar}>{(driverName || "D").charAt(0).toUpperCase()}</div>
             <div>
-              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Driver Portal</p>
-              <h1 style={{ margin: "3px 0 0", fontSize: "26px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.5px", lineHeight: 1 }}>My Timesheets</h1>
-              {driverName && <p style={{ margin: "5px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>{driverName}</p>}
+              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Driver Portal</p>
+              <h1 style={{ margin: "3px 0 0", fontSize: "26px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px", lineHeight: 1 }}>My Timesheets</h1>
+              {driverName && <p style={{ margin: "5px 0 0", fontSize: "13px", color: "var(--t-text-ghost)", fontWeight: 500 }}>{driverName}</p>}
             </div>
           </div>
           <div style={tsStatsGrid} data-ts-stats>
             {[
-              { value: driverHours.toFixed(1), label: "Hrs This Week", color: "#818CF8", accent: "rgba(79,70,229,0.3)" },
-              { value: String(timesheets.length), label: "Total Entries", color: "#a5b4fc", accent: "rgba(99,102,241,0.3)" },
-              { value: String(approvedCount), label: "Approved", color: "#34d399", accent: "rgba(16,185,129,0.3)" },
-              { value: String(pendingCount), label: "Pending", color: "#fbbf24", accent: "rgba(245,158,11,0.3)" },
+              { value: driverHours.toFixed(1), label: "Hrs This Week", color: "var(--t-indigo)", accent: "rgba(79,70,229,0.3)" },
+              { value: String(timesheets.length), label: "Total Entries", color: "var(--t-indigo)", accent: "rgba(99,102,241,0.3)" },
+              { value: String(approvedCount), label: "Approved", color: "var(--t-success)", accent: "rgba(16,185,129,0.3)" },
+              { value: String(pendingCount), label: "Pending", color: "var(--t-warning)", accent: "rgba(245,158,11,0.3)" },
             ].map(({ value, label, color, accent }) => (
               <div key={label} style={{ ...tsStatCard, borderTop: `2px solid ${accent}` }} data-ts-stat>
                 <div style={{ ...tsStatNum, color }}>{value}</div>
@@ -367,22 +367,22 @@ const MyTimesheet: React.FC = () => {
       {/* ── Content ──────────────────────────────────────────────────── */}
       <div style={tsContent} data-ts-content>
         {loading && (
-          <div style={{ textAlign: "center" as const, padding: "60px", color: "#4b5563", fontSize: "15px" }}>Loading timesheets…</div>
+          <div style={{ textAlign: "center" as const, padding: "60px", color: "var(--t-text-ghost)", fontSize: "15px" }}>Loading timesheets…</div>
         )}
         {error && (
-          <div style={{ marginBottom: "20px", padding: "12px 16px", background: "rgba(239,68,68,0.1)", borderRadius: "10px", border: "1px solid rgba(239,68,68,0.25)", color: "#f87171", fontSize: "14px", fontWeight: 600 }}>{error}</div>
+          <div style={{ marginBottom: "20px", padding: "12px 16px", background: "var(--t-error-bg)", borderRadius: "10px", border: "1px solid rgba(239,68,68,0.25)", color: "var(--t-error)", fontSize: "14px", fontWeight: 600 }}>{error}</div>
         )}
 
         {!loading && !error && (
           <div style={tsFilterBar} data-ts-filter-bar>
             <div style={tsSearchBox}>
-              <svg width="15" height="15" fill="none" stroke="#4b5563" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <svg width="15" height="15" fill="none" stroke="var(--t-text-ghost)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24" style={{ flexShrink: 0 }}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <input
                 type="text"
                 placeholder="Search trips, load IDs, comments…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ border: "none", outline: "none", fontSize: "14px", width: "100%", color: "#e5e7eb", background: "transparent", fontFamily: "Inter, system-ui, sans-serif" }}
+                style={{ border: "none", outline: "none", fontSize: "14px", width: "100%", color: "var(--t-text-secondary)", background: "transparent", fontFamily: "Inter, system-ui, sans-serif" }}
               />
             </div>
             <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" as const }} data-ts-pills>
@@ -393,7 +393,7 @@ const MyTimesheet: React.FC = () => {
             {selectedFilter === "Custom" && (
               <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
                 <input type="date" value={rangeStart} onChange={e => setRangeStart(e.target.value)} style={tsDateInput} />
-                <span style={{ color: "#4b5563", fontSize: "13px", fontWeight: 600 }}>→</span>
+                <span style={{ color: "var(--t-text-ghost)", fontSize: "13px", fontWeight: 600 }}>→</span>
                 <input type="date" value={rangeEnd} onChange={e => setRangeEnd(e.target.value)} style={tsDateInput} />
               </div>
             )}
@@ -403,7 +403,7 @@ const MyTimesheet: React.FC = () => {
         {!loading && !error && timesheets.length === 0 && (
           <div style={{ textAlign: "center" as const, padding: "80px 20px" }}>
             <div style={{ fontSize: "48px", marginBottom: "16px" }}>📋</div>
-            <p style={{ color: "#4b5563", fontSize: "15px", fontWeight: 500, margin: 0 }}>No timesheets found yet.</p>
+            <p style={{ color: "var(--t-text-ghost)", fontSize: "15px", fontWeight: 500, margin: 0 }}>No timesheets found yet.</p>
           </div>
         )}
 
@@ -415,7 +415,7 @@ const MyTimesheet: React.FC = () => {
                   {table.getHeaderGroups().map((hg) => (
                     <tr key={hg.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                       {hg.headers.map((h) => (
-                        <th key={h.id} style={{ padding: "13px 16px", fontSize: "9px", fontWeight: 700, color: "#4b5563", textAlign: "left" as const, textTransform: "uppercase" as const, letterSpacing: "0.8px", whiteSpace: "nowrap" as const, background: "#161b22" }}>
+                        <th key={h.id} style={{ padding: "13px 16px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", textAlign: "left" as const, textTransform: "uppercase" as const, letterSpacing: "0.8px", whiteSpace: "nowrap" as const, background: "var(--t-surface)" }}>
                           {flexRender(h.column.columnDef.header, h.getContext())}
                         </th>
                       ))}
@@ -426,7 +426,7 @@ const MyTimesheet: React.FC = () => {
                   {table.getRowModel().rows.map((row, i) => (
                     <tr key={row.id} data-ts-row style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", background: i % 2 === 1 ? "rgba(255,255,255,0.01)" : "transparent" }}>
                       {row.getVisibleCells().map((cell) => (
-                        <td key={cell.id} style={{ padding: "12px 16px", textAlign: "left" as const, fontSize: "13px", color: "#9ca3af", verticalAlign: "middle" }}>
+                        <td key={cell.id} style={{ padding: "12px 16px", textAlign: "left" as const, fontSize: "13px", color: "var(--t-text-faint)", verticalAlign: "middle" }}>
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </td>
                       ))}
@@ -435,7 +435,7 @@ const MyTimesheet: React.FC = () => {
                 </tbody>
               </table>
             </div>
-            <div style={{ padding: "12px 20px", borderTop: "1px solid rgba(255,255,255,0.05)", fontSize: "12px", color: "#374151", fontWeight: 500 }}>
+            <div style={{ padding: "12px 20px", borderTop: "1px solid rgba(255,255,255,0.05)", fontSize: "12px", color: "var(--t-text-muted)", fontWeight: 500 }}>
               Showing {filteredData.length} of {timesheets.length} entries
             </div>
           </div>
@@ -447,9 +447,9 @@ const MyTimesheet: React.FC = () => {
 
 // ── MyTimesheet style constants ───────────────────────────────────────
 const tsHero: React.CSSProperties = {
-  background: "linear-gradient(135deg, #0a0f1e 0%, #0d1117 60%, #161b22 100%)",
+  background: "var(--t-surface-alt)",
   padding: "28px 40px",
-  borderBottom: "1px solid rgba(255,255,255,0.06)",
+  borderBottom: "1px solid var(--t-border)",
 };
 const tsHeroInner: React.CSSProperties = {
   maxWidth: "1300px",
@@ -487,14 +487,14 @@ const tsStatCard: React.CSSProperties = {
 const tsStatNum: React.CSSProperties = {
   fontSize: "24px",
   fontWeight: 800,
-  color: "#f9fafb",
+  color: "var(--t-text)",
   lineHeight: 1,
   marginBottom: "4px",
 };
 const tsStatLbl: React.CSSProperties = {
   fontSize: "10px",
   fontWeight: 700,
-  color: "#4b5563",
+  color: "var(--t-text-ghost)",
   textTransform: "uppercase" as const,
   letterSpacing: "0.6px",
 };
@@ -514,7 +514,7 @@ const tsSearchBox: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   gap: "10px",
-  background: "#161b22",
+  background: "var(--t-surface)",
   border: "1px solid rgba(255,255,255,0.08)",
   borderRadius: "10px",
   padding: "10px 14px",
@@ -528,7 +528,7 @@ const tsPill: React.CSSProperties = {
   background: "rgba(255,255,255,0.04)",
   fontSize: "13px",
   fontWeight: 500,
-  color: "#6b7280",
+  color: "var(--t-text-dim)",
   cursor: "pointer",
   fontFamily: "Inter, system-ui, sans-serif",
 };
@@ -539,7 +539,7 @@ const tsActivePill: React.CSSProperties = {
   background: "rgba(79,70,229,0.2)",
   fontSize: "13px",
   fontWeight: 700,
-  color: "#818CF8",
+  color: "var(--t-indigo)",
   cursor: "pointer",
   fontFamily: "Inter, system-ui, sans-serif",
 };
@@ -548,12 +548,12 @@ const tsDateInput: React.CSSProperties = {
   borderRadius: "8px",
   border: "1px solid rgba(255,255,255,0.1)",
   fontSize: "13px",
-  background: "rgba(255,255,255,0.05)",
-  color: "#e5e7eb",
+  background: "var(--t-input-bg)",
+  color: "var(--t-text-secondary)",
   fontFamily: "Inter, system-ui, sans-serif",
 };
 const tsTableCard: React.CSSProperties = {
-  background: "#161b22",
+  background: "var(--t-surface)",
   borderRadius: "16px",
   border: "1px solid rgba(255,255,255,0.07)",
   overflow: "hidden",
@@ -567,8 +567,8 @@ const statusStyles: { [key: string]: React.CSSProperties } = {
     fontSize: "11px",
     fontWeight: 700,
     letterSpacing: "0.3px",
-    background: "rgba(16,185,129,0.12)",
-    color: "#34d399",
+    background: "var(--t-success-bg)",
+    color: "var(--t-success)",
     border: "1px solid rgba(16,185,129,0.25)",
   },
   rejected: {
@@ -578,8 +578,8 @@ const statusStyles: { [key: string]: React.CSSProperties } = {
     fontSize: "11px",
     fontWeight: 700,
     letterSpacing: "0.3px",
-    background: "rgba(239,68,68,0.12)",
-    color: "#f87171",
+    background: "var(--t-error-bg)",
+    color: "var(--t-error)",
     border: "1px solid rgba(239,68,68,0.25)",
   },
   pending: {
@@ -590,7 +590,7 @@ const statusStyles: { [key: string]: React.CSSProperties } = {
     fontWeight: 700,
     letterSpacing: "0.3px",
     background: "rgba(245,158,11,0.12)",
-    color: "#fbbf24",
+    color: "var(--t-warning)",
     border: "1px solid rgba(245,158,11,0.25)",
   },
 };

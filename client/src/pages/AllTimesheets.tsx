@@ -542,10 +542,10 @@ const AllTimesheets: React.FC = () => {
             <span>Created: {createdAtString}</span>
             {isEdited && (
               <>
-                <span style={{ fontWeight: 600, color: "#d97706", marginTop: "4px", fontSize: "12px" }}>
+                <span style={{ fontWeight: 600, color: "var(--t-warning)", marginTop: "4px", fontSize: "12px" }}>
                   Edited
                 </span>
-                <span style={{ color: "#9ca3af", fontSize: "12px" }}>
+                <span style={{ color: "var(--t-text-faint)", fontSize: "12px" }}>
                   Updated: {updatedAtString}
                 </span>
               </>
@@ -603,7 +603,7 @@ const AllTimesheets: React.FC = () => {
                   height: "44px",
                   objectFit: "cover",
                   borderRadius: "8px",
-                  border: "1px solid #e5e7eb",
+                  border: "1px solid var(--t-border-strong)",
                   cursor: "pointer",
                 }}
                 onClick={(e) => {
@@ -652,13 +652,13 @@ const AllTimesheets: React.FC = () => {
   }) => {
     if (!isOpen) return null;
     return (
-      <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ background: "#141921", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", padding: "32px 28px", width: "360px", boxShadow: "0 24px 64px rgba(0,0,0,0.6)" }}>
-          <h3 style={{ margin: "0 0 10px", fontSize: "18px", fontWeight: 800, color: "#f9fafb" }}>Delete Timesheet</h3>
-          <p style={{ margin: "0 0 24px", fontSize: "14px", color: "#6b7280" }}>Are you sure you want to delete this timesheet? This action cannot be undone.</p>
+      <div style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", backdropFilter: "blur(4px)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "32px 28px", width: "360px", boxShadow: "var(--t-shadow-lg)" }}>
+          <h3 style={{ margin: "0 0 10px", fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Delete Timesheet</h3>
+          <p style={{ margin: "0 0 24px", fontSize: "14px", color: "var(--t-text-dim)" }}>Are you sure you want to delete this timesheet? This action cannot be undone.</p>
           <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-            <button onClick={onClose} style={{ padding: "10px 18px", background: "none", border: "none", color: "#6b7280", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Cancel</button>
-            <button onClick={onConfirm} style={{ padding: "10px 18px", background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px", color: "#f87171", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Yes, Delete</button>
+            <button onClick={onClose} style={{ padding: "10px 18px", background: "none", border: "none", color: "var(--t-text-dim)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Cancel</button>
+            <button onClick={onConfirm} style={{ padding: "10px 18px", background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "8px", color: "var(--t-error)", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Yes, Delete</button>
           </div>
         </div>
       </div>
@@ -666,12 +666,12 @@ const AllTimesheets: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
       <style>{`
-        input::placeholder { color: #4b5563; }
-        select option { background: #1e2433; color: #f3f4f6; }
+        input::placeholder { color: var(--t-text-ghost); }
+        select option { background: var(--t-select-bg); color: var(--t-text); }
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5); }
-        tr[data-ts-row]:hover td { background: rgba(255,255,255,0.02); }
+        tr[data-ts-row]:hover td { background: var(--t-stripe); }
       `}</style>
       <Navbar />
 
@@ -680,43 +680,43 @@ const AllTimesheets: React.FC = () => {
         {/* Page Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "32px", gap: "16px", flexWrap: "wrap" as const }}>
           <div>
-            <h1 style={{ margin: "0 0 8px", fontSize: "32px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.5px" }}>All Timesheets</h1>
-            <p style={{ margin: 0, fontSize: "14px", color: "#6b7280" }}>
+            <h1 style={{ margin: "0 0 8px", fontSize: "32px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>All Timesheets</h1>
+            <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>
               Review and approve{" "}
-              <strong style={{ color: "#f9fafb" }}>{data.filter((t) => t.status === "pending").length} pending</strong>{" "}
+              <strong style={{ color: "var(--t-text)" }}>{data.filter((t) => t.status === "pending").length} pending</strong>{" "}
               timesheets from this pay period.
             </p>
           </div>
           <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
             <button onClick={handleExport}
-              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "10px", color: "#e5e7eb", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "10px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
               ⬇ Export (CSV/PDF)
             </button>
             <button onClick={handleBulkApprove}
-              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "#4F46E5", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}>
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}>
               ✓ Bulk Approve
             </button>
           </div>
         </div>
 
         {/* Main Table Card */}
-        <div style={{ background: "#161b22", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: "24px" }}>
+        <div style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", overflow: "hidden", marginBottom: "24px" }}>
 
           {/* Filter Bar */}
-          <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" as const }}>
+          <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" as const }}>
             <div style={{ position: "relative" as const, flex: 1, minWidth: "200px" }}>
-              <span style={{ position: "absolute" as const, left: "12px", top: "50%", transform: "translateY(-50%)", color: "#4b5563", fontSize: "14px", pointerEvents: "none" as const }}>🔍</span>
+              <span style={{ position: "absolute" as const, left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--t-text-ghost)", fontSize: "14px", pointerEvents: "none" as const }}>🔍</span>
               <input type="text" placeholder="Search by driver name or load ID..."
                 value={searchQuery} onChange={(e) => handleSearchChange(e.target.value)}
-                style={{ width: "100%", padding: "9px 14px 9px 36px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#f3f4f6", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }} />
+                style={{ width: "100%", padding: "9px 14px 9px 36px", background: "var(--t-input-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }} />
             </div>
             <select value={selectedUser} onChange={(e) => handleUserChange(e.target.value)}
-              style={{ padding: "9px 14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#f3f4f6", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer", minWidth: "140px" }}>
+              style={{ padding: "9px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer", minWidth: "140px" }}>
               <option value="All">All Drivers</option>
               {users.map((d) => <option key={d._id} value={d.email}>{d.name}</option>)}
             </select>
             <select value={selectedFilter} onChange={(e) => handleFilterChange(e.target.value as FilterType)}
-              style={{ padding: "9px 14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#f3f4f6", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer" }}>
+              style={{ padding: "9px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer" }}>
               <option value="All">All Time</option>
               <option value="Today">Today</option>
               <option value="This Week">This Week</option>
@@ -726,40 +726,40 @@ const AllTimesheets: React.FC = () => {
             {selectedFilter === "Custom" && (
               <>
                 <input type="date" value={rangeStart} onChange={(e) => setRangeStart(e.target.value)}
-                  style={{ padding: "9px 12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#f3f4f6", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }} />
-                <span style={{ color: "#4b5563", fontSize: "12px" }}>→</span>
+                  style={{ padding: "9px 12px", background: "var(--t-input-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }} />
+                <span style={{ color: "var(--t-text-ghost)", fontSize: "12px" }}>→</span>
                 <input type="date" value={rangeEnd} onChange={(e) => setRangeEnd(e.target.value)}
-                  style={{ padding: "9px 12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#f3f4f6", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }} />
+                  style={{ padding: "9px 12px", background: "var(--t-input-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }} />
               </>
             )}
             <select value={selectedStatus} onChange={(e) => handleStatusChange(e.target.value)}
-              style={{ padding: "9px 14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#f3f4f6", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer" }}>
+              style={{ padding: "9px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer" }}>
               <option value="All">Status: All</option>
               <option value="approved">Approved</option>
               <option value="pending">Pending</option>
               <option value="rejected">Rejected</option>
             </select>
             <button onClick={clearAllFilters} title="Reset filters"
-              style={{ padding: "9px 13px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px", color: "#9ca3af", cursor: "pointer", fontSize: "15px", fontFamily: "Inter, system-ui, sans-serif" }}>
+              style={{ padding: "9px 13px", background: "var(--t-input-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-faint)", cursor: "pointer", fontSize: "15px", fontFamily: "Inter, system-ui, sans-serif" }}>
               ↺
             </button>
           </div>
 
           {/* Table */}
           {loading ? (
-            <div style={{ padding: "56px", textAlign: "center" as const, color: "#4b5563", fontSize: "14px" }}>Loading timesheets…</div>
+            <div style={{ padding: "56px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "14px" }}>Loading timesheets…</div>
           ) : error ? (
-            <div style={{ padding: "56px", textAlign: "center" as const, color: "#f87171", fontSize: "14px" }}>{error}</div>
+            <div style={{ padding: "56px", textAlign: "center" as const, color: "var(--t-error)", fontSize: "14px" }}>{error}</div>
           ) : (
             <div style={{ overflowX: "auto" as const }}>
               <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <tr style={{ borderBottom: "1px solid var(--t-hover-bg)" }}>
                     <th style={{ padding: "13px 16px", width: "44px" }}>
-                      <input type="checkbox" style={{ accentColor: "#4F46E5", cursor: "pointer" }} />
+                      <input type="checkbox" style={{ accentColor: "var(--t-accent)", cursor: "pointer" }} />
                     </th>
                     {["DRIVER", "LOAD & ROUTE", "DATE/TIME", "KM (S/E)", "TOTAL KM", "HRS", "CATEGORY", "STATUS"].map((h) => (
-                      <th key={h} style={{ padding: "13px 16px", textAlign: "left" as const, fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", whiteSpace: "nowrap" as const }}>{h}</th>
+                      <th key={h} style={{ padding: "13px 16px", textAlign: "left" as const, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", whiteSpace: "nowrap" as const }}>{h}</th>
                     ))}
                     <th style={{ padding: "13px 16px", width: "44px" }} />
                   </tr>
@@ -767,16 +767,16 @@ const AllTimesheets: React.FC = () => {
                 <tbody>
                   {filteredData.length === 0 ? (
                     <tr>
-                      <td colSpan={10} style={{ padding: "56px", textAlign: "center" as const, color: "#4b5563", fontSize: "14px" }}>No timesheets found for the selected filters.</td>
+                      <td colSpan={10} style={{ padding: "56px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "14px" }}>No timesheets found for the selected filters.</td>
                     </tr>
                   ) : filteredData.map((ts, idx) => {
                     const totalKM = (!isNaN(Number(ts.startKM)) && !isNaN(Number(ts.endKM))) ? Number(ts.endKM) - Number(ts.startKM) : null;
                     const plannedKM = parseFloat(ts.plannedKM || "0");
                     const kmVariance = totalKM !== null && plannedKM > 0 ? totalKM - plannedKM : null;
                     const statusCfg: Record<string, { bg: string; color: string; dot: string }> = {
-                      approved: { bg: "rgba(16,185,129,0.12)",  color: "#34d399", dot: "#10b981" },
-                      pending:  { bg: "rgba(251,191,36,0.12)",  color: "#fbbf24", dot: "#f59e0b" },
-                      rejected: { bg: "rgba(239,68,68,0.1)",    color: "#f87171", dot: "#ef4444" },
+                      approved: { bg: "var(--t-success-bg)",  color: "var(--t-success)", dot: "var(--t-success)" },
+                      pending:  { bg: "var(--t-warning-bg)",  color: "var(--t-warning)", dot: "var(--t-warning)" },
+                      rejected: { bg: "var(--t-error-bg)",    color: "var(--t-error)",   dot: "var(--t-error)" },
                     };
                     const sc = statusCfg[ts.status] || statusCfg.pending;
                     const avatarColors = ["#4F46E5", "#7c3aed", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444"];
@@ -787,51 +787,51 @@ const AllTimesheets: React.FC = () => {
                     return (
                       <tr key={ts._id} data-ts-row
                         onClick={(e) => { if ((e.target as HTMLElement).closest("button, input")) return; navigate(`/timesheet/${ts._id}?${searchParams.toString()}`); }}
-                        style={{ borderBottom: idx < filteredData.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none", cursor: "pointer", transition: "background 0.15s" }}>
+                        style={{ borderBottom: idx < filteredData.length - 1 ? "1px solid var(--t-stripe)" : "none", cursor: "pointer", transition: "background 0.15s" }}>
                         <td style={{ padding: "16px 16px" }} onClick={(e) => e.stopPropagation()}>
-                          <input type="checkbox" style={{ accentColor: "#4F46E5", cursor: "pointer" }} />
+                          <input type="checkbox" style={{ accentColor: "var(--t-accent)", cursor: "pointer" }} />
                         </td>
                         {/* Driver */}
                         <td style={{ padding: "16px 16px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                             <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: avatarColors[idx % avatarColors.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: 700, color: "#fff", flexShrink: 0 }}>{initials}</div>
                             <div>
-                              <p style={{ margin: "0 0 2px", fontSize: "14px", fontWeight: 700, color: "#f9fafb" }}>{rawName || "—"}</p>
-                              <p style={{ margin: 0, fontSize: "11px", color: "#6b7280" }}>ID: {driverUsername || `DR-${String(ts._id).slice(-4).toUpperCase()}`}</p>
+                              <p style={{ margin: "0 0 2px", fontSize: "14px", fontWeight: 700, color: "var(--t-text)" }}>{rawName || "—"}</p>
+                              <p style={{ margin: 0, fontSize: "11px", color: "var(--t-text-dim)" }}>ID: {driverUsername || `DR-${String(ts._id).slice(-4).toUpperCase()}`}</p>
                             </div>
                           </div>
                         </td>
                         {/* Load & Route */}
                         <td style={{ padding: "16px 16px" }}>
-                          <p style={{ margin: "0 0 2px", fontSize: "13px", fontWeight: 700, color: "#818CF8" }}>#{ts.loadID || "—"}</p>
-                          <p style={{ margin: 0, fontSize: "11px", color: "#6b7280" }}>Route: {ts.tripNumber || "—"}</p>
+                          <p style={{ margin: "0 0 2px", fontSize: "13px", fontWeight: 700, color: "var(--t-indigo)" }}>#{ts.loadID || "—"}</p>
+                          <p style={{ margin: 0, fontSize: "11px", color: "var(--t-text-dim)" }}>Route: {ts.tripNumber || "—"}</p>
                         </td>
                         {/* Date/Time */}
                         <td style={{ padding: "16px 16px" }}>
-                          <p style={{ margin: "0 0 2px", fontSize: "13px", fontWeight: 600, color: "#e5e7eb" }}>{dateStr}</p>
-                          <p style={{ margin: 0, fontSize: "11px", color: "#6b7280" }}>{ts.startTime || "—"} – {ts.endTime || "—"}</p>
+                          <p style={{ margin: "0 0 2px", fontSize: "13px", fontWeight: 600, color: "var(--t-text-secondary)" }}>{dateStr}</p>
+                          <p style={{ margin: 0, fontSize: "11px", color: "var(--t-text-dim)" }}>{ts.startTime || "—"} – {ts.endTime || "—"}</p>
                         </td>
                         {/* KM S/E */}
                         <td style={{ padding: "16px 16px" }}>
-                          <p style={{ margin: "0 0 1px", fontSize: "12px", color: "#9ca3af" }}>{Number(ts.startKM).toLocaleString()}</p>
-                          <p style={{ margin: 0, fontSize: "12px", color: "#9ca3af" }}>{Number(ts.endKM).toLocaleString()}</p>
+                          <p style={{ margin: "0 0 1px", fontSize: "12px", color: "var(--t-text-faint)" }}>{Number(ts.startKM).toLocaleString()}</p>
+                          <p style={{ margin: 0, fontSize: "12px", color: "var(--t-text-faint)" }}>{Number(ts.endKM).toLocaleString()}</p>
                         </td>
                         {/* Total KM */}
                         <td style={{ padding: "16px 16px" }}>
-                          <p style={{ margin: "0 0 2px", fontSize: "14px", fontWeight: 700, color: "#f9fafb" }}>{totalKM !== null ? `${totalKM.toLocaleString()} KM` : "—"}</p>
+                          <p style={{ margin: "0 0 2px", fontSize: "14px", fontWeight: 700, color: "var(--t-text)" }}>{totalKM !== null ? `${totalKM.toLocaleString()} KM` : "—"}</p>
                           {plannedKM > 0 && (
-                            <p style={{ margin: 0, fontSize: "11px", color: kmVariance !== null && Math.abs(kmVariance) > 50 ? "#f87171" : "#34d399" }}>
+                            <p style={{ margin: 0, fontSize: "11px", color: kmVariance !== null && Math.abs(kmVariance) > 50 ? "var(--t-error)" : "var(--t-success)" }}>
                               Plan: {plannedKM.toLocaleString()} KM
                             </p>
                           )}
                         </td>
                         {/* Hours */}
                         <td style={{ padding: "16px 16px" }}>
-                          <span style={{ fontSize: "15px", fontWeight: 700, color: "#f9fafb" }}>{parseFloat(ts.totalHours || "0").toFixed(2)}</span>
+                          <span style={{ fontSize: "15px", fontWeight: 700, color: "var(--t-text)" }}>{parseFloat(ts.totalHours || "0").toFixed(2)}</span>
                         </td>
                         {/* Category */}
                         <td style={{ padding: "16px 16px" }}>
-                          <span style={{ display: "inline-block", padding: "4px 10px", borderRadius: "6px", fontSize: "10px", fontWeight: 700, background: "rgba(255,255,255,0.07)", color: "#9ca3af", letterSpacing: "0.5px", textTransform: "uppercase" as const, whiteSpace: "nowrap" as const }}>
+                          <span style={{ display: "inline-block", padding: "4px 10px", borderRadius: "6px", fontSize: "10px", fontWeight: 700, background: "var(--t-border)", color: "var(--t-text-faint)", letterSpacing: "0.5px", textTransform: "uppercase" as const, whiteSpace: "nowrap" as const }}>
                             {ts.category || "—"}
                           </span>
                         </td>
@@ -845,7 +845,7 @@ const AllTimesheets: React.FC = () => {
                         {/* Delete */}
                         <td style={{ padding: "16px 12px" }} onClick={(e) => e.stopPropagation()}>
                           <button onClick={() => handleDeleteClick(ts._id)}
-                            style={{ background: "none", border: "none", cursor: "pointer", color: "#4b5563", fontSize: "14px", padding: "4px 6px", borderRadius: "6px", fontFamily: "Inter, system-ui, sans-serif" }}
+                            style={{ background: "none", border: "none", cursor: "pointer", color: "var(--t-text-ghost)", fontSize: "14px", padding: "4px 6px", borderRadius: "6px", fontFamily: "Inter, system-ui, sans-serif" }}
                             title="Delete">🗑️</button>
                         </td>
                       </tr>
@@ -858,31 +858,31 @@ const AllTimesheets: React.FC = () => {
 
           {/* Table Footer + Pagination */}
           {!loading && !error && (
-            <div style={{ padding: "14px 20px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" as const, gap: "12px" }}>
-              <span style={{ fontSize: "13px", color: "#6b7280" }}>
-                Showing <strong style={{ color: "#9ca3af" }}>{(page - 1) * limit + 1}–{Math.min(page * limit, (page - 1) * limit + filteredData.length)}</strong> of{" "}
-                <strong style={{ color: "#9ca3af" }}>{totalPages * limit}</strong> entries
+            <div style={{ padding: "14px 20px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" as const, gap: "12px" }}>
+              <span style={{ fontSize: "13px", color: "var(--t-text-dim)" }}>
+                Showing <strong style={{ color: "var(--t-text-faint)" }}>{(page - 1) * limit + 1}–{Math.min(page * limit, (page - 1) * limit + filteredData.length)}</strong> of{" "}
+                <strong style={{ color: "var(--t-text-faint)" }}>{totalPages * limit}</strong> entries
               </span>
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <button onClick={() => handlePageChange(Math.max(page - 1, 1))} disabled={page === 1}
-                  style={{ padding: "6px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "7px", color: page === 1 ? "#374151" : "#9ca3af", cursor: page === 1 ? "not-allowed" : "pointer", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}>
+                  style={{ padding: "6px 12px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "7px", color: page === 1 ? "var(--t-text-ghost)" : "var(--t-text-faint)", cursor: page === 1 ? "not-allowed" : "pointer", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}>
                   ‹ Previous
                 </button>
                 {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map((p) => (
                   <button key={p} onClick={() => handlePageChange(p)}
-                    style={{ padding: "6px 10px", background: page === p ? "#4F46E5" : "rgba(255,255,255,0.05)", border: page === p ? "none" : "1px solid rgba(255,255,255,0.1)", borderRadius: "7px", color: page === p ? "#fff" : "#9ca3af", cursor: "pointer", fontSize: "13px", fontWeight: page === p ? 700 : 400, minWidth: "32px", fontFamily: "Inter, system-ui, sans-serif" }}>
+                    style={{ padding: "6px 10px", background: page === p ? "var(--t-accent)" : "var(--t-input-bg)", border: page === p ? "none" : "1px solid var(--t-border-strong)", borderRadius: "7px", color: page === p ? "#fff" : "var(--t-text-faint)", cursor: "pointer", fontSize: "13px", fontWeight: page === p ? 700 : 400, minWidth: "32px", fontFamily: "Inter, system-ui, sans-serif" }}>
                     {p}
                   </button>
                 ))}
-                {totalPages > 5 && <span style={{ color: "#4b5563", fontSize: "13px", padding: "0 2px" }}>…</span>}
+                {totalPages > 5 && <span style={{ color: "var(--t-text-ghost)", fontSize: "13px", padding: "0 2px" }}>…</span>}
                 {totalPages > 5 && (
                   <button onClick={() => handlePageChange(totalPages)}
-                    style={{ padding: "6px 10px", background: page === totalPages ? "#4F46E5" : "rgba(255,255,255,0.05)", border: page === totalPages ? "none" : "1px solid rgba(255,255,255,0.1)", borderRadius: "7px", color: page === totalPages ? "#fff" : "#9ca3af", cursor: "pointer", fontSize: "13px", minWidth: "32px", fontFamily: "Inter, system-ui, sans-serif" }}>
+                    style={{ padding: "6px 10px", background: page === totalPages ? "var(--t-accent)" : "var(--t-input-bg)", border: page === totalPages ? "none" : "1px solid var(--t-border-strong)", borderRadius: "7px", color: page === totalPages ? "#fff" : "var(--t-text-faint)", cursor: "pointer", fontSize: "13px", minWidth: "32px", fontFamily: "Inter, system-ui, sans-serif" }}>
                     {totalPages}
                   </button>
                 )}
                 <button onClick={() => handlePageChange(Math.min(page + 1, totalPages))} disabled={page === totalPages}
-                  style={{ padding: "6px 12px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "7px", color: page === totalPages ? "#374151" : "#9ca3af", cursor: page === totalPages ? "not-allowed" : "pointer", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}>
+                  style={{ padding: "6px 12px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "7px", color: page === totalPages ? "var(--t-text-ghost)" : "var(--t-text-faint)", cursor: page === totalPages ? "not-allowed" : "pointer", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}>
                   Next ›
                 </button>
               </div>
@@ -904,18 +904,18 @@ const AllTimesheets: React.FC = () => {
             });
           const avgVariance = kmVariances.length > 0 ? kmVariances.reduce((a, b) => a + b, 0) / kmVariances.length : 0;
           const cards = [
-            { icon: "⏱", label: "TOTAL REPORTED HOURS", value: totalHrs.toLocaleString("en", { maximumFractionDigits: 0 }), sub: "↗ 4.2% from last week", subColor: "#34d399" },
-            { icon: "⚠", label: "PENDING APPROVALS",    value: pendingCount.toString(),  sub: pendingCount > 0 ? "Requires action" : "All clear", subColor: pendingCount > 0 ? "#f87171" : "#34d399" },
-            { icon: "✓✓", label: "APPROVED THIS WEEK",   value: approvedCount.toString(), sub: "On track for payroll", subColor: "#34d399" },
-            { icon: "📍", label: "DISTANCE VARIANCE",    value: `${avgVariance.toFixed(1)}%`, sub: avgVariance > 5 ? "Above threshold" : "Within threshold", subColor: avgVariance > 5 ? "#f87171" : "#34d399" },
+            { icon: "⏱", label: "TOTAL REPORTED HOURS", value: totalHrs.toLocaleString("en", { maximumFractionDigits: 0 }), sub: "↗ 4.2% from last week", subColor: "var(--t-success)" },
+            { icon: "⚠", label: "PENDING APPROVALS",    value: pendingCount.toString(),  sub: pendingCount > 0 ? "Requires action" : "All clear", subColor: pendingCount > 0 ? "var(--t-error)" : "var(--t-success)" },
+            { icon: "✓✓", label: "APPROVED THIS WEEK",   value: approvedCount.toString(), sub: "On track for payroll", subColor: "var(--t-success)" },
+            { icon: "📍", label: "DISTANCE VARIANCE",    value: `${avgVariance.toFixed(1)}%`, sub: avgVariance > 5 ? "Above threshold" : "Within threshold", subColor: avgVariance > 5 ? "var(--t-error)" : "var(--t-success)" },
           ];
           return (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px" }}>
               {cards.map((card) => (
-                <div key={card.label} style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", padding: "22px 24px" }}>
-                  <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", marginBottom: "14px" }}>{card.icon}</div>
-                  <p style={{ margin: "0 0 6px", fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>{card.label}</p>
-                  <p style={{ margin: "0 0 6px", fontSize: "28px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.5px" }}>{card.value}</p>
+                <div key={card.label} style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "14px", padding: "22px 24px" }}>
+                  <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: "var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", marginBottom: "14px" }}>{card.icon}</div>
+                  <p style={{ margin: "0 0 6px", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>{card.label}</p>
+                  <p style={{ margin: "0 0 6px", fontSize: "28px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>{card.value}</p>
                   <p style={{ margin: 0, fontSize: "12px", color: card.subColor }}>{card.sub}</p>
                 </div>
               ))}
@@ -951,14 +951,14 @@ const styles = {
   pageTitle: {
     fontSize: "24px",
     fontWeight: 700,
-    color: "#111827",
+    color: "var(--t-text)",
     margin: 0,
   },
   tableWrapper: {
     borderRadius: "16px",
-    border: "1px solid #e0e7ff",
-    boxShadow: "0 2px 16px rgba(79,70,229,0.07)",
-    backgroundColor: "#fff",
+    border: "1px solid var(--t-border)",
+    boxShadow: "var(--t-shadow)",
+    backgroundColor: "var(--t-surface)",
     overflowX: "auto",
   } as React.CSSProperties,
   table: {
@@ -970,19 +970,19 @@ const styles = {
     fontSize: "10px",
     fontWeight: 700,
     textAlign: "left" as const,
-    backgroundColor: "#f5f3ff",
-    color: "#6366f1",
-    borderBottom: "2px solid #e0e7ff",
+    backgroundColor: "var(--t-indigo-bg)",
+    color: "var(--t-indigo)",
+    borderBottom: "2px solid var(--t-border)",
     textTransform: "uppercase" as const,
     letterSpacing: "0.7px",
     whiteSpace: "nowrap" as const,
   },
   td: {
-    borderBottom: "1px solid #f0f0ff",
+    borderBottom: "1px solid var(--t-stripe)",
     padding: "14px 18px",
     fontSize: "14px",
     textAlign: "left" as const,
-    color: "#374151",
+    color: "var(--t-text-muted)",
   },
   actions: {
     display: "flex" as const,
@@ -999,51 +999,51 @@ const styles = {
     marginTop: "24px",
     padding: "12px 0",
     fontSize: "14px",
-    color: "#374151",
+    color: "var(--t-text-muted)",
   },
   paginationButton: {
     padding: "7px 14px",
-    border: "1px solid #d1d5db",
+    border: "1px solid var(--t-input-border)",
     borderRadius: "8px",
-    backgroundColor: "#fff",
+    backgroundColor: "var(--t-surface)",
     cursor: "pointer",
     fontWeight: 500,
     fontSize: "13px",
-    color: "#374151",
+    color: "var(--t-text-muted)",
   },
   approveButton: {
-    backgroundColor: "#ecfdf5",
-    color: "#059669",
+    backgroundColor: "var(--t-success-bg)",
+    color: "var(--t-success)",
     padding: "6px 14px",
-    border: "1px solid #a7f3d0",
+    border: "1px solid var(--t-success)",
     borderRadius: "8px",
     fontWeight: 600,
     fontSize: "13px",
     cursor: "pointer",
   },
   rejectButton: {
-    backgroundColor: "#fef2f2",
-    color: "#dc2626",
+    backgroundColor: "var(--t-error-bg)",
+    color: "var(--t-error)",
     padding: "6px 14px",
-    border: "1px solid #fecaca",
+    border: "1px solid var(--t-error)",
     borderRadius: "8px",
     fontWeight: 600,
     fontSize: "13px",
     cursor: "pointer",
   },
   readOnly: {
-    color: "#9ca3af",
+    color: "var(--t-text-faint)",
     fontStyle: "italic",
   },
   error: {
-    color: "#dc2626",
+    color: "var(--t-error)",
     fontSize: "14px",
     fontWeight: 600,
     marginTop: "10px",
     padding: "10px 16px",
-    backgroundColor: "#fef2f2",
+    backgroundColor: "var(--t-error-bg)",
     borderRadius: "8px",
-    border: "1px solid #fecaca",
+    border: "1px solid var(--t-error)",
     display: "inline-block",
   },
   editIcon: {
@@ -1051,7 +1051,7 @@ const styles = {
     border: "none",
     cursor: "pointer",
     fontSize: "16px",
-    color: "#4F46E5",
+    color: "var(--t-accent)",
   },
   modalOverlay: {
     position: "fixed" as const,
@@ -1059,7 +1059,7 @@ const styles = {
     left: 0,
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "var(--t-modal-overlay)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
@@ -1067,28 +1067,28 @@ const styles = {
     backdropFilter: "blur(4px)",
   },
   modal: {
-    backgroundColor: "#fff",
+    backgroundColor: "var(--t-modal-bg)",
     padding: "28px",
     borderRadius: "16px",
     width: "600px",
     maxHeight: "85vh",
     overflowY: "auto" as const,
-    boxShadow: "0 24px 48px rgba(0, 0, 0, 0.16)",
+    boxShadow: "var(--t-shadow-lg)",
   },
   input: {
     width: "100%",
     padding: "10px 12px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    backgroundColor: "#f9fafb",
+    border: "1px solid var(--t-input-border)",
+    backgroundColor: "var(--t-input-bg)",
     fontSize: "14px",
-    color: "#111827",
+    color: "var(--t-text-secondary)",
     outline: "none",
     boxSizing: "border-box" as const,
   },
   exportButton: {
     padding: "7px 16px",
-    backgroundColor: "#4F46E5",
+    backgroundColor: "var(--t-accent)",
     color: "#fff",
     border: "none",
     borderRadius: "8px",
@@ -1100,7 +1100,7 @@ const styles = {
   optionButton: {
     margin: "5px",
     padding: "8px 18px",
-    backgroundColor: "#4F46E5",
+    backgroundColor: "var(--t-accent)",
     color: "#fff",
     border: "none",
     borderRadius: "8px",
@@ -1114,10 +1114,10 @@ const styles = {
   },
   filterBar: {
     padding: "12px 16px",
-    backgroundColor: "#ffffff",
-    border: "1px solid #e5e7eb",
+    backgroundColor: "var(--t-surface)",
+    border: "1px solid var(--t-border)",
     borderRadius: "12px",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.06)",
+    boxShadow: "var(--t-shadow)",
     marginBottom: "20px",
   },
   filterRow: {
@@ -1134,7 +1134,7 @@ const styles = {
   filterLabel: {
     fontSize: "12px",
     fontWeight: 600,
-    color: "#6b7280",
+    color: "var(--t-text-dim)",
     whiteSpace: "nowrap" as const,
     textTransform: "uppercase" as const,
     letterSpacing: "0.4px",
@@ -1148,19 +1148,19 @@ const styles = {
   dateInput: {
     padding: "7px 10px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
+    border: "1px solid var(--t-input-border)",
     fontSize: "13px",
-    color: "#374151",
-    backgroundColor: "#f9fafb",
+    color: "var(--t-text-muted)",
+    backgroundColor: "var(--t-input-bg)",
     outline: "none",
   },
   selectInput: {
     padding: "7px 12px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    backgroundColor: "#f9fafb",
+    border: "1px solid var(--t-input-border)",
+    backgroundColor: "var(--t-input-bg)",
     fontSize: "13px",
-    color: "#374151",
+    color: "var(--t-text-muted)",
     outline: "none",
     cursor: "pointer",
   },
@@ -1175,24 +1175,24 @@ const styles = {
     top: "50%",
     transform: "translateY(-50%)",
     fontSize: "14px",
-    color: "#9ca3af",
+    color: "var(--t-text-faint)",
     pointerEvents: "none" as const,
   },
   searchInput: {
     padding: "8px 14px 8px 32px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    backgroundColor: "#f9fafb",
+    border: "1px solid var(--t-input-border)",
+    backgroundColor: "var(--t-input-bg)",
     fontSize: "13px",
-    color: "#374151",
+    color: "var(--t-text-muted)",
     width: "240px",
     outline: "none",
   },
   clearButton: {
     padding: "7px 14px",
-    backgroundColor: "#f3f4f6",
-    color: "#4b5563",
-    border: "1px solid #d1d5db",
+    backgroundColor: "var(--t-hover-bg)",
+    color: "var(--t-text-secondary)",
+    border: "1px solid var(--t-border)",
     borderRadius: "8px",
     fontSize: "13px",
     fontWeight: 600,
@@ -1201,9 +1201,9 @@ const styles = {
   },
   deleteButton: {
     padding: "7px 16px",
-    backgroundColor: "#fef2f2",
-    color: "#b91c1c",
-    border: "1px solid #fecaca",
+    backgroundColor: "var(--t-error-bg)",
+    color: "var(--t-error)",
+    border: "1px solid var(--t-error)",
     borderRadius: "8px",
     fontSize: "13px",
     fontWeight: 600,
@@ -1214,8 +1214,8 @@ const styles = {
 
 const statusStyles = {
   approved: {
-    backgroundColor: "#ecfdf5",
-    color: "#059669",
+    backgroundColor: "var(--t-success-bg)",
+    color: "var(--t-success)",
     padding: "4px 12px",
     borderRadius: "20px",
     fontWeight: 600,
@@ -1226,8 +1226,8 @@ const statusStyles = {
     letterSpacing: "0.3px",
   },
   rejected: {
-    backgroundColor: "#fef2f2",
-    color: "#dc2626",
+    backgroundColor: "var(--t-error-bg)",
+    color: "var(--t-error)",
     padding: "4px 12px",
     borderRadius: "20px",
     fontWeight: 600,
@@ -1238,8 +1238,8 @@ const statusStyles = {
     letterSpacing: "0.3px",
   },
   pending: {
-    backgroundColor: "#fffbeb",
-    color: "#b45309",
+    backgroundColor: "var(--t-warning-bg)",
+    color: "var(--t-warning)",
     padding: "4px 12px",
     borderRadius: "20px",
     fontWeight: 600,
@@ -1432,7 +1432,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
     <div style={{
       position: "fixed",
       top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: "rgba(0,0,0,0.7)",
+      backgroundColor: "var(--t-modal-overlay)",
       backdropFilter: "blur(4px)",
       display: "flex",
       alignItems: "center",
@@ -1446,14 +1446,14 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
             position: "absolute",
             top: "-12px",
             right: "-12px",
-            background: "#fff",
+            background: "var(--t-surface)",
             border: "none",
             borderRadius: "50%",
             width: "32px",
             height: "32px",
             fontSize: "14px",
             cursor: "pointer",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+            boxShadow: "var(--t-shadow)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -1486,7 +1486,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
               transform: `scale(${zoom})`,
               transition: "transform 0.2s ease",
               cursor: zoom > 1 ? "move" : "zoom-in",
-              background: "#fff"
+              background: "var(--t-surface)"
             }}
             onWheel={handleWheel}
             onTouchStart={handleTouchStart}
@@ -1502,7 +1502,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
             position: "absolute",
             top: "50%",
             left: "-40px",
-            background: "#fff",
+            background: "var(--t-surface)",
             border: "none",
             borderRadius: "50%",
             padding: "8px 12px",
@@ -1521,7 +1521,7 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
             position: "absolute",
             top: "50%",
             right: "-40px",
-            background: "#fff",
+            background: "var(--t-surface)",
             border: "none",
             borderRadius: "50%",
             padding: "8px 12px",
@@ -1540,8 +1540,8 @@ const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
             left: "50%",
             bottom: "-32px",
             transform: "translateX(-50%)",
-            color: "#fff",
-            background: "rgba(0,0,0,0.5)",
+            color: "var(--t-text)",
+            background: "var(--t-modal-overlay)",
             padding: "4px 12px",
             borderRadius: "12px",
             fontSize: "14px"
@@ -1561,7 +1561,7 @@ const modalCss = `
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--t-modal-overlay);
   backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
@@ -1569,24 +1569,24 @@ const modalCss = `
   z-index: 1000;
 }
 .modal-content {
-  background: white;
+  background: var(--t-modal-bg);
   padding: 28px;
   border-radius: 16px;
   max-width: 400px;
   width: 90%;
   text-align: center;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.16);
+  box-shadow: var(--t-shadow-lg);
   font-family: Inter, system-ui, sans-serif;
 }
 .modal-content h3 {
   font-size: 18px;
   font-weight: 700;
-  color: #111827;
+  color: var(--t-text);
   margin-bottom: 8px;
 }
 .modal-content p {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--t-text-dim);
 }
 .modal-actions {
   margin-top: 24px;
@@ -1595,9 +1595,9 @@ const modalCss = `
   gap: 10px;
 }
 .cancel-btn {
-  background-color: #fff;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background-color: var(--t-surface);
+  color: var(--t-text-secondary);
+  border: 1px solid var(--t-input-border);
   padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
@@ -1605,7 +1605,7 @@ const modalCss = `
   font-size: 14px;
 }
 .delete-btn {
-  background-color: #dc2626;
+  background-color: var(--t-error);
   color: white;
   padding: 10px 20px;
   border: none;

@@ -7,8 +7,8 @@ const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS_LABELS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
 const EVENT_COLORS: Record<string, string> = {
-  maintenance: "#4F46E5",
-  pm_due: "#f59e0b",
+  maintenance: "var(--t-accent)",
+  pm_due: "var(--t-warning)",
 };
 
 const emptyForm = {
@@ -143,7 +143,7 @@ const Scheduling: React.FC = () => {
       <div style={styles.container}>
 
         {error && (
-          <div style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px", padding: "12px 16px", marginBottom: "20px", color: "#fca5a5", fontSize: "14px" }}>
+          <div style={{ background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px", padding: "12px 16px", marginBottom: "20px", color: "var(--t-error)", fontSize: "14px" }}>
             {error}
           </div>
         )}
@@ -177,18 +177,18 @@ const Scheduling: React.FC = () => {
                     key={day}
                     style={{
                       ...styles.dayCell,
-                      background: selected ? "rgba(79,70,229,0.15)" : todayDay ? "rgba(16,185,129,0.08)" : "#1c2128",
-                      borderColor: selected ? "#4F46E5" : todayDay ? "#059669" : "rgba(255,255,255,0.07)",
+                      background: selected ? "var(--t-indigo-bg)" : todayDay ? "var(--t-success-bg)" : "var(--t-select-bg)",
+                      borderColor: selected ? "var(--t-accent)" : todayDay ? "var(--t-success)" : "var(--t-border)",
                       cursor: "pointer",
                     }}
                     onClick={() => setSelectedDate(selected ? null : day)}
                   >
-                    <span style={{ fontSize: "13px", fontWeight: todayDay ? 700 : 500, color: todayDay ? "#6ee7b7" : "#d1d5db" }}>{day}</span>
+                    <span style={{ fontSize: "13px", fontWeight: todayDay ? 700 : 500, color: todayDay ? "var(--t-success)" : "var(--t-text-muted)" }}>{day}</span>
                     {dayEvents.slice(0, 3).map((e, idx) => (
                       <div
                         key={idx}
                         style={{
-                          background: e.color || EVENT_COLORS[e.type] || "#6b7280",
+                          background: e.color || EVENT_COLORS[e.type] || "var(--t-text-dim)",
                           borderRadius: "3px", padding: "2px 4px", fontSize: "10px",
                           marginTop: "2px", color: "#fff", overflow: "hidden",
                           textOverflow: "ellipsis", whiteSpace: "nowrap",
@@ -199,7 +199,7 @@ const Scheduling: React.FC = () => {
                       </div>
                     ))}
                     {dayEvents.length > 3 && (
-                      <div style={{ fontSize: "10px", color: "#6b7280", marginTop: "2px" }}>+{dayEvents.length - 3} more</div>
+                      <div style={{ fontSize: "10px", color: "var(--t-text-dim)", marginTop: "2px" }}>+{dayEvents.length - 3} more</div>
                     )}
                   </div>
                 );
@@ -207,29 +207,29 @@ const Scheduling: React.FC = () => {
             </div>
 
             {/* Legend */}
-            <div style={{ display: "flex", gap: "16px", marginTop: "12px", fontSize: "12px", color: "#9ca3af" }}>
+            <div style={{ display: "flex", gap: "16px", marginTop: "12px", fontSize: "12px", color: "var(--t-text-faint)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                <div style={{ width: "10px", height: "10px", borderRadius: "2px", background: "#4F46E5" }} /> Maintenance
+                <div style={{ width: "10px", height: "10px", borderRadius: "2px", background: "var(--t-accent)" }} /> Maintenance
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
-                <div style={{ width: "10px", height: "10px", borderRadius: "2px", background: "#f59e0b" }} /> PM Due
+                <div style={{ width: "10px", height: "10px", borderRadius: "2px", background: "var(--t-warning)" }} /> PM Due
               </div>
             </div>
 
             {/* Selected day panel */}
             {selectedDate && (
               <div style={styles.dayPanel}>
-                <strong style={{ fontSize: "14px", color: "#e5e7eb" }}>
+                <strong style={{ fontSize: "14px", color: "var(--t-text-secondary)" }}>
                   {MONTHS_LABELS[currentMonth]} {selectedDate}, {currentYear}
                 </strong>
                 {selectedDayEvents.length === 0 ? (
-                  <p style={{ color: "#9ca3af", fontSize: "13px", marginTop: "8px" }}>No events this day.</p>
+                  <p style={{ color: "var(--t-text-faint)", fontSize: "13px", marginTop: "8px" }}>No events this day.</p>
                 ) : (
                   <div style={{ marginTop: "8px", display: "flex", flexDirection: "column", gap: "8px" }}>
                     {selectedDayEvents.map((e, i) => (
-                      <div key={i} style={{ ...styles.eventChip, borderLeft: `4px solid ${e.color || "#6b7280"}` }}>
+                      <div key={i} style={{ ...styles.eventChip, borderLeft: `4px solid ${e.color || "var(--t-text-dim)"}` }}>
                         <strong style={{ fontSize: "13px" }}>{e.title}</strong>
-                        <div style={{ fontSize: "12px", color: "#9ca3af", marginTop: "2px" }}>
+                        <div style={{ fontSize: "12px", color: "var(--t-text-faint)", marginTop: "2px" }}>
                           {e.type} · {e.status}
                         </div>
                       </div>
@@ -242,23 +242,23 @@ const Scheduling: React.FC = () => {
 
           {/* Upcoming sidebar */}
           <div style={styles.sidebar}>
-            <h3 style={{ fontSize: "16px", fontWeight: 700, color: "#f3f4f6", marginTop: 0, marginBottom: "16px" }}>
+            <h3 style={{ fontSize: "16px", fontWeight: 700, color: "var(--t-text)", marginTop: 0, marginBottom: "16px" }}>
               Upcoming (30 days)
             </h3>
             {loading ? (
-              <p style={{ color: "#6b7280", fontSize: "13px" }}>Loading...</p>
+              <p style={{ color: "var(--t-text-dim)", fontSize: "13px" }}>Loading...</p>
             ) : upcomingEvents.length === 0 ? (
-              <p style={{ color: "#9ca3af", fontSize: "13px" }}>No upcoming events.</p>
+              <p style={{ color: "var(--t-text-faint)", fontSize: "13px" }}>No upcoming events.</p>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {upcomingEvents.map((e, i) => (
-                  <div key={i} style={{ ...styles.upcomingItem, borderLeft: `3px solid ${e.color || "#6b7280"}` }}>
-                    <div style={{ fontSize: "13px", fontWeight: 600, color: "#e5e7eb" }}>{e.title}</div>
-                    <div style={{ fontSize: "12px", color: "#9ca3af", marginTop: "3px" }}>
+                  <div key={i} style={{ ...styles.upcomingItem, borderLeft: `3px solid ${e.color || "var(--t-text-dim)"}` }}>
+                    <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--t-text-secondary)" }}>{e.title}</div>
+                    <div style={{ fontSize: "12px", color: "var(--t-text-faint)", marginTop: "3px" }}>
                       {e.vehicle?.unitNumber && `${e.vehicle.unitNumber} · `}
                       {e.date ? new Date(e.date).toLocaleDateString("en-CA", { month: "short", day: "numeric" }) : ""}
                     </div>
-                    <span style={{ fontSize: "11px", color: e.color || "#6b7280", fontWeight: 600, textTransform: "uppercase" }}>
+                    <span style={{ fontSize: "11px", color: e.color || "var(--t-text-dim)", fontWeight: 600, textTransform: "uppercase" }}>
                       {e.type?.replace("_", " ")}
                     </span>
                   </div>
@@ -313,29 +313,29 @@ const Scheduling: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#0d1117", fontFamily: "Inter, system-ui, sans-serif" },
+  wrapper: { minHeight: "100vh", background: "var(--t-bg)", fontFamily: "Inter, system-ui, sans-serif" },
   container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
-  primaryBtn: { padding: "10px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
+  primaryBtn: { padding: "10px 18px", background: "var(--t-accent)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
   layout: { display: "grid", gridTemplateColumns: "1fr 280px", gap: "24px", alignItems: "start" },
-  calendarWrapper: { background: "#161b22", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.07)", padding: "20px", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
+  calendarWrapper: { background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", padding: "20px", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
   calNav: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" },
-  navBtn: { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "6px 14px", cursor: "pointer", fontSize: "18px", color: "#9ca3af", fontFamily: "Inter, system-ui, sans-serif" },
-  monthLabel: { fontSize: "17px", fontWeight: 700, color: "#f3f4f6" },
+  navBtn: { background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", padding: "6px 14px", cursor: "pointer", fontSize: "18px", color: "var(--t-text-faint)", fontFamily: "Inter, system-ui, sans-serif" },
+  monthLabel: { fontSize: "17px", fontWeight: 700, color: "var(--t-text)" },
   calGrid: { display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "4px" },
-  dayHeader: { textAlign: "center", fontSize: "11px", fontWeight: 700, color: "#4b5563", padding: "6px 0", textTransform: "uppercase" },
-  dayCell: { minHeight: "72px", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "8px", padding: "6px", display: "flex", flexDirection: "column" },
-  dayPanel: { marginTop: "16px", background: "rgba(255,255,255,0.03)", borderRadius: "10px", padding: "16px", border: "1px solid rgba(255,255,255,0.07)" },
-  eventChip: { background: "#1c2128", borderRadius: "6px", padding: "8px 12px", border: "1px solid rgba(255,255,255,0.07)" },
-  sidebar: { background: "#161b22", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.07)", padding: "20px", position: "sticky", top: "20px", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
-  upcomingItem: { background: "rgba(255,255,255,0.03)", borderRadius: "8px", padding: "10px 12px" },
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
-  modal: { background: "#161b22", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.08)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "#f3f4f6" },
+  dayHeader: { textAlign: "center", fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", padding: "6px 0", textTransform: "uppercase" },
+  dayCell: { minHeight: "72px", border: "1px solid var(--t-border)", borderRadius: "8px", padding: "6px", display: "flex", flexDirection: "column" },
+  dayPanel: { marginTop: "16px", background: "var(--t-surface-alt)", borderRadius: "10px", padding: "16px", border: "1px solid var(--t-border)" },
+  eventChip: { background: "var(--t-select-bg)", borderRadius: "6px", padding: "8px 12px", border: "1px solid var(--t-border)" },
+  sidebar: { background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", padding: "20px", position: "sticky", top: "20px", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
+  upcomingItem: { background: "var(--t-surface-alt)", borderRadius: "8px", padding: "10px 12px" },
+  modalOverlay: { position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
+  modal: { background: "var(--t-surface)", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "var(--t-shadow-lg)", border: "1px solid var(--t-border)" },
+  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "var(--t-text)" },
   formGroup: { marginBottom: "16px" },
-  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "#4b5563", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
-  input: { width: "100%", padding: "9px 12px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", color: "#e5e7eb", background: "rgba(255,255,255,0.05)", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
+  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
+  input: { width: "100%", padding: "9px 12px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", color: "var(--t-text-secondary)", background: "var(--t-input-bg)", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
   modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
-  cancelBtn: { padding: "10px 20px", background: "rgba(255,255,255,0.06)", color: "#9ca3af", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
+  cancelBtn: { padding: "10px 20px", background: "var(--t-hover-bg)", color: "var(--t-text-faint)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
 };
 
 export default Scheduling;

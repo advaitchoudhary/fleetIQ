@@ -76,7 +76,7 @@ const Landing: React.FC = () => {
         "Document & compliance tracking",
         "Stripe driver payouts",
         "Payment history & invoicing",
-      ],
+    ],
       cta: "Get Started",
       highlight: false,
     },

@@ -381,7 +381,7 @@ const Timesheet: React.FC = () => {
       ? new Date(submittedData.date + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
       : "Today";
     return (
-      <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", minHeight: "100vh", display: "flex", flexDirection: "column" as const }}>
+      <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh", display: "flex", flexDirection: "column" as const }}>
         <Navbar />
         <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
           <div style={{ maxWidth: "600px", width: "100%", textAlign: "center" as const }}>
@@ -389,14 +389,14 @@ const Timesheet: React.FC = () => {
             <div style={{ width: "90px", height: "90px", borderRadius: "50%", background: "rgba(79,70,229,0.2)", border: "2px solid rgba(79,70,229,0.4)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 32px", fontSize: "36px" }}>
               ✓
             </div>
-            <h1 style={{ margin: "0 0 16px", fontSize: "clamp(28px, 6vw, 42px)", fontWeight: 900, color: "#f9fafb", letterSpacing: "-0.8px", lineHeight: 1.15 }}>
+            <h1 style={{ margin: "0 0 16px", fontSize: "clamp(28px, 6vw, 42px)", fontWeight: 900, color: "var(--t-text)", letterSpacing: "-0.8px", lineHeight: 1.15 }}>
               Timesheet Submitted<br />Successfully
             </h1>
-            <p style={{ margin: "0 0 40px", fontSize: "16px", color: "#6b7280", lineHeight: 1.6 }}>
-              Your records for <strong style={{ color: "#e5e7eb" }}>{formattedDate}</strong>, have been encrypted<br />and queued for review.
+            <p style={{ margin: "0 0 40px", fontSize: "16px", color: "var(--t-text-dim)", lineHeight: 1.6 }}>
+              Your records for <strong style={{ color: "var(--t-text-secondary)" }}>{formattedDate}</strong>, have been encrypted<br />and queued for review.
             </p>
             {/* Summary Card */}
-            <div style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", padding: "32px", textAlign: "left" as const, marginBottom: "32px" }}>
+            <div style={{ background: "var(--t-surface)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "16px", padding: "32px", textAlign: "left" as const, marginBottom: "32px" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "28px", marginBottom: "24px" }}>
                 {[
                   ["TIMESHEET ID", tsId],
@@ -404,21 +404,21 @@ const Timesheet: React.FC = () => {
                   ["DRIVER", driverName || "—"],
                 ].map(([label, value]) => (
                   <div key={label}>
-                    <p style={{ margin: "0 0 6px", fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px" }}>{label}</p>
-                    <p style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "#f9fafb" }}>{value}</p>
+                    <p style={{ margin: "0 0 6px", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>{label}</p>
+                    <p style={{ margin: 0, fontSize: "18px", fontWeight: 700, color: "var(--t-text)" }}>{value}</p>
                   </div>
                 ))}
                 <div>
-                  <p style={{ margin: "0 0 6px", fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px" }}>STATUS</p>
-                  <p style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#f59e0b", display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#f59e0b", display: "inline-block" }} />
+                  <p style={{ margin: "0 0 6px", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>STATUS</p>
+                  <p style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "var(--t-warning)", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--t-warning)", display: "inline-block" }} />
                     Pending Review
                   </p>
                 </div>
               </div>
-              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: "12px", color: "#4b5563", display: "flex", alignItems: "center", gap: "6px" }}>🔒 End-to-end encryption active</span>
-                <span style={{ fontSize: "11px", color: "#374151" }}>Ref: FleetIQ-Core-v2.4</span>
+              <div style={{ borderTop: "1px solid var(--t-border)", paddingTop: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: "12px", color: "var(--t-text-ghost)", display: "flex", alignItems: "center", gap: "6px" }}>🔒 End-to-end encryption active</span>
+                <span style={{ fontSize: "11px", color: "var(--t-text-muted)" }}>Ref: FleetIQ-Core-v2.4</span>
               </div>
             </div>
             {/* Action Buttons */}
@@ -431,7 +431,7 @@ const Timesheet: React.FC = () => {
               </button>
               <button
                 onClick={() => setShowSuccess(false)}
-                style={{ flex: "1 1 180px", padding: "14px 28px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "12px", color: "#e5e7eb", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
+                style={{ flex: "1 1 180px", padding: "14px 28px", background: "var(--t-input-bg)", border: "1px solid var(--t-border)", borderRadius: "12px", color: "var(--t-text-secondary)", fontSize: "15px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
               >
                 👁 View Detailed Log
               </button>
@@ -459,7 +459,7 @@ const Timesheet: React.FC = () => {
         input[type="time"]::-webkit-calendar-picker-indicator {
           filter: invert(1) opacity(0.4);
         }
-        select option { background: #1c2128; color: #e5e7eb; }
+        select option { background: var(--t-select-bg); color: var(--t-text-secondary); }
       `}</style>
       <Navbar />
 
@@ -469,12 +469,12 @@ const Timesheet: React.FC = () => {
           <div style={{ display: "flex", alignItems: "center", gap: "16px", flexShrink: 0 }}>
             <div style={avatarCircle}>{(driverName || "D").charAt(0).toUpperCase()}</div>
             <div>
-              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Senior Logistics Op</p>
-              <h1 style={{ margin: "3px 0 0", fontSize: "22px", fontWeight: 800, color: "#fff", letterSpacing: "-0.4px", lineHeight: 1 }}>
+              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Senior Logistics Op</p>
+              <h1 style={{ margin: "3px 0 0", fontSize: "22px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.4px", lineHeight: 1 }}>
                 {driverName || "Driver"}
               </h1>
               {driverIdDisplay && (
-                <p style={{ margin: "5px 0 0", fontSize: "12px", color: "rgba(255,255,255,0.4)", fontWeight: 500, fontFamily: "monospace" }}>
+                <p style={{ margin: "5px 0 0", fontSize: "12px", color: "var(--t-text-ghost)", fontWeight: 500, fontFamily: "monospace" }}>
                   • {driverIdDisplay}
                 </p>
               )}
@@ -495,9 +495,9 @@ const Timesheet: React.FC = () => {
             <p style={sectionDivider}>Trip Information</p>
             <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "16px", marginBottom: "14px" }}>
               <p style={fieldLabel}>Organization ID</p>
-              <p style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: "#e5e7eb", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <p style={{ margin: 0, fontSize: "16px", fontWeight: 600, color: "var(--t-text-secondary)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 {driverIdDisplay ? `GLO-${driverIdDisplay.slice(-7).toUpperCase()}` : "GLO-LOG-2024"}
-                <span style={{ fontSize: "14px", color: "#4b5563" }}>🔒</span>
+                <span style={{ fontSize: "14px", color: "var(--t-text-ghost)" }}>🔒</span>
               </p>
             </div>
             <div style={twoCol} className="db-two-col">
@@ -507,13 +507,13 @@ const Timesheet: React.FC = () => {
               </div>
               <div>
                 <p style={fieldLabel}>Load ID</p>
-                <input type="text" name="loadID" value={timesheet.loadID} onChange={handleChange} placeholder="Enter ID" style={errors.loadID ? { ...styles.input, borderColor: "#ef4444" } : styles.input} />
+                <input type="text" name="loadID" value={timesheet.loadID} onChange={handleChange} placeholder="Enter ID" style={errors.loadID ? { ...styles.input, borderColor: "var(--t-error)" } : styles.input} />
                 {errors.loadID && <span style={styles.error}>{errors.loadID}</span>}
               </div>
             </div>
             <div>
               <p style={fieldLabel}>Customer Selection</p>
-              <select name="customer" value={timesheet.customer} onChange={handleChange} style={errors.customer ? { ...styles.input, borderColor: "#ef4444" } : styles.input}>
+              <select name="customer" value={timesheet.customer} onChange={handleChange} style={errors.customer ? { ...styles.input, borderColor: "var(--t-error)" } : styles.input}>
                 <option value="">Select Customer</option>
                 {customerOptions.map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
@@ -521,7 +521,7 @@ const Timesheet: React.FC = () => {
             </div>
             <div style={{ marginTop: "14px" }}>
               <p style={fieldLabel}>Category</p>
-              <select name="category" value={timesheet.category} onChange={handleChange} style={errors.category ? { ...styles.input, borderColor: "#ef4444" } : styles.input}>
+              <select name="category" value={timesheet.category} onChange={handleChange} style={errors.category ? { ...styles.input, borderColor: "var(--t-error)" } : styles.input}>
                 <option value="">Select Category</option>
                 {categoryOptions.map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
@@ -537,53 +537,53 @@ const Timesheet: React.FC = () => {
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <span style={{ fontSize: "16px" }}>📅</span>
                 <div>
-                  <p style={{ margin: "0 0 2px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>TRIP DATE</p>
+                  <p style={{ margin: "0 0 2px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>TRIP DATE</p>
                   <input type="date" name="date" value={timesheet.date} onChange={handleChange}
-                    style={{ background: "none", border: "none", color: "#e5e7eb", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer", padding: 0 }} />
+                    style={{ background: "none", border: "none", color: "var(--t-text-secondary)", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer", padding: 0 }} />
                 </div>
               </div>
-              <button type="button" style={{ background: "none", border: "1px solid rgba(255,255,255,0.15)", color: "#9ca3af", borderRadius: "6px", padding: "4px 10px", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>EDIT</button>
+              <button type="button" style={{ background: "none", border: "1px solid var(--t-border)", color: "var(--t-text-faint)", borderRadius: "6px", padding: "4px 10px", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>EDIT</button>
             </div>
             <div style={twoCol} className="db-two-col">
               <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "12px 14px" }}>
-                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
                   <span>⏱</span> START TIME
                 </p>
                 <input type="time" name="startTime" value={timesheet.startTime} onChange={handleChange}
-                  style={{ background: "none", border: "none", color: "#e5e7eb", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
+                  style={{ background: "none", border: "none", color: "var(--t-text-secondary)", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
               </div>
               <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "12px 14px" }}>
-                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
                   <span>⏱</span> END TIME
                 </p>
                 <input type="time" name="endTime" value={timesheet.endTime} onChange={handleChange}
-                  style={{ background: "none", border: "none", color: "#e5e7eb", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
+                  style={{ background: "none", border: "none", color: "var(--t-text-secondary)", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
               </div>
               <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "12px 14px" }}>
-                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
                   <span>🚪</span> GATE OUT
                 </p>
                 <input type="time" name="gateOutTime" value={timesheet.gateOutTime} onChange={handleChange}
-                  style={{ background: "none", border: "none", color: "#e5e7eb", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
+                  style={{ background: "none", border: "none", color: "var(--t-text-secondary)", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
                 {errors.gateOutTime && <span style={styles.error}>{errors.gateOutTime}</span>}
               </div>
               <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "12px 14px" }}>
-                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
                   <span>🚪</span> GATE IN
                 </p>
                 <input type="time" name="gateInTime" value={timesheet.gateInTime} onChange={handleChange}
-                  style={{ background: "none", border: "none", color: "#e5e7eb", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
+                  style={{ background: "none", border: "none", color: "var(--t-text-secondary)", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
                 {errors.gateInTime && <span style={styles.error}>{errors.gateInTime}</span>}
               </div>
             </div>
             {/* Extra Work Sheet */}
             <div style={{ ...styles.extraWorkWrapper, marginTop: "14px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <label style={{ fontSize: "14px", fontWeight: 600, color: "#e5e7eb" }}>Extra Work Sheet?</label>
+                <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--t-text-secondary)" }}>Extra Work Sheet?</label>
                 <div style={{ display: "flex", gap: "12px" }}>
                   {["yes", "no"].map(v => (
-                    <label key={v} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: extraWorkSheet === v ? "#818CF8" : "#6b7280", cursor: "pointer", fontWeight: extraWorkSheet === v ? 700 : 500 }}>
-                      <input type="radio" name="extraWorkSheet" value={v} checked={extraWorkSheet === v} onChange={e => setExtraWorkSheet(e.target.value)} style={{ accentColor: "#4F46E5" }} />
+                    <label key={v} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: extraWorkSheet === v ? "var(--t-indigo)" : "var(--t-text-dim)", cursor: "pointer", fontWeight: extraWorkSheet === v ? 700 : 500 }}>
+                      <input type="radio" name="extraWorkSheet" value={v} checked={extraWorkSheet === v} onChange={e => setExtraWorkSheet(e.target.value)} style={{ accentColor: "var(--t-indigo)" }} />
                       {v.charAt(0).toUpperCase() + v.slice(1)}
                     </label>
                   ))}
@@ -603,7 +603,7 @@ const Timesheet: React.FC = () => {
                   </div>
                   <div>
                     <p style={fieldLabel}>Duration</p>
-                    <input type="text" style={{ ...styles.input, color: "#4b5563" }} value={extraWorkSheetDuration.duration} readOnly />
+                    <input type="text" style={{ ...styles.input, color: "var(--t-text-ghost)" }} value={extraWorkSheetDuration.duration} readOnly />
                   </div>
                   <div>
                     <p style={fieldLabel}>Comments</p>
@@ -618,26 +618,26 @@ const Timesheet: React.FC = () => {
           <div style={formSectionCard} className="db-section-card">
             <p style={sectionDivider}>Metrics &amp; Distance</p>
             <div style={twoCol} className="db-two-col">
-              <div style={{ background: "rgba(79,70,229,0.15)", border: "1px solid rgba(79,70,229,0.3)", borderRadius: "12px", padding: "16px" }}>
-                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#818CF8", letterSpacing: "0.8px" }}>TOTAL HOURS</p>
-                <p style={{ margin: 0, fontSize: "26px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.5px" }}>{totalHours}</p>
+              <div style={{ background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.3)", borderRadius: "12px", padding: "16px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-indigo)", letterSpacing: "0.8px" }}>TOTAL HOURS</p>
+                <p style={{ margin: 0, fontSize: "26px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>{totalHours}</p>
               </div>
               <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "16px" }}>
-                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>TRIP NUMBER</p>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>TRIP NUMBER</p>
                 <input type="text" name="tripNumber" value={timesheet.tripNumber} onChange={handleChange} placeholder="#TX-000"
-                  style={{ background: "none", border: "none", color: "#f9fafb", fontSize: "22px", fontWeight: 800, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
+                  style={{ background: "none", border: "none", color: "var(--t-text)", fontSize: "22px", fontWeight: 800, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
                 {errors.tripNumber && <span style={styles.error}>{errors.tripNumber}</span>}
               </div>
             </div>
             <div style={{ ...twoCol, marginTop: "14px" }} className="db-two-col">
               <div>
                 <p style={fieldLabel}>KM Start</p>
-                <input type="number" name="startKM" value={timesheet.startKM} onChange={handleChange} placeholder="45230" style={errors.startKM ? { ...styles.input, borderColor: "#ef4444" } : styles.input} />
+                <input type="number" name="startKM" value={timesheet.startKM} onChange={handleChange} placeholder="45230" style={errors.startKM ? { ...styles.input, borderColor: "var(--t-error)" } : styles.input} />
                 {errors.startKM && <span style={styles.error}>{errors.startKM}</span>}
               </div>
               <div>
                 <p style={fieldLabel}>KM End</p>
-                <input type="number" name="endKM" value={timesheet.endKM} onChange={handleChange} placeholder="45412" style={errors.endKM ? { ...styles.input, borderColor: "#ef4444" } : styles.input} />
+                <input type="number" name="endKM" value={timesheet.endKM} onChange={handleChange} placeholder="45412" style={errors.endKM ? { ...styles.input, borderColor: "var(--t-error)" } : styles.input} />
                 {errors.endKM && <span style={styles.error}>{errors.endKM}</span>}
               </div>
               <div>
@@ -656,15 +656,15 @@ const Timesheet: React.FC = () => {
             <p style={sectionDivider}>Conditions &amp; Delays</p>
             {/* Extra Delay toggle */}
             {[
-              { key: "traffic", icon: "⚠️", label: "Traffic Delay", color: "#f59e0b" },
-              { key: "store", icon: "🔧", label: "Extra Labor / Store Delay", color: "#818CF8" },
-              { key: "road", icon: "🚫", label: "Road Delay", color: "#f87171" },
-              { key: "other", icon: "📋", label: "Other Delay", color: "#34d399" },
+              { key: "traffic", icon: "⚠️", label: "Traffic Delay", color: "var(--t-warning)" },
+              { key: "store", icon: "🔧", label: "Extra Labor / Store Delay", color: "var(--t-indigo)" },
+              { key: "road", icon: "🚫", label: "Road Delay", color: "var(--t-error)" },
+              { key: "other", icon: "📋", label: "Other Delay", color: "var(--t-success)" },
             ].map(({ key, icon, label, color }) => (
-              <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "rgba(255,255,255,0.03)", border: `1px solid ${hasDelay.includes(key) ? color + "33" : "rgba(255,255,255,0.06)"}`, borderRadius: "12px", marginBottom: "10px" }}>
+              <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "var(--t-surface-alt)", border: `1px solid ${hasDelay.includes(key) ? color + "33" : "var(--t-hover-bg)"}`, borderRadius: "12px", marginBottom: "10px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                   <span style={{ width: "36px", height: "36px", borderRadius: "8px", background: `${color}1A`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }}>{icon}</span>
-                  <span style={{ fontSize: "14px", fontWeight: 600, color: "#e5e7eb" }}>{label}</span>
+                  <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--t-text-secondary)" }}>{label}</span>
                 </div>
                 <label style={{ position: "relative" as const, display: "inline-block", width: "44px", height: "24px", cursor: "pointer", flexShrink: 0 }}>
                   <input type="checkbox" checked={hasDelay.includes(key)}
@@ -675,8 +675,8 @@ const Timesheet: React.FC = () => {
                       setHasDelay(prev => e.target.checked ? [...prev, key] : prev.filter(d => d !== key));
                     }}
                     style={{ opacity: 0, width: 0, height: 0 }} />
-                  <span style={{ position: "absolute" as const, inset: 0, borderRadius: "24px", background: hasDelay.includes(key) ? color : "rgba(255,255,255,0.1)", transition: "background 0.2s" }}>
-                    <span style={{ position: "absolute" as const, width: "18px", height: "18px", borderRadius: "50%", background: "#fff", top: "3px", left: hasDelay.includes(key) ? "23px" : "3px", transition: "left 0.2s" }} />
+                  <span style={{ position: "absolute" as const, inset: 0, borderRadius: "24px", background: hasDelay.includes(key) ? color : "var(--t-border-strong)", transition: "background 0.2s" }}>
+                    <span style={{ position: "absolute" as const, width: "18px", height: "18px", borderRadius: "50%", background: "var(--t-surface)", top: "3px", left: hasDelay.includes(key) ? "23px" : "3px", transition: "left 0.2s" }} />
                   </span>
                 </label>
               </div>
@@ -691,7 +691,7 @@ const Timesheet: React.FC = () => {
                       <div><p style={fieldLabel}>From</p><input type="time" style={styles.delayInput} value={storeDelay.from} onChange={e => { const v = e.target.value; setStoreDelay(p => { const n = { ...p, from: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} /></div>
                       <div><p style={fieldLabel}>To</p><input type="time" style={styles.delayInput} value={storeDelay.to} onChange={e => { const v = e.target.value; setStoreDelay(p => { const n = { ...p, to: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} /></div>
                     </div>
-                    <div style={{ marginTop: "10px" }}><p style={fieldLabel}>Duration (auto)</p><input type="text" style={{ ...styles.delayInput, color: "#4b5563" }} value={storeDelay.duration} readOnly /></div>
+                    <div style={{ marginTop: "10px" }}><p style={fieldLabel}>Duration (auto)</p><input type="text" style={{ ...styles.delayInput, color: "var(--t-text-ghost)" }} value={storeDelay.duration} readOnly /></div>
                     <div style={{ marginTop: "10px" }}><p style={fieldLabel}>Reason</p><input type="text" style={styles.delayInput} value={storeDelay.reason} onChange={e => setStoreDelay({ ...storeDelay, reason: e.target.value })} /></div>
                   </div>
                 )}
@@ -702,7 +702,7 @@ const Timesheet: React.FC = () => {
                       <div><p style={fieldLabel}>From</p><input type="time" style={styles.delayInput} value={roadDelay.from} onChange={e => { const v = e.target.value; setRoadDelay(p => { const n = { ...p, from: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} /></div>
                       <div><p style={fieldLabel}>To</p><input type="time" style={styles.delayInput} value={roadDelay.to} onChange={e => { const v = e.target.value; setRoadDelay(p => { const n = { ...p, to: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} /></div>
                     </div>
-                    <div style={{ marginTop: "10px" }}><p style={fieldLabel}>Duration (auto)</p><input type="text" style={{ ...styles.delayInput, color: "#4b5563" }} value={roadDelay.duration} readOnly /></div>
+                    <div style={{ marginTop: "10px" }}><p style={fieldLabel}>Duration (auto)</p><input type="text" style={{ ...styles.delayInput, color: "var(--t-text-ghost)" }} value={roadDelay.duration} readOnly /></div>
                     <div style={{ marginTop: "10px" }}><p style={fieldLabel}>Reason</p><input type="text" style={styles.delayInput} value={roadDelay.reason} onChange={e => setRoadDelay({ ...roadDelay, reason: e.target.value })} /></div>
                   </div>
                 )}
@@ -713,7 +713,7 @@ const Timesheet: React.FC = () => {
                       <div><p style={fieldLabel}>From</p><input type="time" style={styles.delayInput} value={otherDelay.from} onChange={e => { const v = e.target.value; setOtherDelay(p => { const n = { ...p, from: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} /></div>
                       <div><p style={fieldLabel}>To</p><input type="time" style={styles.delayInput} value={otherDelay.to} onChange={e => { const v = e.target.value; setOtherDelay(p => { const n = { ...p, to: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} /></div>
                     </div>
-                    <div style={{ marginTop: "10px" }}><p style={fieldLabel}>Duration (auto)</p><input type="text" style={{ ...styles.delayInput, color: "#4b5563" }} value={otherDelay.duration} readOnly /></div>
+                    <div style={{ marginTop: "10px" }}><p style={fieldLabel}>Duration (auto)</p><input type="text" style={{ ...styles.delayInput, color: "var(--t-text-ghost)" }} value={otherDelay.duration} readOnly /></div>
                     <div style={{ marginTop: "10px" }}><p style={fieldLabel}>Reason</p><input type="text" style={styles.delayInput} value={otherDelay.reason} onChange={e => setOtherDelay({ ...otherDelay, reason: e.target.value })} /></div>
                   </div>
                 )}
@@ -735,12 +735,12 @@ const Timesheet: React.FC = () => {
                       <img src={URL.createObjectURL(timesheet.attachments[i]!)} alt={`Attachment ${i + 1}`}
                         style={{ width: "100%", height: "100%", objectFit: "cover" as const }} />
                       <button type="button" onClick={() => { const a = [...timesheet.attachments]; a[i] = undefined; setTimesheet(p => ({ ...p, attachments: a })); }}
-                        style={{ position: "absolute" as const, top: "6px", right: "6px", width: "22px", height: "22px", borderRadius: "50%", background: "#ef4444", border: "none", color: "#fff", fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>✕</button>
+                        style={{ position: "absolute" as const, top: "6px", right: "6px", width: "22px", height: "22px", borderRadius: "50%", background: "var(--t-error)", border: "none", color: "#fff", fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>✕</button>
                     </>
                   ) : (
                     <label style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", height: "100%", background: "rgba(255,255,255,0.04)", border: "1px dashed rgba(255,255,255,0.12)", borderRadius: "10px", cursor: "pointer", gap: "6px", minHeight: "100px" }}>
-                      <span style={{ fontSize: "22px", color: "#4b5563" }}>📷</span>
-                      <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.5px" }}>ADD PROOF</span>
+                      <span style={{ fontSize: "22px", color: "var(--t-text-ghost)" }}>📷</span>
+                      <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.5px" }}>ADD PROOF</span>
                       <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={e => handleFileChange(i, e)} style={{ display: "none" }} />
                     </label>
                   )}
@@ -760,10 +760,10 @@ const Timesheet: React.FC = () => {
       {showErrorModal && (
         <div style={styles.modalBackdrop} onClick={() => setShowErrorModal(false)}>
           <div style={styles.modalContent} onClick={e => e.stopPropagation()}>
-            <h3 style={{ fontSize: "18px", fontWeight: 700, color: "#f9fafb", marginTop: 0, marginBottom: "16px" }}>Validation Errors</h3>
+            <h3 style={{ fontSize: "18px", fontWeight: 700, color: "var(--t-text)", marginTop: 0, marginBottom: "16px" }}>Validation Errors</h3>
             <ul style={{ paddingLeft: "20px", margin: 0 }}>
               {errorMessagesList.map((msg, i) => (
-                <li key={i} style={{ color: "#f87171", fontSize: "14px", marginBottom: "6px" }}>{msg}</li>
+                <li key={i} style={{ color: "var(--t-error)", fontSize: "14px", marginBottom: "6px" }}>{msg}</li>
               ))}
             </ul>
             <button onClick={() => setShowErrorModal(false)} style={styles.modalCloseBtn}>Close</button>
@@ -776,9 +776,9 @@ const Timesheet: React.FC = () => {
 
 // ── Style constants ───────────────────────────────────────────────────────────
 const heroOuter: CSSProperties = {
-  background: "linear-gradient(135deg, #0a0f1e 0%, #0d1117 60%, #161b22 100%)",
+  background: "var(--t-surface-alt)",
   padding: "28px 40px",
-  borderBottom: "1px solid rgba(255,255,255,0.06)",
+  borderBottom: "1px solid var(--t-border)",
 };
 const heroInner: CSSProperties = {
   maxWidth: "680px",
@@ -799,13 +799,13 @@ const avatarCircle: CSSProperties = {
   justifyContent: "center",
   fontSize: "22px",
   fontWeight: 800,
-  color: "#fff",
+  color: "var(--t-surface)",
   flexShrink: 0,
 };
 const orgBadge: CSSProperties = {
-  background: "rgba(255,255,255,0.08)",
-  color: "#9ca3af",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "var(--t-border)",
+  color: "var(--t-text-faint)",
+  border: "1px solid var(--t-border)",
   borderRadius: "20px",
   padding: "3px 12px",
   fontSize: "12px",
@@ -813,7 +813,7 @@ const orgBadge: CSSProperties = {
 };
 const activeBadge: CSSProperties = {
   background: "rgba(16,185,129,0.15)",
-  color: "#34d399",
+  color: "var(--t-success)",
   border: "1px solid rgba(16,185,129,0.3)",
   borderRadius: "20px",
   padding: "3px 12px",
@@ -821,9 +821,9 @@ const activeBadge: CSSProperties = {
   fontWeight: 600,
 };
 const inactiveBadge: CSSProperties = {
-  background: "rgba(239,68,68,0.15)",
-  color: "#f87171",
-  border: "1px solid rgba(239,68,68,0.25)",
+  background: "var(--t-error-bg)",
+  color: "var(--t-error)",
+  border: "1px solid var(--t-border)",
   borderRadius: "20px",
   padding: "3px 12px",
   fontSize: "12px",
@@ -832,10 +832,10 @@ const inactiveBadge: CSSProperties = {
 const sectionDivider: CSSProperties = {
   fontSize: "10px",
   fontWeight: 700,
-  color: "#4b5563",
+  color: "var(--t-text-ghost)",
   textTransform: "uppercase" as const,
   letterSpacing: "1px",
-  borderBottom: "1px solid rgba(255,255,255,0.06)",
+  borderBottom: "1px solid var(--t-border)",
   paddingBottom: "10px",
   marginTop: 0,
   marginBottom: "16px",
@@ -844,7 +844,7 @@ const fieldLabel: CSSProperties = {
   margin: "0 0 6px",
   fontSize: "9px",
   fontWeight: 700,
-  color: "#4b5563",
+  color: "var(--t-text-ghost)",
   letterSpacing: "0.8px",
   textTransform: "uppercase" as const,
 };
@@ -855,9 +855,9 @@ const twoCol: CSSProperties = {
   alignItems: "start",
 };
 const formSectionCard: CSSProperties = {
-  background: "#161b22",
+  background: "var(--t-surface)",
   borderRadius: "16px",
-  border: "1px solid rgba(255,255,255,0.07)",
+  border: "1px solid var(--t-border)",
   padding: "20px",
 };
 
@@ -866,7 +866,7 @@ const styles: { [key: string]: CSSProperties } = {
     display: "flex",
     flexDirection: "column" as const,
     minHeight: "100vh",
-    backgroundColor: "#0d1117",
+    backgroundColor: "var(--t-bg)",
     fontFamily: "Inter, system-ui, sans-serif",
   },
   mainContent: {
@@ -885,13 +885,13 @@ const styles: { [key: string]: CSSProperties } = {
     display: "block",
     fontWeight: 600,
     fontSize: "13px",
-    color: "#6b7280",
+    color: "var(--t-text-dim)",
     marginBottom: "6px",
   },
   sectionLabel: {
     fontWeight: 700,
     fontSize: "14px",
-    color: "#e5e7eb",
+    color: "var(--t-text-secondary)",
     marginBottom: "4px",
   },
   radioLabel: {
@@ -899,7 +899,7 @@ const styles: { [key: string]: CSSProperties } = {
     alignItems: "center",
     gap: "6px",
     fontSize: "14px",
-    color: "#9ca3af",
+    color: "var(--t-text-faint)",
     cursor: "pointer",
   },
   input: {
@@ -909,9 +909,9 @@ const styles: { [key: string]: CSSProperties } = {
     padding: "10px 12px",
     fontSize: "14px",
     borderRadius: "8px",
-    border: "1px solid rgba(255,255,255,0.1)",
-    backgroundColor: "rgba(255,255,255,0.05)",
-    color: "#e5e7eb",
+    border: "1px solid var(--t-input-border)",
+    backgroundColor: "var(--t-input-bg)",
+    color: "var(--t-text-secondary)",
     fontFamily: "Inter, system-ui, sans-serif",
   },
   textarea: {
@@ -921,31 +921,31 @@ const styles: { [key: string]: CSSProperties } = {
     padding: "12px",
     fontSize: "14px",
     borderRadius: "10px",
-    border: "1px solid rgba(255,255,255,0.08)",
-    backgroundColor: "rgba(255,255,255,0.04)",
-    color: "#9ca3af",
+    border: "1px solid var(--t-border)",
+    backgroundColor: "var(--t-input-bg)",
+    color: "var(--t-text-faint)",
     height: "100px",
     resize: "vertical" as const,
     fontFamily: "Inter, system-ui, sans-serif",
   },
   extraWorkWrapper: {
-    border: "1px solid rgba(255,255,255,0.07)",
+    border: "1px solid var(--t-border)",
     borderRadius: "12px",
     padding: "14px 16px",
-    backgroundColor: "rgba(255,255,255,0.02)",
+    backgroundColor: "var(--t-stripe)",
   },
   delaySection: {
-    border: "1px solid rgba(255,255,255,0.07)",
+    border: "1px solid var(--t-border)",
     borderRadius: "12px",
     padding: "16px",
     marginBottom: "12px",
-    backgroundColor: "rgba(255,255,255,0.02)",
+    backgroundColor: "var(--t-stripe)",
     marginTop: "8px",
   },
   delaySectionTitle: {
     fontSize: "12px",
     fontWeight: 700,
-    color: "#9ca3af",
+    color: "var(--t-text-faint)",
     marginTop: 0,
     marginBottom: "12px",
     textTransform: "uppercase" as const,
@@ -959,13 +959,13 @@ const styles: { [key: string]: CSSProperties } = {
   },
   delayInput: {
     padding: "10px 12px",
-    border: "1px solid rgba(255,255,255,0.1)",
+    border: "1px solid var(--t-input-border)",
     borderRadius: "8px",
     fontSize: "14px",
     width: "100%",
     boxSizing: "border-box" as const,
-    backgroundColor: "rgba(255,255,255,0.05)",
-    color: "#e5e7eb",
+    backgroundColor: "var(--t-input-bg)",
+    color: "var(--t-text-secondary)",
     fontFamily: "Inter, system-ui, sans-serif",
   },
   submitButton: {
@@ -984,7 +984,7 @@ const styles: { [key: string]: CSSProperties } = {
     fontFamily: "Inter, system-ui, sans-serif",
   },
   error: {
-    color: "#f87171",
+    color: "var(--t-error)",
     fontSize: "12px",
     marginTop: "4px",
     display: "block",
@@ -992,7 +992,7 @@ const styles: { [key: string]: CSSProperties } = {
   modalBackdrop: {
     position: "fixed" as const,
     top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.7)",
+    backgroundColor: "var(--t-modal-overlay)",
     backdropFilter: "blur(6px)",
     display: "flex",
     justifyContent: "center",
@@ -1000,18 +1000,18 @@ const styles: { [key: string]: CSSProperties } = {
     zIndex: 1000,
   },
   modalContent: {
-    backgroundColor: "#161b22",
-    border: "1px solid rgba(255,255,255,0.1)",
+    backgroundColor: "var(--t-surface)",
+    border: "1px solid var(--t-border)",
     padding: "28px",
     borderRadius: "16px",
     width: "80%",
     maxWidth: "460px",
-    boxShadow: "0 16px 40px rgba(0,0,0,0.4)",
+    boxShadow: "var(--t-shadow-lg)",
   },
   modalCloseBtn: {
     marginTop: "20px",
     padding: "10px 24px",
-    backgroundColor: "#4F46E5",
+    backgroundColor: "var(--t-accent)",
     color: "#fff",
     border: "none",
     borderRadius: "8px",

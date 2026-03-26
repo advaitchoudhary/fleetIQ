@@ -160,7 +160,7 @@ const FuelLogs: React.FC = () => {
   });
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
       <Navbar />
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
@@ -185,31 +185,31 @@ const FuelLogs: React.FC = () => {
         {/* Summary Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" }}>
           {[
-            { label: "Total Entries", value: logs.length.toString(), color: "#4F46E5" },
-            { label: "Total Litres", value: `${totalLitres.toFixed(0)} L`, color: "#0891b2" },
-            { label: "Total Fuel Cost", value: `$${totalSpent.toFixed(2)}`, color: "#dc2626" },
-            { label: "Vehicles Tracked", value: new Set(logs.map((l) => l.vehicleId?._id || l.vehicleId)).size.toString(), color: "#7c3aed" },
+            { label: "Total Entries", value: logs.length.toString(), color: "var(--t-indigo)" },
+            { label: "Total Litres", value: `${totalLitres.toFixed(0)} L`, color: "var(--t-info)" },
+            { label: "Total Fuel Cost", value: `$${totalSpent.toFixed(2)}`, color: "var(--t-error)" },
+            { label: "Vehicles Tracked", value: new Set(logs.map((l) => l.vehicleId?._id || l.vehicleId)).size.toString(), color: "var(--t-accent)" },
           ].map((s) => (
             <div key={s.label} style={styles.statCard}>
               <div style={{ fontSize: "22px", fontWeight: 700, color: s.color }}>{s.value}</div>
-              <div style={{ fontSize: "13px", color: "#6b7280", marginTop: "4px" }}>{s.label}</div>
+              <div style={{ fontSize: "13px", color: "var(--t-text-dim)", marginTop: "4px" }}>{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* Per-Vehicle Stats */}
         {stats.length > 0 && (
-          <div style={{ background: "#161b22", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.07)", padding: "20px", marginBottom: "20px", boxShadow: "0 1px 3px rgba(0,0,0,0.3)" }}>
-            <h3 style={{ margin: "0 0 16px", fontSize: "15px", fontWeight: 700, color: "#e5e7eb" }}>Fuel Efficiency by Vehicle</h3>
+          <div style={{ background: "var(--t-surface)", borderRadius: "12px", border: "1px solid var(--t-border)", padding: "20px", marginBottom: "20px", boxShadow: "0 1px 3px rgba(0,0,0,0.3)" }}>
+            <h3 style={{ margin: "0 0 16px", fontSize: "15px", fontWeight: 700, color: "var(--t-text-secondary)" }}>Fuel Efficiency by Vehicle</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "12px" }}>
               {stats.map((s: any) => (
-                <div key={s.vehicleId} style={{ background: "rgba(255,255,255,0.03)", borderRadius: "8px", padding: "14px", border: "1px solid rgba(255,255,255,0.07)" }}>
-                  <div style={{ fontWeight: 700, fontSize: "14px", color: "#e5e7eb", marginBottom: "8px" }}>{vehicleMap[s.vehicleId] || s.vehicleId}</div>
-                  <div style={{ fontSize: "12px", color: "#9ca3af", display: "flex", flexDirection: "column", gap: "3px" }}>
+                <div key={s.vehicleId} style={{ background: "var(--t-surface-alt)", borderRadius: "8px", padding: "14px", border: "1px solid var(--t-border)" }}>
+                  <div style={{ fontWeight: 700, fontSize: "14px", color: "var(--t-text-secondary)", marginBottom: "8px" }}>{vehicleMap[s.vehicleId] || s.vehicleId}</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-faint)", display: "flex", flexDirection: "column", gap: "3px" }}>
                     <span>Fill-ups: {s.fillUps ?? s.totalFillUps}</span>
                     <span>Total: {s.totalLitres?.toFixed(1)} L</span>
                     <span>Spent: ${s.totalCost?.toFixed(2)}</span>
-                    {s.avgL100km > 0 && <span style={{ color: "#818CF8", fontWeight: 600 }}>{s.avgL100km?.toFixed(1)} L/100km</span>}
+                    {s.avgL100km > 0 && <span style={{ color: "var(--t-indigo)", fontWeight: 600 }}>{s.avgL100km?.toFixed(1)} L/100km</span>}
                   </div>
                 </div>
               ))}
@@ -220,7 +220,7 @@ const FuelLogs: React.FC = () => {
         {/* Filters */}
         <div style={{ display: "flex", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
           <div style={{ position: "relative", flex: "1", minWidth: "220px" }}>
-            <FaSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af" }} />
+            <FaSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--t-text-faint)" }} />
             <input placeholder="Search by vehicle, station, city..." value={searchText} onChange={(e) => setSearchText(e.target.value)} style={{ ...styles.input, paddingLeft: "36px" }} />
           </div>
           <select value={filterVehicle} onChange={(e) => setFilterVehicle(e.target.value)} style={{ ...styles.input, maxWidth: "180px" }}>
@@ -232,9 +232,9 @@ const FuelLogs: React.FC = () => {
         {/* Table */}
         <div style={styles.tableContainer}>
           {loading ? (
-            <div style={{ padding: "40px", textAlign: "center", color: "#6b7280" }}>Loading fuel logs...</div>
+            <div style={{ padding: "40px", textAlign: "center", color: "var(--t-text-dim)" }}>Loading fuel logs...</div>
           ) : filtered.length === 0 ? (
-            <div style={{ padding: "40px", textAlign: "center", color: "#6b7280" }}>
+            <div style={{ padding: "40px", textAlign: "center", color: "var(--t-text-dim)" }}>
               {logs.length === 0 ? "No fuel logs yet. Log your first fill-up." : "No logs match your filters."}
             </div>
           ) : (
@@ -252,16 +252,16 @@ const FuelLogs: React.FC = () => {
                   return (
                     <tr key={l._id} style={styles.tr}>
                       <td style={styles.td}>{l.date ? new Date(l.date).toLocaleDateString(undefined, { timeZone: "UTC" }) : "—"}</td>
-                      <td style={{ ...styles.td, fontWeight: 600, color: "#e5e7eb" }}>{vehicleMap[vId] || "—"}</td>
+                      <td style={{ ...styles.td, fontWeight: 600, color: "var(--t-text-secondary)" }}>{vehicleMap[vId] || "—"}</td>
                       <td style={styles.td}>{l.odometer != null ? `${l.odometer.toLocaleString()} km` : "—"}</td>
                       <td style={styles.td}>{l.litres?.toFixed(1)} L</td>
                       <td style={styles.td}>${l.pricePerLitre?.toFixed(3)}</td>
-                      <td style={{ ...styles.td, fontWeight: 600, color: "#fca5a5" }}>${l.totalCost?.toFixed(2)}</td>
+                      <td style={{ ...styles.td, fontWeight: 600, color: "var(--t-error)" }}>${l.totalCost?.toFixed(2)}</td>
                       <td style={styles.td}>{[l.fuelStation, l.city].filter(Boolean).join(", ") || "—"}</td>
                       <td style={styles.td}>
                         <div style={{ display: "flex", gap: "8px" }}>
                           <button onClick={() => openEditModal(l)} style={styles.iconBtn} title="Edit"><FaEdit size={14} /></button>
-                          <button onClick={() => { setSelectedLog(l); setIsDeleteModalOpen(true); }} style={{ ...styles.iconBtn, color: "#dc2626" }} title="Delete"><FaTrashAlt size={14} /></button>
+                          <button onClick={() => { setSelectedLog(l); setIsDeleteModalOpen(true); }} style={{ ...styles.iconBtn, color: "var(--t-error)" }} title="Delete"><FaTrashAlt size={14} /></button>
                         </div>
                       </td>
                     </tr>
@@ -313,7 +313,7 @@ const FuelLogs: React.FC = () => {
               </div>
               <div>
                 <label style={styles.label}>Estimated Total</label>
-                <div style={{ padding: "9px 12px", background: "rgba(255,255,255,0.03)", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.07)", fontSize: "14px", fontWeight: 600, color: "#818CF8" }}>
+                <div style={{ padding: "9px 12px", background: "var(--t-surface-alt)", borderRadius: "8px", border: "1px solid var(--t-border)", fontSize: "14px", fontWeight: 600, color: "var(--t-indigo)" }}>
                   {form.litres && form.pricePerLitre ? `$${(Number(form.litres) * Number(form.pricePerLitre)).toFixed(2)}` : "—"}
                 </div>
               </div>
@@ -345,12 +345,12 @@ const FuelLogs: React.FC = () => {
         <div style={styles.overlay}>
           <div style={{ ...styles.modal, maxWidth: "420px" }}>
             <h2 style={styles.modalTitle}>Delete Fuel Log</h2>
-            <p style={{ color: "#d1d5db", marginBottom: "24px" }}>
+            <p style={{ color: "var(--t-text-muted)", marginBottom: "24px" }}>
               Delete this fuel entry for <strong>{vehicleMap[selectedLog.vehicleId?._id || selectedLog.vehicleId]}</strong> on {selectedLog.date ? new Date(selectedLog.date).toLocaleDateString(undefined, { timeZone: "UTC" }) : ""}?
             </p>
             <div style={styles.modalActions}>
               <button onClick={() => setIsDeleteModalOpen(false)} style={styles.secondaryBtn}>Cancel</button>
-              <button onClick={handleDelete} style={{ ...styles.primaryBtn, background: "#dc2626" }}>Delete</button>
+              <button onClick={handleDelete} style={{ ...styles.primaryBtn, background: "var(--t-error)" }}>Delete</button>
             </div>
           </div>
         </div>
@@ -360,21 +360,21 @@ const FuelLogs: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  primaryBtn: { background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" },
-  secondaryBtn: { background: "rgba(255,255,255,0.06)", color: "#9ca3af", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 500, cursor: "pointer" },
-  iconBtn: { background: "rgba(255,255,255,0.06)", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "#9ca3af", display: "flex", alignItems: "center" },
-  statCard: { background: "#161b22", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.07)", padding: "20px", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
-  tableContainer: { background: "#161b22", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.07)", overflow: "hidden", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
+  primaryBtn: { background: "var(--t-accent)", color: "#fff", border: "none", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" },
+  secondaryBtn: { background: "var(--t-hover-bg)", color: "var(--t-text-faint)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 500, cursor: "pointer" },
+  iconBtn: { background: "var(--t-hover-bg)", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "var(--t-text-faint)", display: "flex", alignItems: "center" },
+  statCard: { background: "var(--t-surface)", borderRadius: "12px", border: "1px solid var(--t-border)", padding: "20px", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
+  tableContainer: { background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", overflow: "hidden", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
   table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
-  tableHeaderRow: { background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.08)" },
-  th: { padding: "13px 16px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "#818CF8", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
-  tr: { borderBottom: "1px solid rgba(255,255,255,0.05)" },
-  td: { padding: "14px 16px", color: "#d1d5db", verticalAlign: "middle" },
-  input: { width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.1)", fontSize: "14px", color: "#e5e7eb", background: "rgba(255,255,255,0.05)", outline: "none", boxSizing: "border-box" },
-  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "#4b5563", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
-  overlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "16px" },
-  modal: { background: "#161b22", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "620px", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.08)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "#f3f4f6" },
+  tableHeaderRow: { background: "var(--t-surface-alt)", borderBottom: "1px solid var(--t-border)" },
+  th: { padding: "13px 16px", textAlign: "left", fontSize: "10px", fontWeight: 700, color: "var(--t-indigo)", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
+  tr: { borderBottom: "1px solid var(--t-stripe)" },
+  td: { padding: "14px 16px", color: "var(--t-text-muted)", verticalAlign: "middle" },
+  input: { width: "100%", padding: "9px 12px", borderRadius: "8px", border: "1px solid var(--t-border-strong)", fontSize: "14px", color: "var(--t-text-secondary)", background: "var(--t-input-bg)", outline: "none", boxSizing: "border-box" },
+  label: { display: "block", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" },
+  overlay: { position: "fixed", inset: 0, background: "var(--t-modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "16px" },
+  modal: { background: "var(--t-surface)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "620px", maxHeight: "90vh", overflowY: "auto", boxShadow: "var(--t-shadow-lg)", border: "1px solid var(--t-border)" },
+  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "var(--t-text)" },
   formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" },
   modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
 };

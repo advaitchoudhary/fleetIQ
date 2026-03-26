@@ -101,7 +101,7 @@ const Profile: React.FC = () => {
   }, [driver]);
 
   if (!driver) {
-    return <p style={{ padding: "40px", textAlign: "center", color: "#9ca3af", fontFamily: "Inter, system-ui, sans-serif" }}>No driver data available.</p>;
+    return <p style={{ padding: "40px", textAlign: "center", color: "var(--t-text-faint)", fontFamily: "Inter, system-ui, sans-serif" }}>No driver data available.</p>;
   }
 
   const getInitials = (name: string) => {
@@ -115,17 +115,17 @@ const Profile: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
       <Navbar />
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 40px" }}>
         {/* Back button */}
         <button onClick={() => navigate(-1)}
-          style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 16px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#9ca3af", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", marginBottom: "24px" }}>
+          style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 16px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-faint)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", marginBottom: "24px" }}>
           <FaArrowLeft size={11} /> Back
         </button>
 
         {/* Profile Header */}
-        <div style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "28px 32px", display: "flex", alignItems: "flex-start", gap: "28px", marginBottom: "20px" }}>
+        <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "28px 32px", display: "flex", alignItems: "flex-start", gap: "28px", marginBottom: "20px" }}>
           <div style={{ position: "relative" as const, flexShrink: 0 }}>
             {driver.image ? (
               <img src={driver.image} alt="Profile"
@@ -135,24 +135,24 @@ const Profile: React.FC = () => {
                 {getInitials(driver.name)}
               </div>
             )}
-            <div style={{ position: "absolute" as const, bottom: "-8px", right: "-8px", background: "#161b22", borderRadius: "50%", padding: "2px", border: "1px solid rgba(255,255,255,0.1)" }}>
-              <FaCheckCircle size={14} color="#10b981" />
+            <div style={{ position: "absolute" as const, bottom: "-8px", right: "-8px", background: "var(--t-surface)", borderRadius: "50%", padding: "2px", border: "1px solid var(--t-border)" }}>
+              <FaCheckCircle size={14} color="var(--t-success)" />
             </div>
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px" }}>
-              <h1 style={{ margin: 0, fontSize: "26px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.3px" }}>{driver.name}</h1>
-              <span style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, background: "rgba(16,185,129,0.15)", color: "#34d399", border: "1px solid rgba(16,185,129,0.25)", letterSpacing: "0.5px" }}>
+              <h1 style={{ margin: 0, fontSize: "26px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.3px" }}>{driver.name}</h1>
+              <span style={{ padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, background: "rgba(16,185,129,0.15)", color: "var(--t-success)", border: "1px solid rgba(16,185,129,0.25)", letterSpacing: "0.5px" }}>
                 {(driver.status || "ACTIVE").toUpperCase()}
               </span>
             </div>
-            <p style={{ margin: "0 0 4px", fontSize: "13px", color: "#9ca3af", maxWidth: "520px" }}>
+            <p style={{ margin: "0 0 4px", fontSize: "13px", color: "var(--t-text-faint)", maxWidth: "520px" }}>
               {driver.workStatus ? `Work Authorization: ${driver.workStatus}` : "Professional Driver"}{driver.address ? ` · ${driver.address}` : ""}
             </p>
-            <p style={{ margin: "0 0 14px", fontSize: "12px", color: "#4b5563" }}>Driver ID: #OP-{String(driver._id || "").slice(-6).toUpperCase()}</p>
+            <p style={{ margin: "0 0 14px", fontSize: "12px", color: "var(--t-text-ghost)" }}>Driver ID: #OP-{String(driver._id || "").slice(-6).toUpperCase()}</p>
             <div style={{ display: "flex", gap: "20px" }}>
-              <span style={{ fontSize: "13px", color: "#9ca3af" }}>⭐ {driver.backhaulRate ? `$${driver.backhaulRate}/km backhaul` : "Rate configured"}</span>
-              <span style={{ fontSize: "13px", color: "#9ca3af" }}>🚗 {driver.licence ? `Licence ${driver.licence}` : "Licence on file"}</span>
+              <span style={{ fontSize: "13px", color: "var(--t-text-faint)" }}>⭐ {driver.backhaulRate ? `$${driver.backhaulRate}/km backhaul` : "Rate configured"}</span>
+              <span style={{ fontSize: "13px", color: "var(--t-text-faint)" }}>🚗 {driver.licence ? `Licence ${driver.licence}` : "Licence on file"}</span>
             </div>
           </div>
         </div>
@@ -161,10 +161,10 @@ const Profile: React.FC = () => {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1.6fr", gap: "20px", marginBottom: "20px" }}>
 
           {/* Driver Metadata */}
-          <div style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "24px" }}>
+          <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "24px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
-              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px" }}>DRIVER METADATA</p>
-              <span style={{ fontSize: "14px", color: "#6b7280" }}>ℹ</span>
+              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>DRIVER METADATA</p>
+              <span style={{ fontSize: "14px", color: "var(--t-text-dim)" }}>ℹ</span>
             </div>
             {([
               ["EMAIL ADDRESS", driver.email],
@@ -174,21 +174,21 @@ const Profile: React.FC = () => {
               ["BUSINESS NAME", driver.business_name || "N/A"],
             ] as [string, string][]).map(([label, value]) => (
               <div key={label} style={{ marginBottom: "18px" }}>
-                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>{label}</p>
-                <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "#e5e7eb" }}>{value}</p>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>{label}</p>
+                <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "var(--t-text-secondary)" }}>{value}</p>
               </div>
             ))}
-            <p style={{ margin: "0 0 8px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>SYSTEM STATUS</p>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px" }}>
-              <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: driver.status === "Active" ? "#10b981" : "#f59e0b", display: "inline-block" }} />
-              <span style={{ fontSize: "13px", color: "#9ca3af", fontWeight: 500 }}>{driver.status === "Active" ? "Live Telemetry Connected" : `Status: ${driver.status || "Unknown"}`}</span>
+            <p style={{ margin: "0 0 8px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>SYSTEM STATUS</p>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "8px 14px", background: "var(--t-hover-bg)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "8px" }}>
+              <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: driver.status === "Active" ? "var(--t-success)" : "var(--t-warning)", display: "inline-block" }} />
+              <span style={{ fontSize: "13px", color: "var(--t-text-faint)", fontWeight: 500 }}>{driver.status === "Active" ? "Live Telemetry Connected" : `Status: ${driver.status || "Unknown"}`}</span>
             </div>
           </div>
 
           {/* Rate & Compensation */}
-          <div style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "24px" }}>
+          <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "24px" }}>
             <div style={{ marginBottom: "20px" }}>
-              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px" }}>RATE &amp; COMPENSATION SCHEDULE</p>
+              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>RATE &amp; COMPENSATION SCHEDULE</p>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
               {([
@@ -199,22 +199,22 @@ const Profile: React.FC = () => {
                 ["WHOLESALE", driver.wholesaleRate, "/km"],
                 ["VOILA", driver.voilaRate, "/km"],
               ] as [string, number | undefined, string][]).map(([label, value, unit]) => (
-                <div key={label} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", padding: "14px" }}>
-                  <p style={{ margin: "0 0 6px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.6px" }}>{label}</p>
+                <div key={label} style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "14px" }}>
+                  <p style={{ margin: "0 0 6px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.6px" }}>{label}</p>
                   {value ? (
-                    <p style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "#f9fafb" }}>
-                      ${value}<span style={{ fontSize: "12px", fontWeight: 500, color: "#6b7280" }}>{unit}</span>
+                    <p style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>
+                      ${value}<span style={{ fontSize: "12px", fontWeight: 500, color: "var(--t-text-dim)" }}>{unit}</span>
                     </p>
                   ) : (
-                    <p style={{ margin: 0, fontSize: "13px", color: "#4b5563", fontWeight: 500 }}>Not set</p>
+                    <p style={{ margin: 0, fontSize: "13px", color: "var(--t-text-ghost)", fontWeight: 500 }}>Not set</p>
                   )}
                 </div>
               ))}
             </div>
             {driver.tcsLinehaulTrentonRate && (
-              <div style={{ marginTop: "10px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", padding: "14px" }}>
-                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.6px" }}>TCS LINEHAUL TRENTON</p>
-                <p style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "#f9fafb" }}>${driver.tcsLinehaulTrentonRate}<span style={{ fontSize: "12px", fontWeight: 500, color: "#6b7280" }}>/km</span></p>
+              <div style={{ marginTop: "10px", background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "14px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.6px" }}>TCS LINEHAUL TRENTON</p>
+                <p style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>${driver.tcsLinehaulTrentonRate}<span style={{ fontSize: "12px", fontWeight: 500, color: "var(--t-text-dim)" }}>/km</span></p>
               </div>
             )}
           </div>
@@ -224,24 +224,24 @@ const Profile: React.FC = () => {
         <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: "20px", marginBottom: "20px" }}>
 
           {/* Safety & Training Compliance */}
-          <div style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "24px" }}>
+          <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "24px" }}>
             {(() => {
               const completedCount = ALL_TRAININGS.filter((name) => isCompleted(name)).length;
               const progress = Math.round((completedCount / ALL_TRAININGS.length) * 100);
               return (
                 <>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-                    <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px" }}>SAFETY &amp; TRAINING COMPLIANCE</p>
+                    <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>SAFETY &amp; TRAINING COMPLIANCE</p>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <span style={{ fontSize: "12px", color: "#6b7280" }}>Progress</span>
-                      <span style={{ fontSize: "13px", fontWeight: 700, color: "#818CF8" }}>{progress}%</span>
+                      <span style={{ fontSize: "12px", color: "var(--t-text-dim)" }}>Progress</span>
+                      <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--t-indigo)" }}>{progress}%</span>
                       <button onClick={saveTrainings} disabled={trainingSaving}
-                        style={{ padding: "5px 12px", background: trainingSaved ? "rgba(16,185,129,0.15)" : "rgba(79,70,229,0.15)", border: `1px solid ${trainingSaved ? "rgba(16,185,129,0.3)" : "rgba(79,70,229,0.3)"}`, borderRadius: "6px", color: trainingSaved ? "#34d399" : "#818CF8", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                        style={{ padding: "5px 12px", background: trainingSaved ? "rgba(16,185,129,0.15)" : "var(--t-indigo-bg)", border: `1px solid ${trainingSaved ? "rgba(16,185,129,0.3)" : "rgba(79,70,229,0.3)"}`, borderRadius: "6px", color: trainingSaved ? "var(--t-success)" : "var(--t-indigo)", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
                         {trainingSaved ? "Saved!" : trainingSaving ? "Saving…" : "Save"}
                       </button>
                     </div>
                   </div>
-                  <div style={{ height: "4px", background: "rgba(255,255,255,0.06)", borderRadius: "4px", marginBottom: "16px", overflow: "hidden" }}>
+                  <div style={{ height: "4px", background: "var(--t-hover-bg)", borderRadius: "4px", marginBottom: "16px", overflow: "hidden" }}>
                     <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg,#4F46E5,#818CF8)", borderRadius: "4px" }} />
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -250,29 +250,29 @@ const Profile: React.FC = () => {
                       const done = !!entry?.proofDocument;
                       const marked = !!entry;
                       return (
-                        <div key={name} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "11px 14px", background: "rgba(255,255,255,0.03)", border: `1px solid ${done ? "rgba(16,185,129,0.2)" : marked ? "rgba(79,70,229,0.2)" : "rgba(255,255,255,0.06)"}`, borderRadius: "10px" }}>
+                        <div key={name} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "11px 14px", background: "var(--t-surface-alt)", border: `1px solid ${done ? "rgba(16,185,129,0.2)" : marked ? "rgba(79,70,229,0.2)" : "var(--t-hover-bg)"}`, borderRadius: "10px" }}>
                           <button onClick={() => toggleTraining(name)}
-                            style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: done ? "#10b981" : marked ? "#4F46E5" : "#374151", flexShrink: 0 }}>
+                            style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: done ? "var(--t-success)" : marked ? "var(--t-indigo)" : "var(--t-text-muted)", flexShrink: 0 }}>
                             {done || marked ? <FaCheckCircle size={17} /> : <FaRegCircle size={17} />}
                           </button>
                           <div style={{ flex: 1 }}>
-                            <p style={{ margin: "0 0 1px", fontSize: "13px", fontWeight: 600, color: done ? "#d1fae5" : marked ? "#e5e7eb" : "#6b7280" }}>{name}</p>
-                            <p style={{ margin: 0, fontSize: "11px", color: "#4b5563" }}>{done ? "Completed" : marked ? "In progress" : "Not started"}</p>
+                            <p style={{ margin: "0 0 1px", fontSize: "13px", fontWeight: 600, color: done ? "var(--t-success)" : marked ? "var(--t-text-secondary)" : "var(--t-text-dim)" }}>{name}</p>
+                            <p style={{ margin: 0, fontSize: "11px", color: "var(--t-text-ghost)" }}>{done ? "Completed" : marked ? "In progress" : "Not started"}</p>
                           </div>
                           {marked && !done && (
-                            <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "#818CF8", background: "rgba(79,70,229,0.12)", padding: "5px 10px", borderRadius: "6px", cursor: "pointer", border: "1px solid rgba(79,70,229,0.2)", whiteSpace: "nowrap" as const }}>
+                            <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "var(--t-indigo)", background: "var(--t-indigo-bg)", padding: "5px 10px", borderRadius: "6px", cursor: "pointer", border: "1px solid rgba(79,70,229,0.2)", whiteSpace: "nowrap" as const }}>
                               <FaUpload size={9} /> Upload
                               <input type="file" accept="image/*,.pdf" style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) handleProofUpload(name, e.target.files[0]); }} />
                             </label>
                           )}
                           {done && entry?.proofDocument && (
                             <a href={`${API_BASE_URL.replace("/api", "")}/${entry.proofDocument}`} target="_blank" rel="noopener noreferrer"
-                              style={{ fontSize: "11px", fontWeight: 600, color: "#34d399", background: "rgba(16,185,129,0.1)", padding: "5px 10px", borderRadius: "6px", textDecoration: "none", border: "1px solid rgba(16,185,129,0.2)", whiteSpace: "nowrap" as const }}>
+                              style={{ fontSize: "11px", fontWeight: 600, color: "var(--t-success)", background: "rgba(16,185,129,0.1)", padding: "5px 10px", borderRadius: "6px", textDecoration: "none", border: "1px solid rgba(16,185,129,0.2)", whiteSpace: "nowrap" as const }}>
                               View Proof
                             </a>
                           )}
                           {!marked && (
-                            <span style={{ fontSize: "10px", fontWeight: 700, color: "#4b5563", background: "rgba(255,255,255,0.04)", padding: "4px 9px", borderRadius: "20px", border: "1px solid rgba(255,255,255,0.07)", whiteSpace: "nowrap" as const }}>PENDING</span>
+                            <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", background: "var(--t-hover-bg)", padding: "4px 9px", borderRadius: "20px", border: "1px solid var(--t-border)", whiteSpace: "nowrap" as const }}>PENDING</span>
                           )}
                         </div>
                       );
@@ -284,38 +284,38 @@ const Profile: React.FC = () => {
           </div>
 
           {/* Financial Settlement */}
-          <div style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "24px" }}>
+          <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "24px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
-              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px" }}>FINANCIAL SETTLEMENT</p>
+              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>FINANCIAL SETTLEMENT</p>
               <span style={{ fontSize: "20px" }}>🏦</span>
             </div>
             {driver.bankDetails ? (
               <>
-                <p style={{ margin: "0 0 12px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>DIRECT DEPOSIT ACCOUNT</p>
-                <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "10px", padding: "16px", marginBottom: "14px" }}>
-                  <p style={{ margin: "0 0 3px", fontSize: "11px", color: "#6b7280" }}>Bank Name</p>
-                  <p style={{ margin: "0 0 14px", fontSize: "15px", fontWeight: 700, color: "#f9fafb" }}>{driver.bankDetails.bankName || "N/A"}</p>
-                  <p style={{ margin: "0 0 3px", fontSize: "11px", color: "#6b7280" }}>Account Number</p>
-                  <p style={{ margin: "0 0 14px", fontSize: "15px", fontWeight: 700, color: "#f9fafb", letterSpacing: "2px" }}>
+                <p style={{ margin: "0 0 12px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>DIRECT DEPOSIT ACCOUNT</p>
+                <div style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "16px", marginBottom: "14px" }}>
+                  <p style={{ margin: "0 0 3px", fontSize: "11px", color: "var(--t-text-dim)" }}>Bank Name</p>
+                  <p style={{ margin: "0 0 14px", fontSize: "15px", fontWeight: 700, color: "var(--t-text)" }}>{driver.bankDetails.bankName || "N/A"}</p>
+                  <p style={{ margin: "0 0 3px", fontSize: "11px", color: "var(--t-text-dim)" }}>Account Number</p>
+                  <p style={{ margin: "0 0 14px", fontSize: "15px", fontWeight: 700, color: "var(--t-text)", letterSpacing: "2px" }}>
                     {driver.bankDetails.accountNumber ? `•••• •••• ${String(driver.bankDetails.accountNumber).slice(-4)}` : "N/A"}
                   </p>
                   {driver.bankDetails.transitNumber && (
                     <>
-                      <p style={{ margin: "0 0 3px", fontSize: "11px", color: "#6b7280" }}>Transit Number</p>
-                      <p style={{ margin: "0 0 14px", fontSize: "15px", fontWeight: 700, color: "#f9fafb" }}>{driver.bankDetails.transitNumber}</p>
+                      <p style={{ margin: "0 0 3px", fontSize: "11px", color: "var(--t-text-dim)" }}>Transit Number</p>
+                      <p style={{ margin: "0 0 14px", fontSize: "15px", fontWeight: 700, color: "var(--t-text)" }}>{driver.bankDetails.transitNumber}</p>
                     </>
                   )}
                   {driver.bankDetails.institutionNumber && (
                     <>
-                      <p style={{ margin: "0 0 3px", fontSize: "11px", color: "#6b7280" }}>Institution Number</p>
-                      <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#f9fafb" }}>{driver.bankDetails.institutionNumber}</p>
+                      <p style={{ margin: "0 0 3px", fontSize: "11px", color: "var(--t-text-dim)" }}>Institution Number</p>
+                      <p style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "var(--t-text)" }}>{driver.bankDetails.institutionNumber}</p>
                     </>
                   )}
                 </div>
               </>
             ) : (
-              <div style={{ padding: "24px", textAlign: "center" as const, background: "rgba(255,255,255,0.03)", borderRadius: "10px", border: "1px dashed rgba(255,255,255,0.08)" }}>
-                <p style={{ margin: 0, color: "#4b5563", fontSize: "13px" }}>No direct deposit details on file.</p>
+              <div style={{ padding: "24px", textAlign: "center" as const, background: "var(--t-surface-alt)", borderRadius: "10px", border: "1px dashed rgba(255,255,255,0.08)" }}>
+                <p style={{ margin: 0, color: "var(--t-text-ghost)", fontSize: "13px" }}>No direct deposit details on file.</p>
               </div>
             )}
           </div>
@@ -325,10 +325,10 @@ const Profile: React.FC = () => {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
 
           {/* Compliance Documents */}
-          <div style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "24px" }}>
+          <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "24px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
-              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px" }}>COMPLIANCE DOCUMENTS</p>
-              <FaUpload size={13} color="#6b7280" />
+              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>COMPLIANCE DOCUMENTS</p>
+              <FaUpload size={13} color="var(--t-text-dim)" />
             </div>
             {([
               ["agencySignOff", "Agency Sign Off"],
@@ -340,19 +340,19 @@ const Profile: React.FC = () => {
             ] as [string, string][]).map(([key, label]) => {
               const doc = driver.requiredOnboardingForms?.[key];
               const sc = doc
-                ? { label: "VALID", bg: "rgba(16,185,129,0.12)", color: "#34d399", border: "rgba(16,185,129,0.25)" }
-                : { label: "PENDING", bg: "rgba(251,191,36,0.1)", color: "#fbbf24", border: "rgba(251,191,36,0.25)" };
+                ? { label: "VALID", bg: "var(--t-success-bg)", color: "var(--t-success)", border: "rgba(16,185,129,0.25)" }
+                : { label: "PENDING", bg: "rgba(251,191,36,0.1)", color: "var(--t-warning)", border: "rgba(251,191,36,0.25)" };
               return (
-                <div key={key} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "11px 14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "10px", marginBottom: "8px" }}>
+                <div key={key} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "11px 14px", background: "var(--t-surface-alt)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "10px", marginBottom: "8px" }}>
                   <span style={{ fontSize: "16px" }}>📄</span>
                   <div style={{ flex: 1 }}>
-                    <p style={{ margin: "0 0 2px", fontSize: "13px", fontWeight: 600, color: "#e5e7eb" }}>{label}</p>
-                    <p style={{ margin: 0, fontSize: "11px", color: "#4b5563" }}>{doc ? "On file" : "Not submitted"}</p>
+                    <p style={{ margin: "0 0 2px", fontSize: "13px", fontWeight: 600, color: "var(--t-text-secondary)" }}>{label}</p>
+                    <p style={{ margin: 0, fontSize: "11px", color: "var(--t-text-ghost)" }}>{doc ? "On file" : "Not submitted"}</p>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     {doc && (
                       <a href={`${API_BASE_URL.replace("/api", "")}/${doc}`} target="_blank" rel="noopener noreferrer"
-                        style={{ fontSize: "11px", color: "#818CF8", textDecoration: "none", fontWeight: 600 }}>View</a>
+                        style={{ fontSize: "11px", color: "var(--t-indigo)", textDecoration: "none", fontWeight: 600 }}>View</a>
                     )}
                     <span style={{ padding: "3px 9px", borderRadius: "20px", fontSize: "10px", fontWeight: 700, background: sc.bg, color: sc.color, border: `1px solid ${sc.border}`, letterSpacing: "0.5px" }}>{sc.label}</span>
                   </div>
@@ -362,13 +362,13 @@ const Profile: React.FC = () => {
           </div>
 
           {/* License Details */}
-          <div style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", padding: "24px" }}>
-            <p style={{ margin: "0 0 20px", fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px" }}>LICENSE DETAILS</p>
-            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "20px" }}>
+          <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "24px" }}>
+            <p style={{ margin: "0 0 20px", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>LICENSE DETAILS</p>
+            <div style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "12px", padding: "20px" }}>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "20px" }}>
                 <div>
-                  <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>COMMERCIAL DRIVER LICENSE</p>
-                  <p style={{ margin: 0, fontSize: "20px", fontWeight: 800, color: "#f9fafb", letterSpacing: "-0.3px" }}>
+                  <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>COMMERCIAL DRIVER LICENSE</p>
+                  <p style={{ margin: 0, fontSize: "20px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.3px" }}>
                     {driver.licence ? `CLASS ${driver.licence.toUpperCase()} – UNRESTRICTED` : "N/A"}
                   </p>
                 </div>
@@ -376,30 +376,30 @@ const Profile: React.FC = () => {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 <div>
-                  <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>LICENSE NUMBER</p>
-                  <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "#e5e7eb" }}>{driver.licence || "N/A"}</p>
+                  <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>LICENSE NUMBER</p>
+                  <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "var(--t-text-secondary)" }}>{driver.licence || "N/A"}</p>
                 </div>
                 <div>
-                  <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>WORK AUTHORIZATION</p>
-                  <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "#e5e7eb" }}>{driver.workStatus || "N/A"}</p>
+                  <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>WORK AUTHORIZATION</p>
+                  <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "var(--t-text-secondary)" }}>{driver.workStatus || "N/A"}</p>
                 </div>
                 <div>
-                  <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>ISSUE DATE</p>
-                  <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "#e5e7eb" }}>On file</p>
+                  <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>ISSUE DATE</p>
+                  <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "var(--t-text-secondary)" }}>On file</p>
                 </div>
                 <div>
-                  <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>EXPIRATION</p>
+                  <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>EXPIRATION</p>
                   {driver.licence_expiry_date ? (() => {
                     const expiry = new Date(driver.licence_expiry_date);
                     const soon = new Date(); soon.setDate(soon.getDate() + 90);
                     const formatted = expiry.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
-                    return <p style={{ margin: 0, fontSize: "14px", fontWeight: 700, color: expiry <= soon ? "#f87171" : "#34d399" }}>{formatted}</p>;
-                  })() : <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "#4b5563" }}>N/A</p>}
+                    return <p style={{ margin: 0, fontSize: "14px", fontWeight: 700, color: expiry <= soon ? "var(--t-error)" : "var(--t-success)" }}>{formatted}</p>;
+                  })() : <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "var(--t-text-ghost)" }}>N/A</p>}
                 </div>
                 {driver.workAuthExpiry && (
                   <div style={{ gridColumn: "1 / -1" }}>
-                    <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px" }}>WORK AUTH EXPIRY</p>
-                    <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "#fbbf24" }}>
+                    <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>WORK AUTH EXPIRY</p>
+                    <p style={{ margin: 0, fontSize: "14px", fontWeight: 600, color: "var(--t-warning)" }}>
                       {new Date(driver.workAuthExpiry + "T00:00:00").toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                     </p>
                   </div>
@@ -410,19 +410,19 @@ const Profile: React.FC = () => {
         </div>
 
         {/* Timesheets */}
-        <div style={{ background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "16px", overflow: "hidden", marginBottom: "20px" }}>
-          <div style={{ padding: "18px 24px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-            <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "#4b5563", letterSpacing: "1px" }}>TIMESHEETS</p>
+        <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", overflow: "hidden", marginBottom: "20px" }}>
+          <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--t-border)" }}>
+            <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>TIMESHEETS</p>
           </div>
           {timesheets.length === 0 ? (
-            <div style={{ padding: "40px", textAlign: "center" as const, color: "#4b5563", fontSize: "14px" }}>No timesheets available for this driver.</div>
+            <div style={{ padding: "40px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "14px" }}>No timesheets available for this driver.</div>
           ) : (
             <div style={{ overflowX: "auto" as const }}>
               <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  <tr style={{ borderBottom: "1px solid var(--t-border)" }}>
                     {["Date", "Start", "End", "Start KM", "End KM", "Total KM", "Category", "Planned KM", "Subtotal", "Status"].map((h) => (
-                      <th key={h} style={{ padding: "12px 16px", textAlign: "left" as const, fontSize: "9px", fontWeight: 700, color: "#4b5563", letterSpacing: "0.8px", whiteSpace: "nowrap" as const }}>{h}</th>
+                      <th key={h} style={{ padding: "12px 16px", textAlign: "left" as const, fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", whiteSpace: "nowrap" as const }}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -440,24 +440,24 @@ const Profile: React.FC = () => {
                     const rate = driver?.[rateField] || 0;
                     const subtotal = totalKM !== null && !isNaN(rate) ? totalKM * rate : NaN;
                     const statusCfg: Record<string, { color: string; label: string }> = {
-                      approved: { color: "#34d399", label: "Approved" },
-                      rejected: { color: "#f87171", label: "Rejected" },
-                      pending:  { color: "#fbbf24", label: "Pending" },
+                      approved: { color: "var(--t-success)", label: "Approved" },
+                      rejected: { color: "var(--t-error)", label: "Rejected" },
+                      pending:  { color: "var(--t-warning)", label: "Pending" },
                     };
                     const sc = statusCfg[t.status] || statusCfg.pending;
                     return (
-                      <tr key={t._id} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", background: idx % 2 === 1 ? "rgba(255,255,255,0.01)" : "transparent" }}>
-                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "#e5e7eb" }}>{t.date}</td>
-                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "#9ca3af" }}>{t.startTime}</td>
-                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "#9ca3af" }}>{t.endTime}</td>
-                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "#9ca3af" }}>{t.startKM}</td>
-                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "#9ca3af" }}>{t.endKM}</td>
-                        <td style={{ padding: "12px 16px", fontSize: "13px", fontWeight: 600, color: "#f9fafb" }}>{totalKM !== null ? totalKM : "N/A"}</td>
+                      <tr key={t._id} style={{ borderBottom: "1px solid var(--t-stripe)", background: idx % 2 === 1 ? "var(--t-stripe)" : "transparent" }}>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "var(--t-text-secondary)" }}>{t.date}</td>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "var(--t-text-faint)" }}>{t.startTime}</td>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "var(--t-text-faint)" }}>{t.endTime}</td>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "var(--t-text-faint)" }}>{t.startKM}</td>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "var(--t-text-faint)" }}>{t.endKM}</td>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", fontWeight: 600, color: "var(--t-text)" }}>{totalKM !== null ? totalKM : "N/A"}</td>
                         <td style={{ padding: "12px 16px" }}>
-                          <span style={{ padding: "3px 9px", borderRadius: "6px", fontSize: "10px", fontWeight: 700, background: "rgba(255,255,255,0.06)", color: "#9ca3af" }}>{t.category || "—"}</span>
+                          <span style={{ padding: "3px 9px", borderRadius: "6px", fontSize: "10px", fontWeight: 700, background: "var(--t-hover-bg)", color: "var(--t-text-faint)" }}>{t.category || "—"}</span>
                         </td>
-                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "#9ca3af" }}>{t.plannedKM || "—"}</td>
-                        <td style={{ padding: "12px 16px", fontSize: "13px", fontWeight: 700, color: "#f9fafb" }}>{!isNaN(subtotal) ? `$${subtotal.toFixed(2)}` : "N/A"}</td>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", color: "var(--t-text-faint)" }}>{t.plannedKM || "—"}</td>
+                        <td style={{ padding: "12px 16px", fontSize: "13px", fontWeight: 700, color: "var(--t-text)" }}>{!isNaN(subtotal) ? `$${subtotal.toFixed(2)}` : "N/A"}</td>
                         <td style={{ padding: "12px 16px" }}>
                           <span style={{ fontSize: "12px", fontWeight: 700, color: sc.color }}>{sc.label}</span>
                         </td>
@@ -471,10 +471,10 @@ const Profile: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <div style={{ display: "flex", justifyContent: "space-between", padding: "14px 0", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-          <span style={{ fontSize: "11px", color: "#374151", fontWeight: 500 }}>SYSTEM ID: FP-{String(driver._id || "ALPHA").slice(-9).toUpperCase()}</span>
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "14px 0", borderTop: "1px solid var(--t-border)" }}>
+          <span style={{ fontSize: "11px", color: "var(--t-text-muted)", fontWeight: 500 }}>SYSTEM ID: FP-{String(driver._id || "ALPHA").slice(-9).toUpperCase()}</span>
           <div style={{ display: "flex", gap: "20px" }}>
-<span style={{ fontSize: "11px", color: "#374151" }}>SECURE ENCRYPTION ACTIVE.</span>
+<span style={{ fontSize: "11px", color: "var(--t-text-muted)" }}>SECURE ENCRYPTION ACTIVE.</span>
           </div>
         </div>
 

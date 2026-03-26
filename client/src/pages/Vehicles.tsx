@@ -5,10 +5,10 @@ import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  active: { bg: "rgba(16,185,129,0.15)", color: "#6ee7b7" },
-  inactive: { bg: "rgba(255,255,255,0.06)", color: "#9ca3af" },
-  in_maintenance: { bg: "rgba(245,158,11,0.15)", color: "#fcd34d" },
-  out_of_service: { bg: "rgba(239,68,68,0.15)", color: "#fca5a5" },
+  active: { bg: "rgba(16,185,129,0.15)", color: "var(--t-success)" },
+  inactive: { bg: "var(--t-hover-bg)", color: "var(--t-text-faint)" },
+  in_maintenance: { bg: "var(--t-warning-bg)", color: "var(--t-warning)" },
+  out_of_service: { bg: "rgba(239,68,68,0.15)", color: "var(--t-error)" },
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -157,7 +157,7 @@ const Vehicles: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#0d1117", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
       <Navbar />
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
@@ -182,21 +182,21 @@ const Vehicles: React.FC = () => {
         {/* Stats Cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" }}>
           {[
-            { label: "Total Vehicles", value: stats.total, color: "#4F46E5" },
-            { label: "Active", value: stats.active, color: "#16a34a" },
-            { label: "In Maintenance", value: stats.inMaintenance, color: "#ca8a04" },
-            { label: "Out of Service", value: stats.outOfService, color: "#dc2626" },
+            { label: "Total Vehicles", value: stats.total, color: "var(--t-accent)" },
+            { label: "Active", value: stats.active, color: "var(--t-success)" },
+            { label: "In Maintenance", value: stats.inMaintenance, color: "var(--t-warning)" },
+            { label: "Out of Service", value: stats.outOfService, color: "var(--t-error)" },
           ].map((s) => (
             <div key={s.label} style={styles.statCard}>
               <div style={{ fontSize: "28px", fontWeight: 700, color: s.color }}>{s.value}</div>
-              <div style={{ fontSize: "13px", color: "#6b7280", marginTop: "4px" }}>{s.label}</div>
+              <div style={{ fontSize: "13px", color: "var(--t-text-dim)", marginTop: "4px" }}>{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* Search */}
         <div style={{ position: "relative", marginBottom: "16px", maxWidth: "360px" }}>
-          <FaSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af" }} />
+          <FaSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--t-text-faint)" }} />
           <input
             placeholder="Search by unit, make, model, plate..."
             value={searchText}
@@ -208,9 +208,9 @@ const Vehicles: React.FC = () => {
         {/* Table */}
         <div style={styles.tableContainer}>
           {loading ? (
-            <div style={{ padding: "40px", textAlign: "center", color: "#6b7280" }}>Loading vehicles...</div>
+            <div style={{ padding: "40px", textAlign: "center", color: "var(--t-text-dim)" }}>Loading vehicles...</div>
           ) : filtered.length === 0 ? (
-            <div style={{ padding: "40px", textAlign: "center", color: "#6b7280" }}>
+            <div style={{ padding: "40px", textAlign: "center", color: "var(--t-text-dim)" }}>
               {vehicles.length === 0 ? "No vehicles yet. Add your first vehicle to get started." : "No vehicles match your search."}
             </div>
           ) : (
@@ -227,7 +227,7 @@ const Vehicles: React.FC = () => {
                   const sc = STATUS_COLORS[v.status] || STATUS_COLORS.inactive;
                   return (
                     <tr key={v._id} style={styles.tr}>
-                      <td style={{ ...styles.td, fontWeight: 600, color: "#e5e7eb" }}>{v.unitNumber}</td>
+                      <td style={{ ...styles.td, fontWeight: 600, color: "var(--t-text-secondary)" }}>{v.unitNumber}</td>
                       <td style={styles.td}>{[v.make, v.model].filter(Boolean).join(" ") || "—"}</td>
                       <td style={styles.td}>{v.year || "—"}</td>
                       <td style={styles.td}>{TYPE_LABELS[v.type] || v.type}</td>
@@ -245,7 +245,7 @@ const Vehicles: React.FC = () => {
                           </button>
                           <button
                             onClick={() => { setSelectedVehicle(v); setIsDeleteModalOpen(true); }}
-                            style={{ ...styles.iconBtn, color: "#dc2626" }}
+                            style={{ ...styles.iconBtn, color: "var(--t-error)" }}
                             title="Delete"
                           >
                             <FaTrashAlt size={14} />
@@ -359,12 +359,12 @@ const Vehicles: React.FC = () => {
         <div style={styles.overlay}>
           <div style={{ ...styles.modal, maxWidth: "420px" }}>
             <h2 style={styles.modalTitle}>Delete Vehicle</h2>
-            <p style={{ color: "#d1d5db", marginBottom: "24px" }}>
+            <p style={{ color: "var(--t-text-muted)", marginBottom: "24px" }}>
               Are you sure you want to delete <strong>{selectedVehicle.unitNumber}</strong>? This action cannot be undone.
             </p>
             <div style={styles.modalActions}>
               <button onClick={() => setIsDeleteModalOpen(false)} style={styles.secondaryBtn} disabled={deleting}>Cancel</button>
-              <button onClick={handleDelete} style={{ ...styles.primaryBtn, background: "#dc2626" }} disabled={deleting}>
+              <button onClick={handleDelete} style={{ ...styles.primaryBtn, background: "var(--t-error)" }} disabled={deleting}>
                 {deleting ? "Deleting..." : "Delete"}
               </button>
             </div>
@@ -377,7 +377,7 @@ const Vehicles: React.FC = () => {
 
 const styles: Record<string, React.CSSProperties> = {
   primaryBtn: {
-    background: "#4F46E5",
+    background: "var(--t-accent)",
     color: "#fff",
     border: "none",
     borderRadius: "8px",
@@ -390,9 +390,9 @@ const styles: Record<string, React.CSSProperties> = {
     gap: "8px",
   },
   secondaryBtn: {
-    background: "rgba(255,255,255,0.06)",
-    color: "#9ca3af",
-    border: "1px solid rgba(255,255,255,0.1)",
+    background: "var(--t-hover-bg)",
+    color: "var(--t-text-faint)",
+    border: "1px solid var(--t-border-strong)",
     borderRadius: "8px",
     padding: "10px 18px",
     fontSize: "14px",
@@ -400,26 +400,26 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
   },
   iconBtn: {
-    background: "rgba(255,255,255,0.06)",
+    background: "var(--t-hover-bg)",
     border: "none",
     borderRadius: "6px",
     padding: "6px 10px",
     cursor: "pointer",
-    color: "#9ca3af",
+    color: "var(--t-text-faint)",
     display: "flex",
     alignItems: "center",
   },
   statCard: {
-    background: "#161b22",
+    background: "var(--t-surface)",
     borderRadius: "12px",
-    border: "1px solid rgba(255,255,255,0.07)",
+    border: "1px solid var(--t-border)",
     padding: "20px",
     boxShadow: "0 1px 6px rgba(0,0,0,0.3)",
   },
   tableContainer: {
-    background: "#161b22",
+    background: "var(--t-surface)",
     borderRadius: "16px",
-    border: "1px solid rgba(255,255,255,0.07)",
+    border: "1px solid var(--t-border)",
     overflow: "hidden",
     boxShadow: "0 2px 16px rgba(0,0,0,0.3)",
   },
@@ -429,25 +429,25 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "14px",
   },
   tableHeaderRow: {
-    background: "rgba(255,255,255,0.04)",
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
+    background: "var(--t-surface-alt)",
+    borderBottom: "1px solid var(--t-border)",
   },
   th: {
     padding: "13px 16px",
     textAlign: "left",
     fontSize: "10px",
     fontWeight: 700,
-    color: "#818CF8",
+    color: "var(--t-indigo)",
     textTransform: "uppercase",
     letterSpacing: "0.7px",
     whiteSpace: "nowrap",
   },
   tr: {
-    borderBottom: "1px solid rgba(255,255,255,0.05)",
+    borderBottom: "1px solid var(--t-stripe)",
   },
   td: {
     padding: "14px 16px",
-    color: "#d1d5db",
+    color: "var(--t-text-muted)",
     verticalAlign: "middle",
   },
   badge: {
@@ -462,10 +462,10 @@ const styles: Record<string, React.CSSProperties> = {
     width: "100%",
     padding: "9px 12px",
     borderRadius: "8px",
-    border: "1px solid rgba(255,255,255,0.1)",
+    border: "1px solid var(--t-border-strong)",
     fontSize: "14px",
-    color: "#e5e7eb",
-    background: "rgba(255,255,255,0.05)",
+    color: "var(--t-text-secondary)",
+    background: "var(--t-input-bg)",
     outline: "none",
     boxSizing: "border-box",
   },
@@ -473,7 +473,7 @@ const styles: Record<string, React.CSSProperties> = {
     display: "block",
     fontSize: "9px",
     fontWeight: 700,
-    color: "#4b5563",
+    color: "var(--t-text-ghost)",
     marginBottom: "4px",
     textTransform: "uppercase",
     letterSpacing: "0.8px",
@@ -481,7 +481,7 @@ const styles: Record<string, React.CSSProperties> = {
   overlay: {
     position: "fixed",
     inset: 0,
-    background: "rgba(0,0,0,0.75)",
+    background: "var(--t-modal-overlay)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -489,21 +489,21 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "16px",
   },
   modal: {
-    background: "#161b22",
+    background: "var(--t-surface)",
     borderRadius: "16px",
     padding: "28px",
     width: "100%",
     maxWidth: "700px",
     maxHeight: "90vh",
     overflowY: "auto",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    boxShadow: "var(--t-shadow-lg)",
+    border: "1px solid var(--t-border)",
   },
   modalTitle: {
     margin: "0 0 20px",
     fontSize: "20px",
     fontWeight: 700,
-    color: "#f3f4f6",
+    color: "var(--t-text)",
   },
   formGrid: {
     display: "grid",

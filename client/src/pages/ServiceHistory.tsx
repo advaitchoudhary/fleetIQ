@@ -4,9 +4,9 @@ import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
 const EVENT_COLORS: Record<string, string> = {
-  maintenance: "#4F46E5",
-  inspection: "#059669",
-  fuel: "#0891b2",
+  maintenance: "var(--t-accent)",
+  inspection: "var(--t-success)",
+  fuel: "var(--t-info)",
 };
 
 const EVENT_ICONS: Record<string, string> = {
@@ -16,13 +16,13 @@ const EVENT_ICONS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  completed: { bg: "rgba(16,185,129,0.15)", color: "#6ee7b7" },
-  scheduled: { bg: "rgba(99,102,241,0.15)", color: "#a5b4fc" },
-  in_progress: { bg: "rgba(245,158,11,0.15)", color: "#fcd34d" },
-  cancelled: { bg: "rgba(255,255,255,0.06)", color: "#9ca3af" },
-  satisfactory: { bg: "rgba(16,185,129,0.15)", color: "#6ee7b7" },
-  defects_noted: { bg: "rgba(245,158,11,0.15)", color: "#fcd34d" },
-  out_of_service: { bg: "rgba(239,68,68,0.15)", color: "#fca5a5" },
+  completed: { bg: "var(--t-success-bg)", color: "var(--t-success)" },
+  scheduled: { bg: "var(--t-indigo-bg)", color: "var(--t-indigo)" },
+  in_progress: { bg: "var(--t-warning-bg)", color: "var(--t-warning)" },
+  cancelled: { bg: "var(--t-hover-bg)", color: "var(--t-text-faint)" },
+  satisfactory: { bg: "var(--t-success-bg)", color: "var(--t-success)" },
+  defects_noted: { bg: "var(--t-warning-bg)", color: "var(--t-warning)" },
+  out_of_service: { bg: "var(--t-error-bg)", color: "var(--t-error)" },
 };
 
 const DEMO_FLEET_SUMMARY = [
@@ -190,9 +190,9 @@ const ServiceHistory: React.FC = () => {
             </div>
           </div>
           <select style={{ ...styles.vehicleSelect, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif" }} value={selectedVehicleId} onChange={(e) => handleVehicleChange(e.target.value)}>
-            <option value="" style={{ background: "#1e1b4b", color: "#fff" }}>— Select a vehicle —</option>
+            <option value="" style={{ background: "var(--t-select-bg)", color: "var(--t-text-secondary)" }}>— Select a vehicle —</option>
             {vehicles.map((v) => (
-              <option key={v._id} value={v._id} style={{ background: "#1e1b4b", color: "#fff" }}>{v.unitNumber} — {v.make} {v.model} ({v.year})</option>
+              <option key={v._id} value={v._id} style={{ background: "var(--t-select-bg)", color: "var(--t-text-secondary)" }}>{v.unitNumber} — {v.make} {v.model} ({v.year})</option>
             ))}
           </select>
         </div>
@@ -208,9 +208,9 @@ const ServiceHistory: React.FC = () => {
                 <div key={item.vehicle._id} style={styles.fleetCard} onClick={() => handleVehicleChange(item.vehicle._id)}>
                   <div style={styles.fleetCardHeader}>
                     <strong>{item.vehicle.unitNumber}</strong>
-                    <span style={{ fontSize: "13px", color: "#6b7280" }}>{item.vehicle.make} {item.vehicle.model} {item.vehicle.year}</span>
+                    <span style={{ fontSize: "13px", color: "var(--t-text-dim)" }}>{item.vehicle.make} {item.vehicle.model} {item.vehicle.year}</span>
                   </div>
-                  <div style={{ fontSize: "13px", color: "#d1d5db", marginTop: "8px" }}>
+                  <div style={{ fontSize: "13px", color: "var(--t-text-muted)", marginTop: "8px" }}>
                     <div>Total events: <strong>{item.totalEvents}</strong></div>
                     {item.lastMaintenance && (
                       <div style={{ marginTop: "4px" }}>Last maintenance: <strong>{new Date(item.lastMaintenance.scheduledDate || item.lastMaintenance.completedDate).toLocaleDateString()}</strong></div>
@@ -219,7 +219,7 @@ const ServiceHistory: React.FC = () => {
                       <div style={{ marginTop: "4px" }}>Last inspection: <strong>{new Date(item.lastInspection.date).toLocaleDateString()}</strong></div>
                     )}
                   </div>
-                  <div style={{ marginTop: "12px", fontSize: "13px", color: "#818CF8", fontWeight: 600 }}>View history →</div>
+                  <div style={{ marginTop: "12px", fontSize: "13px", color: "var(--t-indigo)", fontWeight: 600 }}>View history →</div>
                 </div>
               ))}
             </div>
@@ -233,10 +233,10 @@ const ServiceHistory: React.FC = () => {
               <div style={styles.vehicleBanner}>
                 <div>
                   <strong style={{ fontSize: "18px" }}>{vehicleInfo.unitNumber}</strong>
-                  <span style={{ marginLeft: "12px", color: "#6b7280" }}>{vehicleInfo.make} {vehicleInfo.model} {vehicleInfo.year}</span>
-                  {vehicleInfo.odometer && <span style={{ marginLeft: "12px", color: "#6b7280" }}>{vehicleInfo.odometer.toLocaleString()} km</span>}
+                  <span style={{ marginLeft: "12px", color: "var(--t-text-dim)" }}>{vehicleInfo.make} {vehicleInfo.model} {vehicleInfo.year}</span>
+                  {vehicleInfo.odometer && <span style={{ marginLeft: "12px", color: "var(--t-text-dim)" }}>{vehicleInfo.odometer.toLocaleString()} km</span>}
                 </div>
-                {vehicleInfo.licensePlate && <span style={{ fontSize: "13px", color: "#6b7280" }}>Plate: {vehicleInfo.licensePlate}</span>}
+                {vehicleInfo.licensePlate && <span style={{ fontSize: "13px", color: "var(--t-text-dim)" }}>Plate: {vehicleInfo.licensePlate}</span>}
               </div>
             )}
 
@@ -277,30 +277,30 @@ const ServiceHistory: React.FC = () => {
               <div style={styles.timeline}>
                 {filteredEvents.map((event, idx) => (
                   <div key={idx} style={styles.timelineItem}>
-                    <div style={{ ...styles.timelineBar, background: EVENT_COLORS[event.eventType] || "#6b7280" }} />
+                    <div style={{ ...styles.timelineBar, background: EVENT_COLORS[event.eventType] || "var(--t-text-dim)" }} />
                     <div style={styles.timelineContent}>
                       <div style={styles.timelineHeader}>
                         <span style={{ fontSize: "22px" }}>{EVENT_ICONS[event.eventType]}</span>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                            <strong style={{ fontSize: "15px", color: "#e5e7eb" }}>{event.title}</strong>
+                            <strong style={{ fontSize: "15px", color: "var(--t-text-secondary)" }}>{event.title}</strong>
                             {event.status && (
-                              <span style={{ ...styles.badge, background: STATUS_COLORS[event.status]?.bg || "rgba(255,255,255,0.06)", color: STATUS_COLORS[event.status]?.color || "#9ca3af" }}>
+                              <span style={{ ...styles.badge, background: STATUS_COLORS[event.status]?.bg || "var(--t-hover-bg)", color: STATUS_COLORS[event.status]?.color || "var(--t-text-faint)" }}>
                                 {event.status.replace("_", " ")}
                               </span>
                             )}
                             {event.cost > 0 && (
-                              <span style={{ ...styles.badge, background: "rgba(255,255,255,0.06)", color: "#9ca3af" }}>
+                              <span style={{ ...styles.badge, background: "var(--t-hover-bg)", color: "var(--t-text-faint)" }}>
                                 ${event.cost.toFixed(2)}
                               </span>
                             )}
                           </div>
-                          <div style={{ fontSize: "13px", color: "#6b7280", marginTop: "3px" }}>
+                          <div style={{ fontSize: "13px", color: "var(--t-text-dim)", marginTop: "3px" }}>
                             {event.date ? new Date(event.date).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" }) : ""}
                             {event.odometer ? ` · ${event.odometer.toLocaleString()} km` : ""}
                             {event.detail ? ` · ${event.detail}` : ""}
                           </div>
-                          {event.notes && <div style={{ fontSize: "13px", color: "#9ca3af", marginTop: "4px" }}>{event.notes}</div>}
+                          {event.notes && <div style={{ fontSize: "13px", color: "var(--t-text-faint)", marginTop: "4px" }}>{event.notes}</div>}
                         </div>
                       </div>
                     </div>
@@ -316,28 +316,28 @@ const ServiceHistory: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#0d1117", fontFamily: "Inter, system-ui, sans-serif" },
+  wrapper: { minHeight: "100vh", background: "var(--t-bg)", fontFamily: "Inter, system-ui, sans-serif" },
   container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
-  vehicleSelect: { padding: "9px 14px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#1c2128", minWidth: "280px", color: "#e5e7eb" },
+  vehicleSelect: { padding: "9px 14px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-select-bg)", minWidth: "280px", color: "var(--t-text-secondary)" },
   fleetGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" },
-  fleetCard: { background: "#161b22", borderRadius: "12px", padding: "20px", border: "1px solid rgba(255,255,255,0.07)", boxShadow: "0 1px 6px rgba(0,0,0,0.3)", cursor: "pointer" },
+  fleetCard: { background: "var(--t-surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--t-border)", boxShadow: "0 1px 6px rgba(0,0,0,0.3)", cursor: "pointer" },
   fleetCardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-  vehicleBanner: { background: "#161b22", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
+  vehicleBanner: { background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" },
-  statCard: { background: "#161b22", borderRadius: "12px", padding: "20px", border: "1px solid rgba(255,255,255,0.07)", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
-  statValue: { fontSize: "22px", fontWeight: 800, color: "#818CF8" },
-  statLabel: { fontSize: "12px", color: "#6b7280", marginTop: "4px" },
+  statCard: { background: "var(--t-surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--t-border)", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
+  statValue: { fontSize: "22px", fontWeight: 800, color: "var(--t-indigo)" },
+  statLabel: { fontSize: "12px", color: "var(--t-text-dim)", marginTop: "4px" },
   filtersRow: { display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap", alignItems: "center" },
-  select: { padding: "9px 14px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#1c2128", color: "#e5e7eb" },
-  dateInput: { padding: "9px 12px", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "rgba(255,255,255,0.05)", color: "#e5e7eb" },
-  filterBtn: { padding: "9px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" },
+  select: { padding: "9px 14px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-select-bg)", color: "var(--t-text-secondary)" },
+  dateInput: { padding: "9px 12px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-input-bg)", color: "var(--t-text-secondary)" },
+  filterBtn: { padding: "9px 18px", background: "var(--t-accent)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" },
   timeline: { display: "flex", flexDirection: "column", gap: "12px" },
-  timelineItem: { display: "flex", gap: "0", background: "#161b22", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.07)", overflow: "hidden", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
+  timelineItem: { display: "flex", gap: "0", background: "var(--t-surface)", borderRadius: "12px", border: "1px solid var(--t-border)", overflow: "hidden", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
   timelineBar: { width: "5px", flexShrink: 0 },
   timelineContent: { padding: "16px 18px", flex: 1 },
   timelineHeader: { display: "flex", gap: "12px", alignItems: "flex-start" },
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
-  emptyState: { textAlign: "center", padding: "60px 0", color: "#6b7280", fontSize: "15px" },
+  emptyState: { textAlign: "center", padding: "60px 0", color: "var(--t-text-dim)", fontSize: "15px" },
 };
 
 export default ServiceHistory;

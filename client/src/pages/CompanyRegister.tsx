@@ -94,12 +94,12 @@ const CompanyRegister: React.FC = () => {
     width: "100%",
     padding: "11px 14px",
     borderRadius: "8px",
-    border: `1.5px solid ${focusedField === field ? "#4F46E5" : "#e5e7eb"}`,
+    border: `1.5px solid ${focusedField === field ? "var(--t-accent)" : "var(--t-input-border)"}`,
     fontSize: "14px",
-    color: "#111827",
+    color: "var(--t-text-secondary)",
     outline: "none",
     boxSizing: "border-box",
-    background: focusedField === field ? "#fafafe" : "#fff",
+    background: "var(--t-input-bg)",
     transition: "border-color 0.2s, background 0.2s",
     fontFamily: "Inter, system-ui, sans-serif",
   });
@@ -108,7 +108,7 @@ const CompanyRegister: React.FC = () => {
     display: "block",
     fontSize: "12px",
     fontWeight: 600,
-    color: "#6b7280",
+    color: "var(--t-text-dim)",
     marginBottom: "5px",
     textTransform: "uppercase",
     letterSpacing: "0.4px",
@@ -304,7 +304,7 @@ const CompanyRegister: React.FC = () => {
         style={{
           width: "58%",
           minHeight: "100vh",
-          background: "#f9fafb",
+          background: "var(--t-bg)",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -319,15 +319,15 @@ const CompanyRegister: React.FC = () => {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px" }}>
             <button
               onClick={() => navigate("/")}
-              style={{ background: "none", border: "none", color: "#9ca3af", cursor: "pointer", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", gap: "5px" }}
+              style={{ background: "none", border: "none", color: "var(--t-text-faint)", cursor: "pointer", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", gap: "5px" }}
             >
               ← Home
             </button>
             <div>
-              <span style={{ fontSize: "13px", color: "#6b7280", cursor: "pointer" }} onClick={() => navigate("/login")}>Already have an account? </span>
+              <span style={{ fontSize: "13px", color: "var(--t-text-dim)", cursor: "pointer" }} onClick={() => navigate("/login")}>Already have an account? </span>
               <button
                 onClick={() => navigate("/login")}
-                style={{ background: "none", border: "none", color: "#4F46E5", cursor: "pointer", fontWeight: 700, fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}
+                style={{ background: "none", border: "none", color: "var(--t-accent)", cursor: "pointer", fontWeight: 700, fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}
               >
                 Sign in →
               </button>
@@ -336,10 +336,10 @@ const CompanyRegister: React.FC = () => {
 
           {/* Header */}
           <div style={{ marginBottom: "28px" }}>
-            <h2 style={{ margin: "0 0 6px", fontSize: "24px", fontWeight: 800, color: "#111827", letterSpacing: "-0.3px" }}>
+            <h2 style={{ margin: "0 0 6px", fontSize: "24px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.3px" }}>
               Create your account
             </h2>
-            <p style={{ margin: 0, fontSize: "14px", color: "#6b7280" }}>
+            <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>
               Start your 14-day free trial — no credit card required.
             </p>
           </div>
@@ -347,19 +347,19 @@ const CompanyRegister: React.FC = () => {
           {/* Selected plan badge */}
           <div style={{
             display: "flex", alignItems: "center", gap: "10px",
-            background: "#eef2ff", border: "1px solid #c7d2fe",
+            background: "var(--t-indigo-bg)", border: "1px solid var(--t-border)",
             borderRadius: "10px", padding: "12px 16px", marginBottom: "24px",
           }}>
-            <FaCheckCircle style={{ color: "#4F46E5", flexShrink: 0 }} size={16} />
+            <FaCheckCircle style={{ color: "var(--t-accent)", flexShrink: 0 }} size={16} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "11px", color: "#6b7280", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.4px" }}>Selected Plan</div>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: "#4F46E5", marginTop: "1px" }}>
+              <div style={{ fontSize: "11px", color: "var(--t-text-dim)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.4px" }}>Selected Plan</div>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--t-accent)", marginTop: "1px" }}>
                 {PLAN_NAMES[form.plan] || form.plan}
               </div>
             </div>
             <button
               onClick={() => navigate("/#pricing")}
-              style={{ background: "none", border: "1px solid #c7d2fe", borderRadius: "6px", color: "#4F46E5", fontSize: "12px", cursor: "pointer", fontWeight: 600, padding: "4px 10px", fontFamily: "Inter, system-ui, sans-serif" }}
+              style={{ background: "none", border: "1px solid var(--t-border)", borderRadius: "6px", color: "var(--t-accent)", fontSize: "12px", cursor: "pointer", fontWeight: 600, padding: "4px 10px", fontFamily: "Inter, system-ui, sans-serif" }}
             >
               Change
             </button>
@@ -431,7 +431,7 @@ const CompanyRegister: React.FC = () => {
                   <div>
                     <label style={labelStyle}>Phone</label>
                     <input
-                      style={{ ...inputStyle("phone"), borderColor: phoneError ? "#dc2626" : focusedField === "phone" ? "#4F46E5" : "#e5e7eb" }}
+                      style={{ ...inputStyle("phone"), borderColor: phoneError ? "var(--t-error)" : focusedField === "phone" ? "var(--t-accent)" : "var(--t-input-border)" }}
                       type="tel"
                       value={form.phone}
                       onChange={(e) => { const formatted = formatPhone(e.target.value); setForm({ ...form, phone: formatted }); if (phoneError) validatePhone(formatted); }}
@@ -440,7 +440,7 @@ const CompanyRegister: React.FC = () => {
                       placeholder="+1 (555) 000-0000"
                     />
                     {phoneError && (
-                      <p style={{ margin: "5px 0 0", fontSize: "12px", color: "#dc2626" }}>{phoneError}</p>
+                      <p style={{ margin: "5px 0 0", fontSize: "12px", color: "var(--t-error)" }}>{phoneError}</p>
                     )}
                   </div>
                   <div>
@@ -509,11 +509,11 @@ const CompanyRegister: React.FC = () => {
                   )}
                 </button>
 
-                <p style={{ textAlign: "center", margin: 0, fontSize: "11px", color: "#9ca3af", lineHeight: 1.6 }}>
+                <p style={{ textAlign: "center", margin: 0, fontSize: "11px", color: "var(--t-text-faint)", lineHeight: 1.6 }}>
                   By continuing, you agree to our{" "}
-                  <span style={{ color: "#4F46E5", cursor: "pointer", fontWeight: 600 }} onClick={() => navigate("/terms")}>Terms of Service</span>
+                  <span style={{ color: "var(--t-accent)", cursor: "pointer", fontWeight: 600 }} onClick={() => navigate("/terms")}>Terms of Service</span>
                   {" "}and{" "}
-                  <span style={{ color: "#4F46E5", cursor: "pointer", fontWeight: 600 }} onClick={() => navigate("/privacy")}>Privacy Policy</span>.
+                  <span style={{ color: "var(--t-accent)", cursor: "pointer", fontWeight: 600 }} onClick={() => navigate("/privacy")}>Privacy Policy</span>.
                 </p>
 
               </div>
@@ -523,8 +523,8 @@ const CompanyRegister: React.FC = () => {
           {/* Trust indicators */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "20px", marginTop: "24px", flexWrap: "wrap" }}>
             {["No credit card required", "Cancel anytime", "14-day free trial"].map((t) => (
-              <div key={t} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "12px", color: "#9ca3af" }}>
-                <FaCheckCircle size={10} style={{ color: "#4F46E5" }} />
+              <div key={t} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "12px", color: "var(--t-text-faint)" }}>
+                <FaCheckCircle size={10} style={{ color: "var(--t-accent)" }} />
                 {t}
               </div>
             ))}
