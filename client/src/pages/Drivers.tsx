@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import ExcelJS from "exceljs";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
@@ -265,6 +266,65 @@ const Drivers: React.FC = () => {
       },
     ];
 
+  const handleExport = () => {
+    if (!filteredData.length) { alert("No drivers to export."); return; }
+    exportDrivers();
+  };
+
+  const exportDrivers = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Drivers");
+    worksheet.columns = [
+      { header: "Name", key: "name" },
+      { header: "Email", key: "email" },
+      { header: "Contact", key: "contact" },
+      { header: "Username", key: "username" },
+      { header: "Status", key: "status" },
+      { header: "Work Status", key: "workStatus" },
+      { header: "Hours This Week", key: "hoursThisWeek" },
+      { header: "Licence Class", key: "licence" },
+      { header: "Licence Expiry", key: "licence_expiry_date" },
+      { header: "Business Name", key: "business_name" },
+      { header: "HST/GST", key: "hst_gst" },
+      { header: "Address", key: "address" },
+      { header: "Combo Rate", key: "comboRate" },
+      { header: "Backhaul Rate", key: "backhaulRate" },
+      { header: "Regular/Banner Rate", key: "regularBannerRate" },
+      { header: "Wholesale Rate", key: "wholesaleRate" },
+      { header: "Voila Rate", key: "voilaRate" },
+      { header: "TCS Linehaul Trenton Rate", key: "tcsLinehaulTrentonRate" },
+    ];
+    worksheet.addRows(filteredData.map((d: any) => ({
+      name: d.name || "",
+      email: d.email || "",
+      contact: d.contact || "",
+      username: d.username || "",
+      status: d.status || "",
+      workStatus: d.workStatus || "",
+      hoursThisWeek: d.hoursThisWeek || 0,
+      licence: d.licence || "",
+      licence_expiry_date: d.licence_expiry_date || "",
+      business_name: d.business_name || "",
+      hst_gst: d.hst_gst || "",
+      address: d.address || "",
+      comboRate: d.comboRate || "",
+      backhaulRate: d.backhaulRate || "",
+      regularBannerRate: d.regularBannerRate || "",
+      wholesaleRate: d.wholesaleRate || "",
+      voilaRate: d.voilaRate || "",
+      tcsLinehaulTrentonRate: d.tcsLinehaulTrentonRate || "",
+    })));
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "drivers_export.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Filtering and sorting logic for search and hours sort
   const filteredData = useMemo(() => {
     let result = data.filter((driver) =>
@@ -401,6 +461,12 @@ const Drivers: React.FC = () => {
               {pendingApplicationsCount > 0 && (
                 <span style={{ position: "absolute" as const, top: "-6px", right: "-6px", background: "#ef4444", color: "#fff", borderRadius: "50%", width: "18px", height: "18px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700 }}>{pendingApplicationsCount}</span>
               )}
+            </button>
+            <button
+              onClick={handleExport}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
+            >
+              Export
             </button>
             <button
               onClick={() => { setIsAddModalOpen(true); setAddFieldErrors({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" }); }}

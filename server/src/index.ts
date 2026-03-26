@@ -8,6 +8,10 @@ import bodyParser from "body-parser"
 import cookieParser from "cookie-parser"
 import path from "path"
 // @ts-ignore
+import helmet from "helmet";
+// @ts-ignore
+import compression from "compression";
+// @ts-ignore
 import authRoutes from "../routes/authRoute.js";
 // @ts-ignore
 import timesheetRoutes from "../routes/timesheetRoute";
@@ -47,12 +51,22 @@ import warrantyRoutes from "../routes/warrantyRoute.js";
 import serviceHistoryRoutes from "../routes/serviceHistoryRoute.js";
 // @ts-ignore
 import pmRoutes from "../routes/pmRoute.js";
-
+// @ts-ignore
+import trackingRoutes from "../routes/trackingRoute.js";
+// @ts-ignore
+import Location from "../model/locationModel.js";
+// @ts-ignore
+import Vehicle from "../model/vehicleModel.js";
 
 const app = express();
 
 // Stripe webhooks require raw body — must be registered BEFORE bodyParser.json
 // These are handled inside the route files using express.raw() per-route
+
+// Security headers
+app.use(helmet({ contentSecurityPolicy: false })); // CSP disabled to avoid breaking existing inline styles
+// Gzip compression for all responses
+app.use(compression());
 
 app.options("*", cors({
     origin: (origin, callback) => {
@@ -131,6 +145,27 @@ mongoose
     })
     .then(() => {
         console.log("✅ DB connected successfully");
+
+        // Auto-close stale trips: runs every 10 minutes
+        // Closes any trip with no ping in the last 15 minutes (driver closed browser)
+        const STALE_TRIP_INTERVAL = 10 * 60 * 1000;
+        const STALE_TRIP_CUTOFF_MS = 15 * 60 * 1000;
+        setInterval(async () => {
+            try {
+                const cutoff = new Date(Date.now() - STALE_TRIP_CUTOFF_MS);
+                const staleTrips = await Location.find({ tripEnd: null, updatedAt: { $lt: cutoff } }).lean();
+                for (const trip of staleTrips) {
+                    await Location.findByIdAndUpdate(trip._id, { tripEnd: new Date() });
+                    await Vehicle.findByIdAndUpdate(trip.vehicleId, { "lastLocation.isActive": false });
+                }
+                if (staleTrips.length > 0) {
+                    console.log(`🧹 Auto-closed ${staleTrips.length} stale trip(s)`);
+                }
+            } catch (err) {
+                console.error("Stale trip cleanup error:", err);
+            }
+        }, STALE_TRIP_INTERVAL);
+
         app.listen(PORT, () => {
             console.log(`🚀 Server is running on port ${PORT}`)
         })
@@ -167,5 +202,6 @@ app.use("/api/parts", partRoutes);
 app.use("/api/warranties", warrantyRoutes);
 app.use("/api/service-history", serviceHistoryRoutes);
 app.use("/api/pm", pmRoutes);
+app.use("/api/tracking", trackingRoutes);
 // Phase 3 — Driver Payments (Stripe Connect) and Phase 4 — Subscriptions are
 // mounted before bodyParser.json() above so Stripe webhooks receive raw body.

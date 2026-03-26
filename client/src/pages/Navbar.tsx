@@ -25,6 +25,7 @@ import {
   FaCheckSquare as FaCheckSquareIcon,
   FaChevronLeft,
   FaChevronRight,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md"; // Material Dashboard Icon
 import { useAuth } from "../contexts/AuthContext";
@@ -407,6 +408,7 @@ const Navbar: React.FC = () => {
                 {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Vehicle Management</span> : <div style={styles.sectionDivider} />}
               </li>
               {renderNavItem("/vehicles",            <FaTruck size={16} />,         "Vehicles")}
+              {renderNavItem("/tracking",            <FaMapMarkerAlt size={16} />,  "Live Tracking")}
               {renderNavItem("/maintenance",         <FaWrench size={16} />,        "Maintenance")}
               {renderNavItem("/inspections",         <FaCheckSquare size={16} />,   "Inspections")}
               {renderNavItem("/fuel-logs",           <FaGasPump size={16} />,       "Fuel Logs")}

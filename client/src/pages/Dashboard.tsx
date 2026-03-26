@@ -1,4 +1,4 @@
-import React, { useState, useEffect, CSSProperties } from "react";
+import React, { useState, useEffect, useRef, CSSProperties } from "react";
 import Navbar from "./Navbar";
 import axios from "axios";
 import imageCompression from "browser-image-compression";
@@ -71,6 +71,16 @@ const Timesheet: React.FC = () => {
   const [roadDelay, setRoadDelay] = useState({ duration: "", from: "", to: "", reason: "" });
   const [otherDelay, setOtherDelay] = useState({ duration: "", from: "", to: "", reason: "" });
 
+  // Vehicle Tracking state
+  const [trackingActive, setTrackingActive] = useState(false);
+  const [tripId, setTripId] = useState<string | null>(null);
+  const [assignedVehicle, setAssignedVehicle] = useState<{ _id: string; unitNumber: string } | null>(null);
+  const [lastPing, setLastPing] = useState<Date | null>(null);
+  const [tripStart, setTripStart] = useState<Date | null>(null);
+  const [geoError, setGeoError] = useState<string | null>(null);
+  const [pingFailCount, setPingFailCount] = useState(0);
+  const trackingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   // Helper function for duration calculation
   function calculateDuration(from: string, to: string): string {
     if (!from || !to) return "";
@@ -121,6 +131,111 @@ const Timesheet: React.FC = () => {
     };
     fetchDriverInfo();
   }, [user?.id]);
+
+  useEffect(() => {
+    const fetchAssignedVehicle = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/tracking/my-vehicle`);
+        const vehicle = { _id: res.data._id, unitNumber: res.data.unitNumber };
+        setAssignedVehicle(vehicle);
+        // Resume active trip if driver refreshed mid-trip
+        const saved = localStorage.getItem("activeTrip");
+        if (saved) {
+          try {
+            const { tripId: savedTripId, tripStart: savedTripStart } = JSON.parse(saved);
+            setTripId(savedTripId);
+            setTrackingActive(true);
+            setTripStart(new Date(savedTripStart));
+            trackingIntervalRef.current = setInterval(() => {
+              sendLocationPing(savedTripId, vehicle._id);
+            }, 30000);
+          } catch {
+            localStorage.removeItem("activeTrip");
+          }
+        }
+      } catch (e) {
+        // 404 = no vehicle assigned — card stays hidden
+      }
+    };
+    fetchAssignedVehicle();
+  }, [user]);
+
+  useEffect(() => {
+    return () => { if (trackingIntervalRef.current) clearInterval(trackingIntervalRef.current); };
+  }, []);
+
+  const sendLocationPing = async (currentTripId: string, vehicleId: string) => {
+    if (!navigator.geolocation) {
+      setGeoError("Geolocation is not supported by your browser.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          await axios.post(`${API_BASE_URL}/tracking/location`, {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            speed: pos.coords.speed ? pos.coords.speed * 3.6 : 0,
+            vehicleId,
+            tripId: currentTripId,
+          });
+          setLastPing(new Date());
+          setGeoError(null);
+          setPingFailCount(0);
+        } catch (e) {
+          console.error("Location ping failed:", e);
+          setPingFailCount((c) => c + 1);
+        }
+      },
+      (err) => {
+        console.error("Geolocation error:", err);
+        setGeoError("Location access denied. Enable location permission in your browser to share your position.");
+      },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 30000 }
+    );
+  };
+
+  const handleStartTrip = async () => {
+    if (!assignedVehicle) return;
+    try {
+      const res = await axios.post(`${API_BASE_URL}/tracking/trips/start`, { vehicleId: assignedVehicle._id });
+      const newTripId = res.data.tripId;
+      const now = new Date();
+      setTripId(newTripId);
+      setTrackingActive(true);
+      setTripStart(now);
+      setGeoError(null);
+      setPingFailCount(0);
+      localStorage.setItem("activeTrip", JSON.stringify({ tripId: newTripId, vehicleId: assignedVehicle._id, tripStart: now }));
+      sendLocationPing(newTripId, assignedVehicle._id);
+      trackingIntervalRef.current = setInterval(() => {
+        sendLocationPing(newTripId, assignedVehicle._id);
+      }, 30000);
+    } catch (e) {
+      console.error("Start trip failed:", e);
+    }
+  };
+
+  const handleEndTrip = async () => {
+    if (!tripId || !assignedVehicle) return;
+    if (trackingIntervalRef.current) clearInterval(trackingIntervalRef.current);
+    try {
+      await axios.post(`${API_BASE_URL}/tracking/trips/${tripId}/end`, { vehicleId: assignedVehicle._id });
+      setTrackingActive(false);
+      setTripId(null);
+      setTripStart(null);
+      setLastPing(null);
+      setGeoError(null);
+      setPingFailCount(0);
+      localStorage.removeItem("activeTrip");
+    } catch (e) {
+      console.error("End trip failed:", e);
+      // Restore ping interval so trip continues being tracked if end call fails
+      trackingIntervalRef.current = setInterval(() => {
+        sendLocationPing(tripId, assignedVehicle._id);
+      }, 30000);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -423,6 +538,62 @@ const Timesheet: React.FC = () => {
 
       <div style={styles.mainContent} data-db-content>
         <h2 style={styles.pageTitle} data-db-title>Enter Your Timesheet</h2>
+
+        {assignedVehicle && (
+          <div style={{
+            background: trackingActive ? "#f0fdf4" : "#f9fafb",
+            border: `1px solid ${trackingActive ? "#86efac" : "#e5e7eb"}`,
+            borderRadius: 12,
+            padding: "16px 20px",
+            marginBottom: 20,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+          }}>
+            <div>
+              <div style={{ fontWeight: 600, fontSize: 15, color: "#111827" }}>
+                {trackingActive ? "Trip Active" : "Start Trip"} — {assignedVehicle.unitNumber}
+              </div>
+              {trackingActive && tripStart && (
+                <div style={{ fontSize: 13, color: "#6b7280", marginTop: 4 }}>
+                  Started: {tripStart.toLocaleTimeString()} &nbsp;|&nbsp;
+                  Last ping: {lastPing ? lastPing.toLocaleTimeString() : "pending..."}
+                </div>
+              )}
+              {!trackingActive && (
+                <div style={{ fontSize: 13, color: "#6b7280", marginTop: 2 }}>Share your location with dispatch</div>
+              )}
+              {geoError && (
+                <div style={{ fontSize: 12, color: "#b91c1c", background: "#fee2e2", borderRadius: 6, padding: "4px 8px", marginTop: 6 }}>
+                  {geoError}
+                </div>
+              )}
+              {!geoError && pingFailCount >= 3 && (
+                <div style={{ fontSize: 12, color: "#92400e", background: "#fef3c7", borderRadius: 6, padding: "4px 8px", marginTop: 6 }}>
+                  Location sync failed. Check your connection.
+                </div>
+              )}
+            </div>
+            <button
+              onClick={trackingActive ? handleEndTrip : handleStartTrip}
+              style={{
+                background: trackingActive ? "#ef4444" : "#2563eb",
+                color: "#fff",
+                border: "none",
+                borderRadius: 8,
+                padding: "10px 20px",
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {trackingActive ? "End Trip" : "Start Trip"}
+            </button>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} style={styles.form}>
 
           {/* ── Trip Info Section ──────────────────────────────────────── */}

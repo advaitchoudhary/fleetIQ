@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -33,6 +33,7 @@ import Subscription from "./pages/Subscription";
 import Pricing from "./pages/Pricing";
 import CompanyRegister from "./pages/CompanyRegister";
 import OrgSelector from "./pages/OrgSelector";
+const Tracking = React.lazy(() => import("./pages/Tracking"));
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -198,6 +199,7 @@ const App: React.FC = () => {
         <Route path="/cost-tracking" element={<ProtectedRoute requiredRole="admin"><CostTracking /></ProtectedRoute>} />
         <Route path="/preventive-maintenance" element={<ProtectedRoute requiredRole="admin"><PreventiveMaintenance /></ProtectedRoute>} />
         <Route path="/scheduling" element={<ProtectedRoute requiredRole="admin"><Scheduling /></ProtectedRoute>} />
+        <Route path="/tracking" element={<ProtectedRoute requiredRole="admin"><Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "#6b7280" }}>Loading map...</div>}><Tracking /></Suspense></ProtectedRoute>} />
 
         {/* Phase 3 — Driver Payments */}
         <Route

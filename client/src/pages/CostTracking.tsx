@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import ExcelJS from "exceljs";
 import { FaChartBar } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
@@ -85,6 +86,85 @@ const CostTracking: React.FC = () => {
   }, [dateFrom, dateTo, selectedVehicle]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  const handleExport = () => {
+    exportCostData();
+  };
+
+  const exportCostData = async () => {
+    const workbook = new ExcelJS.Workbook();
+
+    if (activeTab === "overview") {
+      const rows = summary?.rows || [];
+      if (!rows.length) { alert("No overview data to export."); return; }
+      const worksheet = workbook.addWorksheet("Cost Overview");
+      worksheet.columns = [
+        { header: "Vehicle", key: "vehicle" },
+        { header: "Maintenance Cost ($)", key: "maintenanceCost" },
+        { header: "Fuel Cost ($)", key: "fuelCost" },
+        { header: "Total Cost ($)", key: "totalCost" },
+        { header: "Jobs", key: "jobCount" },
+        { header: "Litres Consumed", key: "litres" },
+      ];
+      worksheet.addRows(rows.map((r: any) => ({
+        vehicle: r.vehicle ? `${r.vehicle.unitNumber} ${r.vehicle.make} ${r.vehicle.model}`.trim() : "",
+        maintenanceCost: r.maintenanceCost?.toFixed(2) || "0.00",
+        fuelCost: r.fuelCost?.toFixed(2) || "0.00",
+        totalCost: r.totalCost?.toFixed(2) || "0.00",
+        jobCount: r.jobCount || 0,
+        litres: r.litres?.toFixed(1) || "0.0",
+      })));
+    } else if (activeTab === "trends") {
+      if (!trend.length) { alert("No trend data to export."); return; }
+      const worksheet = workbook.addWorksheet("Cost Trends");
+      worksheet.columns = [
+        { header: "Month", key: "label" },
+        { header: "Maintenance Cost ($)", key: "maintenanceCost" },
+        { header: "Fuel Cost ($)", key: "fuelCost" },
+        { header: "Total Cost ($)", key: "totalCost" },
+        { header: "Jobs", key: "jobCount" },
+      ];
+      worksheet.addRows(trend.map((t: any) => ({
+        label: t.label || "",
+        maintenanceCost: t.maintenanceCost?.toFixed(2) || "0.00",
+        fuelCost: t.fuelCost?.toFixed(2) || "0.00",
+        totalCost: t.totalCost?.toFixed(2) || "0.00",
+        jobCount: t.jobCount || 0,
+      })));
+    } else {
+      if (!byCategory.length) { alert("No category data to export."); return; }
+      const TYPE_LABELS_LOCAL: Record<string, string> = {
+        preventive: "Preventive", corrective: "Corrective", inspection: "Inspection",
+        tire: "Tire", oil_change: "Oil Change", other: "Other",
+      };
+      const worksheet = workbook.addWorksheet("Cost By Category");
+      worksheet.columns = [
+        { header: "Category", key: "category" },
+        { header: "Total Cost ($)", key: "totalCost" },
+        { header: "Count", key: "count" },
+      ];
+      worksheet.addRows(byCategory.map((c: any) => ({
+        category: TYPE_LABELS_LOCAL[c._id] || c._id || "",
+        totalCost: c.totalCost?.toFixed(2) || "0.00",
+        count: c.count || 0,
+      })));
+    }
+
+    const fileNames: Record<string, string> = {
+      overview: "cost_overview_export.xlsx",
+      trends: "cost_trends_export.xlsx",
+      category: "cost_category_export.xlsx",
+    };
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileNames[activeTab];
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   // SVG trend chart
   const TrendChart = () => {
@@ -175,6 +255,7 @@ const CostTracking: React.FC = () => {
           <span style={{ color: "#6b7280", fontSize: "14px" }}>to</span>
           <input type="date" style={styles.dateInput} value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
           <button style={styles.filterBtn} onClick={fetchAll}>Apply</button>
+          <button style={{ ...styles.filterBtn, background: "rgba(255,255,255,0.15)", color: "#fff", border: "1px solid rgba(255,255,255,0.25)" }} onClick={handleExport}>Export</button>
         </div>
 
         {/* Stats */}

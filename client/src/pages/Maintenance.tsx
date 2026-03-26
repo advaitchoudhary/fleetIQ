@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import ExcelJS from "exceljs";
 import axios from "axios";
 import { FaWrench, FaPlus, FaEdit, FaTrashAlt, FaSearch, FaBell } from "react-icons/fa";
 import Navbar from "./Navbar";
@@ -146,6 +147,52 @@ const Maintenance: React.FC = () => {
     }
   };
 
+  const handleExport = () => {
+    if (!filtered.length) { alert("No maintenance records to export."); return; }
+    exportMaintenance();
+  };
+
+  const exportMaintenance = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Maintenance");
+    worksheet.columns = [
+      { header: "Vehicle", key: "vehicle" },
+      { header: "Title", key: "title" },
+      { header: "Type", key: "type" },
+      { header: "Status", key: "status" },
+      { header: "Scheduled Date", key: "scheduledDate" },
+      { header: "Completed Date", key: "completedDate" },
+      { header: "Odometer (km)", key: "odometer" },
+      { header: "Cost ($)", key: "cost" },
+      { header: "Vendor", key: "vendor" },
+      { header: "Notes", key: "notes" },
+    ];
+    worksheet.addRows(filtered.map((r: any) => {
+      const vId = r.vehicleId?._id || r.vehicleId;
+      return {
+        vehicle: vehicleMap[vId] || "",
+        title: r.title || "",
+        type: TYPE_LABELS[r.type] || r.type || "",
+        status: r.status?.replace(/_/g, " ") || "",
+        scheduledDate: r.scheduledDate ? r.scheduledDate.slice(0, 10) : "",
+        completedDate: r.completedDate ? r.completedDate.slice(0, 10) : "",
+        odometer: r.odometer != null ? r.odometer : "",
+        cost: r.cost != null ? r.cost : "",
+        vendor: r.vendor || "",
+        notes: r.notes || "",
+      };
+    }));
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "maintenance_export.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const filtered = records.filter((r) => {
     const q = searchText.toLowerCase();
     const vehicleName = vehicleMap[r.vehicleId?._id || r.vehicleId] || "";
@@ -179,6 +226,9 @@ const Maintenance: React.FC = () => {
                 <FaBell size={14} /> {dueAlerts.length} Due Soon
               </button>
             )}
+            <button onClick={handleExport} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+              Export
+            </button>
             <button onClick={openAddModal} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
               <FaPlus size={14} /> Schedule Maintenance
             </button>

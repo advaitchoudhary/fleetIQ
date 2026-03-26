@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import ExcelJS from "exceljs";
 import axios from "axios";
 import { FaGasPump, FaPlus, FaEdit, FaTrashAlt, FaSearch } from "react-icons/fa";
 import Navbar from "./Navbar";
@@ -146,6 +147,52 @@ const FuelLogs: React.FC = () => {
     }
   };
 
+  const handleExport = () => {
+    if (!filtered.length) { alert("No fuel logs to export."); return; }
+    exportFuelLogs();
+  };
+
+  const exportFuelLogs = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Fuel Logs");
+    worksheet.columns = [
+      { header: "Date", key: "date" },
+      { header: "Vehicle", key: "vehicle" },
+      { header: "Fuel Type", key: "fuelType" },
+      { header: "Odometer (km)", key: "odometer" },
+      { header: "Litres", key: "litres" },
+      { header: "Price/L ($)", key: "pricePerLitre" },
+      { header: "Total Cost ($)", key: "totalCost" },
+      { header: "Station", key: "fuelStation" },
+      { header: "City", key: "city" },
+      { header: "Notes", key: "notes" },
+    ];
+    worksheet.addRows(filtered.map((l: any) => {
+      const vId = l.vehicleId?._id || l.vehicleId;
+      return {
+        date: l.date ? l.date.slice(0, 10) : "",
+        vehicle: vehicleMap[vId] || "",
+        fuelType: l.fuelType || "",
+        odometer: l.odometer != null ? l.odometer : "",
+        litres: l.litres != null ? l.litres : "",
+        pricePerLitre: l.pricePerLitre != null ? l.pricePerLitre : "",
+        totalCost: l.totalCost != null ? l.totalCost : "",
+        fuelStation: l.fuelStation || "",
+        city: l.city || "",
+        notes: l.notes || "",
+      };
+    }));
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "fuel_logs_export.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Summary totals
   const totalSpent = logs.reduce((sum, l) => sum + (l.totalCost || 0), 0);
   const totalLitres = logs.reduce((sum, l) => sum + (l.litres || 0), 0);
@@ -175,9 +222,14 @@ const FuelLogs: React.FC = () => {
               <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Track fleet fuel consumption and costs</p>
             </div>
           </div>
-          <button onClick={openAddModal} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
-            <FaPlus size={14} /> Log Fuel-Up
-          </button>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button onClick={handleExport} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+              Export
+            </button>
+            <button onClick={openAddModal} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+              <FaPlus size={14} /> Log Fuel-Up
+            </button>
+          </div>
         </div>
       </div>
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" }}>

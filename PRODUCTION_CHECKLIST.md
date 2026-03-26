@@ -51,7 +51,12 @@ Last reviewed: 2026-03-25
 - [ ] **Password reset** — Repeated from Auth; critical enough to list twice
 - [ ] **Audit logging** — No record of who changed what when; essential for regulated trucking industry
 - [ ] **Driver license expiry alerts** — License expiry is stored but no automated email reminder is sent
-- [ ] **Data export** — No way for orgs to export their data (timesheets, drivers, vehicles as CSV/PDF)
+- [x] **Timesheet export** — Excel/XLSX export implemented in `AllTimesheets.tsx`
+- [x] **Drivers export** — Excel/XLSX export implemented in `Drivers.tsx`
+- [x] **Vehicles export** — Excel/XLSX export implemented in `Vehicles.tsx`
+- [x] **Fuel logs export** — Excel/XLSX export implemented in `FuelLogs.tsx`
+- [x] **Maintenance history export** — Excel/XLSX export implemented in `Maintenance.tsx`
+- [x] **Cost tracking export** — Tab-aware Excel/XLSX export implemented in `CostTracking.tsx`
 - [ ] **Hours-of-service (HOS) tracking** — Federally mandated for commercial trucking in Canada/US
 - [ ] **IFTA fuel tax reporting** — Required for interstate/interprovincial trucking
 - [ ] **SMS notifications** — Time-sensitive alerts need SMS, not just email

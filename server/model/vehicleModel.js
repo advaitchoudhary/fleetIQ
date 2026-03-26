@@ -43,6 +43,14 @@ const vehicleSchema = new mongoose.Schema(
     registrationExpiry: { type: Date },
     photos: { type: [String], default: [] },
     notes: { type: String },
+    lastLocation: {
+      lat: { type: Number, default: null },
+      lng: { type: Number, default: null },
+      speed: { type: Number, default: null },
+      timestamp: { type: Date, default: null },
+      isActive: { type: Boolean, default: false },
+      driverId: { type: mongoose.Schema.Types.ObjectId, ref: "Driver", default: null },
+    },
   },
   { timestamps: true }
 );

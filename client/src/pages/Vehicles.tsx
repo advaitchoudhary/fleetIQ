@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
+import ExcelJS from "exceljs";
 import axios from "axios";
-import { FaTruck, FaPlus, FaEdit, FaTrashAlt, FaSearch } from "react-icons/fa";
+import { FaTruck, FaPlus, FaEdit, FaTrashAlt, FaSearch, FaUserPlus } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
@@ -48,6 +49,13 @@ const Vehicles: React.FC = () => {
   const [form, setForm] = useState({ ...emptyForm });
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Assign driver state
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [assigningVehicle, setAssigningVehicle] = useState<any>(null);
+  const [drivers, setDrivers] = useState<any[]>([]);
+  const [selectedDriverId, setSelectedDriverId] = useState<string>("");
+  const [assigning, setAssigning] = useState(false);
 
   // Build headers fresh on each call so a re-login token is always picked up
   const getHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
@@ -139,6 +147,88 @@ const Vehicles: React.FC = () => {
     }
   };
 
+  const openAssignModal = async (vehicle: any) => {
+    setAssigningVehicle(vehicle);
+    setSelectedDriverId(vehicle.assignedDriverId?._id || "");
+    setIsAssignModalOpen(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/drivers`, { headers: getHeaders() });
+      const list = Array.isArray(res.data) ? res.data : res.data.drivers || [];
+      setDrivers(list.filter((d: any) => d.status === "Active"));
+    } catch (err) {
+      console.error("Failed to fetch drivers", err);
+    }
+  };
+
+  const handleAssignDriver = async () => {
+    if (!assigningVehicle) return;
+    setAssigning(true);
+    try {
+      await axios.post(
+        `${API_BASE_URL}/vehicles/${assigningVehicle._id}/assign-driver`,
+        { driverId: selectedDriverId || null },
+        { headers: getHeaders() }
+      );
+      setIsAssignModalOpen(false);
+      fetchVehicles();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to assign driver");
+    } finally {
+      setAssigning(false);
+    }
+  };
+
+  const handleExport = () => {
+    if (!filtered.length) { alert("No vehicles to export."); return; }
+    exportVehicles();
+  };
+
+  const exportVehicles = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Vehicles");
+    worksheet.columns = [
+      { header: "Unit #", key: "unitNumber" },
+      { header: "Make", key: "make" },
+      { header: "Model", key: "model" },
+      { header: "Year", key: "year" },
+      { header: "VIN", key: "vin" },
+      { header: "License Plate", key: "licensePlate" },
+      { header: "Type", key: "type" },
+      { header: "Status", key: "status" },
+      { header: "Odometer (km)", key: "odometer" },
+      { header: "Fuel Type", key: "fuelType" },
+      { header: "Ownership", key: "ownership" },
+      { header: "Insurance Expiry", key: "insuranceExpiry" },
+      { header: "Registration Expiry", key: "registrationExpiry" },
+      { header: "Notes", key: "notes" },
+    ];
+    worksheet.addRows(filtered.map((v: any) => ({
+      unitNumber: v.unitNumber || "",
+      make: v.make || "",
+      model: v.model || "",
+      year: v.year || "",
+      vin: v.vin || "",
+      licensePlate: v.licensePlate || "",
+      type: TYPE_LABELS[v.type] || v.type || "",
+      status: v.status?.replace(/_/g, " ") || "",
+      odometer: v.odometer != null ? v.odometer : "",
+      fuelType: v.fuelType || "",
+      ownership: v.ownership || "",
+      insuranceExpiry: v.insuranceExpiry ? v.insuranceExpiry.slice(0, 10) : "",
+      registrationExpiry: v.registrationExpiry ? v.registrationExpiry.slice(0, 10) : "",
+      notes: v.notes || "",
+    })));
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "vehicles_export.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const filtered = vehicles.filter((v) => {
     const q = searchText.toLowerCase();
     return (
@@ -172,9 +262,14 @@ const Vehicles: React.FC = () => {
               <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Manage your fleet vehicles</p>
             </div>
           </div>
-          <button onClick={openAddModal} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
-            <FaPlus size={14} /> Add Vehicle
-          </button>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button onClick={handleExport} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+              Export
+            </button>
+            <button onClick={openAddModal} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+              <FaPlus size={14} /> Add Vehicle
+            </button>
+          </div>
         </div>
       </div>
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" }}>
@@ -217,7 +312,7 @@ const Vehicles: React.FC = () => {
             <table style={styles.table}>
               <thead>
                 <tr style={styles.tableHeaderRow}>
-                  {["Unit #", "Make / Model", "Year", "Type", "License Plate", "Odometer", "Status", "Actions"].map((h) => (
+                  {["Unit #", "Make / Model", "Year", "Type", "License Plate", "Odometer", "Status", "Assigned Driver", "Actions"].map((h) => (
                     <th key={h} style={styles.th}>{h}</th>
                   ))}
                 </tr>
@@ -239,9 +334,25 @@ const Vehicles: React.FC = () => {
                         </span>
                       </td>
                       <td style={styles.td}>
+                        {v.assignedDriverId ? (
+                          <span style={{ fontSize: 13, color: "#111827", fontWeight: 500 }}>
+                            {v.assignedDriverId.name}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 13, color: "#9ca3af" }}>Unassigned</span>
+                        )}
+                      </td>
+                      <td style={styles.td}>
                         <div style={{ display: "flex", gap: "8px" }}>
                           <button onClick={() => openEditModal(v)} style={styles.iconBtn} title="Edit">
                             <FaEdit size={14} />
+                          </button>
+                          <button
+                            onClick={() => openAssignModal(v)}
+                            style={{ ...styles.iconBtn, color: "#4F46E5" }}
+                            title="Assign Driver"
+                          >
+                            <FaUserPlus size={14} />
                           </button>
                           <button
                             onClick={() => { setSelectedVehicle(v); setIsDeleteModalOpen(true); }}
@@ -348,6 +459,39 @@ const Vehicles: React.FC = () => {
               <button onClick={() => setIsModalOpen(false)} style={styles.secondaryBtn}>Cancel</button>
               <button onClick={handleSave} style={styles.primaryBtn} disabled={saving}>
                 {saving ? "Saving..." : editingVehicle ? "Update Vehicle" : "Add Vehicle"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Driver Modal */}
+      {isAssignModalOpen && assigningVehicle && (
+        <div style={styles.overlay}>
+          <div style={{ ...styles.modal, maxWidth: "440px" }}>
+            <h2 style={styles.modalTitle}>Assign Driver — {assigningVehicle.unitNumber}</h2>
+            <p style={{ fontSize: 13, color: "#6b7280", marginBottom: 16 }}>
+              Select a driver to assign to this vehicle, or unassign the current driver.
+            </p>
+            <label style={styles.label}>Driver</label>
+            <select
+              style={{ ...styles.input, marginBottom: 24 }}
+              value={selectedDriverId}
+              onChange={(e) => setSelectedDriverId(e.target.value)}
+            >
+              <option value="">— Unassign —</option>
+              {drivers.map((d: any) => (
+                <option key={d._id} value={d._id}>
+                  {d.name} ({d.username})
+                </option>
+              ))}
+            </select>
+            <div style={styles.modalActions}>
+              <button onClick={() => setIsAssignModalOpen(false)} style={styles.secondaryBtn} disabled={assigning}>
+                Cancel
+              </button>
+              <button onClick={handleAssignDriver} style={styles.primaryBtn} disabled={assigning}>
+                {assigning ? "Saving..." : "Confirm"}
               </button>
             </div>
           </div>
