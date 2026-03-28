@@ -199,25 +199,26 @@ const Parts: React.FC = () => {
   return (
     <div style={styles.wrapper}>
       <Navbar />
-      {/* ── Hero ─────────────────────────────────────────────────────── */}
-      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
-        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
-              <FaBox size={22} />
-            </div>
-            <div>
-              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Fleet Management</p>
-              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Parts Inventory</h1>
-              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Manage spare parts, stock levels, and usage history</p>
-            </div>
-          </div>
-          <button style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: "8px", color: "#fff", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} onClick={openAdd}>
-            <FaPlus size={14} /> Add Part
-          </button>
+      <div style={{ ...styles.container, padding: "32px 40px" }}>
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+          <span>FLEET</span>
+          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
+          <span style={{ color: "var(--t-text-faint)" }}>PARTS INVENTORY</span>
         </div>
-      </div>
-      <div style={styles.container}>
+
+        {/* Page Header */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" as const }}>
+          <div>
+            <h1 style={{ margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>Parts Inventory</h1>
+            <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>Manage spare parts, stock levels, and usage history.</p>
+          </div>
+          <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
+            <button style={{ background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, boxShadow: "0 4px 14px rgba(79,70,229,0.35)", padding: "10px 20px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} onClick={openAdd}>
+              <FaPlus size={13} /> Add Part
+            </button>
+          </div>
+        </div>
 
         {/* Low stock alert */}
         {lowStockAlerts.length > 0 && (
