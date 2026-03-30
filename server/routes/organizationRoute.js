@@ -12,11 +12,11 @@ const router = express.Router();
 // Public — company sign-up
 router.post("/register", registerOrganization);
 
-// Company admin — view/update their own org
+// Any org member can view their own org profile
 router.get(
   "/profile",
   protect,
-  authorizeRoles("admin", "company_admin"),
+  authorizeRoles("admin", "company_admin", "dispatcher", "driver"),
   getOrganizationProfile
 );
 router.put(

@@ -1,11 +1,11 @@
 const Timesheet = require("../model/timesheetModel.js");
 const Driver = require("../model/driverModel.js");
 const User = require("../model/userModel.js");
-const nodemailer = require("nodemailer");
 const fs = require("fs");
 const path = require("path");
 const PDFDocument = require("pdfkit");
 const { getOrgFilter } = require("../middleware/authMiddleware.js");
+const { sendTimesheetApprovedEmail, sendInvoiceEmail: sendInvoiceEmailUtil } = require("../utils/emailService.js");
 
 // Import the updateDriverHours function from driverController
 const { updateDriverHours } = require("./driverController.js");
@@ -96,8 +96,9 @@ const createTimesheet = async (req, res) => {
       extraDuration: extraWorkSheetDetails.duration,
       durationFrom: extraWorkSheetDetails.from,
       durationTo: extraWorkSheetDetails.to,
-      extraWorkComments: extraWorkSheetDetails.comments || "",
-      extraWorkSheetComments: req.body.extraWorkSheetComments,
+      // Bug fix: duplicate key — merge both sources; prefer the parsed JSON details,
+      // fall back to the raw body field.
+      extraWorkSheetComments: req.body.extraWorkSheetComments || extraWorkSheetDetails.comments || "",
 
       // Delay sections from frontend
       extraDelay,
@@ -141,9 +142,10 @@ const createTimesheet = async (req, res) => {
 // **2. Get All Timesheets (with Pagination and Filtering)**
 const getAllTimesheets = async (req, res) => {
   try {
+    const noPagination = req.query.noPagination === "true";
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
-    
+
     // Filter parameters from query string
     const filter = req.query.filter;
     const selectedUser = req.query.user;
@@ -155,8 +157,12 @@ const getAllTimesheets = async (req, res) => {
     // Build query object for filtering — always scope to caller's org
     let query = { ...getOrgFilter(req) };
 
-    // User filter
-    if (selectedUser && selectedUser !== "All") {
+    // Driver role: JWT has no email field, so look up the driver record by id.
+    if (req.user && req.user.role === "driver") {
+      const driverDoc = await Driver.findById(req.user.id, "email").lean();
+      query.driver = driverDoc?.email || "__no_match__";
+    } else if (selectedUser && selectedUser !== "All") {
+      // Admin/company_admin/dispatcher can filter by a specific driver
       query.driver = selectedUser;
     }
     
@@ -206,9 +212,13 @@ const getAllTimesheets = async (req, res) => {
       ];
     }
 
+    // Bug fix: when noPagination=true (used by driver's MyTimesheet view),
+    // return all matching documents without skip/limit.
     const skip = (page - 1) * limit;
     const [timesheets, total] = await Promise.all([
-      Timesheet.find(query).skip(skip).limit(limit).lean(),
+      noPagination
+        ? Timesheet.find(query).sort({ date: -1 }).lean()
+        : Timesheet.find(query).sort({ date: -1 }).skip(skip).limit(limit).lean(),
       Timesheet.countDocuments(query)
     ]);
 
@@ -356,6 +366,17 @@ const updateTimesheetStatus = async (req, res) => {
     }
 
     res.status(200).json({ message: `Timesheet ${status} successfully`, updatedTimesheet });
+
+    if (status === "approved" && updatedTimesheet.driver) {
+      const driverDoc = await Driver.findOne({ email: updatedTimesheet.driver }, "name").lean();
+      sendTimesheetApprovedEmail(
+        updatedTimesheet.driver,
+        driverDoc?.name,
+        updatedTimesheet.date,
+        updatedTimesheet.customer,
+        updatedTimesheet.totalHours
+      ).catch(err => console.error("Timesheet approval email failed:", err));
+    }
   } catch (error) {
     res.status(500).json({ errorMessage: error.message });
   }
@@ -423,48 +444,12 @@ function createInvoicePDF(data) {
 // **9. Send Invoice Email**
 const sendInvoiceEmail = async (req, res) => {
   try {
-    const { driverId } = req.body;
+    const { driverId, amount, invoicePdf } = req.body;
     const driver = await Driver.findById(driverId);
     if (!driver || !driver.email) {
       return res.status(404).json({ message: "Driver email not found." });
     }
-
-    // Decode and write the already-generated PDF from frontend
-    const pdfBuffer = Buffer.from(req.body.invoicePdf, 'base64');
-    const fileName = `invoice_${Date.now()}.pdf`;
-    const filePath = path.join(__dirname, fileName);
-    fs.writeFileSync(filePath, pdfBuffer);
-
-    // Assign filePath and dummy invoiceDetails to match placeholders
-    const invoiceDetails = { amount: req.body.amount || "N/A" };
-    const invoiceFilePath = filePath;
-
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      },
-    });
-
-    const emailOptions = {
-      from: '"Premier Choice Employment" <admin@premierchoicemployment.ca>',
-      to: driver.email,
-      subject: "Your Invoice",
-      text: `Hello ${driver.name},\n\nPlease find attached your invoice totaling $${invoiceDetails.amount}.\n\nBest regards,\nPremier Choice Employment`,
-      attachments: [
-        {
-          filename: "invoice.pdf",
-          path: invoiceFilePath,
-        },
-      ],
-    };
-
-    await transporter.sendMail(emailOptions);
-    fs.unlinkSync(invoiceFilePath);
-
+    await sendInvoiceEmailUtil(driver.email, driver.name, amount || "N/A", invoicePdf);
     res.status(200).json({ message: "Invoice emailed successfully!" });
   } catch (error) {
     console.error("Failed to send invoice email:", error);
@@ -490,7 +475,7 @@ function normalizeTimesheet(timesheet, driverInfoMap = null) {
       duration: obj.extraDuration || "",
       from: obj.durationFrom || "",
       to: obj.durationTo || "",
-      comments: obj.extraWorkComments || obj.extraWorkSheetComments || ""
+      comments: obj.extraWorkSheetComments || ""
     },
     storeDelay: {
       duration: obj.delayStoreDuration || "",

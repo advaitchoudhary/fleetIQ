@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Navbar from "./Navbar";
-import { API_BASE_URL } from "../utils/env";
-import { FaCheck, FaTimes, FaEye } from "react-icons/fa";
+import { API_BASE_URL, FILE_BASE_URL } from "../utils/env";
+import { FaCheck, FaTimes, FaEye, FaClipboardList, FaClipboard } from "react-icons/fa";
 
 interface DriverApplication {
   _id: string;
@@ -99,6 +99,10 @@ const DriverApplications: React.FC = () => {
 
   const handleReject = async () => {
     if (!selectedApplication) return;
+    if (!adminNotes.trim()) {
+      alert("Please provide a reason for rejection.");
+      return;
+    }
 
     try {
       const token = localStorage.getItem("token");
@@ -137,13 +141,13 @@ const DriverApplications: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Pending":
-        return "#f59e0b";
+        return "var(--t-warning)";
       case "Approved":
-        return "#10b981";
+        return "var(--t-success)";
       case "Rejected":
-        return "#ef4444";
+        return "var(--t-error)";
       default:
-        return "#6b7280";
+        return "var(--t-text-dim)";
     }
   };
 
@@ -157,21 +161,30 @@ const DriverApplications: React.FC = () => {
 
   const getFileUrl = (filePath: string) => {
     if (!filePath) return "";
-    // If file path starts with uploads/, make it accessible via the API
+    // If file path starts with uploads/, make it accessible via the static file server
     if (filePath.startsWith("uploads/")) {
-      return `${API_BASE_URL.replace("/api", "")}/${filePath}`;
+      return `${FILE_BASE_URL}/${filePath}`;
     }
     return filePath;
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
       <Navbar />
-      <div style={styles.container}>
-        <div style={{ marginBottom: "24px" }}>
-          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "#111827" }}>Driver Applications</h1>
-          <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "14px" }}>Review and manage incoming driver applications</p>
+      {/* Hero */}
+      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
+        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", gap: "18px" }}>
+          <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+            <FaClipboardList size={22} />
+          </div>
+          <div>
+            <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Drivers</p>
+            <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Driver Applications</h1>
+            <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Review and manage incoming driver applications</p>
+          </div>
         </div>
+      </div>
+      <div style={styles.container}>
 
         {/* Filter Bar */}
         <div style={styles.filterBar}>
@@ -268,18 +281,23 @@ const DriverApplications: React.FC = () => {
         {isViewModalOpen && selectedApplication && (
           <div style={styles.modalOverlay} onClick={() => setIsViewModalOpen(false)}>
             <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+              {/* Header */}
               <div style={styles.modalHeader}>
-                <div>
-                  <h2 style={styles.modalTitle}>Application Details</h2>
-                  <p style={styles.modalSubtitle}>{selectedApplication.name} — {formatDate(selectedApplication.createdAt)}</p>
+                <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                  <div style={styles.modalIconBox}><FaClipboard size={17} color="var(--t-indigo)" /></div>
+                  <div>
+                    <h2 style={styles.modalTitle}>Application Details</h2>
+                    <p style={styles.modalSubtitle}>{selectedApplication.name} — {formatDate(selectedApplication.createdAt)}</p>
+                  </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                   <span style={{ ...styles.statusBadge, backgroundColor: getStatusColor(selectedApplication.status) }}>
                     {selectedApplication.status}
                   </span>
-                  <button style={styles.closeButton} onClick={() => setIsViewModalOpen(false)}>×</button>
+                  <button style={styles.closeButton} onClick={() => setIsViewModalOpen(false)}>✕</button>
                 </div>
               </div>
+              {/* Body */}
               <div style={styles.modalBody}>
                 <div style={styles.detailCard}>
                   <h3 style={styles.detailCardTitle}>Personal Information</h3>
@@ -370,6 +388,28 @@ const DriverApplications: React.FC = () => {
                   </div>
                 )}
               </div>
+              {/* Footer */}
+              <div style={styles.modalFooter}>
+                {selectedApplication.status === "Pending" && (
+                  <>
+                    <button
+                      style={styles.rejectModalButton}
+                      onClick={() => { setIsViewModalOpen(false); openActionModal(selectedApplication, "reject"); }}
+                    >
+                      Reject
+                    </button>
+                    <button
+                      style={styles.approveModalButton}
+                      onClick={() => { setIsViewModalOpen(false); openActionModal(selectedApplication, "approve"); }}
+                    >
+                      Approve
+                    </button>
+                  </>
+                )}
+                {selectedApplication.status !== "Pending" && (
+                  <button style={styles.cancelButton} onClick={() => setIsViewModalOpen(false)}>Close</button>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -377,18 +417,33 @@ const DriverApplications: React.FC = () => {
         {/* Action Modal (Approve/Reject) */}
         {isActionModalOpen && selectedApplication && (
           <div style={styles.modalOverlay} onClick={() => setIsActionModalOpen(false)}>
-            <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div style={{ ...styles.modalContent, maxWidth: "480px" }} onClick={(e) => e.stopPropagation()}>
+              {/* Header */}
               <div style={styles.modalHeader}>
-                <h2>{actionType === "approve" ? "Approve Application" : "Reject Application"}</h2>
-                <button style={styles.closeButton} onClick={() => setIsActionModalOpen(false)}>
-                  ×
-                </button>
+                <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                  <div style={{
+                    ...styles.modalIconBox,
+                    background: actionType === "approve" ? "var(--t-success-bg)" : "var(--t-error-bg)",
+                    border: actionType === "approve" ? "1px solid rgba(16,185,129,0.25)" : "1px solid rgba(239,68,68,0.25)",
+                  }}>
+                    {actionType === "approve"
+                      ? <FaCheck size={16} color="var(--t-success)" />
+                      : <FaTimes size={16} color="var(--t-error)" />
+                    }
+                  </div>
+                  <div>
+                    <h2 style={styles.modalTitle}>{actionType === "approve" ? "Approve Application" : "Reject Application"}</h2>
+                    <p style={styles.modalSubtitle}>{selectedApplication.name} — {selectedApplication.email}</p>
+                  </div>
+                </div>
+                <button style={styles.closeButton} onClick={() => setIsActionModalOpen(false)}>✕</button>
               </div>
+              {/* Body */}
               <div style={styles.modalBody}>
                 {approvalResult ? (
                   <div style={styles.approvalResult}>
-                    <h3 style={{ color: "#10b981" }}>✅ Application Approved!</h3>
-                    <p>Driver account has been created with the following credentials:</p>
+                    <h3 style={{ color: "var(--t-success)" }}>✅ Application Approved!</h3>
+                    <p style={{ color: "var(--t-text-muted)" }}>Driver account has been created with the following credentials:</p>
                     <div style={styles.credentials}>
                       <div>
                         <strong>Username:</strong> {approvalResult.username}
@@ -401,21 +456,9 @@ const DriverApplications: React.FC = () => {
                       ⚠️ Please share these credentials with the driver. They can change their password after
                       logging in.
                     </p>
-                    <button
-                      style={styles.confirmButton}
-                      onClick={() => {
-                        setIsActionModalOpen(false);
-                        setApprovalResult(null);
-                      }}
-                    >
-                      Close
-                    </button>
                   </div>
                 ) : (
                   <>
-                    <p>
-                      <strong>Applicant:</strong> {selectedApplication.name} ({selectedApplication.email})
-                    </p>
                     <div style={styles.formGroup}>
                       <label style={styles.label}>
                         Admin Notes {actionType === "reject" ? "(required)" : "(optional)"}
@@ -432,22 +475,39 @@ const DriverApplications: React.FC = () => {
                         required={actionType === "reject"}
                       />
                     </div>
-                    <div style={styles.modalActions}>
-                      <button
-                        style={styles.cancelButton}
-                        onClick={() => setIsActionModalOpen(false)}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        style={
-                          actionType === "approve" ? styles.approveButton : styles.rejectButton
-                        }
-                        onClick={actionType === "approve" ? handleApprove : handleReject}
-                      >
-                        {actionType === "approve" ? "Approve" : "Reject"}
-                      </button>
-                    </div>
+                  </>
+                )}
+              </div>
+              {/* Footer */}
+              <div style={styles.modalFooter}>
+                {approvalResult ? (
+                  <button
+                    style={styles.confirmButton}
+                    onClick={() => {
+                      setIsActionModalOpen(false);
+                      setApprovalResult(null);
+                    }}
+                  >
+                    Close
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      style={styles.cancelButton}
+                      onClick={() => setIsActionModalOpen(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      style={
+                        actionType === "approve"
+                          ? styles.approveModalButton
+                          : styles.rejectModalButton
+                      }
+                      onClick={actionType === "approve" ? handleApprove : handleReject}
+                    >
+                      {actionType === "approve" ? "Approve" : "Reject"}
+                    </button>
                   </>
                 )}
               </div>
@@ -468,10 +528,10 @@ const DriverApplications: React.FC = () => {
                 {previewError ? (
                   <div style={styles.previewErrorContainer}>
                     <div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
-                    <p style={{ fontSize: "16px", fontWeight: 600, color: "#374151", marginBottom: "8px" }}>
+                    <p style={{ fontSize: "16px", fontWeight: 600, color: "var(--t-text-secondary)", marginBottom: "8px" }}>
                       Unable to load file
                     </p>
-                    <p style={{ fontSize: "14px", color: "#6b7280", marginBottom: "20px" }}>
+                    <p style={{ fontSize: "14px", color: "var(--t-text-faint)", marginBottom: "20px" }}>
                       The file could not be found or is unavailable.
                     </p>
                     <a
@@ -509,9 +569,9 @@ const DriverApplications: React.FC = () => {
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
-    maxWidth: "1200px",
+    maxWidth: "1300px",
     margin: "0 auto",
-    padding: "24px",
+    padding: "28px 40px",
   },
   filterBar: {
     marginBottom: "20px",
@@ -522,9 +582,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "8px 14px",
     fontSize: "13px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    backgroundColor: "#fff",
-    color: "#374151",
+    border: "1px solid var(--t-border-strong)",
+    backgroundColor: "var(--t-select-bg)",
+    color: "var(--t-text-muted)",
     cursor: "pointer",
     fontWeight: 500,
     outline: "none",
@@ -532,20 +592,20 @@ const styles: { [key: string]: React.CSSProperties } = {
   loading: {
     textAlign: "center",
     padding: "60px 40px",
-    color: "#9ca3af",
+    color: "var(--t-text-faint)",
     fontSize: "15px",
   },
   noData: {
     textAlign: "center",
     padding: "60px 40px",
-    color: "#9ca3af",
+    color: "var(--t-text-faint)",
     fontSize: "15px",
   },
   tableWrapper: {
-    backgroundColor: "#fff",
-    borderRadius: "12px",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+    backgroundColor: "var(--t-surface)",
+    borderRadius: "16px",
+    border: "1px solid var(--t-border)",
+    boxShadow: "var(--t-shadow)",
     overflowX: "auto",
   },
   table: {
@@ -554,24 +614,24 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   th: {
     padding: "12px 16px",
-    fontSize: "12px",
-    fontWeight: 600,
+    fontSize: "10px",
+    fontWeight: 700,
     textAlign: "left",
-    backgroundColor: "#f9fafb",
-    color: "#6b7280",
-    borderBottom: "1px solid #e5e7eb",
+    backgroundColor: "var(--t-surface-alt)",
+    color: "var(--t-indigo)",
+    borderBottom: "1px solid var(--t-border)",
     textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
+    letterSpacing: "0.7px",
     whiteSpace: "nowrap" as const,
   },
   tr: {
-    borderBottom: "1px solid #f3f4f6",
+    borderBottom: "1px solid var(--t-input-bg)",
     transition: "background-color 0.15s",
   },
   td: {
     padding: "14px 18px",
     fontSize: "14px",
-    color: "#374151",
+    color: "var(--t-text-muted)",
   },
   statusBadge: {
     padding: "4px 12px",
@@ -598,93 +658,111 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: "opacity 0.2s",
   },
   viewButton: {
-    backgroundColor: "#eef2ff",
-    color: "#4F46E5",
+    backgroundColor: "var(--t-indigo-bg)",
+    color: "var(--t-indigo)",
   },
   approveButton: {
-    backgroundColor: "#ecfdf5",
-    color: "#059669",
+    backgroundColor: "var(--t-success-bg)",
+    color: "var(--t-success)",
   },
   rejectButton: {
-    backgroundColor: "#fef2f2",
-    color: "#dc2626",
+    backgroundColor: "var(--t-error-bg)",
+    color: "var(--t-error)",
   },
   modalOverlay: {
     position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    inset: 0,
+    background: "var(--t-modal-overlay)",
+    zIndex: 2000,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 1000,
     padding: "20px",
-    backdropFilter: "blur(4px)",
   },
   modalContent: {
-    backgroundColor: "#fff",
+    background: "var(--t-surface)",
     borderRadius: "16px",
-    maxWidth: "720px",
+    border: "1px solid var(--t-border)",
     width: "100%",
+    maxWidth: "700px",
     maxHeight: "90vh",
-    overflowY: "auto",
-    boxShadow: "0 24px 48px rgba(0, 0, 0, 0.16)",
+    display: "flex",
+    flexDirection: "column",
+    boxShadow: "var(--t-shadow-lg)",
   },
   modalHeader: {
+    flexShrink: 0,
+    padding: "24px 28px",
+    borderBottom: "1px solid var(--t-hover-bg)",
     display: "flex",
+    alignItems: "center",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-    padding: "24px 28px 20px",
-    borderBottom: "1px solid #e5e7eb",
+  },
+  modalIconBox: {
+    width: "42px",
+    height: "42px",
+    borderRadius: "12px",
+    background: "var(--t-indigo-bg)",
+    border: "1px solid rgba(79,70,229,0.25)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
   modalTitle: {
-    fontSize: "20px",
-    fontWeight: 700,
-    color: "#111827",
+    fontSize: "18px",
+    fontWeight: 800,
+    color: "var(--t-text)",
     margin: 0,
   },
   modalSubtitle: {
-    fontSize: "13px",
-    color: "#9ca3af",
-    margin: "4px 0 0 0",
+    fontSize: "12px",
+    color: "var(--t-text-ghost)",
+    margin: "2px 0 0 0",
   },
   closeButton: {
-    background: "none",
-    border: "none",
-    fontSize: "24px",
-    cursor: "pointer",
-    color: "#9ca3af",
-    padding: 0,
     width: "32px",
     height: "32px",
+    borderRadius: "8px",
+    background: "var(--t-hover-bg)",
+    border: "1px solid var(--t-border-strong)",
+    color: "var(--t-text-faint)",
+    cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: "8px",
-    transition: "color 0.2s",
+    fontSize: "14px",
     flexShrink: 0,
   },
   modalBody: {
     padding: "24px 28px",
+    overflowY: "auto",
+    flexGrow: 1,
     display: "flex",
     flexDirection: "column",
     gap: "20px",
   },
+  modalFooter: {
+    padding: "16px 28px",
+    borderTop: "1px solid var(--t-hover-bg)",
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: "10px",
+    flexShrink: 0,
+  },
   detailCard: {
-    backgroundColor: "#f9fafb",
+    backgroundColor: "var(--t-surface-alt)",
     borderRadius: "12px",
     padding: "20px",
-    border: "1px solid #f3f4f6",
+    border: "1px solid var(--t-border)",
   },
   detailCardTitle: {
-    fontSize: "14px",
+    fontSize: "10px",
     fontWeight: 700,
-    color: "#374151",
+    color: "var(--t-text-ghost)",
     margin: "0 0 16px 0",
     textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
+    letterSpacing: "0.8px",
   },
   fieldGrid: {
     display: "grid",
@@ -697,16 +775,16 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: "3px",
   },
   fieldLabel: {
-    fontSize: "11px",
-    fontWeight: 600,
-    color: "#9ca3af",
+    fontSize: "10px",
+    fontWeight: 700,
+    color: "var(--t-text-ghost)",
     textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
+    letterSpacing: "0.6px",
   },
   fieldValue: {
     fontSize: "14px",
     fontWeight: 500,
-    color: "#111827",
+    color: "var(--t-text-secondary)",
   },
   fileLinkRow: {
     display: "flex",
@@ -718,9 +796,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "6px 14px",
     fontSize: "13px",
     fontWeight: 500,
-    color: "#4F46E5",
-    backgroundColor: "#eef2ff",
-    border: "1px solid #c7d2fe",
+    color: "var(--t-indigo)",
+    backgroundColor: "var(--t-indigo-bg)",
+    border: "1px solid rgba(79,70,229,0.2)",
     borderRadius: "8px",
     cursor: "pointer",
     fontFamily: "inherit",
@@ -728,7 +806,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   notesText: {
     fontSize: "14px",
-    color: "#374151",
+    color: "var(--t-text-muted)",
     lineHeight: 1.7,
     margin: 0,
   },
@@ -736,95 +814,115 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: "20px",
   },
   label: {
+    fontSize: "10px",
+    fontWeight: 700,
+    color: "var(--t-text-ghost)",
+    letterSpacing: "0.8px",
     display: "block",
-    marginBottom: "8px",
-    fontSize: "13px",
-    fontWeight: 600,
-    color: "#374151",
+    marginBottom: "7px",
   },
   textarea: {
     width: "100%",
-    padding: "12px",
-    fontSize: "14px",
+    padding: "11px 14px",
+    background: "var(--t-input-bg)",
+    border: "1px solid var(--t-border-strong)",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
+    color: "var(--t-text)",
+    fontSize: "14px",
+    fontFamily: "Inter, system-ui, sans-serif",
+    boxSizing: "border-box",
     minHeight: "100px",
     resize: "vertical",
-    fontFamily: "inherit",
     outline: "none",
-    boxSizing: "border-box",
-  },
-  modalActions: {
-    display: "flex",
-    gap: "12px",
-    justifyContent: "flex-end",
-    marginTop: "24px",
   },
   cancelButton: {
-    padding: "10px 20px",
+    padding: "10px 18px",
+    background: "var(--t-hover-bg)",
+    border: "1px solid var(--t-border)",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    backgroundColor: "#fff",
-    color: "#374151",
-    cursor: "pointer",
-    fontSize: "14px",
+    color: "var(--t-text-secondary)",
+    fontSize: "13px",
     fontWeight: 600,
+    cursor: "pointer",
+    fontFamily: "Inter, system-ui, sans-serif",
+  },
+  approveModalButton: {
+    padding: "10px 20px",
+    background: "var(--t-success)",
+    border: "none",
+    borderRadius: "8px",
+    color: "#fff",
+    fontSize: "13px",
+    fontWeight: 700,
+    cursor: "pointer",
+    fontFamily: "Inter, system-ui, sans-serif",
+  },
+  rejectModalButton: {
+    padding: "10px 20px",
+    background: "var(--t-error)",
+    border: "none",
+    borderRadius: "8px",
+    color: "#fff",
+    fontSize: "13px",
+    fontWeight: 700,
+    cursor: "pointer",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   confirmButton: {
     padding: "10px 20px",
-    borderRadius: "8px",
+    background: "var(--t-accent)",
     border: "none",
-    backgroundColor: "#4F46E5",
+    borderRadius: "8px",
     color: "#fff",
+    fontSize: "13px",
+    fontWeight: 700,
     cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: 600,
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   approvalResult: {
     textAlign: "center",
   },
   credentials: {
-    backgroundColor: "#f0fdf4",
+    backgroundColor: "var(--t-success-bg)",
     padding: "16px 20px",
     borderRadius: "10px",
     margin: "16px 0",
     fontSize: "14px",
-    border: "1px solid #bbf7d0",
+    color: "var(--t-text-muted)",
+    border: "1px solid rgba(16,185,129,0.2)",
     display: "flex",
     flexDirection: "column",
     gap: "8px",
   },
   warning: {
-    color: "#b45309",
+    color: "var(--t-warning)",
     fontSize: "13px",
     marginTop: "16px",
-    backgroundColor: "#fef3c7",
+    backgroundColor: "var(--t-warning-bg)",
     padding: "10px 14px",
     borderRadius: "8px",
+    border: "1px solid rgba(234,179,8,0.2)",
   },
   previewOverlay: {
     position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    inset: 0,
+    background: "var(--t-modal-overlay)",
+    zIndex: 2000,
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 2000,
     padding: "20px",
-    backdropFilter: "blur(4px)",
   },
   previewContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: "var(--t-surface)",
     borderRadius: "16px",
     maxWidth: "90vw",
     maxHeight: "90vh",
     width: "auto",
     display: "flex",
     flexDirection: "column",
-    boxShadow: "0 24px 48px rgba(0, 0, 0, 0.4)",
+    boxShadow: "var(--t-shadow-lg)",
+    border: "1px solid var(--t-border)",
     overflow: "hidden",
   },
   previewHeader: {
@@ -832,13 +930,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     justifyContent: "space-between",
     alignItems: "center",
     padding: "16px 24px",
-    borderBottom: "1px solid #e5e7eb",
+    borderBottom: "1px solid var(--t-border)",
     flexShrink: 0,
   },
   previewTitle: {
     fontSize: "18px",
     fontWeight: 600,
-    color: "#1f2937",
+    color: "var(--t-text)",
     margin: 0,
   },
   previewBody: {
@@ -870,13 +968,13 @@ const styles: { [key: string]: React.CSSProperties } = {
     textAlign: "center",
   },
   downloadLink: {
-    color: "#4F46E5",
+    color: "var(--t-indigo)",
     textDecoration: "none",
     fontSize: "14px",
     fontWeight: 600,
     cursor: "pointer",
     padding: "8px 16px",
-    backgroundColor: "#eef2ff",
+    backgroundColor: "var(--t-indigo-bg)",
     borderRadius: "8px",
   },
 };

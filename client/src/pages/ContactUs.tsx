@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
@@ -8,6 +9,18 @@ const ContactUs: React.FC = () => {
     email: "",
     message: ""
   });
+
+  const [org, setOrg] = useState({ name: "", address: "", phone: "", email: "" });
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    axios.get(`${API_BASE_URL}/organizations/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((res) => {
+      const { name, address, phone, email } = res.data;
+      setOrg({ name: name || "", address: address || "", phone: phone || "", email: email || "" });
+    }).catch(() => {});
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -60,19 +73,19 @@ const ContactUs: React.FC = () => {
         <h2 style={styles.pageTitle} data-cu-title>Contact Us</h2>
         
         <div style={styles.companyInfo} data-cu-company>
-          <h3 style={styles.companyName}>Premier Choice Employment</h3>
+          <h3 style={styles.companyName}>{org.name || "—"}</h3>
           <div style={styles.infoGrid} data-cu-info-grid>
             <div style={styles.infoItem}>
               <span style={styles.infoLabel}>Address</span>
-              <span style={styles.infoValue}>UNIT-21 745 CHELTON RD, LONDON, ON N6M 0J1</span>
+              <span style={styles.infoValue}>{org.address || "—"}</span>
             </div>
             <div style={styles.infoItem}>
               <span style={styles.infoLabel}>Phone</span>
-              <span style={styles.infoValue}>+1 (519) 280-1311</span>
+              <span style={styles.infoValue}>{org.phone || "—"}</span>
             </div>
             <div style={styles.infoItem}>
               <span style={styles.infoLabel}>Email</span>
-              <span style={styles.infoValue}>admin@premierchoicemployment.ca</span>
+              <span style={styles.infoValue}>{org.email || "—"}</span>
             </div>
             <div style={styles.infoItem}>
               <span style={styles.infoLabel}>Business Hours</span>
@@ -126,7 +139,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     display: "flex",
     flexDirection: "column",
     minHeight: "100vh",
-    backgroundColor: "#f4f6f8",
+    backgroundColor: "var(--t-bg)",
     fontFamily: "Inter, system-ui, sans-serif",
   },
   mainContent: {
@@ -134,30 +147,30 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "40px",
     width: "90%",
     maxWidth: "640px",
-    backgroundColor: "#ffffff",
+    backgroundColor: "var(--t-surface)",
     borderRadius: "16px",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+    border: "1px solid rgba(255,255,255,0.07)",
+    boxShadow: "var(--t-shadow)",
   },
   pageTitle: {
     fontSize: "24px",
     fontWeight: 700,
-    color: "#111827",
+    color: "var(--t-text)",
     marginTop: 0,
     marginBottom: "24px",
     letterSpacing: "-0.3px",
   },
   companyInfo: {
     padding: "24px",
-    backgroundColor: "#f9fafb",
+    backgroundColor: "var(--t-surface-alt)",
     borderRadius: "12px",
     marginBottom: "28px",
-    border: "1px solid #e5e7eb",
+    border: "1px solid rgba(255,255,255,0.07)",
   },
   companyName: {
-    fontSize: "18px",
+    fontSize: "16px",
     fontWeight: 700,
-    color: "#111827",
+    color: "var(--t-text-secondary)",
     marginTop: 0,
     marginBottom: "16px",
   },
@@ -169,18 +182,18 @@ const styles: { [key: string]: React.CSSProperties } = {
   infoItem: {
     display: "flex",
     flexDirection: "column" as const,
-    gap: "2px",
+    gap: "4px",
   },
   infoLabel: {
-    fontSize: "12px",
-    fontWeight: 600,
-    color: "#6b7280",
+    fontSize: "9px",
+    fontWeight: 700,
+    color: "var(--t-text-ghost)",
     textTransform: "uppercase" as const,
-    letterSpacing: "0.4px",
+    letterSpacing: "0.8px",
   },
   infoValue: {
-    fontSize: "14px",
-    color: "#111827",
+    fontSize: "13px",
+    color: "var(--t-text-muted)",
     fontWeight: 500,
   },
   form: {
@@ -189,33 +202,40 @@ const styles: { [key: string]: React.CSSProperties } = {
     gap: "14px",
   },
   label: {
-    fontWeight: 600,
-    fontSize: "13px",
-    color: "#374151",
+    fontWeight: 700,
+    fontSize: "9px",
+    color: "var(--t-text-ghost)",
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.8px",
   },
   input: {
     padding: "10px 12px",
     fontSize: "14px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
-    backgroundColor: "#fff",
+    border: "1px solid rgba(255,255,255,0.1)",
+    backgroundColor: "var(--t-input-bg)",
+    color: "var(--t-text-secondary)",
     transition: "border-color 0.2s ease",
     outline: "none",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   textarea: {
     padding: "10px 12px",
     fontSize: "14px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
+    border: "1px solid rgba(255,255,255,0.1)",
+    backgroundColor: "var(--t-input-bg)",
+    color: "var(--t-text-secondary)",
     height: "140px",
     resize: "vertical" as const,
     transition: "border-color 0.2s ease",
     outline: "none",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   submitButton: {
-    backgroundColor: "#4F46E5",
+    backgroundColor: "var(--t-accent)",
     color: "#fff",
-    fontSize: "15px",
+    fontSize: "14px",
     fontWeight: 600,
     padding: "12px",
     borderRadius: "8px",
@@ -223,6 +243,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: "pointer",
     transition: "background-color 0.2s ease",
     marginTop: "8px",
+    boxShadow: "0 4px 14px rgba(79,70,229,0.4)",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
 };
 

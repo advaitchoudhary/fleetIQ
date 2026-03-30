@@ -3,14 +3,87 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light;
-  color: #111827;
-  background-color: #f4f6f8;
+  color-scheme: dark;
+  color: #f3f4f6;
+  background-color: #0d1117;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* ── FleetIQ Theme Tokens (default: dark) ── */
+  --t-bg:             #0d1117;
+  --t-surface:        #161b22;
+  --t-surface-alt:    rgba(255,255,255,0.03);
+  --t-border:         rgba(255,255,255,0.07);
+  --t-border-strong:  rgba(255,255,255,0.1);
+  --t-text:           #f3f4f6;
+  --t-text-secondary: #e5e7eb;
+  --t-text-muted:     #d1d5db;
+  --t-text-faint:     #9ca3af;
+  --t-text-dim:       #6b7280;
+  --t-text-ghost:     #4b5563;
+  --t-accent:         #4F46E5;
+  --t-accent-light:   #818CF8;
+  --t-input-bg:       rgba(255,255,255,0.05);
+  --t-input-border:   rgba(255,255,255,0.1);
+  --t-hover-bg:       rgba(255,255,255,0.06);
+  --t-stripe:         rgba(255,255,255,0.02);
+  --t-select-bg:      #1c2128;
+  --t-modal-overlay:  rgba(0,0,0,0.75);
+  --t-modal-bg:       #161b22;
+  --t-shadow:         0 4px 24px rgba(0,0,0,0.4);
+  --t-shadow-lg:      0 24px 64px rgba(0,0,0,0.6);
+  --t-success-bg:     rgba(16,185,129,0.12);
+  --t-success:        #34d399;
+  --t-warning-bg:     rgba(234,179,8,0.12);
+  --t-warning:        #fbbf24;
+  --t-error-bg:       rgba(239,68,68,0.12);
+  --t-error:          #fca5a5;
+  --t-info-bg:        rgba(59,130,246,0.12);
+  --t-info:           #93c5fd;
+  --t-indigo-bg:      rgba(79,70,229,0.15);
+  --t-indigo:         #818CF8;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  color: #111827;
+  background-color: #f0f4ff;
+
+  --t-bg:             #f0f4ff;
+  --t-surface:        #ffffff;
+  --t-surface-alt:    rgba(0,0,0,0.02);
+  --t-border:         #e0e7ff;
+  --t-border-strong:  #d1d5db;
+  --t-text:           #111827;
+  --t-text-secondary: #1f2937;
+  --t-text-muted:     #374151;
+  --t-text-faint:     #6b7280;
+  --t-text-dim:       #6b7280;
+  --t-text-ghost:     #9ca3af;
+  --t-accent:         #4F46E5;
+  --t-accent-light:   #4F46E5;
+  --t-input-bg:       #ffffff;
+  --t-input-border:   #d1d5db;
+  --t-hover-bg:       #f9fafb;
+  --t-stripe:         #f9fafb;
+  --t-select-bg:      #ffffff;
+  --t-modal-overlay:  rgba(0,0,0,0.5);
+  --t-modal-bg:       #ffffff;
+  --t-shadow:         0 2px 16px rgba(79,70,229,0.07);
+  --t-shadow-lg:      0 24px 48px rgba(0,0,0,0.16);
+  --t-success-bg:     #dcfce7;
+  --t-success:        #166534;
+  --t-warning-bg:     #fef3c7;
+  --t-warning:        #854d0e;
+  --t-error-bg:       #fee2e2;
+  --t-error:          #991b1b;
+  --t-info-bg:        #dbeafe;
+  --t-info:           #1d4ed8;
+  --t-indigo-bg:      #eef2ff;
+  --t-indigo:         #4F46E5;
 }
 
 * {
@@ -24,22 +97,6 @@ body {
   position: relative;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 480px;
-  height: 480px;
-  background-image: url('./assets/logo.png');
-  background-repeat: no-repeat;
-  background-size: contain;
-  background-position: center;
-  opacity: 0.12;
-  pointer-events: none;
-  z-index: 0;
-}
 
 a {
   color: inherit;

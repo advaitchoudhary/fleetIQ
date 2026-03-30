@@ -130,13 +130,15 @@ const deleteMaintenance = asyncHandler(async (req, res) => {
 // GET /api/maintenance/due-alerts — records where scheduledDate is within next 14 days
 const getDueAlerts = asyncHandler(async (req, res) => {
   const orgFilter = getOrgFilter(req);
-  const now = new Date();
-  const in14Days = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+  // Use start of today so records scheduled for today are included regardless of time
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const in14Days = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
 
   const records = await Maintenance.find({
     ...orgFilter,
-    status: { $in: ["scheduled"] },
-    scheduledDate: { $gte: now, $lte: in14Days },
+    status: "scheduled",
+    scheduledDate: { $gte: today, $lte: in14Days },
   })
     .populate("vehicleId", "unitNumber make model")
     .sort({ scheduledDate: 1 })

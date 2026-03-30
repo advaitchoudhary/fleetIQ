@@ -1,12 +1,14 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const Driver = require("../model/driverModel.js");
+const Organization = require("../model/organizationModel.js");
 const Timesheet = require("../model/timesheetModel.js");
 const asyncHandler = require("express-async-handler");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { getOrgFilter } = require("../middleware/authMiddleware.js");
+const { sendDriverCredentialsEmail } = require("../utils/emailService.js");
 
 // Utility function to calculate hours from start and end times
 const calculateHours = (startTime, endTime) => {
@@ -119,7 +121,7 @@ const updateAllDriversHours = async (req, res) => {
 };
 
 const create = asyncHandler(async (req, res) => {
-  const { email } = req.body;
+  const { email, username, password } = req.body;
 
   const orgFilter = getOrgFilter(req);
   const driverExist = await Driver.findOne({ email, ...orgFilter });
@@ -127,14 +129,49 @@ const create = asyncHandler(async (req, res) => {
     res.status(400).json({ message: "Driver already exists" });
     return;
   }
+
+  // Check username uniqueness globally (usernames must be unique across all orgs for login)
+  if (username) {
+    const usernameExist = await Driver.findOne({ username: username.trim() });
+    if (usernameExist) {
+      res.status(400).json({ message: "Username already exists" });
+      return;
+    }
+  }
+
+  // Hash the password before storing
+  const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
+
+  // Auto-generate driverId: ORG_SEQ_TIMESTAMP
+  let driverId;
+  if (req.organizationId) {
+    const org = await Organization.findById(req.organizationId).lean();
+    const orgPrefix = (org?.name || "DRV")
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .slice(0, 4)
+      .toUpperCase()
+      .padEnd(4, "X");
+    const driverCount = await Driver.countDocuments({ organizationId: req.organizationId });
+    const seq = String(driverCount + 1).padStart(3, "0");
+    driverId = `${orgPrefix}_${seq}_${Date.now()}`;
+  }
+
   const newDriver = new Driver({
     ...req.body,
     organizationId: req.organizationId || null,
-    plainPassword: req.body.password,
+    driverId,
+    password: hashedPassword,
+    plainPassword: password, // store plain for reference/admin display
   });
   const savedData = await newDriver.save();
+
+  if (savedData.email && password) {
+    sendDriverCredentialsEmail(savedData.email, savedData.name, savedData.username, password)
+      .catch(err => console.error("Driver credentials email failed:", err));
+  }
+
   const savedDataObj = savedData.toObject();
-  const { password, plainPassword, ...driverWithoutPassword } = savedDataObj;
+  const { password: _pw, plainPassword, ...driverWithoutPassword } = savedDataObj;
   res.status(201).json(driverWithoutPassword);
 });
 
@@ -165,15 +202,14 @@ const getAllDrivers = asyncHandler(async (req, res) => {
     };
   });
 
-  if (!enhancedDrivers.length) {
-    res.status(404).json({ message: "No drivers found" });
-    return;
-  }
   res.json(enhancedDrivers);
 });
 
 const getDriverById = asyncHandler(async (req, res) => {
-  const driver = await Driver.findById(req.params.id).lean();
+  const orgFilter = getOrgFilter(req);
+  const driver = await Driver.findOne({ _id: req.params.id, ...orgFilter })
+    .populate("organizationId", "name")
+    .lean();
   if (!driver) {
     res.status(404).json({ message: "Driver not found" });
     return;
@@ -200,7 +236,7 @@ const driverLogin = async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    const driver = await Driver.findOne({ username });
+    const driver = await Driver.findOne({ username }).populate("organizationId", "name");
     if (!driver) {
       return res.status(401).json({ message: "Invalid username or password" });
     }
@@ -211,7 +247,7 @@ const driverLogin = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: driver._id, role: "driver", organizationId: driver.organizationId || null },
+      { id: driver._id, role: "driver", organizationId: driver.organizationId?._id || null },
       process.env.JWT_SECRET,
       { expiresIn: "8h" }
     );
@@ -224,7 +260,9 @@ const driverLogin = async (req, res) => {
         name: driver.name,
         email: driver.email,
         role: "driver",
-        organizationId: driver.organizationId || null,
+        driverId: driver.driverId || null,
+        organizationId: driver.organizationId?._id || driver.organizationId || null,
+        orgName: driver.organizationId?.name || null,
       }
     });
   } catch (error) {
@@ -244,9 +282,9 @@ const changePassword = async (req, res) => {
 
     // Determine which driver to update
     let driverToUpdate;
-    if (decoded.role === "admin") {
-      // Admin: must provide driverId
-      if (!driverId) return res.status(400).json({ error: "driverId is required when changing another driver's password" });
+    if (decoded.role === "admin" || decoded.role === "company_admin") {
+      // Admin / company_admin: must provide driverId to change a driver's password
+      if (!driverId) return res.status(400).json({ error: "driverId is required when changing a driver's password" });
       driverToUpdate = await Driver.findById(driverId);
     } else if (decoded.role === "driver") {
       // Driver: change own password
@@ -280,8 +318,9 @@ const changePassword = async (req, res) => {
 };
 
 const updateDriverById = asyncHandler(async (req, res) => {
-  const updatedDriver = await Driver.findByIdAndUpdate(
-    req.params.id,
+  const orgFilter = getOrgFilter(req);
+  const updatedDriver = await Driver.findOneAndUpdate(
+    { _id: req.params.id, ...orgFilter },
     req.body,
     {
       new: true,
@@ -299,7 +338,8 @@ const updateDriverById = asyncHandler(async (req, res) => {
 });
 
 const deleteDriverById = asyncHandler(async (req, res) => {
-  const driver = await Driver.findByIdAndDelete(req.params.id);
+  const orgFilter = getOrgFilter(req);
+  const driver = await Driver.findOneAndDelete({ _id: req.params.id, ...orgFilter });
   if (!driver) {
     res.status(404).json({ message: "Driver not found" });
     return;

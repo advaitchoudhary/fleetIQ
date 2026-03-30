@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   FaClock,
   FaUser,
@@ -23,15 +23,19 @@ import {
   FaCalendarAlt,
   FaChartBar,
   FaCheckSquare as FaCheckSquareIcon,
+  FaChevronLeft,
+  FaChevronRight,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md"; // Material Dashboard Icon
 import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "../contexts/ThemeContext";
 
 const ADMIN_ROLES = ["admin", "company_admin", "dispatcher"];
 import { API_BASE_URL } from "../utils/env";
 
 const Navbar: React.FC = () => {
-  const [isNavOpen, setIsNavOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -39,7 +43,11 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/notifications`);
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_BASE_URL}/notifications`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!res.ok) return; // Silently skip if unauthorized or server error
         const data = await res.json();
         setNotifications(data);
         setUnreadCount(data.filter((n: any) => !n.read).length);
@@ -54,8 +62,10 @@ const Navbar: React.FC = () => {
 
   const handleMarkAllRead = useCallback(async () => {
     try {
+      const token = localStorage.getItem("token");
       const response = await fetch(`${API_BASE_URL}/notifications/markAllRead`, {
         method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
       if (!response.ok) throw new Error("Failed to mark all as read");
@@ -68,18 +78,82 @@ const Navbar: React.FC = () => {
     }
   }, [notifications]);
   const { user, logout, isInsideOrg, activeOrgName, exitOrg } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
-  const sidebarRef = useRef<HTMLDivElement>(null);
+  const location = useLocation();
+  const isActive = (path: string) => location.pathname === path;
+
+  const getLinkStyle = (path: string, isDriver = false): React.CSSProperties => {
+    const active = isActive(path);
+    const base = active ? styles.navLinkActive : (isDriver ? styles.driverNavLink : styles.navLink);
+    if (isSidebarCollapsed) {
+      if (active) {
+        return {
+          color: "#fff",
+          textDecoration: "none",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 0,
+          padding: "0",
+          margin: "3px auto",
+          width: "44px",
+          height: "44px",
+          cursor: "pointer",
+          borderRadius: "13px",
+          background: "linear-gradient(135deg, #4F46E5 0%, #6366f1 100%)",
+          boxShadow: "0 4px 14px rgba(79,70,229,0.4)",
+          boxSizing: "border-box" as const,
+        };
+      }
+      return { ...base, justifyContent: "center", padding: "10px 0", margin: "2px 8px", gap: 0 };
+    }
+    return base;
+  };
+
+  const renderNavItem = (to: string, icon: React.ReactNode, label: string, isDriver = false) => (
+    <li style={{ ...styles.navItem, position: "relative" as const }}>
+      <Link to={to} style={getLinkStyle(to, isDriver)}>
+        {icon}{!isSidebarCollapsed && <span>{label}</span>}
+      </Link>
+      {isActive(to) && !isSidebarCollapsed && (
+        <div style={{
+          position: "absolute",
+          right: 0,
+          top: "50%",
+          transform: "translateY(-50%)",
+          width: "3px",
+          height: "26px",
+          background: "linear-gradient(180deg, #818CF8 0%, #4F46E5 100%)",
+          borderRadius: "3px 0 0 3px",
+        }} />
+      )}
+    </li>
+  );
   const notificationRef = useRef<HTMLDivElement>(null);
+
+  // CSS injection: push page content right and down to avoid sidebar/header overlap
+  useEffect(() => {
+    let styleEl = document.getElementById("fleetiq-sidebar-offset") as HTMLStyleElement | null;
+    if (!styleEl) {
+      styleEl = document.createElement("style") as HTMLStyleElement;
+      styleEl.id = "fleetiq-sidebar-offset";
+      document.head.appendChild(styleEl);
+    }
+    const w = isSidebarCollapsed ? 72 : 260;
+    const topOffset = isInsideOrg ? 89 : 56;
+    styleEl.textContent = `
+      div:has(> header[data-nav-header]) {
+        padding-left: ${w}px !important;
+        padding-top: ${topOffset}px !important;
+        transition: padding-left 0.3s ease;
+        box-sizing: border-box;
+      }
+    `;
+  }, [isSidebarCollapsed, isInsideOrg]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        sidebarRef.current &&
-        !sidebarRef.current.contains(event.target as Node)
-      ) {
-        setIsNavOpen(false);
-      }
       if (
         notificationRef.current &&
         !notificationRef.current.contains(event.target as Node)
@@ -98,7 +172,14 @@ const Navbar: React.FC = () => {
     <>
       {/* Super-admin org context banner */}
       {isInsideOrg && (
-        <div style={{ background: "#4F46E5", color: "#fff", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 24px", fontSize: "13px", fontWeight: 500, position: "sticky", top: 0, zIndex: 950 }}>
+        <div style={{
+          background: "var(--t-accent)", color: "#fff", display: "flex", alignItems: "center",
+          justifyContent: "space-between", padding: "7px 24px", fontSize: "13px", fontWeight: 500,
+          position: "fixed", top: 0, zIndex: 950,
+          left: isSidebarCollapsed ? "72px" : "260px",
+          width: `calc(100% - ${isSidebarCollapsed ? 72 : 260}px)`,
+          transition: "left 0.3s ease, width 0.3s ease",
+        }}>
           <span>Viewing: <strong>{activeOrgName}</strong></span>
           <button
             onClick={exitOrg}
@@ -110,26 +191,20 @@ const Navbar: React.FC = () => {
       )}
 
       {/* Header */}
-      <header style={styles.header} data-nav-header>
-        <div style={styles.rowDiv}>
-
-          <div
-            style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}
-            onClick={() => setIsNavOpen(!isNavOpen)}
-            data-nav-title
-          >
-            <FaTruck size={20} style={{ color: "#818CF8" }} />
-            <span style={styles.title}>
-              Fleet<span style={{ color: "#818CF8" }}>IQ</span>
-            </span>
-          </div>
-        </div>
+      <header style={{
+        ...styles.header,
+        top: isInsideOrg ? "33px" : "0",
+        left: isSidebarCollapsed ? "72px" : "260px",
+        width: `calc(100% - ${isSidebarCollapsed ? 72 : 260}px)`,
+        transition: "left 0.3s ease, width 0.3s ease",
+        position: "fixed",
+      }} data-nav-header>
         <div style={styles.authButtons} data-nav-auth>
           {ADMIN_ROLES.includes(user?.role ?? "") && (
             <div style={styles.notificationIconWrapper}>
               <div style={styles.notificationBell}>
                 <FaBell
-                  size={20}
+                  size={16}
                   style={{ cursor: "pointer" }}
                   onClick={() => setShowNotification(!showNotification)}
                 />
@@ -141,7 +216,7 @@ const Navbar: React.FC = () => {
               {showNotification && (
                 <div style={styles.notificationDropdown} ref={notificationRef} data-nav-dropdown>
                   <div style={styles.notificationHeader}>
-                    <span style={{ fontWeight: 700, fontSize: "14px", color: "#111827" }}>Notifications</span>
+                    <span style={{ fontWeight: 700, fontSize: "14px", color: "var(--t-text)" }}>Notifications</span>
                     <button
                       style={styles.markAllRead}
                       onClick={handleMarkAllRead}
@@ -163,8 +238,11 @@ const Navbar: React.FC = () => {
                             key={index}
                             onClick={async () => {
                               try {
+                                const token = localStorage.getItem("token");
+                                const authHeaders: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
                                 await fetch(`${API_BASE_URL}/notifications/${notification._id}/markRead`, {
                                   method: "POST",
+                                  headers: authHeaders,
                                 });
                                 const updatedNotifications = notifications.map((n, i) =>
                                   i === index ? { ...n, read: true } : n
@@ -180,22 +258,26 @@ const Navbar: React.FC = () => {
                             <td style={{ ...styles.notificationTableCell, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                               <span>
                                 {!notification.read && (
-                                  <span style={{ color: "#4F46E5", marginRight: "6px", fontSize: "10px" }}>●</span>
+                                  <span style={{ color: "var(--t-accent)", marginRight: "6px", fontSize: "10px" }}>●</span>
                                 )}
                                 {`${notification.message} on ${new Date(
                                   notification.createdAt
                                 ).toLocaleString()}`}
                               </span>
                               <span
-                                style={{ marginLeft: "12px", color: "#9ca3af", cursor: "pointer", fontSize: "13px" }}
+                                style={{ marginLeft: "12px", color: "var(--t-text-faint)", cursor: "pointer", fontSize: "13px" }}
                                 onClick={async (e) => {
                                   e.stopPropagation(); // Prevent row click from firing
                                   try {
+                                    const token = localStorage.getItem("token");
+                                    const authHeaders: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
                                     await fetch(`${API_BASE_URL}/notifications/${notification._id}/markRead`, {
                                       method: "POST",
+                                      headers: authHeaders,
                                     });
                                     await fetch(`${API_BASE_URL}/notifications/${notification._id}`, {
                                       method: "DELETE",
+                                      headers: authHeaders,
                                     });
                                     const filtered = notifications.filter((_, i) => i !== index);
                                     setNotifications(filtered);
@@ -220,7 +302,7 @@ const Navbar: React.FC = () => {
             onClick={() => navigate("/change-password")}
             style={styles.changePasswordButton}
           >
-            <FaKey size={18} /><span className="hide-on-mobile"> Change Password</span>
+            <FaKey size={16} /><span className="hide-on-mobile"> Change Password</span>
           </button>
           <button
             onClick={() => {
@@ -236,160 +318,181 @@ const Navbar: React.FC = () => {
 
       {/* Sidebar Navigation */}
       <nav
-        ref={sidebarRef}
-        style={{ ...styles.sidebar, left: isNavOpen ? "0px" : "-260px" }}
+        style={{
+          ...styles.sidebar,
+          left: "0px",
+          width: isSidebarCollapsed ? "72px" : "260px",
+        }}
       >
-        {/* Sidebar logo */}
-        <div style={styles.sidebarLogo}>
-          <FaTruck size={20} style={{ color: "#818CF8" }} />
-          <span style={{ fontSize: "18px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
-            Fleet<span style={{ color: "#818CF8" }}>IQ</span>
-          </span>
+        {/* Sidebar header: logo + collapse toggle — always 56px to align with page header */}
+        <div style={{
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: isSidebarCollapsed ? "center" : "space-between",
+          padding: isSidebarCollapsed ? "0 14px" : "0 14px 0 20px",
+          height: "56px",
+          borderBottom: "1px solid var(--t-border)",
+          flexShrink: 0,
+        }}>
+          {!isSidebarCollapsed && (
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <FaTruck size={18} style={{ color: "var(--t-accent-light)" }} />
+              <span style={{ fontSize: "17px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.3px" }}>
+                Fleet<span style={{ color: "var(--t-accent-light)" }}>IQ</span>
+              </span>
+            </div>
+          )}
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            style={{
+              background: "var(--t-hover-bg)",
+              border: "1px solid var(--t-border-strong)",
+              borderRadius: "8px",
+              color: "var(--t-text-faint)",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "26px",
+              height: "26px",
+              padding: 0,
+              flexShrink: 0,
+            }}
+          >
+            {isSidebarCollapsed ? <FaChevronRight size={10} /> : <FaChevronLeft size={10} />}
+          </button>
         </div>
+
+        {/* Driver profile block */}
+        {user?.role === "driver" && (
+          <div style={{
+            ...styles.driverProfile,
+            ...(isSidebarCollapsed ? { justifyContent: "center", padding: "12px 0", margin: "4px 8px" } : {}),
+          }}>
+            <div style={styles.driverAvatar}>
+              {(user.name || "D").charAt(0).toUpperCase()}
+            </div>
+            {!isSidebarCollapsed && (
+              <div style={styles.driverProfileInfo}>
+                <div style={styles.driverProfileName}>{user.name || "Driver"}</div>
+                {(user as any).driverId && (
+                  <div style={styles.driverIdBadge}>{(user as any).driverId}</div>
+                )}
+                {(user as any).orgName && (
+                  <div style={styles.driverOrgBadge}>{(user as any).orgName}</div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         <ul style={styles.navList}>
           {user?.role === "driver" && (
             <>
-              <li style={styles.navItem}>
-                <Link to="/dashboard" style={styles.navLink}>
-                  <MdDashboard size={20} /> Dashboard
-                </Link>
-              </li>
-
-              <li style={styles.navItem}>
-                <Link to="/my-timesheet" style={styles.navLink}>
-                  <FaClock size={20} /> My Timesheet
-                </Link>
-              </li>
-
-              <li style={styles.navItem}>
-                <Link to="/my-info" style={styles.navLink}>
-                  <FaUser size={20} /> My Info
-                </Link>
-              </li>
-
-              <li style={styles.navItem}>
-                <Link to="/contact-us" style={styles.navLink}>
-                  <FaPhoneAlt size={20} /> Contact Us
-                </Link>
-              </li>
+              {renderNavItem("/dashboard",          <MdDashboard size={18} />,    "Dashboard",          true)}
+              {renderNavItem("/my-timesheet",        <FaClock size={18} />,         "My Timesheet",       true)}
+              {renderNavItem("/my-info",             <FaUser size={18} />,          "My Info",            true)}
+              {renderNavItem("/contact-us",          <FaPhoneAlt size={18} />,      "Contact Us",         true)}
             </>
           )}
 
           {ADMIN_ROLES.includes(user?.role ?? "") && (
             <>
-              <li style={styles.navItem}>
-                <Link to="/admin-home" style={styles.navLink}>
-                  <FaThLarge size={18} /> Home
-                </Link>
+              {renderNavItem("/admin-home",          <FaThLarge size={16} />,       "Home")}
+              {renderNavItem("/users",               <FaUsers size={16} />,         "Users")}
+              {renderNavItem("/invoice",             <FaFileInvoice size={16} />,   "Invoice")}
+              {renderNavItem("/applications",        <FaClipboardList size={16} />, "All Timesheets")}
+              {renderNavItem("/enquiries",           <FaPhoneAlt size={16} />,      "Enquiries")}
+              {renderNavItem("/driver-applications", <FaClipboardList size={16} />, "Driver Applications")}
+
+              <li style={{ ...styles.navItem, marginTop: "14px" }}>
+                {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Vehicle Management</span> : <div style={styles.sectionDivider} />}
               </li>
-              <li style={styles.navItem}>
-                <Link to="/users" style={styles.navLink}>
-                  <FaUsers size={20} /> Users
-                </Link>
+              {renderNavItem("/vehicles",            <FaTruck size={16} />,         "Vehicles")}
+              {renderNavItem("/tracking",            <FaMapMarkerAlt size={16} />,  "Live Tracking")}
+              {renderNavItem("/maintenance",         <FaWrench size={16} />,        "Maintenance")}
+              {renderNavItem("/inspections",         <FaCheckSquare size={16} />,   "Inspections")}
+              {renderNavItem("/fuel-logs",           <FaGasPump size={16} />,       "Fuel Logs")}
+
+              <li style={{ ...styles.navItem, marginTop: "14px" }}>
+                {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Fleet Operations</span> : <div style={styles.sectionDivider} />}
               </li>
-              <li style={styles.navItem}>
-                <Link to="/invoice" style={styles.navLink}>
-                  <FaFileInvoice size={20} /> Invoice
-                </Link>
+              {renderNavItem("/parts",               <FaBox size={16} />,           "Parts Inventory")}
+              {renderNavItem("/warranties",          <FaShieldAlt size={16} />,     "Warranties")}
+              {renderNavItem("/service-history",     <FaHistory size={16} />,       "Service History")}
+              {renderNavItem("/cost-tracking",       <FaChartBar size={16} />,      "Cost Tracking")}
+              {renderNavItem("/preventive-maintenance", <FaCheckSquareIcon size={16} />, "Preventive Maint.")}
+              {renderNavItem("/scheduling",          <FaCalendarAlt size={16} />,   "Scheduling")}
+
+              <li style={{ ...styles.navItem, marginTop: "14px" }}>
+                {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Payments & Billing</span> : <div style={styles.sectionDivider} />}
               </li>
-              <li style={styles.navItem}>
-                <Link to="/applications" style={styles.navLink}>
-                  <FaClipboardList size={20} /> All Timesheets
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/enquiries" style={styles.navLink}>
-                  <FaPhoneAlt size={20} /> Enquiries
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/driver-applications" style={styles.navLink}>
-                  <FaClipboardList size={20} /> Driver Applications
-                </Link>
-              </li>
-              <li style={{ ...styles.navItem, marginTop: "12px" }}>
-                <span style={{ display: "block", padding: "6px 24px 4px", fontSize: "10px", fontWeight: 700, color: "#4b5563", textTransform: "uppercase" as const, letterSpacing: "1px" }}>
-                  Vehicle Management
-                </span>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/vehicles" style={styles.navLink}>
-                  <FaTruck size={18} /> Vehicles
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/maintenance" style={styles.navLink}>
-                  <FaWrench size={18} /> Maintenance
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/inspections" style={styles.navLink}>
-                  <FaCheckSquare size={18} /> Inspections
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/fuel-logs" style={styles.navLink}>
-                  <FaGasPump size={18} /> Fuel Logs
-                </Link>
-              </li>
-              <li style={{ ...styles.navItem, marginTop: "12px" }}>
-                <span style={{ display: "block", padding: "6px 24px 4px", fontSize: "10px", fontWeight: 700, color: "#4b5563", textTransform: "uppercase" as const, letterSpacing: "1px" }}>
-                  Fleet Operations
-                </span>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/parts" style={styles.navLink}>
-                  <FaBox size={18} /> Parts Inventory
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/warranties" style={styles.navLink}>
-                  <FaShieldAlt size={18} /> Warranties
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/service-history" style={styles.navLink}>
-                  <FaHistory size={18} /> Service History
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/cost-tracking" style={styles.navLink}>
-                  <FaChartBar size={18} /> Cost Tracking
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/preventive-maintenance" style={styles.navLink}>
-                  <FaCheckSquareIcon size={18} /> Preventive Maint.
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/scheduling" style={styles.navLink}>
-                  <FaCalendarAlt size={18} /> Scheduling
-                </Link>
-              </li>
-              <li style={{ ...styles.navItem, marginTop: "12px" }}>
-                <span style={{ display: "block", padding: "6px 24px 4px", fontSize: "10px", fontWeight: 700, color: "#4b5563", textTransform: "uppercase" as const, letterSpacing: "1px" }}>
-                  Payments & Billing
-                </span>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/payments" style={styles.navLink}>
-                  <FaDollarSign size={18} /> Driver Payments
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/payment-history" style={styles.navLink}>
-                  <FaHistory size={18} /> Payment History
-                </Link>
-              </li>
-              <li style={styles.navItem}>
-                <Link to="/subscription" style={styles.navLink}>
-                  <FaCreditCard size={18} /> Subscription
-                </Link>
-              </li>
+              {renderNavItem("/payments",            <FaDollarSign size={16} />,    "Driver Payments")}
+              {renderNavItem("/payment-history",     <FaHistory size={16} />,       "Payment History")}
+              {renderNavItem("/subscription",        <FaCreditCard size={16} />,    "Subscription")}
             </>
           )}
         </ul>
+
+        {/* Theme toggle */}
+        <div style={{
+          padding: isSidebarCollapsed ? "8px" : "8px 10px",
+          margin: "0 0 6px",
+          display: "flex",
+          justifyContent: isSidebarCollapsed ? "center" : "stretch",
+        }}>
+          <button
+            onClick={toggleTheme}
+            title={isDark ? "Switch to Light mode" : "Switch to Dark mode"}
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: isSidebarCollapsed ? "9px 0" : "9px 14px",
+              justifyContent: isSidebarCollapsed ? "center" : "flex-start",
+              background: "var(--t-input-bg)",
+              border: "1px solid var(--t-border)",
+              borderRadius: "10px",
+              cursor: "pointer",
+              color: "var(--t-text-faint)",
+              fontSize: "13px",
+              fontWeight: 500,
+              fontFamily: "Inter, system-ui, sans-serif",
+              transition: "background 0.15s",
+            }}
+          >
+            <span style={{ fontSize: "16px", lineHeight: 1, flexShrink: 0 }}>
+              {isDark ? "☀️" : "🌙"}
+            </span>
+            {!isSidebarCollapsed && (
+              <span style={{ color: "var(--t-text-faint)" }}>
+                {isDark ? "Light Mode" : "Dark Mode"}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Admin profile block at bottom */}
+        {ADMIN_ROLES.includes(user?.role ?? "") && (
+          <div style={{
+            ...styles.adminProfile,
+            ...(isSidebarCollapsed ? { justifyContent: "center", padding: "12px 0", margin: "0 8px 14px" } : {}),
+          }}>
+            <div style={styles.adminAvatar}>
+              {(user?.name || user?.email || "A").charAt(0).toUpperCase()}
+            </div>
+            {!isSidebarCollapsed && (
+              <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
+                <div style={styles.adminName}>{user?.name || user?.email || "Admin"}</div>
+                <div style={styles.adminRole}>
+                  {user?.role === "company_admin" ? "Company Admin" : user?.role === "dispatcher" ? "Dispatcher" : "Admin"}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </nav>
     </>
   );
@@ -398,15 +501,16 @@ const Navbar: React.FC = () => {
 const styles: { [key: string]: React.CSSProperties } = {
   header: {
     display: "flex",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     alignItems: "center",
     padding: "0 24px",
     height: "56px",
-    background: "#111827",
-    color: "#fff",
+    background: "var(--t-bg)",
+    borderBottom: "1px solid var(--t-border)",
+    color: "var(--t-text)",
     fontFamily: "Inter, system-ui, sans-serif",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
-    position: "sticky",
+    boxShadow: "var(--t-shadow)",
+    position: "fixed",
     top: 0,
     zIndex: 900,
   },
@@ -423,7 +527,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     lineHeight: "1",
     fontWeight: 800,
     letterSpacing: "-0.3px",
-    color: "#fff",
+    color: "var(--t-text)",
   },
   notificationIconWrapper: {
     position: "relative",
@@ -438,8 +542,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: "absolute",
     top: "-10px",
     right: "-10px",
-    backgroundColor: "#dc2626",
-    color: "white",
+    backgroundColor: "var(--t-error)",
+    color: "var(--t-text)",
     borderRadius: "50%",
     fontSize: "10px",
     fontWeight: 700,
@@ -455,11 +559,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     top: "35px",
     right: "0",
     width: "380px",
-    background: "#fff",
-    color: "#374151",
+    background: "var(--t-modal-bg)",
+    color: "var(--t-text-secondary)",
     borderRadius: "12px",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 8px 30px rgba(0, 0, 0, 0.12)",
+    border: "1px solid var(--t-border)",
+    boxShadow: "var(--t-shadow-lg)",
     zIndex: 1001,
     padding: "16px",
     fontFamily: "Inter, system-ui, sans-serif",
@@ -469,16 +573,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: "center",
     justifyContent: "space-between",
     paddingBottom: "10px",
-    borderBottom: "1px solid #f3f4f6",
+    borderBottom: "1px solid var(--t-border)",
     marginBottom: "8px",
   },
   markAllRead: {
     background: "none",
     border: "none",
-    color: "#4F46E5",
+    color: "var(--t-accent-light)",
     cursor: "pointer",
-    fontSize: "13px",
+    fontSize: "12px",
     fontWeight: 600,
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   notificationTabs: {
     display: "flex",
@@ -486,12 +591,14 @@ const styles: { [key: string]: React.CSSProperties } = {
     marginBottom: "10px",
   },
   tabButton: {
-    background: "#f3f4f6",
-    border: "none",
+    background: "var(--t-hover-bg)",
+    border: "1px solid var(--t-border)",
     borderRadius: "6px",
+    color: "var(--t-text-faint)",
     padding: "5px 10px",
     fontSize: "12px",
     cursor: "pointer",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   notificationList: {
     listStyle: "none",
@@ -510,24 +617,24 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: "13px",
   },
   notificationTableHeader: {
-    borderBottom: "1px solid #e5e7eb",
+    borderBottom: "1px solid var(--t-border)",
     textAlign: "left",
     paddingBottom: "6px",
-    fontSize: "11px",
+    fontSize: "9px",
     fontWeight: 700,
-    color: "#6b7280",
+    color: "var(--t-text-ghost)",
     textTransform: "uppercase",
-    letterSpacing: "0.5px",
+    letterSpacing: "0.8px",
   },
   notificationTableCell: {
-    padding: "8px 0",
-    borderBottom: "1px solid #f3f4f6",
-    fontSize: "13px",
-    color: "#374151",
+    padding: "10px 0",
+    borderBottom: "1px solid var(--t-stripe)",
+    fontSize: "12px",
+    color: "var(--t-text-muted)",
     lineHeight: "1.5",
   },
   acceptButton: {
-    background: "#4F46E5",
+    background: "var(--t-accent)",
     color: "#fff",
     border: "none",
     padding: "5px 10px",
@@ -536,15 +643,17 @@ const styles: { [key: string]: React.CSSProperties } = {
     cursor: "pointer",
     fontSize: "12px",
     fontWeight: 600,
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   declineButton: {
-    background: "#f3f4f6",
-    color: "#374151",
-    border: "1px solid #d1d5db",
+    background: "var(--t-hover-bg)",
+    color: "var(--t-text-faint)",
+    border: "1px solid var(--t-border-strong)",
     padding: "5px 10px",
     borderRadius: "6px",
     cursor: "pointer",
     fontSize: "12px",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   authButtons: {
     display: "flex",
@@ -552,9 +661,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     alignItems: "center",
   },
   logoutButton: {
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.15)",
-    color: "#fff",
+    background: "var(--t-hover-bg)",
+    border: "1px solid var(--t-border-strong)",
+    color: "var(--t-text)",
     cursor: "pointer",
     fontSize: "13px",
     fontWeight: 500,
@@ -566,9 +675,9 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: "background 0.2s",
   },
   changePasswordButton: {
-    background: "rgba(255,255,255,0.08)",
-    border: "1px solid rgba(255,255,255,0.15)",
-    color: "#fff",
+    background: "var(--t-hover-bg)",
+    border: "1px solid var(--t-border-strong)",
+    color: "var(--t-text)",
     cursor: "pointer",
     fontSize: "13px",
     fontWeight: 500,
@@ -586,43 +695,188 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: "260px",
     height: "100%",
     overflowY: "auto",
-    backgroundColor: "#111827",
-    color: "#fff",
-    transition: "left 0.3s ease",
+    overflowX: "hidden",
+    backgroundColor: "var(--t-bg)",
+    color: "var(--t-text)",
+    transition: "left 0.3s ease, width 0.3s ease",
     zIndex: 1000,
     fontFamily: "Inter, system-ui, sans-serif",
-    boxShadow: "4px 0 16px rgba(0,0,0,0.3)",
-  },
-  sidebarLogo: {
+    boxShadow: "var(--t-shadow)",
     display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    padding: "20px 24px 16px",
-    borderBottom: "1px solid rgba(255,255,255,0.08)",
-    marginBottom: "8px",
+    flexDirection: "column",
   },
   navList: {
     listStyleType: "none",
-    padding: "0 0 24px",
+    padding: "0 0 8px",
     margin: "0",
+    flex: 1,
   },
   navItem: {
     listStyle: "none",
   },
   navLink: {
-    color: "#9ca3af",
+    color: "var(--t-text-faint)",
     textDecoration: "none",
     display: "flex",
     alignItems: "center",
-    gap: "12px",
-    fontSize: "14px",
+    gap: "10px",
+    fontSize: "13.5px",
     fontWeight: 500,
-    padding: "11px 24px",
+    padding: "9px 14px",
+    margin: "1px 10px",
     cursor: "pointer",
-    width: "100%",
-    boxSizing: "border-box",
+    borderRadius: "10px",
     transition: "color 0.15s, background 0.15s",
-    borderRadius: "0",
+    boxSizing: "border-box",
+  },
+  navLinkActive: {
+    color: "#fff",
+    textDecoration: "none",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    fontSize: "13.5px",
+    fontWeight: 600,
+    padding: "9px 14px",
+    margin: "1px 10px",
+    cursor: "pointer",
+    borderRadius: "10px",
+    background: "linear-gradient(135deg, #4F46E5 0%, #6366f1 100%)",
+    boxShadow: "0 3px 10px rgba(79,70,229,0.35)",
+    boxSizing: "border-box",
+  },
+  sectionHeader: {
+    display: "block",
+    padding: "4px 24px",
+    fontSize: "10px",
+    fontWeight: 700,
+    color: "var(--t-text-ghost)",
+    textTransform: "uppercase" as const,
+    letterSpacing: "1.1px",
+  },
+  sectionDivider: {
+    height: "1px",
+    background: "var(--t-border)",
+    margin: "0 14px",
+  },
+  adminProfile: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    padding: "12px 14px",
+    margin: "auto 10px 14px",
+    background: "var(--t-surface-alt)",
+    border: "1px solid var(--t-border)",
+    borderRadius: "12px",
+    flexShrink: 0,
+  },
+  adminAvatar: {
+    width: "34px",
+    height: "34px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg, #4F46E5, #818CF8)",
+    border: "2px solid rgba(129,140,248,0.35)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "14px",
+    fontWeight: 700,
+    color: "#fff",
+    flexShrink: 0,
+  },
+  adminName: {
+    fontSize: "13px",
+    fontWeight: 600,
+    color: "var(--t-text)",
+    whiteSpace: "nowrap" as const,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+  adminRole: {
+    fontSize: "11px",
+    fontWeight: 500,
+    color: "var(--t-text-dim)",
+    marginTop: "1px",
+  },
+  driverProfile: {
+    display: "flex",
+    alignItems: "center",
+    gap: "14px",
+    padding: "18px 20px",
+    margin: "8px 12px 4px",
+    background: "linear-gradient(135deg, rgba(79,70,229,0.25) 0%, rgba(99,102,241,0.15) 100%)",
+    border: "1px solid rgba(129,140,248,0.25)",
+    borderRadius: "12px",
+  },
+  driverAvatar: {
+    width: "44px",
+    height: "44px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg, #4F46E5, #818CF8)",
+    border: "2px solid rgba(129,140,248,0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "20px",
+    fontWeight: 700,
+    color: "#fff",
+    flexShrink: 0,
+  },
+  driverProfileInfo: {
+    flex: 1,
+    minWidth: 0,
+    overflow: "hidden",
+  },
+  driverProfileName: {
+    fontSize: "14px",
+    fontWeight: 700,
+    color: "var(--t-text)",
+    whiteSpace: "nowrap" as const,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    marginBottom: "4px",
+  },
+  driverIdBadge: {
+    fontSize: "10px",
+    fontWeight: 600,
+    color: "var(--t-accent-light)",
+    background: "var(--t-indigo-bg)",
+    borderRadius: "4px",
+    padding: "2px 6px",
+    display: "inline-block",
+    marginBottom: "3px",
+    whiteSpace: "nowrap" as const,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: "100%",
+  },
+  driverOrgBadge: {
+    fontSize: "10px",
+    fontWeight: 600,
+    color: "var(--t-success)",
+    background: "var(--t-success-bg)",
+    borderRadius: "4px",
+    padding: "2px 6px",
+    display: "inline-block",
+    whiteSpace: "nowrap" as const,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: "100%",
+  },
+  driverNavLink: {
+    color: "var(--t-text-faint)",
+    textDecoration: "none",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    fontSize: "13.5px",
+    fontWeight: 500,
+    padding: "9px 14px",
+    margin: "1px 10px",
+    cursor: "pointer",
+    borderRadius: "10px",
+    transition: "color 0.15s, background 0.15s",
+    boxSizing: "border-box",
   },
 };
 
@@ -658,13 +912,28 @@ style.innerHTML = `
 }
 
 nav ul li a:hover {
-  background-color: rgba(255,255,255,0.07) !important;
-  color: #fff !important;
+  background-color: var(--t-hover-bg) !important;
+  color: var(--t-text-secondary) !important;
   text-decoration: none;
 }
 
 nav ul li a:hover svg {
-  color: #818CF8 !important;
+  color: #a5b4fc !important;
+}
+
+/* Active links — keep gradient, don't let hover override */
+nav ul li a[style*="linear-gradient"]:hover {
+  background: linear-gradient(135deg, #4F46E5 0%, #6366f1 100%) !important;
+  color: #fff !important;
+}
+
+/* Driver nav links get an indigo tinted hover */
+nav ul li a[href="/dashboard"]:hover,
+nav ul li a[href="/my-timesheet"]:hover,
+nav ul li a[href="/my-info"]:hover,
+nav ul li a[href="/contact-us"]:hover {
+  background-color: rgba(99,102,241,0.18) !important;
+  color: #e0e7ff !important;
 }
 `;
 if (typeof document !== "undefined" && !document.getElementById("hide-on-mobile-style")) {

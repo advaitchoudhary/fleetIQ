@@ -9,6 +9,7 @@ const {
   handleWebhook,
 } = require("../controller/paymentController.js");
 const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
+const { requireDriverModule } = require("../middleware/featureGate.js");
 
 const router = express.Router();
 
@@ -24,6 +25,7 @@ router.post(
   "/onboard/:driverId",
   protect,
   authorizeRoles("admin", "company_admin"),
+  requireDriverModule,
   onboardDriver
 );
 
@@ -31,6 +33,7 @@ router.get(
   "/onboard-status/:driverId",
   protect,
   authorizeRoles("admin", "company_admin"),
+  requireDriverModule,
   getOnboardStatus
 );
 
@@ -39,6 +42,7 @@ router.post(
   "/calculate",
   protect,
   authorizeRoles("admin", "company_admin"),
+  requireDriverModule,
   calculatePayout
 );
 
@@ -46,6 +50,7 @@ router.post(
   "/initiate",
   protect,
   authorizeRoles("admin", "company_admin"),
+  requireDriverModule,
   initiatePayout
 );
 
@@ -54,6 +59,7 @@ router.get(
   "/",
   protect,
   authorizeRoles("admin", "company_admin", "dispatcher"),
+  requireDriverModule,
   getPaymentHistory
 );
 
@@ -62,6 +68,7 @@ router.get(
   "/my-history",
   protect,
   authorizeRoles("driver"),
+  requireDriverModule,
   getDriverPaymentHistory
 );
 

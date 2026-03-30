@@ -17,18 +17,34 @@ const router = express.Router();
 // All vehicle routes require auth + vehicle module subscription
 router.use(protect, requireVehicleModule);
 
-router.get("/", getAllVehicles);
+// Read routes — accessible to admin, company_admin, and dispatcher only (not driver)
+router.get(
+  "/",
+  authorizeRoles("admin", "company_admin", "dispatcher"),
+  getAllVehicles
+);
+router.get(
+  "/:id/stats",
+  authorizeRoles("admin", "company_admin", "dispatcher"),
+  getVehicleStats
+);
+router.get(
+  "/:id",
+  authorizeRoles("admin", "company_admin", "dispatcher"),
+  getVehicleById
+);
+
+// Write routes
 router.post(
   "/",
   authorizeRoles("admin", "company_admin", "dispatcher"),
   uploadVehiclePhotos.array("photos", 5),
   createVehicle
 );
-router.get("/:id/stats", getVehicleStats);
-router.get("/:id", getVehicleById);
 router.put(
   "/:id",
   authorizeRoles("admin", "company_admin", "dispatcher"),
+  uploadVehiclePhotos.array("photos", 5),
   updateVehicle
 );
 router.delete(

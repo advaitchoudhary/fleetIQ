@@ -3,408 +3,279 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import axios from "axios";
 import { API_BASE_URL } from "../utils/env";
-
-import { FaLock, FaEye, FaEyeSlash } from "react-icons/fa"; // Install react-icons
-
+import { FaLock, FaEye, FaEyeSlash, FaCheckCircle } from "react-icons/fa";
 import { useAuth } from "../contexts/AuthContext";
+
+const getPasswordStrength = (pwd: string) => {
+  if (!pwd) return null;
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (/[A-Z]/.test(pwd)) score++;
+  if (/[0-9]/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  if (score <= 1) return { label: "Weak",   color: "var(--t-error)",   bg: "var(--t-error-bg)",   width: "33%"  };
+  if (score <= 2) return { label: "Fair",   color: "var(--t-warning)", bg: "var(--t-warning-bg)", width: "66%"  };
+  return             { label: "Strong", color: "var(--t-success)",  bg: "var(--t-success-bg)", width: "100%" };
+};
 
 const ChangePassword: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const userRole = user?.role;
 
-  const [oldPassword, setOldPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
+  const [oldPassword,     setOldPassword]     = useState("");
+  const [newPassword,     setNewPassword]     = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error,   setError]   = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showOldPassword, setShowOldPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  // Role selection logic
-  const [selectedRole, setSelectedRole] = useState(
-    userRole === "admin" ? "admin" : "driver"
-  );
+
+  const [showOld,     setShowOld]     = useState(false);
+  const [showNew,     setShowNew]     = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [focused,     setFocused]     = useState<string | null>(null);
+
+  const [selectedRole,   setSelectedRole]   = useState(userRole === "driver" ? "driver" : "admin");
   const [selectedDriver, setSelectedDriver] = useState("");
-  const [drivers, setDrivers] = useState<any[]>([]);
+  const [drivers,        setDrivers]        = useState<any[]>([]);
+
+  const strength = getPasswordStrength(newPassword);
+  const passwordsMatch = confirmPassword.length > 0 && newPassword === confirmPassword;
+  const passwordsMismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
 
   useEffect(() => {
-    if (selectedRole === "driver") {
-      fetchDrivers();
-    }
-    // eslint-disable-next-line
+    if (selectedRole === "driver") fetchDrivers();
   }, [selectedRole]);
 
   useEffect(() => {
-    if (selectedRole === "driver" && selectedDriver) {
-      const driver = drivers.find((d: any) => d._id === selectedDriver);
-
-      let passwordToUse = "";
-
-      if (driver) {
-        if (driver.plainPassword) {
-          passwordToUse = driver.plainPassword;
-        } else if (driver.password && !driver.password.startsWith("$2b$")) {
-          passwordToUse = driver.password;
-        } else {
-          // If hashed password is present but no plain password is known → fallback to username (to assist admin)
-          passwordToUse = driver.username || "";
-        }
-      }
-
-      setOldPassword(passwordToUse);
-    } else {
-      setOldPassword("");
-    }
-
-    setNewPassword("");
-    setConfirmPassword("");
-  }, [selectedRole, selectedDriver, drivers]);
+    setOldPassword(""); setNewPassword(""); setConfirmPassword("");
+    setError(""); setSuccess("");
+  }, [selectedRole, selectedDriver]);
 
   const fetchDrivers = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`${API_BASE_URL}/drivers`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+      const res = await axios.get(`${API_BASE_URL}/drivers`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setDrivers(response.data || []);
+      setDrivers(res.data || []);
     } catch (err) {
       console.error("Failed to fetch drivers", err);
     }
   };
 
-  const handleChangePassword = async () => {
-    setError("");
-    setSuccess("");
+  const handleSubmit = async () => {
+    setError(""); setSuccess("");
 
-    if (!oldPassword || !newPassword.trim() || !confirmPassword.trim()) {
-      setError("All fields are required");
-      return;
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      setError("All fields are required."); return;
     }
-
-    if (newPassword.trim() !== confirmPassword.trim()) {
-      setError("New passwords do not match");
-      return;
+    if (newPassword.length < 8) {
+      setError("New password must be at least 8 characters."); return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError("Passwords do not match."); return;
     }
 
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const url =
-        selectedRole === "driver"
-          ? `${API_BASE_URL}/drivers/change-password`
-          : `${API_BASE_URL}/auth/change-password`;
+      const url = selectedRole === "driver"
+        ? `${API_BASE_URL}/drivers/change-password`
+        : `${API_BASE_URL}/auth/change-password`;
 
-          const payload =
-          selectedRole === "driver" && userRole === "admin"
-            ? {
-                oldPassword,
-                newPassword: newPassword.trim(),
-                driverId: selectedDriver
-              }
-            : {
-                oldPassword,
-                newPassword: newPassword.trim()
-              };
+      const payload = selectedRole === "driver" && userRole !== "driver"
+        ? { oldPassword, newPassword, driverId: selectedDriver }
+        : { oldPassword, newPassword };
 
-        await axios.post(
-          url,
-          payload,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            }
-          }
-        );
+      await axios.post(url, payload, { headers: { Authorization: `Bearer ${token}` } });
 
       setSuccess("Password changed successfully!");
-      setOldPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-      setTimeout(() => navigate("/"), 2000);
+      setOldPassword(""); setNewPassword(""); setConfirmPassword("");
+      setTimeout(() => navigate(userRole === "driver" ? "/dashboard" : "/admin-home"), 2000);
     } catch (err) {
-      setError((err as any).response?.data?.error || "Failed to change password");
+      setError((err as any).response?.data?.error || "Failed to change password.");
     } finally {
       setLoading(false);
     }
   };
 
+  const inputStyle = (name: string, hasError = false): React.CSSProperties => ({
+    width: "100%",
+    padding: "10px 40px",
+    fontSize: "14px",
+    border: `1px solid ${hasError ? "var(--t-error)" : focused === name ? "var(--t-accent)" : "var(--t-border-strong)"}`,
+    borderRadius: "8px",
+    outline: "none",
+    backgroundColor: "var(--t-input-bg)",
+    color: "var(--t-text-secondary)",
+    boxSizing: "border-box",
+    boxShadow: focused === name ? "0 0 0 3px var(--t-indigo-bg)" : "none",
+    transition: "border-color 0.15s, box-shadow 0.15s",
+    fontFamily: "Inter, system-ui, sans-serif",
+  });
+
+  const isDisabled = loading || !oldPassword || !newPassword || !confirmPassword ||
+    (selectedRole === "driver" && userRole !== "driver" && !selectedDriver);
+
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "#f4f6f8", minHeight: "100vh" }}>
-      <style>{`
-        @media (max-width: 480px) {
-          [data-cp-form] { padding: 24px 16px !important; }
-          [data-cp-title] { font-size: 20px !important; }
-          [data-cp-input] { width: 100% !important; box-sizing: border-box !important; }
-        }
-      `}</style>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "var(--t-bg)", minHeight: "100vh" }}>
       <Navbar />
-      <div style={styles.container}>
-        <div style={styles.formContainer} data-cp-form>
-          <div style={styles.iconCircle}>
-            <FaLock size={24} color="#4F46E5" />
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 20px" }}>
+        <div style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", boxShadow: "var(--t-shadow)", padding: "40px", width: "100%", maxWidth: "440px" }}>
+
+          {/* Icon + Title */}
+          <div style={{ textAlign: "center", marginBottom: "28px" }}>
+            <div style={{ width: "52px", height: "52px", borderRadius: "50%", background: "var(--t-indigo-bg)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
+              <FaLock size={20} color="var(--t-indigo)" />
+            </div>
+            <h2 style={{ margin: "0 0 6px", fontSize: "22px", fontWeight: 700, color: "var(--t-text)", letterSpacing: "-0.3px" }}>
+              Change Password
+            </h2>
+            <p style={{ margin: 0, fontSize: "13px", color: "var(--t-text-dim)", lineHeight: 1.6 }}>
+              Must be at least 8 characters and include uppercase, number, and special character.
+            </p>
           </div>
-          <h2 style={styles.title} data-cp-title>Change Password</h2>
-          <p style={styles.description}>
-            To change your password, please fill in the fields below. <br />
-            Your password must contain at least 8 characters, and must include at least one upper case letter,
-            one lower case letter, one number and one special character.
-          </p>
-          {/* Role selection radio (admin only) */}
-          {userRole === "admin" && (
-            <div style={{ display: "flex", gap: "24px", marginBottom: "20px" }}>
-              <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", color: "#374151", cursor: "pointer" }}>
-                <input
-                  type="radio"
-                  value="admin"
-                  checked={selectedRole === "admin"}
-                  onChange={() => setSelectedRole("admin")}
-                  style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
-                />{" "}
-                Admin
-              </label>
-              <label style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "14px", color: "#374151", cursor: "pointer" }}>
-                <input
-                  type="radio"
-                  value="driver"
-                  checked={selectedRole === "driver"}
-                  onChange={() => setSelectedRole("driver")}
-                  style={{ accentColor: "#4F46E5", width: "16px", height: "16px" }}
-                />{" "}
-                Driver
-              </label>
+
+          {/* Role toggle — admin/company_admin only */}
+          {(userRole === "admin" || userRole === "company_admin") && (
+            <div style={{ display: "flex", background: "var(--t-input-bg)", borderRadius: "8px", padding: "3px", marginBottom: "20px", gap: "3px" }}>
+              {["admin", "driver"].map((role) => (
+                <button
+                  key={role}
+                  onClick={() => setSelectedRole(role)}
+                  style={{ flex: 1, padding: "7px", fontSize: "13px", fontWeight: 600, border: "none", borderRadius: "6px", cursor: "pointer", transition: "all 0.15s", fontFamily: "Inter, system-ui, sans-serif",
+                    background: selectedRole === role ? "var(--t-select-bg)" : "transparent",
+                    color: selectedRole === role ? "var(--t-indigo)" : "var(--t-text-dim)",
+                    boxShadow: selectedRole === role ? "0 1px 4px rgba(0,0,0,0.3)" : "none",
+                  }}
+                >
+                  {role === "admin" ? "My Account" : "Driver Account"}
+                </button>
+              ))}
             </div>
           )}
-          {/* Driver dropdown if driver role selected */}
-          {selectedRole === "driver" && (
-            <div style={{ marginBottom: "16px", width: "100%" }}>
+
+          {/* Driver selector */}
+          {selectedRole === "driver" && userRole !== "driver" && (
+            <div style={{ marginBottom: "16px" }}>
+              <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "var(--t-text-faint)", marginBottom: "5px" }}>
+                Select Driver
+              </label>
               <select
                 value={selectedDriver}
-                onChange={(e) => {
-                  const driverId = e.target.value;
-                  setSelectedDriver(driverId);
-                }}
-                style={styles.selectInput}
+                onChange={(e) => setSelectedDriver(e.target.value)}
+                style={{ width: "100%", padding: "9px 12px", fontSize: "14px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", outline: "none", background: "var(--t-select-bg)", fontFamily: "Inter, system-ui, sans-serif", color: selectedDriver ? "var(--t-text-secondary)" : "var(--t-text-dim)", boxSizing: "border-box" }}
               >
-                <option value="">Select a Driver</option>
-                {drivers
-                  .filter((driver: any) => {
-                    if (userRole === "driver") {
-                      // If driver → only show self (match by email or username)
-                      return driver.email === user?.email || driver.username === user?.email;
-                    } else {
-                      // If admin → show all drivers except "admin"
-                      return driver.username !== "admin";
-                    }
-                  })
-                  .map((driver: any) => (
-                    <option key={driver._id} value={driver._id}>
-                      {driver.name}
-                    </option>
-                  ))}
+                <option value="">Select a driver</option>
+                {drivers.filter((d: any) => d.username !== "admin").map((d: any) => (
+                  <option key={d._id} value={d._id}>{d.name}</option>
+                ))}
               </select>
             </div>
           )}
-          {/* Only show form if allowed */}
-          {selectedRole === "admin" || (selectedRole === "driver" && selectedDriver) ? (
-            <>
-              {error && <p style={styles.error}>{error}</p>}
-              {success && <p style={styles.success}>{success}</p>}
 
-              {/* Old Password */}
-              <div style={styles.inputWrapper}>
-                <FaLock style={styles.inputIcon} />
-                <input
-                  type={showOldPassword ? "text" : "password"}
-                  placeholder="Current Password"
-                  value={oldPassword}
-                  onChange={(e) => setOldPassword(e.target.value)}
-                  style={styles.input}
-                />
-                <span onClick={() => setShowOldPassword(!showOldPassword)} style={styles.eyeIcon}>
-                  {showOldPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
+          {/* Show form only when applicable */}
+          {(selectedRole === "admin" || (selectedRole === "driver" && (userRole === "driver" || selectedDriver))) && (
+            <>
+              {error   && <div style={{ marginBottom: "14px", padding: "10px 14px", background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px", fontSize: "13px", color: "var(--t-error)" }}>{error}</div>}
+              {success && (
+                <div style={{ marginBottom: "14px", padding: "10px 14px", background: "var(--t-success-bg)", border: "1px solid rgba(16,185,129,0.2)", borderRadius: "8px", fontSize: "13px", color: "var(--t-success)", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <FaCheckCircle /> {success}
+                </div>
+              )}
+
+              {/* Current Password */}
+              <div style={{ marginBottom: "14px" }}>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "var(--t-text-faint)", marginBottom: "5px" }}>Current Password</label>
+                <div style={{ position: "relative" }}>
+                  <FaLock style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--t-text-faint)", fontSize: "13px" }} />
+                  <input
+                    type={showOld ? "text" : "password"}
+                    placeholder="Enter current password"
+                    value={oldPassword}
+                    onChange={(e) => setOldPassword(e.target.value)}
+                    onFocus={() => setFocused("old")}
+                    onBlur={() => setFocused(null)}
+                    style={inputStyle("old")}
+                  />
+                  <span onClick={() => setShowOld(v => !v)} style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "var(--t-text-faint)" }}>
+                    {showOld ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
+                  </span>
+                </div>
               </div>
 
               {/* New Password */}
-              <div style={styles.inputWrapper}>
-                <FaLock style={styles.inputIcon} />
-                <input
-                  type={showNewPassword ? "text" : "password"}
-                  placeholder="New Password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  style={styles.input}
-                />
-                <span onClick={() => setShowNewPassword(!showNewPassword)} style={styles.eyeIcon}>
-                  {showNewPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
+              <div style={{ marginBottom: "6px" }}>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "var(--t-text-faint)", marginBottom: "5px" }}>New Password</label>
+                <div style={{ position: "relative" }}>
+                  <FaLock style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--t-text-faint)", fontSize: "13px" }} />
+                  <input
+                    type={showNew ? "text" : "password"}
+                    placeholder="Enter new password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    onFocus={() => setFocused("new")}
+                    onBlur={() => setFocused(null)}
+                    style={inputStyle("new")}
+                  />
+                  <span onClick={() => setShowNew(v => !v)} style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "var(--t-text-faint)" }}>
+                    {showNew ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
+                  </span>
+                </div>
               </div>
 
+              {/* Strength bar */}
+              {strength && (
+                <div style={{ marginBottom: "14px" }}>
+                  <div style={{ height: "4px", background: "var(--t-border)", borderRadius: "4px", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: strength.width, background: strength.color, borderRadius: "4px", transition: "width 0.3s" }} />
+                  </div>
+                  <span style={{ fontSize: "11px", fontWeight: 600, color: strength.color, marginTop: "3px", display: "inline-block" }}>{strength.label}</span>
+                </div>
+              )}
+
               {/* Confirm Password */}
-              <div style={styles.inputWrapper}>
-                <FaLock style={styles.inputIcon} />
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm Password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  style={styles.input}
-                />
-                <span onClick={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
-                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                </span>
+              <div style={{ marginBottom: "20px" }}>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "var(--t-text-faint)", marginBottom: "5px" }}>Confirm Password</label>
+                <div style={{ position: "relative" }}>
+                  <FaLock style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--t-text-faint)", fontSize: "13px" }} />
+                  <input
+                    type={showConfirm ? "text" : "password"}
+                    placeholder="Re-enter new password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onFocus={() => setFocused("confirm")}
+                    onBlur={() => setFocused(null)}
+                    style={inputStyle("confirm", passwordsMismatch)}
+                  />
+                  <span onClick={() => setShowConfirm(v => !v)} style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "var(--t-text-faint)" }}>
+                    {showConfirm ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
+                  </span>
+                  {passwordsMatch && (
+                    <FaCheckCircle style={{ position: "absolute", right: "38px", top: "50%", transform: "translateY(-50%)", color: "var(--t-success)", fontSize: "13px" }} />
+                  )}
+                </div>
+                {passwordsMismatch && <p style={{ margin: "4px 0 0", fontSize: "12px", color: "var(--t-error)" }}>Passwords do not match</p>}
               </div>
 
               <button
-                onClick={handleChangePassword}
-                style={
-                  loading || !oldPassword || !newPassword || !confirmPassword
-                    ? { ...styles.button, ...styles.buttonDisabled }
-                    : styles.button
-                }
-                disabled={loading || !oldPassword || !newPassword || !confirmPassword}
+                onClick={handleSubmit}
+                disabled={isDisabled}
+                style={{ width: "100%", padding: "11px", fontSize: "14px", fontWeight: 600, border: "none", borderRadius: "8px", cursor: isDisabled ? "not-allowed" : "pointer", transition: "background 0.2s", fontFamily: "Inter, system-ui, sans-serif",
+                  background: isDisabled ? "var(--t-surface-alt)" : "var(--t-accent)",
+                  color: "#fff",
+                }}
               >
-                {loading ? "Changing..." : "Change Password"}
+                {loading ? "Updating…" : "Change Password"}
               </button>
             </>
-          ) : null}
+          )}
         </div>
       </div>
     </div>
   );
-};
-
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: "40px 20px",
-  },
-  formContainer: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    padding: "40px",
-    borderRadius: "16px",
-    border: "1px solid #e5e7eb",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
-    backgroundColor: "#fff",
-    width: "100%",
-    maxWidth: "450px",
-    textAlign: "center",
-  },
-  iconCircle: {
-    backgroundColor: "#eef2ff",
-    borderRadius: "50%",
-    padding: "16px",
-    marginBottom: "16px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: "24px",
-    fontWeight: 700,
-    marginBottom: "8px",
-    marginTop: 0,
-    color: "#111827",
-    letterSpacing: "-0.3px",
-  },
-  description: {
-    fontSize: "13px",
-    color: "#6b7280",
-    marginBottom: "24px",
-    lineHeight: "1.6",
-  },
-  inputWrapper: {
-    position: "relative",
-    width: "100%",
-    marginBottom: "14px",
-  },
-  inputIcon: {
-    position: "absolute",
-    top: "50%",
-    left: "14px",
-    transform: "translateY(-50%)",
-    color: "#9ca3af",
-    fontSize: "14px",
-  },
-  eyeIcon: {
-    position: "absolute",
-    top: "50%",
-    right: "14px",
-    transform: "translateY(-50%)",
-    cursor: "pointer",
-    color: "#9ca3af",
-    fontSize: "14px",
-  },
-  input: {
-    width: "100%",
-    padding: "10px 40px",
-    fontSize: "14px",
-    border: "1px solid #d1d5db",
-    borderRadius: "8px",
-    outline: "none",
-    transition: "border-color 0.2s",
-    backgroundColor: "#fff",
-    boxSizing: "border-box",
-  },
-  selectInput: {
-    width: "100%",
-    padding: "10px 14px",
-    fontSize: "14px",
-    border: "1px solid #d1d5db",
-    borderRadius: "8px",
-    outline: "none",
-    transition: "border-color 0.2s",
-    backgroundColor: "#fff",
-  },
-  button: {
-    width: "100%",
-    padding: "12px",
-    fontSize: "15px",
-    backgroundColor: "#4F46E5",
-    color: "#fff",
-    fontWeight: 600,
-    border: "none",
-    cursor: "pointer",
-    marginTop: "8px",
-    borderRadius: "8px",
-    transition: "background 0.2s",
-  },
-  buttonDisabled: {
-    backgroundColor: "#d1d5db",
-    cursor: "not-allowed",
-  },
-  error: {
-    color: "#dc2626",
-    fontSize: "13px",
-    marginBottom: "12px",
-    padding: "8px 14px",
-    backgroundColor: "#fef2f2",
-    borderRadius: "8px",
-    border: "1px solid #fecaca",
-    width: "100%",
-    boxSizing: "border-box",
-  },
-  success: {
-    color: "#059669",
-    fontSize: "13px",
-    marginBottom: "12px",
-    padding: "8px 14px",
-    backgroundColor: "#ecfdf5",
-    borderRadius: "8px",
-    border: "1px solid #a7f3d0",
-    width: "100%",
-    boxSizing: "border-box",
-  },
 };
 
 export default ChangePassword;

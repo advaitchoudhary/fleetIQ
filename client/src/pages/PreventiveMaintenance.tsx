@@ -7,9 +7,9 @@ const MAINTENANCE_TYPES = ["preventive", "inspection", "tire", "oil_change", "ot
 const VEHICLE_TYPES = ["truck", "trailer", "van", "pickup", "other"];
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  on_track: { bg: "#d1fae5", color: "#065f46" },
-  due_soon: { bg: "#fef3c7", color: "#92400e" },
-  overdue: { bg: "#fee2e2", color: "#991b1b" },
+  on_track: { bg: "var(--t-success-bg)", color: "var(--t-success)" },
+  due_soon: { bg: "var(--t-warning-bg)", color: "var(--t-warning)" },
+  overdue: { bg: "var(--t-error-bg)", color: "var(--t-error)" },
 };
 
 const emptyTemplateForm = {
@@ -22,33 +22,6 @@ const emptyScheduleForm = {
   vehicleId: "", templateId: "", lastCompletedDate: "", lastCompletedOdometer: "", notes: "",
 };
 
-const DEMO_VEHICLES_PM = [
-  { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth", model: "T680" },
-  { _id: "demo-v2", unitNumber: "U-102", make: "Freightliner", model: "Cascadia" },
-  { _id: "demo-v3", unitNumber: "U-103", make: "Ford", model: "Transit 350" },
-  { _id: "demo-v5", unitNumber: "U-105", make: "Ram", model: "1500 Classic" },
-];
-
-const DEMO_PM_TEMPLATES = [
-  { _id: "demo-t1", name: "Engine Oil & Filter Change", description: "Full sump drain and refill with 15W-40 synthetic. Replace oil filter.", maintenanceType: "oil_change", intervalKm: 25000, intervalDays: 180, estimatedCost: 185, estimatedDuration: 90, vendor: "FleetPro Service Centre", applicableVehicleTypes: ["truck"], notes: "Use API CK-4 spec oil." },
-  { _id: "demo-t2", name: "Annual Safety Inspection (CVIP)", description: "MTO commercial vehicle inspection program. Mandatory for all commercial vehicles.", maintenanceType: "inspection", intervalKm: null, intervalDays: 365, estimatedCost: 250, estimatedDuration: 180, vendor: "Certified Truck Inspections Ltd.", applicableVehicleTypes: ["truck", "trailer", "van", "pickup"], notes: "Book at least 30 days in advance." },
-  { _id: "demo-t3", name: "Air Filter Replacement", description: "Replace primary and safety air filter elements. Inspect air intake piping.", maintenanceType: "preventive", intervalKm: 50000, intervalDays: 365, estimatedCost: 95, estimatedDuration: 45, vendor: "FleetPro Service Centre", applicableVehicleTypes: ["truck"], notes: "Check air restriction indicator first." },
-  { _id: "demo-t4", name: "Tire Rotation & Balance", description: "Rotate tires per manufacturer pattern. Dynamically balance all wheels.", maintenanceType: "tire", intervalKm: 40000, intervalDays: 270, estimatedCost: 280, estimatedDuration: 120, vendor: "Kal Tire Commercial", applicableVehicleTypes: ["truck", "van", "pickup"], notes: "Also check lug nut torque to spec." },
-  { _id: "demo-t5", name: "Coolant System Service", description: "Drain, flush, and refill with OAT extended-life coolant. Pressure test hoses.", maintenanceType: "preventive", intervalKm: null, intervalDays: 730, estimatedCost: 320, estimatedDuration: 120, vendor: "FleetPro Service Centre", applicableVehicleTypes: ["truck"], notes: "Replace thermostat if over 500k km." },
-];
-
-const DEMO_PM_SCHEDULES = [
-  { _id: "demo-s1", vehicleId: "demo-v1", templateId: { _id: "demo-t1", name: "Engine Oil & Filter Change", maintenanceType: "oil_change", intervalKm: 25000, intervalDays: 180 }, lastCompletedDate: "2026-02-10", lastCompletedOdometer: 155000, nextDueDate: "2026-08-10", nextDueOdometer: 180000, status: "on_track", notes: "" },
-  { _id: "demo-s2", vehicleId: "demo-v1", templateId: { _id: "demo-t2", name: "Annual Safety Inspection (CVIP)", maintenanceType: "inspection", intervalKm: null, intervalDays: 365 }, lastCompletedDate: "2025-04-10", lastCompletedOdometer: 142000, nextDueDate: "2026-04-05", nextDueOdometer: null, status: "due_soon", notes: "Book appointment." },
-  { _id: "demo-s3", vehicleId: "demo-v2", templateId: { _id: "demo-t1", name: "Engine Oil & Filter Change", maintenanceType: "oil_change", intervalKm: 25000, intervalDays: 180 }, lastCompletedDate: "2026-01-22", lastCompletedOdometer: 198400, nextDueDate: "2026-07-22", nextDueOdometer: 223400, status: "on_track", notes: "" },
-  { _id: "demo-s4", vehicleId: "demo-v2", templateId: { _id: "demo-t3", name: "Air Filter Replacement", maintenanceType: "preventive", intervalKm: 50000, intervalDays: 365 }, lastCompletedDate: "2024-09-15", lastCompletedOdometer: 160000, nextDueDate: "2025-09-15", nextDueOdometer: 210000, status: "overdue", notes: "Past due — schedule immediately." },
-  { _id: "demo-s5", vehicleId: "demo-v3", templateId: { _id: "demo-t4", name: "Tire Rotation & Balance", maintenanceType: "tire", intervalKm: 40000, intervalDays: 270 }, lastCompletedDate: "2025-10-01", lastCompletedOdometer: 18000, nextDueDate: "2026-06-28", nextDueOdometer: 58000, status: "on_track", notes: "" },
-];
-
-const DEMO_PM_DUE = [
-  { _id: "demo-s2", vehicleId: "demo-v1", templateId: { _id: "demo-t2", name: "Annual Safety Inspection (CVIP)", maintenanceType: "inspection" }, nextDueDate: "2026-04-05", status: "due_soon" },
-  { _id: "demo-s4", vehicleId: "demo-v2", templateId: { _id: "demo-t3", name: "Air Filter Replacement", maintenanceType: "preventive" }, nextDueDate: "2025-09-15", status: "overdue" },
-];
 
 const PreventiveMaintenance: React.FC = () => {
   const [templates, setTemplates] = useState<any[]>([]);
@@ -83,16 +56,16 @@ const PreventiveMaintenance: React.FC = () => {
         fetch(`${API_BASE_URL}/pm/schedules/due`, { headers }),
       ]);
       const [t, s, v, d] = await Promise.all([tRes.json(), sRes.json(), vRes.json(), dRes.json()]);
-      setTemplates(Array.isArray(t) && t.length > 0 ? t : DEMO_PM_TEMPLATES);
-      setSchedules(Array.isArray(s) && s.length > 0 ? s : DEMO_PM_SCHEDULES);
-      setVehicles(Array.isArray(v) && v.length > 0 ? v : DEMO_VEHICLES_PM);
-      setDueSchedules(Array.isArray(d) && d.length > 0 ? d : DEMO_PM_DUE);
+      setTemplates(Array.isArray(t) ? t : []);
+      setSchedules(Array.isArray(s) ? s : []);
+      setVehicles(Array.isArray(v) ? v : []);
+      setDueSchedules(Array.isArray(d) ? d : []);
     } catch (err) {
       console.error(err);
-      setTemplates(DEMO_PM_TEMPLATES);
-      setSchedules(DEMO_PM_SCHEDULES);
-      setVehicles(DEMO_VEHICLES_PM);
-      setDueSchedules(DEMO_PM_DUE);
+      setTemplates([]);
+      setSchedules([]);
+      setVehicles([]);
+      setDueSchedules([]);
     } finally { setLoading(false); }
   }, []);
 
@@ -127,6 +100,10 @@ const PreventiveMaintenance: React.FC = () => {
   };
 
   const handleSaveTemplate = async () => {
+    if (!templateForm.name.trim()) {
+      alert("Template name is required.");
+      return;
+    }
     setSaving(true);
     try {
       const body = {
@@ -137,14 +114,28 @@ const PreventiveMaintenance: React.FC = () => {
         estimatedDuration: templateForm.estimatedDuration ? Number(templateForm.estimatedDuration) : undefined,
       };
       const url = editingTemplate ? `${API_BASE_URL}/pm/templates/${editingTemplate._id}` : `${API_BASE_URL}/pm/templates`;
-      await fetch(url, { method: editingTemplate ? "PUT" : "POST", headers, body: JSON.stringify(body) });
+      const res = await fetch(url, { method: editingTemplate ? "PUT" : "POST", headers, body: JSON.stringify(body) });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to save template.");
+        setSaving(false);
+        return;
+      }
       setIsTemplateModalOpen(false);
       fetchAll();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
     setSaving(false);
   };
 
   const handleSaveSchedule = async () => {
+    if (!scheduleForm.vehicleId) {
+      alert("Please select a vehicle.");
+      return;
+    }
+    if (!scheduleForm.templateId) {
+      alert("Please select a PM template.");
+      return;
+    }
     setSaving(true);
     try {
       const body = {
@@ -152,10 +143,16 @@ const PreventiveMaintenance: React.FC = () => {
         lastCompletedOdometer: scheduleForm.lastCompletedOdometer ? Number(scheduleForm.lastCompletedOdometer) : undefined,
       };
       const url = editingSchedule ? `${API_BASE_URL}/pm/schedules/${editingSchedule._id}` : `${API_BASE_URL}/pm/schedules`;
-      await fetch(url, { method: editingSchedule ? "PUT" : "POST", headers, body: JSON.stringify(body) });
+      const res = await fetch(url, { method: editingSchedule ? "PUT" : "POST", headers, body: JSON.stringify(body) });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to save schedule.");
+        setSaving(false);
+        return;
+      }
       setIsScheduleModalOpen(false);
       fetchAll();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
     setSaving(false);
   };
 
@@ -164,17 +161,29 @@ const PreventiveMaintenance: React.FC = () => {
     const url = deleteType === "template"
       ? `${API_BASE_URL}/pm/templates/${selectedItem._id}`
       : `${API_BASE_URL}/pm/schedules/${selectedItem._id}`;
-    await fetch(url, { method: "DELETE", headers });
-    setIsDeleteModalOpen(false);
-    fetchAll();
+    try {
+      const res = await fetch(url, { method: "DELETE", headers });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to delete.");
+        return;
+      }
+      setIsDeleteModalOpen(false);
+      fetchAll();
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
   };
 
   const handleGenerate = async (scheduleId: string) => {
     setGenerating(scheduleId);
     try {
-      await fetch(`${API_BASE_URL}/pm/schedules/${scheduleId}/generate`, { method: "POST", headers });
-      fetchAll();
-    } catch (err) { console.error(err); }
+      const res = await fetch(`${API_BASE_URL}/pm/schedules/${scheduleId}/generate`, { method: "POST", headers });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to generate work order.");
+      } else {
+        fetchAll();
+      }
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
     setGenerating(null);
   };
 
@@ -194,24 +203,31 @@ const PreventiveMaintenance: React.FC = () => {
   return (
     <div style={styles.wrapper}>
       <Navbar />
-      <div style={styles.container}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "12px" }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "#111827", display: "flex", alignItems: "center", gap: "10px" }}>
-              <FaTools style={{ color: "#4F46E5" }} /> Preventive Maintenance
-            </h1>
-            <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "14px" }}>PM templates, schedules, and automated work order generation</p>
+      {/* Hero */}
+      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
+        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+              <FaTools size={22} />
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Fleet</p>
+              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Preventive Maintenance</h1>
+              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>PM templates, schedules, and automated work order generation</p>
+            </div>
           </div>
           <div style={{ display: "flex", gap: "10px" }}>
-            <button style={styles.secondaryBtn} onClick={openAddSchedule}><FaWrench size={13} /> Assign to Vehicle</button>
-            <button style={styles.primaryBtn} onClick={openAddTemplate}><FaPlus size={13} /> New Template</button>
+            <button style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} onClick={openAddSchedule}><FaWrench size={13} /> Assign to Vehicle</button>
+            <button style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} onClick={openAddTemplate}><FaPlus size={13} /> New Template</button>
           </div>
         </div>
+      </div>
+      <div style={styles.container}>
 
         {dueSchedules.length > 0 && (
           <div style={styles.alertBanner}>
-            {overdueCount > 0 && <span style={{ color: "#dc2626", fontWeight: 700 }}>🔴 {overdueCount} overdue </span>}
-            {dueSoonCount > 0 && <span style={{ color: "#92400e", fontWeight: 700 }}>⚠ {dueSoonCount} due soon</span>}
+            {overdueCount > 0 && <span style={{ color: "var(--t-error)", fontWeight: 700 }}>🔴 {overdueCount} overdue </span>}
+            {dueSoonCount > 0 && <span style={{ color: "var(--t-warning)", fontWeight: 700 }}>⚠ {dueSoonCount} due soon</span>}
             <span style={{ marginLeft: "8px" }}>— review schedules below</span>
           </div>
         )}
@@ -243,17 +259,17 @@ const PreventiveMaintenance: React.FC = () => {
               </thead>
               <tbody>
                 {filteredSchedules.length === 0 ? (
-                  <tr><td colSpan={8} style={{ ...styles.td, textAlign: "center", color: "#6b7280", padding: "40px" }}>No schedules yet. Assign a PM template to a vehicle.</td></tr>
+                  <tr><td colSpan={8} style={{ ...styles.td, textAlign: "center", color: "var(--t-text-dim)", padding: "40px" }}>No schedules yet. Assign a PM template to a vehicle.</td></tr>
                 ) : filteredSchedules.map((s) => (
                   <tr key={s._id} style={styles.tr}>
-                    <td style={styles.td}><strong>{s.vehicleId?.unitNumber || "—"}</strong> <span style={{ color: "#6b7280", fontSize: "12px" }}>{s.vehicleId?.make}</span></td>
+                    <td style={styles.td}><strong>{s.vehicleId?.unitNumber || "—"}</strong> <span style={{ color: "var(--t-text-dim)", fontSize: "12px" }}>{s.vehicleId?.make}</span></td>
                     <td style={styles.td}>{s.templateId?.name || "—"}</td>
                     <td style={styles.td}>{s.lastCompletedDate ? new Date(s.lastCompletedDate).toLocaleDateString() : "—"}</td>
                     <td style={styles.td}>{s.lastCompletedOdometer ? `${s.lastCompletedOdometer.toLocaleString()} km` : "—"}</td>
                     <td style={styles.td}>{s.nextDueDate ? new Date(s.nextDueDate).toLocaleDateString() : "—"}</td>
                     <td style={styles.td}>{s.nextDueOdometer ? `${s.nextDueOdometer.toLocaleString()} km` : "—"}</td>
                     <td style={styles.td}>
-                      <span style={{ ...styles.badge, background: STATUS_COLORS[s.status]?.bg || "#f3f4f6", color: STATUS_COLORS[s.status]?.color || "#374151" }}>
+                      <span style={{ ...styles.badge, background: STATUS_COLORS[s.status]?.bg || "var(--t-hover-bg)", color: STATUS_COLORS[s.status]?.color || "var(--t-text-faint)" }}>
                         {s.status?.replace("_", " ")}
                       </span>
                     </td>
@@ -261,14 +277,14 @@ const PreventiveMaintenance: React.FC = () => {
                       <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                         <button style={styles.iconBtn} title="Edit" onClick={() => openEditSchedule(s)}><FaEdit size={13} /></button>
                         <button
-                          style={{ ...styles.iconBtn, color: "#059669" }}
+                          style={{ ...styles.iconBtn, color: "var(--t-success)" }}
                           onClick={() => handleGenerate(s._id)}
                           disabled={generating === s._id}
                           title="Generate maintenance work order"
                         >
                           <FaWrench size={13} />
                         </button>
-                        <button style={{ ...styles.iconBtn, color: "#dc2626" }} title="Delete" onClick={() => { setSelectedItem(s); setDeleteType("schedule"); setIsDeleteModalOpen(true); }}><FaTrashAlt size={13} /></button>
+                        <button style={{ ...styles.iconBtn, color: "var(--t-error)" }} title="Delete" onClick={() => { setSelectedItem(s); setDeleteType("schedule"); setIsDeleteModalOpen(true); }}><FaTrashAlt size={13} /></button>
                       </div>
                     </td>
                   </tr>
@@ -288,7 +304,7 @@ const PreventiveMaintenance: React.FC = () => {
               </thead>
               <tbody>
                 {filteredTemplates.length === 0 ? (
-                  <tr><td colSpan={8} style={{ ...styles.td, textAlign: "center", color: "#6b7280", padding: "40px" }}>No templates yet. Create your first PM template.</td></tr>
+                  <tr><td colSpan={8} style={{ ...styles.td, textAlign: "center", color: "var(--t-text-dim)", padding: "40px" }}>No templates yet. Create your first PM template.</td></tr>
                 ) : filteredTemplates.map((t) => (
                   <tr key={t._id} style={styles.tr}>
                     <td style={styles.td}><strong>{t.name}</strong></td>
@@ -297,11 +313,11 @@ const PreventiveMaintenance: React.FC = () => {
                     <td style={styles.td}>{t.intervalDays ? `${t.intervalDays} days` : "—"}</td>
                     <td style={styles.td}>{t.estimatedCost ? `$${t.estimatedCost}` : "—"}</td>
                     <td style={styles.td}>{t.vendor || "—"}</td>
-                    <td style={styles.td}><span style={{ color: t.isActive ? "#059669" : "#6b7280", fontWeight: 600 }}>{t.isActive ? "Yes" : "No"}</span></td>
+                    <td style={styles.td}><span style={{ color: t.isActive ? "var(--t-success)" : "var(--t-text-dim)", fontWeight: 600 }}>{t.isActive ? "Yes" : "No"}</span></td>
                     <td style={styles.td}>
                       <div style={{ display: "flex", gap: "6px" }}>
                         <button style={styles.iconBtn} title="Edit" onClick={() => openEditTemplate(t)}><FaEdit size={13} /></button>
-                        <button style={{ ...styles.iconBtn, color: "#dc2626" }} title="Delete" onClick={() => { setSelectedItem(t); setDeleteType("template"); setIsDeleteModalOpen(true); }}><FaTrashAlt size={13} /></button>
+                        <button style={{ ...styles.iconBtn, color: "var(--t-error)" }} title="Delete" onClick={() => { setSelectedItem(t); setDeleteType("template"); setIsDeleteModalOpen(true); }}><FaTrashAlt size={13} /></button>
                       </div>
                     </td>
                   </tr>
@@ -314,56 +330,70 @@ const PreventiveMaintenance: React.FC = () => {
 
       {/* Template Modal */}
       {isTemplateModalOpen && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>{editingTemplate ? "Edit Template" : "New PM Template"}</h2>
-            <div style={styles.formGrid}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Name *</label>
-                <input style={styles.input} value={templateForm.name} onChange={(e) => setTemplateForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Oil Change, Tire Rotation" />
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Maintenance Type</label>
-                <select style={styles.input} value={templateForm.maintenanceType} onChange={(e) => setTemplateForm((f) => ({ ...f, maintenanceType: e.target.value }))}>
-                  {MAINTENANCE_TYPES.map((t) => <option key={t} value={t}>{t.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>)}
-                </select>
-              </div>
-              {[
-                { label: "Interval (km)", key: "intervalKm", placeholder: "e.g. 8000" },
-                { label: "Interval (days)", key: "intervalDays", placeholder: "e.g. 90" },
-                { label: "Estimated Cost ($)", key: "estimatedCost", placeholder: "0" },
-                { label: "Est. Duration (hours)", key: "estimatedDuration", placeholder: "e.g. 2" },
-                { label: "Vendor/Shop", key: "vendor", placeholder: "" },
-              ].map(({ label, key, placeholder }) => (
-                <div key={key} style={styles.formGroup}>
-                  <label style={styles.label}>{label}</label>
-                  <input type={["intervalKm","intervalDays","estimatedCost","estimatedDuration"].includes(key) ? "number" : "text"} style={styles.input} value={(templateForm as any)[key]} placeholder={placeholder} onChange={(e) => setTemplateForm((f) => ({ ...f, [key]: e.target.value }))} />
+        <div style={styles.modalOverlay} onClick={() => setIsTemplateModalOpen(false)}>
+          <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={styles.modalHeader}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={styles.modalIconBox}><FaWrench size={17} color="var(--t-indigo)" /></div>
+                <div>
+                  <div style={styles.modalTitle}>{editingTemplate ? "Edit Template" : "New PM Template"}</div>
+                  <div style={styles.modalSubtitle}>Define maintenance intervals, cost, and applicable vehicles</div>
                 </div>
-              ))}
+              </div>
+              <button style={styles.closeBtn} onClick={() => setIsTemplateModalOpen(false)}>✕</button>
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Applicable Vehicle Types</label>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                {VEHICLE_TYPES.map((vt) => (
-                  <label key={vt} style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "13px", cursor: "pointer" }}>
-                    <input type="checkbox" checked={templateForm.applicableVehicleTypes.includes(vt)}
-                      onChange={(e) => setTemplateForm((f) => ({
-                        ...f,
-                        applicableVehicleTypes: e.target.checked
-                          ? [...f.applicableVehicleTypes, vt]
-                          : f.applicableVehicleTypes.filter((x) => x !== vt),
-                      }))}
-                    />
-                    {vt}
-                  </label>
+            {/* Body */}
+            <div style={styles.modalBody}>
+              <div style={styles.formGrid}>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Name *</label>
+                  <input style={styles.input} value={templateForm.name} onChange={(e) => setTemplateForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Oil Change, Tire Rotation" />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Maintenance Type</label>
+                  <select style={styles.input} value={templateForm.maintenanceType} onChange={(e) => setTemplateForm((f) => ({ ...f, maintenanceType: e.target.value }))}>
+                    {MAINTENANCE_TYPES.map((t) => <option key={t} value={t}>{t.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>)}
+                  </select>
+                </div>
+                {[
+                  { label: "Interval (km)", key: "intervalKm", placeholder: "e.g. 8000" },
+                  { label: "Interval (days)", key: "intervalDays", placeholder: "e.g. 90" },
+                  { label: "Estimated Cost ($)", key: "estimatedCost", placeholder: "0" },
+                  { label: "Est. Duration (hours)", key: "estimatedDuration", placeholder: "e.g. 2" },
+                  { label: "Vendor/Shop", key: "vendor", placeholder: "" },
+                ].map(({ label, key, placeholder }) => (
+                  <div key={key} style={styles.formGroup}>
+                    <label style={styles.label}>{label}</label>
+                    <input type={["intervalKm","intervalDays","estimatedCost","estimatedDuration"].includes(key) ? "number" : "text"} style={styles.input} value={(templateForm as any)[key]} placeholder={placeholder} onChange={(e) => setTemplateForm((f) => ({ ...f, [key]: e.target.value }))} />
+                  </div>
                 ))}
               </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Applicable Vehicle Types</label>
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  {VEHICLE_TYPES.map((vt) => (
+                    <label key={vt} style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "13px", cursor: "pointer" }}>
+                      <input type="checkbox" checked={templateForm.applicableVehicleTypes.includes(vt)}
+                        onChange={(e) => setTemplateForm((f) => ({
+                          ...f,
+                          applicableVehicleTypes: e.target.checked
+                            ? [...f.applicableVehicleTypes, vt]
+                            : f.applicableVehicleTypes.filter((x) => x !== vt),
+                        }))}
+                      />
+                      {vt}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Description</label>
+                <textarea style={{ ...styles.input, height: "60px" }} value={templateForm.description} onChange={(e) => setTemplateForm((f) => ({ ...f, description: e.target.value }))} />
+              </div>
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Description</label>
-              <textarea style={{ ...styles.input, height: "60px" }} value={templateForm.description} onChange={(e) => setTemplateForm((f) => ({ ...f, description: e.target.value }))} />
-            </div>
-            <div style={styles.modalActions}>
+            {/* Footer */}
+            <div style={styles.modalFooter}>
               <button style={styles.cancelBtn} onClick={() => setIsTemplateModalOpen(false)}>Cancel</button>
               <button style={styles.primaryBtn} onClick={handleSaveTemplate} disabled={saving}>{saving ? "Saving..." : editingTemplate ? "Update" : "Create Template"}</button>
             </div>
@@ -373,38 +403,52 @@ const PreventiveMaintenance: React.FC = () => {
 
       {/* Schedule Modal */}
       {isScheduleModalOpen && (
-        <div style={styles.modalOverlay}>
-          <div style={{ ...styles.modal, maxWidth: "520px" }}>
-            <h2 style={styles.modalTitle}>{editingSchedule ? "Edit Schedule" : "Assign PM to Vehicle"}</h2>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Vehicle *</label>
-              <select style={styles.input} value={scheduleForm.vehicleId} onChange={(e) => setScheduleForm((f) => ({ ...f, vehicleId: e.target.value }))}>
-                <option value="">— Select vehicle —</option>
-                {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model}</option>)}
-              </select>
+        <div style={styles.modalOverlay} onClick={() => setIsScheduleModalOpen(false)}>
+          <div style={{ ...styles.modal, maxWidth: "520px" }} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={styles.modalHeader}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={styles.modalIconBox}><FaWrench size={17} color="var(--t-indigo)" /></div>
+                <div>
+                  <div style={styles.modalTitle}>{editingSchedule ? "Edit Schedule" : "Assign PM to Vehicle"}</div>
+                  <div style={styles.modalSubtitle}>Link a PM template to a vehicle and set last service info</div>
+                </div>
+              </div>
+              <button style={styles.closeBtn} onClick={() => setIsScheduleModalOpen(false)}>✕</button>
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>PM Template *</label>
-              <select style={styles.input} value={scheduleForm.templateId} onChange={(e) => setScheduleForm((f) => ({ ...f, templateId: e.target.value }))}>
-                <option value="">— Select template —</option>
-                {templates.map((t) => <option key={t._id} value={t._id}>{t.name} ({t.intervalKm ? `${t.intervalKm}km` : ""}{t.intervalDays ? ` / ${t.intervalDays}d` : ""})</option>)}
-              </select>
-            </div>
-            <div style={styles.formGrid}>
+            {/* Body */}
+            <div style={styles.modalBody}>
               <div style={styles.formGroup}>
-                <label style={styles.label}>Last Completed Date</label>
-                <input type="date" style={styles.input} value={scheduleForm.lastCompletedDate} onChange={(e) => setScheduleForm((f) => ({ ...f, lastCompletedDate: e.target.value }))} />
+                <label style={styles.label}>Vehicle *</label>
+                <select style={styles.input} value={scheduleForm.vehicleId} onChange={(e) => setScheduleForm((f) => ({ ...f, vehicleId: e.target.value }))}>
+                  <option value="">— Select vehicle —</option>
+                  {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model}</option>)}
+                </select>
               </div>
               <div style={styles.formGroup}>
-                <label style={styles.label}>Last Odometer (km)</label>
-                <input type="number" style={styles.input} value={scheduleForm.lastCompletedOdometer} onChange={(e) => setScheduleForm((f) => ({ ...f, lastCompletedOdometer: e.target.value }))} />
+                <label style={styles.label}>PM Template *</label>
+                <select style={styles.input} value={scheduleForm.templateId} onChange={(e) => setScheduleForm((f) => ({ ...f, templateId: e.target.value }))}>
+                  <option value="">— Select template —</option>
+                  {templates.map((t) => <option key={t._id} value={t._id}>{t.name} ({t.intervalKm ? `${t.intervalKm}km` : ""}{t.intervalDays ? ` / ${t.intervalDays}d` : ""})</option>)}
+                </select>
+              </div>
+              <div style={styles.formGrid}>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Last Completed Date</label>
+                  <input type="date" style={styles.input} value={scheduleForm.lastCompletedDate} onChange={(e) => setScheduleForm((f) => ({ ...f, lastCompletedDate: e.target.value }))} />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Last Odometer (km)</label>
+                  <input type="number" style={styles.input} value={scheduleForm.lastCompletedOdometer} onChange={(e) => setScheduleForm((f) => ({ ...f, lastCompletedOdometer: e.target.value }))} />
+                </div>
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Notes</label>
+                <textarea style={{ ...styles.input, height: "60px" }} value={scheduleForm.notes} onChange={(e) => setScheduleForm((f) => ({ ...f, notes: e.target.value }))} />
               </div>
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Notes</label>
-              <textarea style={{ ...styles.input, height: "60px" }} value={scheduleForm.notes} onChange={(e) => setScheduleForm((f) => ({ ...f, notes: e.target.value }))} />
-            </div>
-            <div style={styles.modalActions}>
+            {/* Footer */}
+            <div style={styles.modalFooter}>
               <button style={styles.cancelBtn} onClick={() => setIsScheduleModalOpen(false)}>Cancel</button>
               <button style={styles.primaryBtn} onClick={handleSaveSchedule} disabled={saving}>{saving ? "Saving..." : editingSchedule ? "Update" : "Assign"}</button>
             </div>
@@ -414,13 +458,29 @@ const PreventiveMaintenance: React.FC = () => {
 
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedItem && (
-        <div style={styles.modalOverlay}>
-          <div style={{ ...styles.modal, maxWidth: "420px" }}>
-            <h2 style={styles.modalTitle}>Delete {deleteType === "template" ? "Template" : "Schedule"}?</h2>
-            <p style={{ color: "#6b7280", marginBottom: "24px" }}>This cannot be undone.</p>
-            <div style={styles.modalActions}>
+        <div style={styles.modalOverlay} onClick={() => setIsDeleteModalOpen(false)}>
+          <div style={{ ...styles.modal, maxWidth: "420px" }} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={styles.modalHeader}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ ...styles.modalIconBox, background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.25)" }}><FaTrashAlt size={16} color="var(--t-error)" /></div>
+                <div>
+                  <div style={styles.modalTitle}>Delete {deleteType === "template" ? "Template" : "Schedule"}?</div>
+                  <div style={styles.modalSubtitle}>This action cannot be undone</div>
+                </div>
+              </div>
+              <button style={styles.closeBtn} onClick={() => setIsDeleteModalOpen(false)}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={styles.modalBody}>
+              <p style={{ color: "var(--t-text-dim)", margin: 0 }}>
+                Are you sure you want to delete this {deleteType === "template" ? "template" : "schedule"}? This cannot be undone.
+              </p>
+            </div>
+            {/* Footer */}
+            <div style={styles.modalFooter}>
               <button style={styles.cancelBtn} onClick={() => setIsDeleteModalOpen(false)}>Cancel</button>
-              <button style={{ ...styles.primaryBtn, background: "#dc2626" }} onClick={handleDelete}>Delete</button>
+              <button style={{ ...styles.primaryBtn, background: "var(--t-error)" }} onClick={handleDelete}>Delete</button>
             </div>
           </div>
         </div>
@@ -430,33 +490,38 @@ const PreventiveMaintenance: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#f9fafb", fontFamily: "Inter, system-ui, sans-serif" },
-  container: { maxWidth: "1200px", margin: "0 auto", padding: "24px" },
-  primaryBtn: { padding: "10px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
-  secondaryBtn: { padding: "10px 18px", background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
-  alertBanner: { background: "#fef3c7", border: "1px solid #fbbf24", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "#92400e" },
-  tabRow: { display: "flex", gap: "8px", marginBottom: "20px", borderBottom: "1px solid #e5e7eb" },
-  tab: { padding: "10px 20px", background: "none", border: "none", borderBottom: "2px solid transparent", cursor: "pointer", fontSize: "14px", fontWeight: 600, color: "#6b7280", fontFamily: "Inter, system-ui, sans-serif", marginBottom: "-1px" },
-  activeTab: { color: "#4F46E5", borderBottom: "2px solid #4F46E5" },
+  wrapper: { minHeight: "100vh", background: "var(--t-bg)", fontFamily: "Inter, system-ui, sans-serif" },
+  container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
+  primaryBtn: { padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" },
+  secondaryBtn: { padding: "10px 18px", background: "var(--t-hover-bg)", color: "var(--t-text-faint)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
+  alertBanner: { background: "var(--t-warning-bg)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "var(--t-warning)" },
+  tabRow: { display: "flex", gap: "8px", marginBottom: "20px", borderBottom: "1px solid var(--t-border)" },
+  tab: { padding: "10px 20px", background: "none", border: "none", borderBottom: "2px solid transparent", cursor: "pointer", fontSize: "14px", fontWeight: 600, color: "var(--t-text-dim)", fontFamily: "Inter, system-ui, sans-serif", marginBottom: "-1px" },
+  activeTab: { color: "var(--t-indigo)", borderBottom: "2px solid var(--t-indigo)" },
   filtersRow: { marginBottom: "16px" },
-  searchInput: { width: "300px", padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" },
-  tableWrapper: { background: "#fff", borderRadius: "12px", border: "1px solid #e5e7eb", overflowX: "auto", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+  searchInput: { width: "300px", padding: "9px 14px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-input-bg)", color: "var(--t-text-secondary)" },
+  tableWrapper: { background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", overflowX: "auto", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
   table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
-  th: { padding: "12px 16px", textAlign: "left", background: "#f9fafb", borderBottom: "1px solid #e5e7eb", fontWeight: 600, color: "#6b7280", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px", whiteSpace: "nowrap" },
-  tr: { borderBottom: "1px solid #f3f4f6" },
-  td: { padding: "14px 16px", color: "#374151", verticalAlign: "middle" },
+  th: { padding: "12px 16px", textAlign: "left", background: "var(--t-surface-alt)", borderBottom: "1px solid var(--t-border)", fontWeight: 700, color: "var(--t-indigo)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
+  tr: { borderBottom: "1px solid var(--t-stripe)" },
+  td: { padding: "14px 16px", color: "var(--t-text-muted)", verticalAlign: "middle" },
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
-  iconBtn: { background: "#f3f4f6", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "#374151", display: "flex", alignItems: "center" },
-  emptyState: { textAlign: "center", padding: "60px 0", color: "#6b7280", fontSize: "15px" },
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
-  modal: { background: "#fff", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "#111827" },
+  iconBtn: { background: "var(--t-hover-bg)", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "var(--t-text-faint)", display: "flex", alignItems: "center" },
+  emptyState: { textAlign: "center", padding: "60px 0", color: "var(--t-text-dim)", fontSize: "15px" },
+  modalOverlay: { position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" },
+  modal: { background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "700px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" },
+  modalHeader: { flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" },
+  modalIconBox: { width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" },
+  modalTitle: { fontSize: "18px", fontWeight: 800, color: "var(--t-text)", margin: 0 },
+  modalSubtitle: { fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" },
+  closeBtn: { width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", flexShrink: 0 },
+  modalBody: { padding: "24px 28px", overflowY: "auto", flexGrow: 1 },
+  modalFooter: { padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 },
   formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "4px" },
   formGroup: { marginBottom: "16px" },
-  label: { display: "block", fontSize: "13px", fontWeight: 500, color: "#374151", marginBottom: "4px" },
-  input: { width: "100%", padding: "9px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", color: "#111827", background: "#fff", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
-  modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
-  cancelBtn: { padding: "10px 20px", background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
+  label: { fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" },
+  input: { width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" },
+  cancelBtn: { padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" },
 };
 
 export default PreventiveMaintenance;

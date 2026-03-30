@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -33,17 +33,24 @@ import Subscription from "./pages/Subscription";
 import Pricing from "./pages/Pricing";
 import CompanyRegister from "./pages/CompanyRegister";
 import OrgSelector from "./pages/OrgSelector";
+const Tracking = React.lazy(() => import("./pages/Tracking"));
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const App: React.FC = () => {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/file-application" element={<FileDriverApplication />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
 
         {/* Driver Role Routes */}
         <Route
@@ -67,7 +74,7 @@ const App: React.FC = () => {
         <Route
           path="/contact-us"
           element={
-            <ProtectedRoute requiredRole="driver">
+            <ProtectedRoute>
               <ContactUs />
             </ProtectedRoute>
           }
@@ -194,6 +201,7 @@ const App: React.FC = () => {
         <Route path="/cost-tracking" element={<ProtectedRoute requiredRole="admin"><CostTracking /></ProtectedRoute>} />
         <Route path="/preventive-maintenance" element={<ProtectedRoute requiredRole="admin"><PreventiveMaintenance /></ProtectedRoute>} />
         <Route path="/scheduling" element={<ProtectedRoute requiredRole="admin"><Scheduling /></ProtectedRoute>} />
+        <Route path="/tracking" element={<ProtectedRoute requiredRole="admin"><Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "#6b7280" }}>Loading map...</div>}><Tracking /></Suspense></ProtectedRoute>} />
 
         {/* Phase 3 — Driver Payments */}
         <Route
@@ -258,6 +266,7 @@ const App: React.FC = () => {
         />
       </Routes>
     </AuthProvider>
+    </ThemeProvider>
   );
 };
 

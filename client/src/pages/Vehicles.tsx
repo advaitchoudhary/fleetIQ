@@ -1,14 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import ExcelJS from "exceljs";
 import axios from "axios";
-import { FaTruck, FaPlus, FaEdit, FaTrashAlt, FaSearch } from "react-icons/fa";
+import { FaTruck, FaPlus, FaEdit, FaTrashAlt, FaSearch, FaUserPlus } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  active: { bg: "#dcfce7", color: "#166534" },
-  inactive: { bg: "#f3f4f6", color: "#6b7280" },
-  in_maintenance: { bg: "#fef9c3", color: "#854d0e" },
-  out_of_service: { bg: "#fee2e2", color: "#991b1b" },
+  active: { bg: "rgba(16,185,129,0.15)", color: "var(--t-success)" },
+  inactive: { bg: "var(--t-hover-bg)", color: "var(--t-text-faint)" },
+  in_maintenance: { bg: "var(--t-warning-bg)", color: "var(--t-warning)" },
+  out_of_service: { bg: "rgba(239,68,68,0.15)", color: "var(--t-error)" },
 };
 
 const TYPE_LABELS: Record<string, string> = {
@@ -47,26 +48,34 @@ const Vehicles: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<any>(null);
   const [form, setForm] = useState({ ...emptyForm });
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  const token = localStorage.getItem("token");
-  const headers = { Authorization: `Bearer ${token}` };
+  // Assign driver state
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [assigningVehicle, setAssigningVehicle] = useState<any>(null);
+  const [drivers, setDrivers] = useState<any[]>([]);
+  const [selectedDriverId, setSelectedDriverId] = useState<string>("");
+  const [assigning, setAssigning] = useState(false);
 
-  const fetchVehicles = async () => {
+  // Build headers fresh on each call so a re-login token is always picked up
+  const getHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
+
+  const fetchVehicles = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await axios.get(`${API_BASE_URL}/vehicles`, { headers });
-      setVehicles(res.data);
+      const res = await axios.get(`${API_BASE_URL}/vehicles`, { headers: getHeaders() });
+      setVehicles(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("Failed to fetch vehicles", err);
       setVehicles([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchVehicles();
-  }, []);
+  }, [fetchVehicles]);
 
   const openAddModal = () => {
     setEditingVehicle(null);
@@ -105,14 +114,14 @@ const Vehicles: React.FC = () => {
       const payload = {
         ...form,
         year: form.year ? Number(form.year) : undefined,
-        odometer: form.odometer ? Number(form.odometer) : undefined,
+        odometer: form.odometer !== "" ? Number(form.odometer) : undefined,
         insuranceExpiry: form.insuranceExpiry || undefined,
         registrationExpiry: form.registrationExpiry || undefined,
       };
       if (editingVehicle) {
-        await axios.put(`${API_BASE_URL}/vehicles/${editingVehicle._id}`, payload, { headers });
+        await axios.put(`${API_BASE_URL}/vehicles/${editingVehicle._id}`, payload, { headers: getHeaders() });
       } else {
-        await axios.post(`${API_BASE_URL}/vehicles`, payload, { headers });
+        await axios.post(`${API_BASE_URL}/vehicles`, payload, { headers: getHeaders() });
       }
       setIsModalOpen(false);
       fetchVehicles();
@@ -124,14 +133,100 @@ const Vehicles: React.FC = () => {
   };
 
   const handleDelete = async () => {
+    if (deleting) return;
+    setDeleting(true);
     try {
-      await axios.delete(`${API_BASE_URL}/vehicles/${selectedVehicle._id}`, { headers });
+      await axios.delete(`${API_BASE_URL}/vehicles/${selectedVehicle._id}`, { headers: getHeaders() });
       setIsDeleteModalOpen(false);
       setSelectedVehicle(null);
       fetchVehicles();
-    } catch (err) {
-      alert("Failed to delete vehicle");
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to delete vehicle");
+    } finally {
+      setDeleting(false);
     }
+  };
+
+  const openAssignModal = async (vehicle: any) => {
+    setAssigningVehicle(vehicle);
+    setSelectedDriverId(vehicle.assignedDriverId?._id || "");
+    setIsAssignModalOpen(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/drivers`, { headers: getHeaders() });
+      const list = Array.isArray(res.data) ? res.data : res.data.drivers || [];
+      setDrivers(list.filter((d: any) => d.status === "Active"));
+    } catch (err) {
+      console.error("Failed to fetch drivers", err);
+    }
+  };
+
+  const handleAssignDriver = async () => {
+    if (!assigningVehicle) return;
+    setAssigning(true);
+    try {
+      await axios.post(
+        `${API_BASE_URL}/vehicles/${assigningVehicle._id}/assign-driver`,
+        { driverId: selectedDriverId || null },
+        { headers: getHeaders() }
+      );
+      setIsAssignModalOpen(false);
+      fetchVehicles();
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Failed to assign driver");
+    } finally {
+      setAssigning(false);
+    }
+  };
+
+  const handleExport = () => {
+    if (!filtered.length) { alert("No vehicles to export."); return; }
+    exportVehicles();
+  };
+
+  const exportVehicles = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Vehicles");
+    worksheet.columns = [
+      { header: "Unit #", key: "unitNumber" },
+      { header: "Make", key: "make" },
+      { header: "Model", key: "model" },
+      { header: "Year", key: "year" },
+      { header: "VIN", key: "vin" },
+      { header: "License Plate", key: "licensePlate" },
+      { header: "Type", key: "type" },
+      { header: "Status", key: "status" },
+      { header: "Odometer (km)", key: "odometer" },
+      { header: "Fuel Type", key: "fuelType" },
+      { header: "Ownership", key: "ownership" },
+      { header: "Insurance Expiry", key: "insuranceExpiry" },
+      { header: "Registration Expiry", key: "registrationExpiry" },
+      { header: "Notes", key: "notes" },
+    ];
+    worksheet.addRows(filtered.map((v: any) => ({
+      unitNumber: v.unitNumber || "",
+      make: v.make || "",
+      model: v.model || "",
+      year: v.year || "",
+      vin: v.vin || "",
+      licensePlate: v.licensePlate || "",
+      type: TYPE_LABELS[v.type] || v.type || "",
+      status: v.status?.replace(/_/g, " ") || "",
+      odometer: v.odometer != null ? v.odometer : "",
+      fuelType: v.fuelType || "",
+      ownership: v.ownership || "",
+      insuranceExpiry: v.insuranceExpiry ? v.insuranceExpiry.slice(0, 10) : "",
+      registrationExpiry: v.registrationExpiry ? v.registrationExpiry.slice(0, 10) : "",
+      notes: v.notes || "",
+    })));
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "vehicles_export.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const filtered = vehicles.filter((v) => {
@@ -152,40 +247,51 @@ const Vehicles: React.FC = () => {
   };
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
       <Navbar />
-      <div style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "32px 40px" }}>
+
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+          <span>FLEET</span>
+          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
+          <span style={{ color: "var(--t-text-faint)" }}>VEHICLES</span>
+        </div>
+
+        {/* Page Header */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" as const }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "#111827", display: "flex", alignItems: "center", gap: "10px" }}>
-              <FaTruck style={{ color: "#4F46E5" }} /> Vehicles
-            </h1>
-            <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "14px" }}>Manage your fleet vehicles</p>
+            <h1 style={{ margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>Vehicle Management</h1>
+            <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>Manage your fleet vehicles, assignments, and operational status.</p>
           </div>
-          <button onClick={openAddModal} style={styles.primaryBtn}>
-            <FaPlus size={14} /> Add Vehicle
-          </button>
+          <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
+            <button onClick={handleExport} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "10px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, padding: "10px 18px" }}>
+              Export
+            </button>
+            <button onClick={openAddModal} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, boxShadow: "0 4px 14px rgba(79,70,229,0.35)", padding: "10px 20px" }}>
+              <FaPlus size={13} /> Add Vehicle
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" }}>
           {[
-            { label: "Total Vehicles", value: stats.total, color: "#4F46E5" },
-            { label: "Active", value: stats.active, color: "#16a34a" },
-            { label: "In Maintenance", value: stats.inMaintenance, color: "#ca8a04" },
-            { label: "Out of Service", value: stats.outOfService, color: "#dc2626" },
+            { label: "Total Vehicles", value: stats.total, color: "var(--t-accent)" },
+            { label: "Active", value: stats.active, color: "var(--t-success)" },
+            { label: "In Maintenance", value: stats.inMaintenance, color: "var(--t-warning)" },
+            { label: "Out of Service", value: stats.outOfService, color: "var(--t-error)" },
           ].map((s) => (
             <div key={s.label} style={styles.statCard}>
               <div style={{ fontSize: "28px", fontWeight: 700, color: s.color }}>{s.value}</div>
-              <div style={{ fontSize: "13px", color: "#6b7280", marginTop: "4px" }}>{s.label}</div>
+              <div style={{ fontSize: "13px", color: "var(--t-text-dim)", marginTop: "4px" }}>{s.label}</div>
             </div>
           ))}
         </div>
 
         {/* Search */}
         <div style={{ position: "relative", marginBottom: "16px", maxWidth: "360px" }}>
-          <FaSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#9ca3af" }} />
+          <FaSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--t-text-faint)" }} />
           <input
             placeholder="Search by unit, make, model, plate..."
             value={searchText}
@@ -197,16 +303,16 @@ const Vehicles: React.FC = () => {
         {/* Table */}
         <div style={styles.tableContainer}>
           {loading ? (
-            <div style={{ padding: "40px", textAlign: "center", color: "#6b7280" }}>Loading vehicles...</div>
+            <div style={{ padding: "40px", textAlign: "center", color: "var(--t-text-dim)" }}>Loading vehicles...</div>
           ) : filtered.length === 0 ? (
-            <div style={{ padding: "40px", textAlign: "center", color: "#6b7280" }}>
+            <div style={{ padding: "40px", textAlign: "center", color: "var(--t-text-dim)" }}>
               {vehicles.length === 0 ? "No vehicles yet. Add your first vehicle to get started." : "No vehicles match your search."}
             </div>
           ) : (
             <table style={styles.table}>
               <thead>
                 <tr style={styles.tableHeaderRow}>
-                  {["Unit #", "Make / Model", "Year", "Type", "License Plate", "Odometer", "Status", "Actions"].map((h) => (
+                  {["Unit #", "Make / Model", "Year", "Type", "License Plate", "Odometer", "Status", "Assigned Driver", "Actions"].map((h) => (
                     <th key={h} style={styles.th}>{h}</th>
                   ))}
                 </tr>
@@ -216,7 +322,7 @@ const Vehicles: React.FC = () => {
                   const sc = STATUS_COLORS[v.status] || STATUS_COLORS.inactive;
                   return (
                     <tr key={v._id} style={styles.tr}>
-                      <td style={{ ...styles.td, fontWeight: 600, color: "#111827" }}>{v.unitNumber}</td>
+                      <td style={{ ...styles.td, fontWeight: 600, color: "var(--t-text-secondary)" }}>{v.unitNumber}</td>
                       <td style={styles.td}>{[v.make, v.model].filter(Boolean).join(" ") || "—"}</td>
                       <td style={styles.td}>{v.year || "—"}</td>
                       <td style={styles.td}>{TYPE_LABELS[v.type] || v.type}</td>
@@ -228,13 +334,29 @@ const Vehicles: React.FC = () => {
                         </span>
                       </td>
                       <td style={styles.td}>
+                        {v.assignedDriverId ? (
+                          <span style={{ fontSize: 13, color: "#111827", fontWeight: 500 }}>
+                            {v.assignedDriverId.name}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 13, color: "#9ca3af" }}>Unassigned</span>
+                        )}
+                      </td>
+                      <td style={styles.td}>
                         <div style={{ display: "flex", gap: "8px" }}>
                           <button onClick={() => openEditModal(v)} style={styles.iconBtn} title="Edit">
                             <FaEdit size={14} />
                           </button>
                           <button
+                            onClick={() => openAssignModal(v)}
+                            style={{ ...styles.iconBtn, color: "#4F46E5" }}
+                            title="Assign Driver"
+                          >
+                            <FaUserPlus size={14} />
+                          </button>
+                          <button
                             onClick={() => { setSelectedVehicle(v); setIsDeleteModalOpen(true); }}
-                            style={{ ...styles.iconBtn, color: "#dc2626" }}
+                            style={{ ...styles.iconBtn, color: "var(--t-error)" }}
                             title="Delete"
                           >
                             <FaTrashAlt size={14} />
@@ -252,91 +374,181 @@ const Vehicles: React.FC = () => {
 
       {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div style={styles.overlay}>
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>{editingVehicle ? "Edit Vehicle" : "Add Vehicle"}</h2>
-            <div style={styles.formGrid}>
-              <div>
-                <label style={styles.label}>Unit Number *</label>
-                <input style={styles.input} value={form.unitNumber} onChange={(e) => setForm({ ...form, unitNumber: e.target.value })} placeholder="e.g. Truck-001" />
+        <div
+          style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "700px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--t-indigo)" }}>
+                  <FaEdit size={16} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>{editingVehicle ? "Edit Vehicle" : "Add Vehicle"}</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>{editingVehicle ? "Update vehicle details" : "Add a new vehicle to your fleet"}</div>
+                </div>
               </div>
-              <div>
-                <label style={styles.label}>Make</label>
-                <input style={styles.input} value={form.make} onChange={(e) => setForm({ ...form, make: e.target.value })} placeholder="e.g. Freightliner" />
+              <button onClick={() => setIsModalOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              {/* Section: Basic Info */}
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "24px 0 20px" }}>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1.2px", whiteSpace: "nowrap" }}>BASIC INFO</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
               </div>
-              <div>
-                <label style={styles.label}>Model</label>
-                <input style={styles.input} value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} placeholder="e.g. Cascadia" />
+              <div style={styles.formGrid}>
+                <div>
+                  <label style={styles.label}>Unit Number *</label>
+                  <input style={styles.input} value={form.unitNumber} onChange={(e) => setForm({ ...form, unitNumber: e.target.value })} placeholder="e.g. Truck-001" />
+                </div>
+                <div>
+                  <label style={styles.label}>Make</label>
+                  <input style={styles.input} value={form.make} onChange={(e) => setForm({ ...form, make: e.target.value })} placeholder="e.g. Freightliner" />
+                </div>
+                <div>
+                  <label style={styles.label}>Model</label>
+                  <input style={styles.input} value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} placeholder="e.g. Cascadia" />
+                </div>
+                <div>
+                  <label style={styles.label}>Year</label>
+                  <input style={styles.input} type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="e.g. 2021" />
+                </div>
+                <div>
+                  <label style={styles.label}>VIN</label>
+                  <input style={styles.input} value={form.vin} onChange={(e) => setForm({ ...form, vin: e.target.value })} placeholder="17-character VIN" />
+                </div>
+                <div>
+                  <label style={styles.label}>License Plate</label>
+                  <input style={styles.input} value={form.licensePlate} onChange={(e) => setForm({ ...form, licensePlate: e.target.value })} />
+                </div>
+                <div>
+                  <label style={styles.label}>Type</label>
+                  <select style={styles.input} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+                    <option value="truck">Truck</option>
+                    <option value="trailer">Trailer</option>
+                    <option value="van">Van</option>
+                    <option value="pickup">Pickup</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={styles.label}>Status</label>
+                  <select style={styles.input} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="in_maintenance">In Maintenance</option>
+                    <option value="out_of_service">Out of Service</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label style={styles.label}>Year</label>
-                <input style={styles.input} type="number" value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="e.g. 2021" />
+              {/* Section: Details */}
+              <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "24px 0 20px" }}>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1.2px", whiteSpace: "nowrap" }}>DETAILS</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
               </div>
-              <div>
-                <label style={styles.label}>VIN</label>
-                <input style={styles.input} value={form.vin} onChange={(e) => setForm({ ...form, vin: e.target.value })} placeholder="17-character VIN" />
-              </div>
-              <div>
-                <label style={styles.label}>License Plate</label>
-                <input style={styles.input} value={form.licensePlate} onChange={(e) => setForm({ ...form, licensePlate: e.target.value })} />
-              </div>
-              <div>
-                <label style={styles.label}>Type</label>
-                <select style={styles.input} value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                  <option value="truck">Truck</option>
-                  <option value="trailer">Trailer</option>
-                  <option value="van">Van</option>
-                  <option value="pickup">Pickup</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-              <div>
-                <label style={styles.label}>Status</label>
-                <select style={styles.input} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="in_maintenance">In Maintenance</option>
-                  <option value="out_of_service">Out of Service</option>
-                </select>
-              </div>
-              <div>
-                <label style={styles.label}>Odometer (km)</label>
-                <input style={styles.input} type="number" value={form.odometer} onChange={(e) => setForm({ ...form, odometer: e.target.value })} />
-              </div>
-              <div>
-                <label style={styles.label}>Ownership</label>
-                <select style={styles.input} value={form.ownership} onChange={(e) => setForm({ ...form, ownership: e.target.value })}>
-                  <option value="owned">Owned</option>
-                  <option value="leased">Leased</option>
-                  <option value="rented">Rented</option>
-                </select>
-              </div>
-              <div>
-                <label style={styles.label}>Fuel Type</label>
-                <select style={styles.input} value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })}>
-                  <option value="diesel">Diesel</option>
-                  <option value="gasoline">Gasoline</option>
-                  <option value="electric">Electric</option>
-                  <option value="hybrid">Hybrid</option>
-                </select>
-              </div>
-              <div>
-                <label style={styles.label}>Insurance Expiry</label>
-                <input style={styles.input} type="date" value={form.insuranceExpiry} onChange={(e) => setForm({ ...form, insuranceExpiry: e.target.value })} />
-              </div>
-              <div>
-                <label style={styles.label}>Registration Expiry</label>
-                <input style={styles.input} type="date" value={form.registrationExpiry} onChange={(e) => setForm({ ...form, registrationExpiry: e.target.value })} />
+              <div style={styles.formGrid}>
+                <div>
+                  <label style={styles.label}>Odometer (km)</label>
+                  <input style={styles.input} type="number" value={form.odometer} onChange={(e) => setForm({ ...form, odometer: e.target.value })} />
+                </div>
+                <div>
+                  <label style={styles.label}>Ownership</label>
+                  <select style={styles.input} value={form.ownership} onChange={(e) => setForm({ ...form, ownership: e.target.value })}>
+                    <option value="owned">Owned</option>
+                    <option value="leased">Leased</option>
+                    <option value="rented">Rented</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={styles.label}>Fuel Type</label>
+                  <select style={styles.input} value={form.fuelType} onChange={(e) => setForm({ ...form, fuelType: e.target.value })}>
+                    <option value="diesel">Diesel</option>
+                    <option value="gasoline">Gasoline</option>
+                    <option value="electric">Electric</option>
+                    <option value="hybrid">Hybrid</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={styles.label}>Insurance Expiry</label>
+                  <input style={styles.input} type="date" value={form.insuranceExpiry} onChange={(e) => setForm({ ...form, insuranceExpiry: e.target.value })} />
+                </div>
+                <div>
+                  <label style={styles.label}>Registration Expiry</label>
+                  <input style={styles.input} type="date" value={form.registrationExpiry} onChange={(e) => setForm({ ...form, registrationExpiry: e.target.value })} />
+                </div>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={styles.label}>Notes</label>
+                  <textarea style={{ ...styles.input, height: "72px", resize: "vertical" }} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+                </div>
               </div>
             </div>
-            <div style={{ gridColumn: "1 / -1" }}>
-              <label style={styles.label}>Notes</label>
-              <textarea style={{ ...styles.input, height: "72px", resize: "vertical" }} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-            </div>
-            <div style={styles.modalActions}>
-              <button onClick={() => setIsModalOpen(false)} style={styles.secondaryBtn}>Cancel</button>
-              <button onClick={handleSave} style={styles.primaryBtn} disabled={saving}>
+            {/* Footer */}
+            <div style={{ padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 }}>
+              <button onClick={() => setIsModalOpen(false)} style={{ padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>Cancel</button>
+              <button onClick={handleSave} style={{ padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} disabled={saving}>
                 {saving ? "Saving..." : editingVehicle ? "Update Vehicle" : "Add Vehicle"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Driver Modal */}
+      {isAssignModalOpen && assigningVehicle && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+          onClick={() => setIsAssignModalOpen(false)}
+        >
+          <div
+            style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "440px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--t-indigo)" }}>
+                  <FaUserPlus size={16} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Assign Driver</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>{assigningVehicle.unitNumber} — select or unassign a driver</div>
+                </div>
+              </div>
+              <button onClick={() => setIsAssignModalOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ marginTop: "24px" }}>
+                <label style={styles.label}>Driver</label>
+                <select
+                  style={styles.input}
+                  value={selectedDriverId}
+                  onChange={(e) => setSelectedDriverId(e.target.value)}
+                >
+                  <option value="">— Unassign —</option>
+                  {drivers.map((d: any) => (
+                    <option key={d._id} value={d._id}>
+                      {d.name} ({d.username})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            {/* Footer */}
+            <div style={{ padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 }}>
+              <button onClick={() => setIsAssignModalOpen(false)} style={{ padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} disabled={assigning}>
+                Cancel
+              </button>
+              <button onClick={handleAssignDriver} style={{ padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} disabled={assigning}>
+                {assigning ? "Saving..." : "Confirm"}
               </button>
             </div>
           </div>
@@ -345,15 +557,39 @@ const Vehicles: React.FC = () => {
 
       {/* Delete Confirmation */}
       {isDeleteModalOpen && selectedVehicle && (
-        <div style={styles.overlay}>
-          <div style={{ ...styles.modal, maxWidth: "420px" }}>
-            <h2 style={styles.modalTitle}>Delete Vehicle</h2>
-            <p style={{ color: "#374151", marginBottom: "24px" }}>
-              Are you sure you want to delete <strong>{selectedVehicle.unitNumber}</strong>? This action cannot be undone.
-            </p>
-            <div style={styles.modalActions}>
-              <button onClick={() => setIsDeleteModalOpen(false)} style={styles.secondaryBtn}>Cancel</button>
-              <button onClick={handleDelete} style={{ ...styles.primaryBtn, background: "#dc2626" }}>Delete</button>
+        <div
+          style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+          onClick={() => setIsDeleteModalOpen(false)}
+        >
+          <div
+            style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "420px", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--t-indigo)" }}>
+                  <FaTrashAlt size={16} />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Delete Vehicle</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>This action cannot be undone</div>
+                </div>
+              </div>
+              <button onClick={() => setIsDeleteModalOpen(false)} style={{ width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px" }}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <p style={{ marginTop: "24px", textAlign: "center", color: "var(--t-text-muted)", fontSize: "14px", lineHeight: 1.6 }}>
+                Are you sure you want to delete <strong>{selectedVehicle.unitNumber}</strong>? This action cannot be undone.
+              </p>
+            </div>
+            {/* Footer */}
+            <div style={{ padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 }}>
+              <button onClick={() => setIsDeleteModalOpen(false)} style={{ padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} disabled={deleting}>Cancel</button>
+              <button onClick={handleDelete} style={{ padding: "10px 20px", background: "var(--t-error)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} disabled={deleting}>
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
             </div>
           </div>
         </div>
@@ -364,7 +600,7 @@ const Vehicles: React.FC = () => {
 
 const styles: Record<string, React.CSSProperties> = {
   primaryBtn: {
-    background: "#4F46E5",
+    background: "var(--t-accent)",
     color: "#fff",
     border: "none",
     borderRadius: "8px",
@@ -377,9 +613,9 @@ const styles: Record<string, React.CSSProperties> = {
     gap: "8px",
   },
   secondaryBtn: {
-    background: "#f3f4f6",
-    color: "#374151",
-    border: "1px solid #d1d5db",
+    background: "var(--t-hover-bg)",
+    color: "var(--t-text-faint)",
+    border: "1px solid var(--t-border-strong)",
     borderRadius: "8px",
     padding: "10px 18px",
     fontSize: "14px",
@@ -387,28 +623,28 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
   },
   iconBtn: {
-    background: "#f3f4f6",
+    background: "var(--t-hover-bg)",
     border: "none",
     borderRadius: "6px",
     padding: "6px 10px",
     cursor: "pointer",
-    color: "#374151",
+    color: "var(--t-text-faint)",
     display: "flex",
     alignItems: "center",
   },
   statCard: {
-    background: "#fff",
+    background: "var(--t-surface)",
     borderRadius: "12px",
-    border: "1px solid #e5e7eb",
+    border: "1px solid var(--t-border)",
     padding: "20px",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+    boxShadow: "0 1px 6px rgba(0,0,0,0.3)",
   },
   tableContainer: {
-    background: "#fff",
-    borderRadius: "12px",
-    border: "1px solid #e5e7eb",
+    background: "var(--t-surface)",
+    borderRadius: "16px",
+    border: "1px solid var(--t-border)",
     overflow: "hidden",
-    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+    boxShadow: "0 2px 16px rgba(0,0,0,0.3)",
   },
   table: {
     width: "100%",
@@ -416,25 +652,25 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: "14px",
   },
   tableHeaderRow: {
-    background: "#f9fafb",
-    borderBottom: "1px solid #e5e7eb",
+    background: "var(--t-surface-alt)",
+    borderBottom: "1px solid var(--t-border)",
   },
   th: {
-    padding: "12px 16px",
+    padding: "13px 16px",
     textAlign: "left",
-    fontSize: "12px",
-    fontWeight: 600,
-    color: "#6b7280",
+    fontSize: "10px",
+    fontWeight: 700,
+    color: "var(--t-indigo)",
     textTransform: "uppercase",
-    letterSpacing: "0.5px",
+    letterSpacing: "0.7px",
     whiteSpace: "nowrap",
   },
   tr: {
-    borderBottom: "1px solid #f3f4f6",
+    borderBottom: "1px solid var(--t-stripe)",
   },
   td: {
     padding: "14px 16px",
-    color: "#374151",
+    color: "var(--t-text-muted)",
     verticalAlign: "middle",
   },
   badge: {
@@ -447,59 +683,29 @@ const styles: Record<string, React.CSSProperties> = {
   },
   input: {
     width: "100%",
-    padding: "9px 12px",
+    padding: "11px 14px",
     borderRadius: "8px",
-    border: "1px solid #d1d5db",
+    border: "1px solid var(--t-border-strong)",
     fontSize: "14px",
-    color: "#111827",
-    background: "#fff",
+    color: "var(--t-text)",
+    background: "var(--t-input-bg)",
     outline: "none",
     boxSizing: "border-box",
+    fontFamily: "Inter, system-ui, sans-serif",
   },
   label: {
     display: "block",
-    fontSize: "13px",
-    fontWeight: 500,
-    color: "#374151",
-    marginBottom: "4px",
-  },
-  overlay: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.5)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 2000,
-    padding: "16px",
-  },
-  modal: {
-    background: "#fff",
-    borderRadius: "16px",
-    padding: "28px",
-    width: "100%",
-    maxWidth: "700px",
-    maxHeight: "90vh",
-    overflowY: "auto",
-    boxShadow: "0 20px 60px rgba(0,0,0,0.2)",
-  },
-  modalTitle: {
-    margin: "0 0 20px",
-    fontSize: "20px",
+    fontSize: "10px",
     fontWeight: 700,
-    color: "#111827",
+    color: "var(--t-text-ghost)",
+    marginBottom: "7px",
+    letterSpacing: "0.8px",
   },
   formGrid: {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "16px",
     marginBottom: "16px",
-  },
-  modalActions: {
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: "12px",
-    marginTop: "24px",
   },
 };
 

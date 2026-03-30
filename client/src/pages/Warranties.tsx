@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { FaShieldAlt, FaPlus, FaEdit, FaTrashAlt, FaFileAlt } from "react-icons/fa";
+import { FaShieldAlt, FaPlus, FaEdit, FaTrashAlt, FaFileAlt, FaWrench } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
@@ -7,17 +7,17 @@ const WARRANTY_TYPES = ["manufacturer", "extended", "part", "tire", "battery", "
 const CLAIM_STATUSES = ["submitted", "approved", "denied", "pending"];
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  active: { bg: "#d1fae5", color: "#065f46" },
-  expired: { bg: "#f3f4f6", color: "#6b7280" },
-  claimed: { bg: "#dbeafe", color: "#1e40af" },
-  voided: { bg: "#fee2e2", color: "#991b1b" },
+  active: { bg: "var(--t-success-bg)", color: "var(--t-success)" },
+  expired: { bg: "var(--t-hover-bg)", color: "var(--t-text-faint)" },
+  claimed: { bg: "var(--t-indigo-bg)", color: "var(--t-indigo)" },
+  voided: { bg: "var(--t-error-bg)", color: "var(--t-error)" },
 };
 
 const CLAIM_STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  submitted: { bg: "#fef3c7", color: "#92400e" },
-  approved: { bg: "#d1fae5", color: "#065f46" },
-  denied: { bg: "#fee2e2", color: "#991b1b" },
-  pending: { bg: "#e0e7ff", color: "#3730a3" },
+  submitted: { bg: "var(--t-warning-bg)", color: "var(--t-warning)" },
+  approved: { bg: "var(--t-success-bg)", color: "var(--t-success)" },
+  denied: { bg: "var(--t-error-bg)", color: "var(--t-error)" },
+  pending: { bg: "var(--t-indigo-bg)", color: "var(--t-indigo)" },
 };
 
 const emptyForm = {
@@ -91,36 +91,83 @@ const Warranties: React.FC = () => {
   };
 
   const handleSave = async () => {
+    if (!form.vehicleId) {
+      alert("Please select a vehicle.");
+      return;
+    }
+    if (!form.title.trim()) {
+      alert("Warranty title is required.");
+      return;
+    }
+    if (!form.startDate) {
+      alert("Start date is required.");
+      return;
+    }
+    if (!form.expiryDate) {
+      alert("Expiry date is required.");
+      return;
+    }
+    if (form.startDate && form.expiryDate && form.startDate > form.expiryDate) {
+      alert("Expiry date must be after start date.");
+      return;
+    }
     setSaving(true);
     try {
       const body = { ...form, mileageLimit: form.mileageLimit ? Number(form.mileageLimit) : undefined, currentMileage: form.currentMileage ? Number(form.currentMileage) : undefined };
       const url = editingWarranty ? `${API_BASE_URL}/warranties/${editingWarranty._id}` : `${API_BASE_URL}/warranties`;
       const method = editingWarranty ? "PUT" : "POST";
-      await fetch(url, { method, headers, body: JSON.stringify(body) });
+      const res = await fetch(url, { method, headers, body: JSON.stringify(body) });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to save warranty.");
+        setSaving(false);
+        return;
+      }
       setIsModalOpen(false);
       fetchAll();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
     setSaving(false);
   };
 
   const handleDelete = async () => {
     if (!selectedWarranty) return;
-    await fetch(`${API_BASE_URL}/warranties/${selectedWarranty._id}`, { method: "DELETE", headers });
-    setIsDeleteModalOpen(false);
-    fetchAll();
+    try {
+      const res = await fetch(`${API_BASE_URL}/warranties/${selectedWarranty._id}`, { method: "DELETE", headers });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to delete warranty.");
+        return;
+      }
+      setIsDeleteModalOpen(false);
+      fetchAll();
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
   };
 
   const handleAddClaim = async () => {
     if (!selectedWarranty) return;
+    if (!claimForm.description.trim()) {
+      alert("Claim description is required.");
+      return;
+    }
+    if (!claimForm.claimDate) {
+      alert("Claim date is required.");
+      return;
+    }
     setSaving(true);
     try {
-      await fetch(`${API_BASE_URL}/warranties/${selectedWarranty._id}/claims`, {
+      const res = await fetch(`${API_BASE_URL}/warranties/${selectedWarranty._id}/claims`, {
         method: "POST", headers,
         body: JSON.stringify({ ...claimForm, claimAmount: Number(claimForm.claimAmount) || 0 }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to submit claim.");
+        setSaving(false);
+        return;
+      }
       setIsClaimModalOpen(false);
       fetchAll();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
     setSaving(false);
   };
 
@@ -144,15 +191,25 @@ const Warranties: React.FC = () => {
   return (
     <div style={styles.wrapper}>
       <Navbar />
-      <div style={styles.container}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+      <div style={{ ...styles.container, padding: "32px 40px" }}>
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+          <span>FLEET</span>
+          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
+          <span style={{ color: "var(--t-text-faint)" }}>WARRANTIES</span>
+        </div>
+
+        {/* Page Header */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" as const }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "#111827", display: "flex", alignItems: "center", gap: "10px" }}>
-              <FaShieldAlt style={{ color: "#4F46E5" }} /> Warranty Tracking
-            </h1>
-            <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "14px" }}>Track vehicle warranties, expiry dates, and claims</p>
+            <h1 style={{ margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>Warranty Tracking</h1>
+            <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>Track vehicle warranties, expiry dates, and claims.</p>
           </div>
-          <button style={styles.primaryBtn} onClick={openAdd}><FaPlus size={14} /> Add Warranty</button>
+          <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
+            <button style={{ background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, boxShadow: "0 4px 14px rgba(79,70,229,0.35)", padding: "10px 20px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} onClick={openAdd}>
+              <FaPlus size={13} /> Add Warranty
+            </button>
+          </div>
         </div>
 
         {/* Info blurb */}
@@ -162,10 +219,10 @@ const Warranties: React.FC = () => {
             { icon: "📋", title: "Claims Management", body: "File and track warranty claims against any registered warranty. Record claim amounts, approval status, and claim reference numbers for your audit trail." },
             { icon: "🔔", title: "Expiry Alerts", body: "FleetIQ automatically flags warranties expiring within 30 days so you can renew coverage or plan replacements before you're exposed to uninsured repair costs." },
           ].map((card) => (
-            <div key={card.title} style={{ background: "#f9fafb", border: "1px solid #e5e7eb", borderRadius: "10px", padding: "16px 18px" }}>
+            <div key={card.title} style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "16px 18px" }}>
               <div style={{ fontSize: "20px", marginBottom: "6px" }}>{card.icon}</div>
-              <div style={{ fontWeight: 700, fontSize: "13px", color: "#111827", marginBottom: "4px" }}>{card.title}</div>
-              <div style={{ fontSize: "12.5px", color: "#6b7280", lineHeight: "1.55" }}>{card.body}</div>
+              <div style={{ fontWeight: 700, fontSize: "13px", color: "var(--t-text-secondary)", marginBottom: "4px" }}>{card.title}</div>
+              <div style={{ fontSize: "12.5px", color: "var(--t-text-dim)", lineHeight: "1.55" }}>{card.body}</div>
             </div>
           ))}
         </div>
@@ -222,12 +279,12 @@ const Warranties: React.FC = () => {
                       <td style={styles.td}>{w.type}</td>
                       <td style={styles.td}>{w.provider || "—"}</td>
                       <td style={styles.td}>
-                        <span style={{ color: isExpiringSoon(w) && w.status === "active" ? "#dc2626" : "#374151", fontWeight: isExpiringSoon(w) ? 700 : 400 }}>
+                        <span style={{ color: isExpiringSoon(w) && w.status === "active" ? "var(--t-error)" : "var(--t-text-muted)", fontWeight: isExpiringSoon(w) ? 700 : 400 }}>
                           {w.expiryDate ? new Date(w.expiryDate).toLocaleDateString() : "—"}
                         </span>
                       </td>
                       <td style={styles.td}>
-                        <span style={{ ...styles.badge, background: STATUS_COLORS[w.status]?.bg || "#f3f4f6", color: STATUS_COLORS[w.status]?.color || "#374151" }}>
+                        <span style={{ ...styles.badge, background: STATUS_COLORS[w.status]?.bg || "var(--t-hover-bg)", color: STATUS_COLORS[w.status]?.color || "var(--t-text-faint)" }}>
                           {w.status}
                         </span>
                       </td>
@@ -235,27 +292,27 @@ const Warranties: React.FC = () => {
                       <td style={styles.td} onClick={(e) => e.stopPropagation()}>
                         <div style={{ display: "flex", gap: "6px" }}>
                           <button style={styles.iconBtn} title="Edit" onClick={() => openEdit(w)}><FaEdit size={13} /></button>
-                          <button style={{ ...styles.iconBtn, color: "#1e40af" }} title="File Claim" onClick={() => { setSelectedWarranty(w); setClaimForm({ ...emptyClaimForm }); setIsClaimModalOpen(true); }}><FaFileAlt size={13} /></button>
-                          <button style={{ ...styles.iconBtn, color: "#dc2626" }} title="Delete" onClick={() => { setSelectedWarranty(w); setIsDeleteModalOpen(true); }}><FaTrashAlt size={13} /></button>
+                          <button style={{ ...styles.iconBtn, color: "var(--t-info)" }} title="File Claim" onClick={() => { setSelectedWarranty(w); setClaimForm({ ...emptyClaimForm }); setIsClaimModalOpen(true); }}><FaFileAlt size={13} /></button>
+                          <button style={{ ...styles.iconBtn, color: "var(--t-error)" }} title="Delete" onClick={() => { setSelectedWarranty(w); setIsDeleteModalOpen(true); }}><FaTrashAlt size={13} /></button>
                         </div>
                       </td>
                     </tr>
                     {expandedId === w._id && (
                       <tr>
-                        <td colSpan={8} style={{ padding: "0 16px 16px", background: "#f9fafb" }}>
-                          <div style={{ padding: "12px 0", fontSize: "13px", color: "#374151" }}>
+                        <td colSpan={8} style={{ padding: "0 16px 16px", background: "var(--t-stripe)" }}>
+                          <div style={{ padding: "12px 0", fontSize: "13px", color: "var(--t-text-muted)" }}>
                             {w.coverageDetails && <p style={{ marginBottom: "8px" }}><strong>Coverage:</strong> {w.coverageDetails}</p>}
                             {w.mileageLimit && <p style={{ marginBottom: "8px" }}><strong>Mileage Limit:</strong> {w.mileageLimit.toLocaleString()} km</p>}
                             {w.policyNumber && <p style={{ marginBottom: "8px" }}><strong>Policy #:</strong> {w.policyNumber}</p>}
                             <strong>Claims:</strong>
                             {(!w.claims || w.claims.length === 0) ? (
-                              <span style={{ color: "#6b7280", marginLeft: "8px" }}>No claims filed</span>
+                              <span style={{ color: "var(--t-text-faint)", marginLeft: "8px" }}>No claims filed</span>
                             ) : (
                               <table style={{ width: "100%", marginTop: "8px", borderCollapse: "collapse" }}>
                                 <thead>
                                   <tr>
                                     {["Date", "Description", "Claimed", "Approved", "Status", "Claim #"].map((h) => (
-                                      <th key={h} style={{ ...styles.th, background: "#f3f4f6" }}>{h}</th>
+                                      <th key={h} style={{ ...styles.th, background: "var(--t-surface-alt)" }}>{h}</th>
                                     ))}
                                   </tr>
                                 </thead>
@@ -267,7 +324,7 @@ const Warranties: React.FC = () => {
                                       <td style={styles.td}>${(c.claimAmount || 0).toFixed(2)}</td>
                                       <td style={styles.td}>${(c.approvedAmount || 0).toFixed(2)}</td>
                                       <td style={styles.td}>
-                                        <span style={{ ...styles.badge, background: CLAIM_STATUS_COLORS[c.status]?.bg || "#f3f4f6", color: CLAIM_STATUS_COLORS[c.status]?.color || "#374151" }}>
+                                        <span style={{ ...styles.badge, background: CLAIM_STATUS_COLORS[c.status]?.bg || "var(--t-hover-bg)", color: CLAIM_STATUS_COLORS[c.status]?.color || "var(--t-text-faint)" }}>
                                           {c.status}
                                         </span>
                                       </td>
@@ -291,45 +348,62 @@ const Warranties: React.FC = () => {
 
       {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div style={styles.modalOverlay}>
-          <div style={styles.modal}>
-            <h2 style={styles.modalTitle}>{editingWarranty ? "Edit Warranty" : "Add Warranty"}</h2>
-            <div style={styles.formGrid}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Vehicle *</label>
-                <select style={styles.input} value={form.vehicleId} onChange={(e) => setForm((f) => ({ ...f, vehicleId: e.target.value }))}>
-                  <option value="">— Select vehicle —</option>
-                  {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model} ({v.year})</option>)}
-                </select>
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Warranty Type</label>
-                <select style={styles.input} value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
-                  {WARRANTY_TYPES.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-                </select>
-              </div>
-              {[
-                { label: "Title *", key: "title" }, { label: "Provider", key: "provider" },
-                { label: "Policy Number", key: "policyNumber" }, { label: "Start Date", key: "startDate", type: "date" },
-                { label: "Expiry Date", key: "expiryDate", type: "date" },
-                { label: "Mileage Limit (km)", key: "mileageLimit", type: "number" },
-                { label: "Current Mileage (km)", key: "currentMileage", type: "number" },
-              ].map(({ label, key, type }) => (
-                <div key={key} style={styles.formGroup}>
-                  <label style={styles.label}>{label}</label>
-                  <input type={type || "text"} style={styles.input} value={(form as any)[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />
+        <div style={styles.modalOverlay} onClick={() => setIsModalOpen(false)}>
+          <div style={{ ...styles.modal, maxWidth: "700px" }} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaEdit size={16} color="var(--t-indigo)" />
                 </div>
-              ))}
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>{editingWarranty ? "Edit Warranty" : "Add Warranty"}</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>{editingWarranty ? "Update warranty details" : "Register a new warranty"}</div>
+                </div>
+              </div>
+              <button style={styles.closeBtn} onClick={() => setIsModalOpen(false)}>✕</button>
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Coverage Details</label>
-              <textarea style={{ ...styles.input, height: "70px" }} value={form.coverageDetails} onChange={(e) => setForm((f) => ({ ...f, coverageDetails: e.target.value }))} />
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ height: "24px" }} />
+              <div style={styles.formGrid}>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Vehicle *</label>
+                  <select style={styles.input} value={form.vehicleId} onChange={(e) => setForm((f) => ({ ...f, vehicleId: e.target.value }))}>
+                    <option value="">— Select vehicle —</option>
+                    {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model} ({v.year})</option>)}
+                  </select>
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Warranty Type</label>
+                  <select style={styles.input} value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
+                    {WARRANTY_TYPES.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                  </select>
+                </div>
+                {[
+                  { label: "Title *", key: "title" }, { label: "Provider", key: "provider" },
+                  { label: "Policy Number", key: "policyNumber" }, { label: "Start Date", key: "startDate", type: "date" },
+                  { label: "Expiry Date", key: "expiryDate", type: "date" },
+                  { label: "Mileage Limit (km)", key: "mileageLimit", type: "number" },
+                  { label: "Current Mileage (km)", key: "currentMileage", type: "number" },
+                ].map(({ label, key, type }) => (
+                  <div key={key} style={styles.formGroup}>
+                    <label style={styles.label}>{label}</label>
+                    <input type={type || "text"} style={styles.input} value={(form as any)[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} />
+                  </div>
+                ))}
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Coverage Details</label>
+                <textarea style={{ ...styles.input, height: "70px" }} value={form.coverageDetails} onChange={(e) => setForm((f) => ({ ...f, coverageDetails: e.target.value }))} />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Notes</label>
+                <textarea style={{ ...styles.input, height: "60px" }} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
+              </div>
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Notes</label>
-              <textarea style={{ ...styles.input, height: "60px" }} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} />
-            </div>
-            <div style={styles.modalActions}>
+            {/* Footer */}
+            <div style={styles.modalFooter}>
               <button style={styles.cancelBtn} onClick={() => setIsModalOpen(false)}>Cancel</button>
               <button style={styles.primaryBtn} onClick={handleSave} disabled={saving}>{saving ? "Saving..." : editingWarranty ? "Update" : "Add Warranty"}</button>
             </div>
@@ -339,28 +413,45 @@ const Warranties: React.FC = () => {
 
       {/* Claim Modal */}
       {isClaimModalOpen && selectedWarranty && (
-        <div style={styles.modalOverlay}>
-          <div style={{ ...styles.modal, maxWidth: "480px" }}>
-            <h2 style={styles.modalTitle}>File Claim: {selectedWarranty.title}</h2>
-            {[
-              { label: "Claim Date", key: "claimDate", type: "date" },
-              { label: "Claim Amount ($)", key: "claimAmount", type: "number" },
-              { label: "Claim Number", key: "claimNumber" },
-            ].map(({ label, key, type }) => (
-              <div key={key} style={styles.formGroup}>
-                <label style={styles.label}>{label}</label>
-                <input type={type || "text"} style={styles.input} value={(claimForm as any)[key]} onChange={(e) => setClaimForm((f) => ({ ...f, [key]: e.target.value }))} />
+        <div style={styles.modalOverlay} onClick={() => setIsClaimModalOpen(false)}>
+          <div style={{ ...styles.modal, maxWidth: "480px" }} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaFileAlt size={16} color="var(--t-indigo)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>File Claim</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>{selectedWarranty.title}</div>
+                </div>
               </div>
-            ))}
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Description *</label>
-              <textarea style={{ ...styles.input, height: "70px" }} value={claimForm.description} onChange={(e) => setClaimForm((f) => ({ ...f, description: e.target.value }))} />
+              <button style={styles.closeBtn} onClick={() => setIsClaimModalOpen(false)}>✕</button>
             </div>
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Notes</label>
-              <textarea style={{ ...styles.input, height: "60px" }} value={claimForm.notes} onChange={(e) => setClaimForm((f) => ({ ...f, notes: e.target.value }))} />
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ height: "24px" }} />
+              {[
+                { label: "Claim Date", key: "claimDate", type: "date" },
+                { label: "Claim Amount ($)", key: "claimAmount", type: "number" },
+                { label: "Claim Number", key: "claimNumber" },
+              ].map(({ label, key, type }) => (
+                <div key={key} style={styles.formGroup}>
+                  <label style={styles.label}>{label}</label>
+                  <input type={type || "text"} style={styles.input} value={(claimForm as any)[key]} onChange={(e) => setClaimForm((f) => ({ ...f, [key]: e.target.value }))} />
+                </div>
+              ))}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Description *</label>
+                <textarea style={{ ...styles.input, height: "70px" }} value={claimForm.description} onChange={(e) => setClaimForm((f) => ({ ...f, description: e.target.value }))} />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Notes</label>
+                <textarea style={{ ...styles.input, height: "60px" }} value={claimForm.notes} onChange={(e) => setClaimForm((f) => ({ ...f, notes: e.target.value }))} />
+              </div>
             </div>
-            <div style={styles.modalActions}>
+            {/* Footer */}
+            <div style={styles.modalFooter}>
               <button style={styles.cancelBtn} onClick={() => setIsClaimModalOpen(false)}>Cancel</button>
               <button style={styles.primaryBtn} onClick={handleAddClaim} disabled={saving}>{saving ? "Saving..." : "Submit Claim"}</button>
             </div>
@@ -370,13 +461,30 @@ const Warranties: React.FC = () => {
 
       {/* Delete Modal */}
       {isDeleteModalOpen && selectedWarranty && (
-        <div style={styles.modalOverlay}>
-          <div style={{ ...styles.modal, maxWidth: "420px" }}>
-            <h2 style={styles.modalTitle}>Delete Warranty?</h2>
-            <p style={{ color: "#6b7280", marginBottom: "24px" }}>Delete <strong>{selectedWarranty.title}</strong>? This cannot be undone.</p>
-            <div style={styles.modalActions}>
+        <div style={styles.modalOverlay} onClick={() => setIsDeleteModalOpen(false)}>
+          <div style={{ ...styles.modal, maxWidth: "420px" }} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaTrashAlt size={16} color="var(--t-indigo)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Delete Warranty?</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>This action cannot be undone</div>
+                </div>
+              </div>
+              <button style={styles.closeBtn} onClick={() => setIsDeleteModalOpen(false)}>✕</button>
+            </div>
+            {/* Body */}
+            <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ height: "24px" }} />
+              <p style={{ color: "var(--t-text-dim)", fontSize: "14px", margin: 0 }}>Delete <strong>{selectedWarranty.title}</strong>? This cannot be undone.</p>
+            </div>
+            {/* Footer */}
+            <div style={styles.modalFooter}>
               <button style={styles.cancelBtn} onClick={() => setIsDeleteModalOpen(false)}>Cancel</button>
-              <button style={{ ...styles.primaryBtn, background: "#dc2626" }} onClick={handleDelete}>Delete</button>
+              <button style={styles.deleteBtn} onClick={handleDelete}>Delete</button>
             </div>
           </div>
         </div>
@@ -386,34 +494,35 @@ const Warranties: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#f9fafb", fontFamily: "Inter, system-ui, sans-serif" },
-  container: { maxWidth: "1200px", margin: "0 auto", padding: "24px" },
-  primaryBtn: { padding: "10px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
-  alertBanner: { background: "#fef3c7", border: "1px solid #fbbf24", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "#92400e" },
+  wrapper: { minHeight: "100vh", background: "var(--t-bg)", fontFamily: "Inter, system-ui, sans-serif" },
+  container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
+  primaryBtn: { padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" },
+  alertBanner: { background: "var(--t-warning-bg)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "var(--t-warning)" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" },
-  statCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e5e7eb", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
-  statValue: { fontSize: "28px", fontWeight: 800, color: "#4F46E5" },
-  statLabel: { fontSize: "13px", color: "#6b7280", marginTop: "4px" },
+  statCard: { background: "var(--t-surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--t-border)", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
+  statValue: { fontSize: "28px", fontWeight: 800, color: "var(--t-indigo)" },
+  statLabel: { fontSize: "13px", color: "var(--t-text-dim)", marginTop: "4px" },
   filtersRow: { display: "flex", gap: "12px", marginBottom: "20px", flexWrap: "wrap" },
-  searchInput: { flex: 1, minWidth: "220px", padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" },
-  select: { padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#fff" },
-  tableWrapper: { overflowX: "auto", background: "#fff", borderRadius: "12px", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+  searchInput: { flex: 1, minWidth: "220px", padding: "9px 14px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-input-bg)", color: "var(--t-text-secondary)" },
+  select: { padding: "9px 14px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-select-bg)", color: "var(--t-text-secondary)" },
+  tableWrapper: { overflowX: "auto", background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },
   table: { width: "100%", borderCollapse: "collapse", fontSize: "14px" },
-  th: { padding: "12px 16px", textAlign: "left", background: "#f9fafb", borderBottom: "1px solid #e5e7eb", fontWeight: 600, color: "#6b7280", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.5px", whiteSpace: "nowrap" },
-  tr: { borderBottom: "1px solid #f3f4f6", cursor: "pointer" },
-  td: { padding: "14px 16px", color: "#374151", verticalAlign: "middle" },
+  th: { padding: "13px 16px", textAlign: "left", background: "var(--t-surface-alt)", borderBottom: "1px solid var(--t-border)", fontWeight: 700, color: "var(--t-indigo)", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.7px", whiteSpace: "nowrap" },
+  tr: { borderBottom: "1px solid var(--t-stripe)", cursor: "pointer" },
+  td: { padding: "14px 16px", color: "var(--t-text-muted)", verticalAlign: "middle" },
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
-  iconBtn: { background: "#f3f4f6", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "#374151", display: "flex", alignItems: "center" },
-  emptyState: { textAlign: "center", padding: "60px 0", color: "#6b7280", fontSize: "15px" },
-  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" },
-  modal: { background: "#fff", borderRadius: "16px", padding: "28px", maxWidth: "700px", width: "100%", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" },
-  modalTitle: { margin: "0 0 20px", fontSize: "20px", fontWeight: 700, color: "#111827" },
+  iconBtn: { background: "var(--t-hover-bg)", border: "none", borderRadius: "6px", padding: "6px 10px", cursor: "pointer", color: "var(--t-text-faint)", display: "flex", alignItems: "center" },
+  emptyState: { textAlign: "center", padding: "60px 0", color: "var(--t-text-dim)", fontSize: "15px" },
+  modalOverlay: { position: "fixed", inset: 0, background: "var(--t-modal-overlay)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" },
+  modal: { background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxHeight: "90vh", display: "flex", flexDirection: "column", boxShadow: "var(--t-shadow-lg)" },
+  closeBtn: { width: "32px", height: "32px", borderRadius: "8px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", flexShrink: 0 },
   formGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" },
   formGroup: { marginBottom: "16px" },
-  label: { display: "block", fontSize: "13px", fontWeight: 500, color: "#374151", marginBottom: "4px" },
-  input: { width: "100%", padding: "9px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", color: "#111827", background: "#fff", outline: "none", boxSizing: "border-box", fontFamily: "Inter, system-ui, sans-serif" },
-  modalActions: { display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "24px" },
-  cancelBtn: { padding: "10px 20px", background: "#f3f4f6", color: "#374151", border: "1px solid #d1d5db", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, fontFamily: "Inter, system-ui, sans-serif" },
+  label: { fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" },
+  input: { width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" },
+  modalFooter: { padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "10px", flexShrink: 0 },
+  cancelBtn: { padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" },
+  deleteBtn: { padding: "10px 20px", background: "var(--t-error)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" },
 };
 
 export default Warranties;

@@ -54,7 +54,7 @@ const getCalendarEvents = asyncHandler(async (req, res) => {
       status: r.status,
       color: r.status === "overdue" ? "#dc2626" : "#f59e0b",
     })),
-  ].sort((a, b) => new Date(a.date) - new Date(b.date));
+  ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   res.json(events);
 });
@@ -108,7 +108,7 @@ const getUpcomingEvents = asyncHandler(async (req, res) => {
       status: r.status,
       color: r.status === "overdue" ? "#dc2626" : "#f59e0b",
     })),
-  ].sort((a, b) => new Date(a.date) - new Date(b.date));
+  ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   res.json(events);
 });
@@ -117,12 +117,27 @@ const getUpcomingEvents = asyncHandler(async (req, res) => {
 const scheduleMaintenanceEvent = asyncHandler(async (req, res) => {
   const orgFilter = getOrgFilter(req);
 
-  const vehicle = await Vehicle.findOne({ _id: req.body.vehicleId, ...orgFilter });
+  // Validate required fields
+  const { vehicleId, title, type, scheduledDate } = req.body;
+  if (!vehicleId) return res.status(400).json({ message: "vehicleId is required" });
+  if (!title || !title.trim()) return res.status(400).json({ message: "title is required" });
+  if (!scheduledDate) return res.status(400).json({ message: "scheduledDate is required" });
+
+  // Ensure the vehicle belongs to this org (or is visible to an admin with no org scope)
+  const vehicle = await Vehicle.findOne({ _id: vehicleId, ...orgFilter });
   if (!vehicle) return res.status(404).json({ message: "Vehicle not found" });
 
+  // Derive the organizationId from the vehicle record so platform admins acting
+  // inside a scoped org context always produce correctly-scoped records.
+  const organizationId = vehicle.organizationId;
+
   const maintenance = new Maintenance({
-    ...req.body,
-    organizationId: req.organizationId,
+    vehicleId,
+    title: title.trim(),
+    type: type || "preventive",
+    scheduledDate,
+    notes: req.body.notes || "",
+    organizationId,
     status: "scheduled",
   });
   await maintenance.save();

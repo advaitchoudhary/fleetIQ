@@ -14,7 +14,7 @@ const createNotification = asyncHandler(async (req, res) => {
   }
 
   const notification = new Notification({
-    organizationId: req.organizationId || null,
+    organizationId: req.user?.organizationId || null,
     message,
     email,
     field,

@@ -11,7 +11,7 @@ router.get("/profile", protect, getUserProfile);
 router.post(
   "/change-password",
   protect,
-  authorizeRoles("driver", "admin"),
+  authorizeRoles("driver", "admin", "company_admin", "dispatcher"),
   changePassword
 );
 

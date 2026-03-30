@@ -4,9 +4,9 @@ import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
 const EVENT_COLORS: Record<string, string> = {
-  maintenance: "#4F46E5",
-  inspection: "#059669",
-  fuel: "#0891b2",
+  maintenance: "var(--t-accent)",
+  inspection: "var(--t-success)",
+  fuel: "var(--t-info)",
 };
 
 const EVENT_ICONS: Record<string, string> = {
@@ -16,89 +16,15 @@ const EVENT_ICONS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  completed: { bg: "#d1fae5", color: "#065f46" },
-  scheduled: { bg: "#e0e7ff", color: "#3730a3" },
-  in_progress: { bg: "#fef3c7", color: "#92400e" },
-  cancelled: { bg: "#fee2e2", color: "#991b1b" },
-  satisfactory: { bg: "#d1fae5", color: "#065f46" },
-  defects_noted: { bg: "#fef3c7", color: "#92400e" },
-  out_of_service: { bg: "#fee2e2", color: "#991b1b" },
+  completed: { bg: "var(--t-success-bg)", color: "var(--t-success)" },
+  scheduled: { bg: "var(--t-indigo-bg)", color: "var(--t-indigo)" },
+  in_progress: { bg: "var(--t-warning-bg)", color: "var(--t-warning)" },
+  cancelled: { bg: "var(--t-hover-bg)", color: "var(--t-text-faint)" },
+  satisfactory: { bg: "var(--t-success-bg)", color: "var(--t-success)" },
+  defects_noted: { bg: "var(--t-warning-bg)", color: "var(--t-warning)" },
+  out_of_service: { bg: "var(--t-error-bg)", color: "var(--t-error)" },
 };
 
-const DEMO_FLEET_SUMMARY = [
-  {
-    vehicle: { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth", model: "T680", year: 2022 },
-    totalEvents: 8,
-    lastMaintenance: { scheduledDate: "2026-02-10", completedDate: "2026-02-10", title: "Engine Oil & Filter Change" },
-    lastInspection: { date: "2026-03-20", status: "satisfactory" },
-  },
-  {
-    vehicle: { _id: "demo-v2", unitNumber: "U-102", make: "Freightliner", model: "Cascadia", year: 2021 },
-    totalEvents: 6,
-    lastMaintenance: { scheduledDate: "2026-03-18", completedDate: "", title: "Front Brake Pad Replacement" },
-    lastInspection: { date: "2026-03-19", status: "defects_noted" },
-  },
-  {
-    vehicle: { _id: "demo-v3", unitNumber: "U-103", make: "Ford", model: "Transit 350", year: 2023 },
-    totalEvents: 4,
-    lastMaintenance: { scheduledDate: "2026-04-12", completedDate: "", title: "Tire Rotation & Balance" },
-    lastInspection: { date: "2026-03-18", status: "satisfactory" },
-  },
-  {
-    vehicle: { _id: "demo-v5", unitNumber: "U-105", make: "Ram", model: "1500 Classic", year: 2022 },
-    totalEvents: 3,
-    lastMaintenance: { scheduledDate: "2026-03-02", completedDate: "2026-03-02", title: "Post-Incident Inspection" },
-    lastInspection: null,
-  },
-];
-
-const DEMO_VEHICLE_HISTORIES: Record<string, { vehicle: any; events: any[]; summary: any }> = {
-  "demo-v1": {
-    vehicle: { _id: "demo-v1", unitNumber: "U-101", make: "Kenworth", model: "T680", year: 2022, odometer: 156340, licensePlate: "ON-TRK-101" },
-    summary: { totalMaintenanceCost: 435, totalFuelCost: 1917.70, totalCost: 2352.70, totalEvents: 8 },
-    events: [
-      { eventType: "maintenance", title: "Annual Safety Inspection (CVIP)", status: "scheduled", cost: 250, date: "2026-04-05", odometer: 156340, detail: "Vendor: Certified Truck Inspections Ltd.", notes: "" },
-      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 642.18, date: "2026-03-15", odometer: 156340, detail: "420 L · $1.529/L · Petro-Canada, Toronto ON", notes: "" },
-      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 611.56, date: "2026-03-08", odometer: 155120, detail: "395 L · $1.549/L · Esso, London ON", notes: "Long-haul Windsor run." },
-      { eventType: "inspection", title: "Pre-Trip Inspection", status: "satisfactory", cost: 0, date: "2026-03-20", odometer: 156340, detail: "Type: Pre-Trip · Driver: D001", notes: "All systems checked and operational." },
-      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 663.96, date: "2026-02-20", odometer: 153600, detail: "440 L · $1.509/L · Husky, Kitchener ON", notes: "Full tank before weekend." },
-      { eventType: "maintenance", title: "Engine Oil & Filter Change", status: "completed", cost: 185, date: "2026-02-10", odometer: 155000, detail: "Vendor: FleetPro Service Centre", notes: "15W-40 Rotella T6, 10L. Oil filter replaced." },
-      { eventType: "inspection", title: "Annual Safety Inspection (CVIP)", status: "satisfactory", cost: 0, date: "2025-04-10", odometer: 142000, detail: "Type: Annual", notes: "MTO annual CVIP — passed with no defects." },
-      { eventType: "maintenance", title: "Coolant System Flush", status: "completed", cost: 0, date: "2025-01-22", odometer: 130000, detail: "Vendor: FleetPro Service Centre", notes: "OAT extended-life coolant used." },
-    ],
-  },
-  "demo-v2": {
-    vehicle: { _id: "demo-v2", unitNumber: "U-102", make: "Freightliner", model: "Cascadia", year: 2021, odometer: 204780, licensePlate: "ON-TRK-102" },
-    summary: { totalMaintenanceCost: 860, totalFuelCost: 1199.41, totalCost: 2059.41, totalEvents: 6 },
-    events: [
-      { eventType: "maintenance", title: "Front Brake Pad Replacement", status: "in_progress", cost: 540, date: "2026-03-18", odometer: 204780, detail: "Vendor: TruckStop Auto", notes: "Parts ordered — vehicle grounded until complete." },
-      { eventType: "inspection", title: "Pre-Trip Inspection", status: "defects_noted", cost: 0, date: "2026-03-19", odometer: 204780, detail: "Type: Pre-Trip · Driver: D003", notes: "Front brake pad thickness below minimum. Replacement ordered." },
-      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 584.82, date: "2026-03-14", odometer: 204780, detail: "385 L · $1.519/L · Pilot Flying J, Mississauga ON", notes: "" },
-      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 614.59, date: "2026-02-28", odometer: 203900, detail: "410 L · $1.499/L · Love's Travel Stop, Hamilton ON", notes: "" },
-      { eventType: "maintenance", title: "Coolant System Flush", status: "completed", cost: 320, date: "2026-01-22", odometer: 198400, detail: "Vendor: FleetPro Service Centre", notes: "Full drain and refill with OAT coolant. Windshield fluid topped up." },
-      { eventType: "maintenance", title: "Air Filter Replacement", status: "completed", cost: 0, date: "2025-09-15", odometer: 160000, detail: "Vendor: FleetPro Service Centre", notes: "Primary and safety elements replaced." },
-    ],
-  },
-  "demo-v3": {
-    vehicle: { _id: "demo-v3", unitNumber: "U-103", make: "Ford", model: "Transit 350", year: 2023, odometer: 34560, licensePlate: "ON-VAN-103" },
-    summary: { totalMaintenanceCost: 120, totalFuelCost: 187.56, totalCost: 307.56, totalEvents: 4 },
-    events: [
-      { eventType: "maintenance", title: "Tire Rotation & Balance", status: "scheduled", cost: 120, date: "2026-04-12", odometer: 34560, detail: "Vendor: Kal Tire", notes: "" },
-      { eventType: "inspection", title: "Post-Trip Inspection", status: "satisfactory", cost: 0, date: "2026-03-18", odometer: 34560, detail: "Type: Post-Trip · Driver: D005", notes: "No issues noted on return." },
-      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 97.97, date: "2026-03-13", odometer: 34560, detail: "58 L · $1.689/L · Shell, Brampton ON", notes: "" },
-      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 89.59, date: "2026-02-25", odometer: 33880, detail: "54 L · $1.659/L · Canadian Tire Gas+, Mississauga ON", notes: "" },
-    ],
-  },
-  "demo-v5": {
-    vehicle: { _id: "demo-v5", unitNumber: "U-105", make: "Ram", model: "1500 Classic", year: 2022, odometer: 67890, licensePlate: "ON-PCK-105" },
-    summary: { totalMaintenanceCost: 0, totalFuelCost: 122.33, totalCost: 122.33, totalEvents: 3 },
-    events: [
-      { eventType: "maintenance", title: "Post-Incident Inspection", status: "completed", cost: 0, date: "2026-03-02", odometer: 67890, detail: "Vendor: Internal", notes: "Minor fender contact in parking lot. No structural damage found." },
-      { eventType: "fuel", title: "Fuel Fill-Up", status: null, cost: 122.33, date: "2026-03-07", odometer: 67890, detail: "72 L · $1.699/L · Petro-Canada, Oakville ON", notes: "" },
-      { eventType: "inspection", title: "Annual Safety Inspection (CVIP)", status: "satisfactory", cost: 0, date: "2025-12-15", odometer: 58000, detail: "Type: Annual", notes: "Passed with no defects." },
-    ],
-  },
-};
 
 const ServiceHistory: React.FC = () => {
   const [fleetSummary, setFleetSummary] = useState<any[]>([]);
@@ -124,12 +50,12 @@ const ServiceHistory: React.FC = () => {
         fetch(`${API_BASE_URL}/vehicles`, { headers }),
       ]);
       const [s, v] = await Promise.all([summaryRes.json(), vehiclesRes.json()]);
-      setFleetSummary(Array.isArray(s) && s.length > 0 ? s : DEMO_FLEET_SUMMARY);
-      setVehicles(Array.isArray(v) && v.length > 0 ? v : DEMO_FLEET_SUMMARY.map((d) => d.vehicle));
+      setFleetSummary(Array.isArray(s) ? s : []);
+      setVehicles(Array.isArray(v) ? v : []);
     } catch (err) {
       console.error(err);
-      setFleetSummary(DEMO_FLEET_SUMMARY);
-      setVehicles(DEMO_FLEET_SUMMARY.map((d) => d.vehicle));
+      setFleetSummary([]);
+      setVehicles([]);
     } finally { setLoading(false); }
   }, []);
 
@@ -139,14 +65,6 @@ const ServiceHistory: React.FC = () => {
     if (!vehicleId) return;
     setHistoryLoading(true);
     try {
-      if (DEMO_VEHICLE_HISTORIES[vehicleId]) {
-        const demo = DEMO_VEHICLE_HISTORIES[vehicleId];
-        setVehicleInfo(demo.vehicle);
-        setEvents(demo.events);
-        setSummary(demo.summary);
-        setHistoryLoading(false);
-        return;
-      }
       const params = new URLSearchParams();
       if (dateFrom) params.append("from", dateFrom);
       if (dateTo) params.append("to", dateTo);
@@ -157,8 +75,9 @@ const ServiceHistory: React.FC = () => {
       setSummary(data.summary);
     } catch (err) {
       console.error(err);
-      const demo = DEMO_VEHICLE_HISTORIES[vehicleId];
-      if (demo) { setVehicleInfo(demo.vehicle); setEvents(demo.events); setSummary(demo.summary); }
+      setVehicleInfo(null);
+      setEvents([]);
+      setSummary(null);
     } finally { setHistoryLoading(false); }
   };
 
@@ -176,21 +95,28 @@ const ServiceHistory: React.FC = () => {
   return (
     <div style={styles.wrapper}>
       <Navbar />
-      <div style={styles.container}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "28px", flexWrap: "wrap", gap: "16px" }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "#111827", display: "flex", alignItems: "center", gap: "10px" }}>
-              <FaHistory style={{ color: "#4F46E5" }} /> Service History
-            </h1>
-            <p style={{ margin: "4px 0 0", color: "#6b7280", fontSize: "14px" }}>Unified timeline of all maintenance, inspections, and fuel logs per vehicle</p>
+      {/* Hero */}
+      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
+        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
+            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
+              <FaHistory size={22} />
+            </div>
+            <div>
+              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Fleet</p>
+              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Service History</h1>
+              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Unified timeline of maintenance, inspections, and fuel logs per vehicle</p>
+            </div>
           </div>
-          <select style={styles.vehicleSelect} value={selectedVehicleId} onChange={(e) => handleVehicleChange(e.target.value)}>
-            <option value="">— Select a vehicle —</option>
+          <select style={{ ...styles.vehicleSelect, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif" }} value={selectedVehicleId} onChange={(e) => handleVehicleChange(e.target.value)}>
+            <option value="" style={{ background: "var(--t-select-bg)", color: "var(--t-text-secondary)" }}>— Select a vehicle —</option>
             {vehicles.map((v) => (
-              <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model} ({v.year})</option>
+              <option key={v._id} value={v._id} style={{ background: "var(--t-select-bg)", color: "var(--t-text-secondary)" }}>{v.unitNumber} — {v.make} {v.model} ({v.year})</option>
             ))}
           </select>
         </div>
+      </div>
+      <div style={styles.container}>
 
         {/* Fleet overview when no vehicle selected */}
         {!selectedVehicleId && (
@@ -201,9 +127,9 @@ const ServiceHistory: React.FC = () => {
                 <div key={item.vehicle._id} style={styles.fleetCard} onClick={() => handleVehicleChange(item.vehicle._id)}>
                   <div style={styles.fleetCardHeader}>
                     <strong>{item.vehicle.unitNumber}</strong>
-                    <span style={{ fontSize: "13px", color: "#6b7280" }}>{item.vehicle.make} {item.vehicle.model} {item.vehicle.year}</span>
+                    <span style={{ fontSize: "13px", color: "var(--t-text-dim)" }}>{item.vehicle.make} {item.vehicle.model} {item.vehicle.year}</span>
                   </div>
-                  <div style={{ fontSize: "13px", color: "#374151", marginTop: "8px" }}>
+                  <div style={{ fontSize: "13px", color: "var(--t-text-muted)", marginTop: "8px" }}>
                     <div>Total events: <strong>{item.totalEvents}</strong></div>
                     {item.lastMaintenance && (
                       <div style={{ marginTop: "4px" }}>Last maintenance: <strong>{new Date(item.lastMaintenance.scheduledDate || item.lastMaintenance.completedDate).toLocaleDateString()}</strong></div>
@@ -212,7 +138,7 @@ const ServiceHistory: React.FC = () => {
                       <div style={{ marginTop: "4px" }}>Last inspection: <strong>{new Date(item.lastInspection.date).toLocaleDateString()}</strong></div>
                     )}
                   </div>
-                  <div style={{ marginTop: "12px", fontSize: "13px", color: "#4F46E5", fontWeight: 600 }}>View history →</div>
+                  <div style={{ marginTop: "12px", fontSize: "13px", color: "var(--t-indigo)", fontWeight: 600 }}>View history →</div>
                 </div>
               ))}
             </div>
@@ -226,10 +152,10 @@ const ServiceHistory: React.FC = () => {
               <div style={styles.vehicleBanner}>
                 <div>
                   <strong style={{ fontSize: "18px" }}>{vehicleInfo.unitNumber}</strong>
-                  <span style={{ marginLeft: "12px", color: "#6b7280" }}>{vehicleInfo.make} {vehicleInfo.model} {vehicleInfo.year}</span>
-                  {vehicleInfo.odometer && <span style={{ marginLeft: "12px", color: "#6b7280" }}>{vehicleInfo.odometer.toLocaleString()} km</span>}
+                  <span style={{ marginLeft: "12px", color: "var(--t-text-dim)" }}>{vehicleInfo.make} {vehicleInfo.model} {vehicleInfo.year}</span>
+                  {vehicleInfo.odometer && <span style={{ marginLeft: "12px", color: "var(--t-text-dim)" }}>{vehicleInfo.odometer.toLocaleString()} km</span>}
                 </div>
-                {vehicleInfo.licensePlate && <span style={{ fontSize: "13px", color: "#6b7280" }}>Plate: {vehicleInfo.licensePlate}</span>}
+                {vehicleInfo.licensePlate && <span style={{ fontSize: "13px", color: "var(--t-text-dim)" }}>Plate: {vehicleInfo.licensePlate}</span>}
               </div>
             )}
 
@@ -270,30 +196,30 @@ const ServiceHistory: React.FC = () => {
               <div style={styles.timeline}>
                 {filteredEvents.map((event, idx) => (
                   <div key={idx} style={styles.timelineItem}>
-                    <div style={{ ...styles.timelineBar, background: EVENT_COLORS[event.eventType] || "#6b7280" }} />
+                    <div style={{ ...styles.timelineBar, background: EVENT_COLORS[event.eventType] || "var(--t-text-dim)" }} />
                     <div style={styles.timelineContent}>
                       <div style={styles.timelineHeader}>
                         <span style={{ fontSize: "22px" }}>{EVENT_ICONS[event.eventType]}</span>
                         <div style={{ flex: 1 }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                            <strong style={{ fontSize: "15px", color: "#111827" }}>{event.title}</strong>
+                            <strong style={{ fontSize: "15px", color: "var(--t-text-secondary)" }}>{event.title}</strong>
                             {event.status && (
-                              <span style={{ ...styles.badge, background: STATUS_COLORS[event.status]?.bg || "#f3f4f6", color: STATUS_COLORS[event.status]?.color || "#374151" }}>
+                              <span style={{ ...styles.badge, background: STATUS_COLORS[event.status]?.bg || "var(--t-hover-bg)", color: STATUS_COLORS[event.status]?.color || "var(--t-text-faint)" }}>
                                 {event.status.replace("_", " ")}
                               </span>
                             )}
                             {event.cost > 0 && (
-                              <span style={{ ...styles.badge, background: "#f3f4f6", color: "#374151" }}>
+                              <span style={{ ...styles.badge, background: "var(--t-hover-bg)", color: "var(--t-text-faint)" }}>
                                 ${event.cost.toFixed(2)}
                               </span>
                             )}
                           </div>
-                          <div style={{ fontSize: "13px", color: "#6b7280", marginTop: "3px" }}>
+                          <div style={{ fontSize: "13px", color: "var(--t-text-dim)", marginTop: "3px" }}>
                             {event.date ? new Date(event.date).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" }) : ""}
                             {event.odometer ? ` · ${event.odometer.toLocaleString()} km` : ""}
                             {event.detail ? ` · ${event.detail}` : ""}
                           </div>
-                          {event.notes && <div style={{ fontSize: "13px", color: "#9ca3af", marginTop: "4px" }}>{event.notes}</div>}
+                          {event.notes && <div style={{ fontSize: "13px", color: "var(--t-text-faint)", marginTop: "4px" }}>{event.notes}</div>}
                         </div>
                       </div>
                     </div>
@@ -309,28 +235,28 @@ const ServiceHistory: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
-  wrapper: { minHeight: "100vh", background: "#f9fafb", fontFamily: "Inter, system-ui, sans-serif" },
-  container: { maxWidth: "1200px", margin: "0 auto", padding: "24px" },
-  vehicleSelect: { padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#fff", minWidth: "280px", color: "#111827" },
+  wrapper: { minHeight: "100vh", background: "var(--t-bg)", fontFamily: "Inter, system-ui, sans-serif" },
+  container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
+  vehicleSelect: { padding: "9px 14px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-select-bg)", minWidth: "280px", color: "var(--t-text-secondary)" },
   fleetGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" },
-  fleetCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e5e7eb", boxShadow: "0 1px 3px rgba(0,0,0,0.06)", cursor: "pointer" },
+  fleetCard: { background: "var(--t-surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--t-border)", boxShadow: "0 1px 6px rgba(0,0,0,0.3)", cursor: "pointer" },
   fleetCardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-  vehicleBanner: { background: "#fff", border: "1px solid #e5e7eb", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+  vehicleBanner: { background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "12px", padding: "16px 20px", marginBottom: "20px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
   statsRow: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" },
-  statCard: { background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #e5e7eb", textAlign: "center", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
-  statValue: { fontSize: "22px", fontWeight: 800, color: "#4F46E5" },
-  statLabel: { fontSize: "12px", color: "#6b7280", marginTop: "4px" },
+  statCard: { background: "var(--t-surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--t-border)", textAlign: "center", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
+  statValue: { fontSize: "22px", fontWeight: 800, color: "var(--t-indigo)" },
+  statLabel: { fontSize: "12px", color: "var(--t-text-dim)", marginTop: "4px" },
   filtersRow: { display: "flex", gap: "10px", marginBottom: "20px", flexWrap: "wrap", alignItems: "center" },
-  select: { padding: "9px 14px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "#fff" },
-  dateInput: { padding: "9px 12px", border: "1px solid #d1d5db", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" },
-  filterBtn: { padding: "9px 18px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" },
+  select: { padding: "9px 14px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-select-bg)", color: "var(--t-text-secondary)" },
+  dateInput: { padding: "9px 12px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-input-bg)", color: "var(--t-text-secondary)" },
+  filterBtn: { padding: "9px 18px", background: "var(--t-accent)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" },
   timeline: { display: "flex", flexDirection: "column", gap: "12px" },
-  timelineItem: { display: "flex", gap: "0", background: "#fff", borderRadius: "12px", border: "1px solid #e5e7eb", overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" },
+  timelineItem: { display: "flex", gap: "0", background: "var(--t-surface)", borderRadius: "12px", border: "1px solid var(--t-border)", overflow: "hidden", boxShadow: "0 1px 6px rgba(0,0,0,0.3)" },
   timelineBar: { width: "5px", flexShrink: 0 },
   timelineContent: { padding: "16px 18px", flex: 1 },
   timelineHeader: { display: "flex", gap: "12px", alignItems: "flex-start" },
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
-  emptyState: { textAlign: "center", padding: "60px 0", color: "#6b7280", fontSize: "15px" },
+  emptyState: { textAlign: "center", padding: "60px 0", color: "var(--t-text-dim)", fontSize: "15px" },
 };
 
 export default ServiceHistory;

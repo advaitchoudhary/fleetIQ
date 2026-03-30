@@ -17,19 +17,20 @@ const {
 } = require("../controller/driverController.js");
 
 const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
+const { requireDriverModule } = require("../middleware/featureGate.js");
 
 const route = express.Router();
 
-route.post("/", protect, authorizeRoles("admin", "company_admin", "dispatcher"), create);
-route.get("/", protect, getAllDrivers);
-route.put("/:id", protect, authorizeRoles("admin", "company_admin", "dispatcher"), updateDriverById);
-route.delete("/:id", protect, authorizeRoles("admin", "company_admin"), deleteDriverById);
+route.post("/", protect, authorizeRoles("admin", "company_admin", "dispatcher"), requireDriverModule, create);
+route.get("/", protect, requireDriverModule, getAllDrivers);
+route.put("/:id", protect, authorizeRoles("admin", "company_admin", "dispatcher"), requireDriverModule, updateDriverById);
+route.delete("/:id", protect, authorizeRoles("admin", "company_admin"), requireDriverModule, deleteDriverById);
 route.get("/check", checkUsername);
-route.get("/:id", protect, getDriverById);
+route.get("/:id", protect, requireDriverModule, getDriverById);
 route.post(
   "/change-password",
   protect,
-  authorizeRoles("driver", "admin"),
+  authorizeRoles("driver", "admin", "company_admin"),
   changePassword
 );
 route.post("/login", driverLogin);

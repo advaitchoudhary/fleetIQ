@@ -8,6 +8,7 @@ const driverSchema = new mongoose.Schema(
             ref: "Organization",
             default: null,
         },
+        driverId: { type: String, unique: true, sparse: true }, // Auto-generated: ORG_SEQ_TIMESTAMP
         name: { type: String, required: true },
         email: { type: String, required: true, unique: true },
         contact: { type: String, required: true },

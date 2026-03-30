@@ -104,26 +104,33 @@ const logout = (req, res) => {
 // Change Password
 const changePassword = async (req, res) => {
     try {
-        console.log("Received Headers:", req.headers); // Debug: Log all headers
-        const token = req.header("Authorization").split(" ")[1];
-        console.log("Extracted Token:", token); // Debug: Log extracted token
-
-        if (!token) return res.status(401).json({ error: "Unauthorized access - No token provided" });
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log("Decoded Token:", decoded); // Debug: Log decoded token
-
-        const user = await User.findById(decoded.id);
+        // req.user is already set by the `protect` middleware — no need to re-verify the token
+        const user = await User.findById(req.user.id);
         if (!user) return res.status(404).json({ error: "User not found" });
 
         const { oldPassword, newPassword } = req.body;
 
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({ error: "oldPassword and newPassword are required" });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({ error: "New password must be at least 8 characters" });
+        }
+
+        // Verify old password before allowing the change
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ error: "Current password is incorrect" });
+        }
+
+        // Assign plain text — the userModel pre-save hook hashes it automatically
         user.password = newPassword;
         await user.save();
 
         res.json({ message: "Password changed successfully" });
     } catch (error) {
-        console.error("JWT Verification Error:", error); // Log error
+        console.error("changePassword error:", error);
         res.status(500).json({ error: "Server error" });
     }
 };
@@ -131,17 +138,14 @@ const changePassword = async (req, res) => {
 // Get User Profile (Protected)
 const getUserProfile = async (req, res) => {
     try {
-        // Extract user ID from JWT
-        const token = req.header("Authorization").split(" ")[1];
-        if (!token) return res.status(401).json({ error: "Unauthorized access" });
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await User.findById(decoded.id).select("-password"); // Exclude password
+        // req.user is already set by the protect middleware — no need to re-verify the token
+        const user = await User.findById(req.user.id).select("-password");
 
         if (!user) return res.status(404).json({ error: "User not found" });
 
         res.json({ user });
     } catch (error) {
+        console.error("getUserProfile error:", error);
         res.status(500).json({ error: "Server error" });
     }
 };

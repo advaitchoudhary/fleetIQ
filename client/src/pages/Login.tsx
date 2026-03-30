@@ -3,294 +3,444 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { API_BASE_URL } from "../utils/env";
 import axios from "axios";
-import { FaArrowLeft, FaTruck } from "react-icons/fa";
-
+import { FaTruck, FaCheckCircle, FaUsers, FaCar, FaCreditCard, FaArrowRight, FaShieldAlt } from "react-icons/fa";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const [role, setRole] = useState("admin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isBackButtonHovered, setIsBackButtonHovered] = useState(false);
-  const { login } = useAuth();
+  const [loginError, setLoginError] = useState("");
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const { login, loginDirect } = useAuth();
 
   useEffect(() => {
     setEmail("");
     setPassword("");
+    setLoginError("");
   }, [role]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setLoginError("");
 
-    const loginUrl = role === "driver" ? `${API_BASE_URL}/drivers/login` : `${API_BASE_URL}/auth/login`;
-    const payload = role === "driver"
-      ? { username: email.trim(), password: password.trim() }
-      : { email: email.trim(), password: password.trim() };
+    if (!email.trim() || !password.trim()) {
+      setLoginError("Email/username and password are required.");
+      return;
+    }
 
     try {
-      const response = await axios.post(loginUrl, payload);
-      const { token, driver } = response.data;
-
-      localStorage.setItem("token", token);
-
-      if (role === "admin") {
-        await login(email.trim(), password.trim()); // Admin flow → existing login handles redirect
-      } else {
-        // Normalize driver user object
+      if (role === "driver") {
+        const response = await axios.post(`${API_BASE_URL}/drivers/login`, {
+          username: email.trim(),
+          password: password.trim(),
+        });
+        const { token, driver } = response.data;
         const driverUser = {
           id: driver.id,
-          username: driver.username,
           name: driver.name,
-          email: driver.email,
+          email: driver.email || driver.username,
           role: driver.role,
+          driverId: driver.driverId || null,
+          organizationId: driver.organizationId || null,
+          orgName: driver.orgName || null,
         };
-        localStorage.setItem("user", JSON.stringify(driverUser));
-        console.log("Driver login successful. Token and user stored.");
-        if(role === "driver") {
-          // Auto-redirect driver to dashboard
-          window.location.href = "/dashboard";
-        }
-        else {
-          // Redirect admin to admin dashboard
-          window.location.href = "/admin-home";
-        }
+        await loginDirect(token, driverUser);
+        navigate("/dashboard");
+      } else {
+        await login(email.trim(), password.trim());
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
-      alert("Invalid credentials or login failed.");
+      const msg =
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        "Invalid credentials or login failed.";
+      setLoginError(msg);
     }
   };
 
+  const inputStyle = (field: string): React.CSSProperties => ({
+    width: "100%",
+    padding: "13px 14px 13px 44px",
+    borderRadius: "10px",
+    border: `1.5px solid ${focusedField === field ? "#7B6CF6" : "rgba(255,255,255,0.08)"}`,
+    fontSize: "14px",
+    color: "#fff",
+    outline: "none",
+    boxSizing: "border-box",
+    background: "#1A2235",
+    transition: "border-color 0.2s",
+    fontFamily: "Inter, system-ui, sans-serif",
+  });
+
+  const features = [
+    { icon: <FaUsers size={15} />, title: "Driver Management & Applications", desc: "Manage driver profiles, onboarding, and documents in one place." },
+    { icon: <FaShieldAlt size={15} />, title: "Compliance & Document Tracking", desc: "Stay audit-ready with automated compliance and file storage." },
+    { icon: <FaCreditCard size={15} />, title: "Stripe-Powered Driver Payouts", desc: "Process and track driver payments directly from your dashboard." },
+    { icon: <FaCar size={15} />, title: "Vehicle & Fleet Operations", desc: "Track vehicles, maintenance, warranties, and fuel logs." },
+  ];
+
   return (
-    <div style={styles.container}>
-      {/* Decorative background orbs */}
-      <div style={{ position: "absolute", top: "-120px", right: "-120px", width: "480px", height: "480px", borderRadius: "50%", background: "radial-gradient(circle, rgba(79,70,229,0.18) 0%, transparent 70%)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", bottom: "-100px", left: "-100px", width: "400px", height: "400px", borderRadius: "50%", background: "radial-gradient(circle, rgba(129,140,248,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
-      <div style={{ position: "absolute", top: "40%", left: "15%", width: "200px", height: "200px", borderRadius: "50%", background: "radial-gradient(circle, rgba(79,70,229,0.08) 0%, transparent 70%)", pointerEvents: "none" }} />
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", minHeight: "100vh", display: "flex", background: "#090D18" }}>
       <style>{`
-        @keyframes loginFadeIn {
-          from { opacity: 0; transform: translateY(20px) scale(0.97); }
-          to { opacity: 1; transform: translateY(0) scale(1); }
+        * { box-sizing: border-box; }
+
+        .fl-left {
+          width: 45%; min-height: 100vh; padding: 48px;
+          display: flex; flex-direction: column;
+          position: relative; overflow: hidden;
+          border-right: 1px solid rgba(255,255,255,0.05);
         }
-        @keyframes loginSlideUp {
-          from { opacity: 0; transform: translateY(12px); }
-          to { opacity: 1; transform: translateY(0); }
+
+        .fl-right {
+          width: 55%; min-height: 100vh;
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
+          padding: 48px 32px; position: relative;
         }
-        @keyframes loginBackIn {
-          from { opacity: 0; transform: translateX(-16px); }
-          to { opacity: 1; transform: translateX(0); }
+
+        .fl-mockup {
+          background: #0F1629;
+          border-radius: 14px;
+          border: 1px solid rgba(255,255,255,0.07);
+          padding: 20px;
+          margin-bottom: 36px;
         }
-        @keyframes loginPulseGlow {
-          0%, 100% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 0 rgba(79, 70, 229, 0); }
-          50% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 40px -8px rgba(79, 70, 229, 0.15); }
+        .fl-mockup-bar {
+          height: 5px;
+          background: linear-gradient(90deg, #7B6CF6 0%, #06B6D4 55%, rgba(255,255,255,0.06) 100%);
+          border-radius: 3px; margin-bottom: 14px;
         }
-        [data-login-back] {
-          animation: loginBackIn 0.5s ease-out both;
+        .fl-mockup-stats {
+          display: flex; gap: 10px; margin-bottom: 14px;
         }
-        [data-login-card] {
-          animation: loginFadeIn 0.6s ease-out both;
-          animation-delay: 0.1s;
-          transition: box-shadow 0.4s ease;
+        .fl-mockup-stat {
+          flex: 1; background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.05);
+          border-radius: 8px; padding: 10px 12px;
         }
-        [data-login-card]:hover {
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 40px -8px rgba(79, 70, 229, 0.2);
+        .fl-mockup-stat-label { font-size: 9px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+        .fl-mockup-stat-val { font-size: 16px; font-weight: 700; color: #fff; }
+        .fl-mockup-stat-val.cyan { color: #06B6D4; }
+        .fl-mockup-stat-val.green { color: #34D399; }
+        .fl-mockup-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 12px 0; }
+        .fl-mockup-row {
+          display: flex; justify-content: space-between;
+          font-size: 11px; margin-bottom: 7px;
         }
-        [data-login-title] {
-          animation: loginSlideUp 0.5s ease-out both;
-          animation-delay: 0.3s;
+
+        .fl-feature {
+          display: flex; gap: 14px; align-items: flex-start; margin-bottom: 18px;
         }
-        [data-login-desc] {
-          animation: loginSlideUp 0.5s ease-out both;
-          animation-delay: 0.4s;
+        .fl-feature-icon {
+          width: 36px; height: 36px;
+          background: rgba(123,108,246,0.12);
+          border: 1px solid rgba(123,108,246,0.25);
+          border-radius: 9px;
+          display: flex; align-items: center; justify-content: center;
+          color: #7B6CF6; flex-shrink: 0;
         }
-        [data-login-form] > *:nth-child(1) { animation: loginSlideUp 0.4s ease-out both; animation-delay: 0.5s; }
-        [data-login-form] > *:nth-child(2) { animation: loginSlideUp 0.4s ease-out both; animation-delay: 0.6s; }
-        [data-login-form] > *:nth-child(3) { animation: loginSlideUp 0.4s ease-out both; animation-delay: 0.7s; }
-        [data-login-form] > *:nth-child(4) { animation: loginSlideUp 0.4s ease-out both; animation-delay: 0.8s; }
-        [data-login-btn]:hover {
+
+        .fl-card {
+          width: 100%; max-width: 420px;
+          background: #0F1629;
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 20px;
+          padding: 36px 32px;
+        }
+
+        .fl-role-btn {
+          flex: 1; padding: 9px 12px; border-radius: 9px;
+          font-size: 13px; font-weight: 600; cursor: pointer;
+          font-family: Inter, system-ui, sans-serif;
+          border: 1.5px solid rgba(255,255,255,0.08);
+          background: transparent; color: rgba(255,255,255,0.45);
+          transition: all 0.2s;
+        }
+        .fl-role-btn.active {
+          background: #7B6CF6; color: #fff;
+          border-color: #7B6CF6;
+          box-shadow: 0 2px 12px rgba(123,108,246,0.4);
+        }
+        .fl-role-btn:not(.active):hover {
+          border-color: rgba(123,108,246,0.4); color: #a78bfa;
+        }
+
+        .fl-submit-btn {
+          width: 100%; padding: 14px;
+          background: #7B6CF6;
+          color: #fff; border: none; border-radius: 50px;
+          font-size: 15px; font-weight: 700; cursor: pointer;
+          font-family: Inter, system-ui, sans-serif;
+          box-shadow: 0 4px 20px rgba(123,108,246,0.35);
+          transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .fl-submit-btn:hover {
+          background: #6D5EE8;
           transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5) !important;
+          box-shadow: 0 8px 28px rgba(123,108,246,0.5);
         }
-        [data-login-btn]:active {
-          transform: translateY(0);
+        .fl-submit-btn:active { transform: translateY(0); }
+
+        .fl-input-wrap { position: relative; }
+        .fl-input-icon {
+          position: absolute; left: 14px; top: 50%;
+          transform: translateY(-50%);
+          color: rgba(255,255,255,0.25); pointer-events: none;
+          font-size: 13px; font-style: normal;
         }
-        [data-login-input]:focus {
-          border-color: rgba(79, 70, 229, 0.6) !important;
-          box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+
+        .fl-badge-row {
+          display: flex; justify-content: center; gap: 24px;
+        }
+        .fl-trust-badge {
+          display: flex; align-items: center; gap: 6px;
+          font-size: 10px; color: rgba(255,255,255,0.35);
+          font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase;
+        }
+
+        .fl-footer-links {
+          display: flex; gap: 20px; flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+          .fl-left { display: none !important; }
+          .fl-right { width: 100% !important; }
         }
       `}</style>
-      <button
-        type="button"
-        onClick={() => navigate("/")}
-        onMouseEnter={() => setIsBackButtonHovered(true)}
-        onMouseLeave={() => setIsBackButtonHovered(false)}
-        style={{
-          ...styles.backButton,
-          backgroundColor: isBackButtonHovered 
-            ? "rgba(255, 255, 255, 0.3)" 
-            : "rgba(255, 255, 255, 0.2)",
-          borderColor: isBackButtonHovered 
-            ? "rgba(255, 255, 255, 0.5)" 
-            : "rgba(255, 255, 255, 0.3)",
-        }}
-        data-login-back
-      >
-        <FaArrowLeft style={{ marginRight: "8px", fontSize: "12px" }} />
-        Back
-      </button>
-      <div style={styles.overlay} data-login-card>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "20px" }}>
-          <FaTruck size={24} style={{ color: "#818CF8" }} />
-          <span style={{ fontSize: "22px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
-            Fleet<span style={{ color: "#818CF8" }}>IQ</span>
+
+      {/* ── LEFT PANEL ── */}
+      <div className="fl-left">
+
+        {/* Logo */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "44px" }}>
+          <div style={{ width: "34px", height: "34px", borderRadius: "8px", background: "linear-gradient(135deg, #7B6CF6, #4F46E5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <FaTruck size={16} color="#fff" />
+          </div>
+          <span style={{ fontSize: "18px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
+            Fleet<span style={{ color: "#7B6CF6" }}>IQ</span>
           </span>
         </div>
-        <h1 style={styles.title} data-login-title>Welcome back</h1>
-        <p style={styles.description} data-login-desc>
-          Manage your trips, track your hours, and stay updated with important information.
-        </p>
-        <form onSubmit={handleSubmit} style={styles.form} data-login-form>
-          <select value={role} onChange={(e) => setRole(e.target.value)} style={styles.select} data-login-input>
-            <option value="admin">Admin</option>
-            <option value="driver">Driver</option>
-          </select>
-          {role === "driver" ? (
-            <input
-              type="text"
-              placeholder="Enter your username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={styles.input}
-              data-login-input
-            />
-          ) : (
-            <input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              style={styles.input}
-              data-login-input
-            />
-          )}
-          <input
-            type="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={styles.input}
-            data-login-input
-          />
-          <button type="submit" style={styles.button} data-login-btn>Login</button>
-        </form>
+
+        {/* Dashboard mockup */}
+        <div className="fl-mockup">
+          <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "12px" }}>Live Dashboard</div>
+          <div className="fl-mockup-bar" />
+          <div className="fl-mockup-stats">
+            <div className="fl-mockup-stat">
+              <div className="fl-mockup-stat-label">Active Drivers</div>
+              <div className="fl-mockup-stat-val">24</div>
+            </div>
+            <div className="fl-mockup-stat">
+              <div className="fl-mockup-stat-label">Payouts</div>
+              <div className="fl-mockup-stat-val green">$18,430</div>
+            </div>
+            <div className="fl-mockup-stat">
+              <div className="fl-mockup-stat-label">On-Road</div>
+              <div className="fl-mockup-stat-val cyan">18</div>
+            </div>
+          </div>
+          <div className="fl-mockup-divider" />
+          {[
+            { label: "Premier Choice Transport", val: "$4,200" },
+            { label: "Oakville Logistics", val: "24 drivers" },
+            { label: "GTA Transport Group", val: "On route" },
+            { label: "Durham Express", val: "$1,083" },
+          ].map((row) => (
+            <div className="fl-mockup-row" key={row.label}>
+              <span style={{ color: "rgba(255,255,255,0.35)" }}>{row.label}</span>
+              <span style={{ color: "rgba(255,255,255,0.65)", fontWeight: 600 }}>{row.val}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Headline */}
+        <div style={{ marginBottom: "32px" }}>
+          <h1 style={{ margin: "0 0 12px", fontSize: "clamp(26px, 2.8vw, 36px)", fontWeight: 800, color: "#fff", lineHeight: 1.15, letterSpacing: "-0.5px" }}>
+            Everything your <span style={{ color: "#06B6D4" }}>fleet</span><br />needs, in one place.
+          </h1>
+        </div>
+
+        {/* Features */}
+        <div style={{ marginBottom: "auto" }}>
+          {features.slice(0, 2).map((f, i) => (
+            <div key={i} className="fl-feature">
+              <div className="fl-feature-icon">{f.icon}</div>
+              <div>
+                <div style={{ fontSize: "14px", fontWeight: 700, color: "#fff", marginBottom: "2px" }}>{f.title}</div>
+                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>{f.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div style={{ paddingTop: "32px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+          <div className="fl-footer-links">
+            {["Privacy Policy", "Terms of Service", "Support"].map((link) => (
+              <span key={link} style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", cursor: "pointer" }}>{link}</span>
+            ))}
+          </div>
+          <div style={{ marginTop: "8px", fontSize: "11px", color: "rgba(255,255,255,0.15)" }}>© 2024 FleetIQ Systems. All rights reserved.</div>
+        </div>
+      </div>
+
+      {/* ── RIGHT PANEL ── */}
+      <div className="fl-right">
+
+        {/* Top-right link */}
+        <div style={{ position: "absolute", top: "28px", right: "32px" }}>
+          <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.35)" }}>Don't have an account? </span>
+          <button
+            onClick={() => navigate("/register")}
+            style={{ background: "none", border: "none", color: "#7B6CF6", cursor: "pointer", fontWeight: 700, fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}
+          >
+            Sign up →
+          </button>
+        </div>
+
+        <div className="fl-card">
+
+          {/* Header */}
+          <div style={{ marginBottom: "28px" }}>
+            <h2 style={{ margin: "0 0 6px", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
+              Welcome Back
+            </h2>
+            <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,0.4)" }}>
+              Sign in to manage your fleet and operations.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+
+              {/* Role toggle */}
+              <div>
+                <label style={{ display: "block", fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.35)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                  Sign in as
+                </label>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button type="button" className={`fl-role-btn ${role === "admin" ? "active" : ""}`} onClick={() => setRole("admin")}>
+                    Admin
+                  </button>
+                  <button type="button" className={`fl-role-btn ${role === "driver" ? "active" : ""}`} onClick={() => setRole("driver")}>
+                    Driver
+                  </button>
+                </div>
+              </div>
+
+              {/* Error */}
+              {loginError && (
+                <div style={{ color: "#F87171", fontSize: "13px", padding: "10px 14px", backgroundColor: "rgba(248,113,113,0.08)", borderRadius: "8px", border: "1px solid rgba(248,113,113,0.25)" }}>
+                  {loginError}
+                </div>
+              )}
+
+              {/* Email / Username */}
+              <div>
+                <label style={{ display: "block", fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.35)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                  {role === "driver" ? "Username" : "Email"}
+                </label>
+                <div className="fl-input-wrap">
+                  <span className="fl-input-icon">@</span>
+                  {role === "driver" ? (
+                    <input
+                      type="text"
+                      placeholder="Enter your username"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      onFocus={() => setFocusedField("email")}
+                      onBlur={() => setFocusedField(null)}
+                      required
+                      style={inputStyle("email")}
+                    />
+                  ) : (
+                    <input
+                      type="email"
+                      placeholder="admin@yourcompany.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      onFocus={() => setFocusedField("email")}
+                      onBlur={() => setFocusedField(null)}
+                      required
+                      style={inputStyle("email")}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Password */}
+              <div>
+                <label style={{ display: "block", fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.35)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                  Password
+                </label>
+                <div className="fl-input-wrap">
+                  <span className="fl-input-icon">🔑</span>
+                  <input
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onFocus={() => setFocusedField("password")}
+                    onBlur={() => setFocusedField(null)}
+                    required
+                    style={inputStyle("password")}
+                  />
+                </div>
+              </div>
+
+              <button type="submit" className="fl-submit-btn">
+                <span>Sign In to FleetIQ</span>
+                <FaArrowRight size={13} />
+              </button>
+
+              {/* Trust */}
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.2)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "12px" }}>
+                  Secure Login
+                </div>
+                <div className="fl-badge-row">
+                  <div className="fl-trust-badge">
+                    <FaShieldAlt size={11} />
+                    256-bit Encrypted
+                  </div>
+                  <div className="fl-trust-badge">
+                    <FaCheckCircle size={11} />
+                    SOC 2 Ready
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </form>
+        </div>
+
+        {/* Below card links */}
+        <div style={{ marginTop: "20px", textAlign: "center" }}>
+          <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.35)" }}>Don't have an account? </span>
+          <button
+            onClick={() => navigate("/register")}
+            style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontWeight: 700, fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", textDecoration: "underline" }}
+          >
+            Create Account
+          </button>
+        </div>
+
+        <div style={{ marginTop: "10px", textAlign: "center" }}>
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.25)", cursor: "pointer", fontSize: "12px", fontFamily: "Inter, system-ui, sans-serif" }}
+          >
+            ← Back to homepage
+          </button>
+        </div>
+
       </div>
     </div>
   );
-};
-
-const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    position: "relative",
-    height: "100vh",
-    background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 60%, #0F172A 100%)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontFamily: "Inter, system-ui, sans-serif",
-    overflow: "hidden",
-  },
-  overlay: {
-    backgroundColor: "rgba(255, 255, 255, 0.04)",
-    backdropFilter: "blur(20px)",
-    padding: "44px 40px",
-    borderRadius: "20px",
-    textAlign: "center",
-    color: "#fff",
-    maxWidth: "420px",
-    width: "100%",
-    border: "1px solid rgba(255, 255, 255, 0.1)",
-    boxShadow: "0 24px 64px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(129, 140, 248, 0.08)",
-  },
-  title: {
-    fontSize: "26px",
-    fontWeight: 700,
-    marginBottom: "8px",
-    marginTop: 0,
-    letterSpacing: "-0.3px",
-    lineHeight: "1.2",
-  },
-  description: {
-    fontSize: "15px",
-    marginBottom: "28px",
-    color: "rgba(255, 255, 255, 0.75)",
-    fontWeight: 400,
-    lineHeight: "1.5",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "12px",
-  },
-  input: {
-    width: "92%",
-    padding: "11px 14px",
-    border: "1px solid rgba(255, 255, 255, 0.2)",
-    borderRadius: "8px",
-    fontSize: "14px",
-    fontFamily: "Inter, system-ui, sans-serif",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    color: "#fff",
-    outline: "none",
-    transition: "border-color 0.2s",
-  },
-  select: {
-    width: "100%",
-    padding: "11px 14px",
-    border: "1px solid rgba(255, 255, 255, 0.2)",
-    borderRadius: "8px",
-    fontSize: "14px",
-    fontFamily: "Inter, system-ui, sans-serif",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    color: "#fff",
-    outline: "none",
-  },
-  button: {
-    padding: "12px",
-    backgroundColor: "#4F46E5",
-    color: "#fff",
-    border: "none",
-    borderRadius: "10px",
-    cursor: "pointer",
-    fontSize: "15px",
-    fontWeight: 600,
-    transition: "background 0.2s ease",
-    boxShadow: "0 4px 14px rgba(79, 70, 229, 0.4)",
-    marginTop: "4px",
-    letterSpacing: "0.2px",
-  },
-  backButton: {
-    position: "absolute",
-    top: "20px",
-    left: "20px",
-    padding: "8px 18px",
-    backgroundColor: "rgba(255, 255, 255, 0.12)",
-    color: "#fff",
-    border: "1px solid rgba(255, 255, 255, 0.2)",
-    borderRadius: "20px",
-    cursor: "pointer",
-    fontSize: "13px",
-    fontWeight: 600,
-    fontFamily: "Inter, system-ui, sans-serif",
-    letterSpacing: "0.3px",
-    transition: "all 0.2s ease",
-    display: "flex",
-    alignItems: "center",
-    backdropFilter: "blur(8px)",
-    zIndex: 1000,
-  },
 };
 
 export default Login;

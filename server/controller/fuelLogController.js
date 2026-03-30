@@ -63,7 +63,7 @@ const getFuelStats = asyncHandler(async (req, res) => {
   const { vehicleId, from, to } = req.query;
 
   const match = { ...orgFilter };
-  if (vehicleId) match.vehicleId = require("mongoose").Types.ObjectId(vehicleId);
+  if (vehicleId) match.vehicleId = new require("mongoose").Types.ObjectId(vehicleId);
   if (from || to) {
     match.date = {};
     if (from) match.date.$gte = new Date(from);
@@ -91,7 +91,7 @@ const getFuelStats = asyncHandler(async (req, res) => {
         as: "vehicle",
       },
     },
-    { $unwind: { path: "$vehicle", preserveNullAndEmpty: true } },
+    { $unwind: { path: "$vehicle", preserveNullAndEmptyArrays: true } },
     {
       $project: {
         vehicleId: "$_id",
@@ -156,9 +156,21 @@ const createFuelLog = asyncHandler(async (req, res) => {
 // PUT /api/fuel-logs/:id
 const updateFuelLog = asyncHandler(async (req, res) => {
   const orgFilter = getOrgFilter(req);
+
+  // Recalculate totalCost when litres or pricePerLitre change
+  const updateData = { ...req.body };
+  if (updateData.litres !== undefined || updateData.pricePerLitre !== undefined) {
+    // Fetch existing doc to get current values for whichever field isn't being updated
+    const existing = await FuelLog.findOne({ _id: req.params.id, ...orgFilter }).lean();
+    if (!existing) return res.status(404).json({ message: "Fuel log not found" });
+    const litres = parseFloat(updateData.litres ?? existing.litres) || 0;
+    const pricePerLitre = parseFloat(updateData.pricePerLitre ?? existing.pricePerLitre) || 0;
+    updateData.totalCost = parseFloat((litres * pricePerLitre).toFixed(2));
+  }
+
   const log = await FuelLog.findOneAndUpdate(
     { _id: req.params.id, ...orgFilter },
-    req.body,
+    updateData,
     { new: true, runValidators: true }
   );
   if (!log) return res.status(404).json({ message: "Fuel log not found" });
