@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { FaHistory } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
@@ -95,28 +94,25 @@ const ServiceHistory: React.FC = () => {
   return (
     <div style={styles.wrapper}>
       <Navbar />
-      {/* Hero */}
-      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
-        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
-              <FaHistory size={22} />
-            </div>
-            <div>
-              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Fleet</p>
-              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Service History</h1>
-              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Unified timeline of maintenance, inspections, and fuel logs per vehicle</p>
-            </div>
+      <div style={styles.container}>
+        <div style={styles.breadcrumb}>
+          <span>FLEET OPERATIONS</span>
+          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
+          <span style={{ color: "var(--t-text-faint)" }}>SERVICE HISTORY</span>
+        </div>
+
+        <div style={styles.pageHeader}>
+          <div>
+            <h1 style={styles.pageTitle}>Service History</h1>
+            <p style={styles.pageDescription}>Unified timeline of maintenance, inspections, and fuel logs per vehicle.</p>
           </div>
-          <select style={{ ...styles.vehicleSelect, background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", fontFamily: "Inter, system-ui, sans-serif" }} value={selectedVehicleId} onChange={(e) => handleVehicleChange(e.target.value)}>
-            <option value="" style={{ background: "var(--t-select-bg)", color: "var(--t-text-secondary)" }}>— Select a vehicle —</option>
+          <select style={styles.vehicleSelect} value={selectedVehicleId} onChange={(e) => handleVehicleChange(e.target.value)}>
+            <option value="">— Select a vehicle —</option>
             {vehicles.map((v) => (
-              <option key={v._id} value={v._id} style={{ background: "var(--t-select-bg)", color: "var(--t-text-secondary)" }}>{v.unitNumber} — {v.make} {v.model} ({v.year})</option>
+              <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model} ({v.year})</option>
             ))}
           </select>
         </div>
-      </div>
-      <div style={styles.container}>
 
         {/* Fleet overview when no vehicle selected */}
         {!selectedVehicleId && (
@@ -236,7 +232,11 @@ const ServiceHistory: React.FC = () => {
 
 const styles: Record<string, React.CSSProperties> = {
   wrapper: { minHeight: "100vh", background: "var(--t-bg)", fontFamily: "Inter, system-ui, sans-serif" },
-  container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
+  container: { maxWidth: "1300px", margin: "0 auto", padding: "32px 40px" },
+  breadcrumb: { fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" },
+  pageHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" },
+  pageTitle: { margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" },
+  pageDescription: { margin: 0, fontSize: "14px", color: "var(--t-text-dim)" },
   vehicleSelect: { padding: "9px 14px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-select-bg)", minWidth: "280px", color: "var(--t-text-secondary)" },
   fleetGrid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" },
   fleetCard: { background: "var(--t-surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--t-border)", boxShadow: "0 1px 6px rgba(0,0,0,0.3)", cursor: "pointer" },

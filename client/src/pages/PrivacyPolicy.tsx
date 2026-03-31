@@ -135,7 +135,7 @@ const PrivacyPolicy: React.FC = () => {
               <li style={{ marginBottom: "6px" }}>Request deletion of your data (subject to retention requirements)</li>
               <li style={{ marginBottom: "6px" }}>File a complaint with the Office of the Privacy Commissioner of Canada</li>
             </ul>
-            <p style={{ margin: 0 }}>To exercise any of these rights, contact us at <span style={{ color: "#4F46E5", fontWeight: 600 }}>privacy@fleetiq.ca</span>.</p>
+            <p style={{ margin: 0 }}>To exercise any of these rights, contact us at <span style={{ color: "#4F46E5", fontWeight: 600 }}>privacy@fleetiqlogistics.com</span>.</p>
           </Section>
 
           <Section title="8. Cookies & Tracking">
@@ -154,7 +154,7 @@ const PrivacyPolicy: React.FC = () => {
           <Section title="11. Contact Us">
             <p style={{ margin: 0 }}>
               For privacy-related inquiries, contact our Privacy Officer at:{" "}
-              <span style={{ color: "#4F46E5", fontWeight: 600 }}>privacy@fleetiq.ca</span>
+              <span style={{ color: "#4F46E5", fontWeight: 600 }}>privacy@fleetiqlogistics.com</span>
               <br />
               FleetIQ Inc. · Toronto, Ontario, Canada
             </p>

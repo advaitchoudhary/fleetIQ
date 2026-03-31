@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import ExcelJS from "exceljs";
-import { FaChartBar } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
@@ -197,20 +196,19 @@ const CostTracking: React.FC = () => {
   return (
     <div style={styles.wrapper}>
       <Navbar />
-      {/* Hero */}
-      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
-        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", gap: "18px" }}>
-          <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
-            <FaChartBar size={22} />
-          </div>
+      <div style={styles.container}>
+        <div style={styles.breadcrumb}>
+          <span>FLEET OPERATIONS</span>
+          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
+          <span style={{ color: "var(--t-text-faint)" }}>COST TRACKING</span>
+        </div>
+
+        <div style={styles.pageHeader}>
           <div>
-            <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Fleet</p>
-            <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Cost Tracking</h1>
-            <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Fleet-wide cost analysis across fuel and maintenance</p>
+            <h1 style={styles.pageTitle}>Cost Tracking</h1>
+            <p style={styles.pageDescription}>Fleet-wide cost analysis across fuel and maintenance.</p>
           </div>
         </div>
-      </div>
-      <div style={styles.container}>
 
         {/* Filters */}
         <div style={styles.filtersRow}>
@@ -341,7 +339,11 @@ const CostTracking: React.FC = () => {
 
 const styles: Record<string, React.CSSProperties> = {
   wrapper: { minHeight: "100vh", background: "var(--t-bg)", fontFamily: "Inter, system-ui, sans-serif" },
-  container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
+  container: { maxWidth: "1300px", margin: "0 auto", padding: "32px 40px" },
+  breadcrumb: { fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" },
+  pageHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" },
+  pageTitle: { margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" },
+  pageDescription: { margin: 0, fontSize: "14px", color: "var(--t-text-dim)" },
   filtersRow: { display: "flex", gap: "10px", marginBottom: "24px", flexWrap: "wrap", alignItems: "center" },
   select: { padding: "9px 14px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-select-bg)", color: "var(--t-text-secondary)" },
   dateInput: { padding: "9px 12px", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-input-bg)", color: "var(--t-text-secondary)" },

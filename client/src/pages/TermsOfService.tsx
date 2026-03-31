@@ -132,7 +132,7 @@ const TermsOfService: React.FC = () => {
           <Section title="13. Contact">
             <p style={{ margin: 0 }}>
               If you have questions about these Terms, please contact us at:{" "}
-              <span style={{ color: "#4F46E5", fontWeight: 600 }}>legal@fleetiq.ca</span>
+              <span style={{ color: "#4F46E5", fontWeight: 600 }}>legal@fleetiqlogistics.com</span>
             </p>
           </Section>
 

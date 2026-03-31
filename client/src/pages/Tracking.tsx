@@ -88,7 +88,22 @@ const Tracking: React.FC = () => {
   return (
     <div style={{ minHeight: "100vh", background: "#f9fafb" }}>
       <Navbar />
-      <div style={{ display: "flex", height: "calc(100vh - 64px)" }}>
+      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "32px 40px 0" }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+          <span>VEHICLE MANAGEMENT</span>
+          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
+          <span style={{ color: "var(--t-text-faint)" }}>LIVE TRACKING</span>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" }}>
+          <div>
+            <h1 style={{ margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>Live Tracking</h1>
+            <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>Monitor active vehicles, recent pings, and route history in real time.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", height: "calc(100vh - 170px)", padding: "0 40px 40px", boxSizing: "border-box", maxWidth: "1380px", margin: "0 auto" }}>
         <div style={{ width: 300, background: "#fff", borderRight: "1px solid #e5e7eb", overflowY: "auto", flexShrink: 0 }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e7eb" }}>
             <div style={{ fontWeight: 700, fontSize: 16, color: "#111827" }}>Live Tracking</div>

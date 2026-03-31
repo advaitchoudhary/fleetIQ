@@ -253,7 +253,7 @@ const Vehicles: React.FC = () => {
 
         {/* Breadcrumb */}
         <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
-          <span>FLEET</span>
+          <span>VEHICLE MANAGEMENT</span>
           <span style={{ color: "var(--t-text-ghost)" }}>›</span>
           <span style={{ color: "var(--t-text-faint)" }}>VEHICLES</span>
         </div>

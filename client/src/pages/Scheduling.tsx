@@ -122,25 +122,22 @@ const Scheduling: React.FC = () => {
   return (
     <div style={styles.wrapper}>
       <Navbar />
-      {/* Hero */}
-      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
-        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
-              <FaCalendarAlt size={22} />
-            </div>
-            <div>
-              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Fleet</p>
-              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Maintenance Schedule</h1>
-              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Calendar view of all scheduled maintenance and PM due dates</p>
-            </div>
+      <div style={styles.container}>
+        <div style={styles.breadcrumb}>
+          <span>FLEET OPERATIONS</span>
+          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
+          <span style={{ color: "var(--t-text-faint)" }}>SCHEDULING</span>
+        </div>
+
+        <div style={styles.pageHeader}>
+          <div>
+            <h1 style={styles.pageTitle}>Maintenance Schedule</h1>
+            <p style={styles.pageDescription}>Calendar view of all scheduled maintenance and PM due dates.</p>
           </div>
-          <button style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} onClick={() => { setForm({ ...emptyForm }); setIsModalOpen(true); }}>
+          <button style={styles.primaryBtn} onClick={() => { setForm({ ...emptyForm }); setIsModalOpen(true); }}>
             <FaPlus size={13} /> Schedule Maintenance
           </button>
         </div>
-      </div>
-      <div style={styles.container}>
 
         {error && (
           <div style={{ background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px", padding: "12px 16px", marginBottom: "20px", color: "var(--t-error)", fontSize: "14px" }}>
@@ -338,7 +335,11 @@ const Scheduling: React.FC = () => {
 
 const styles: Record<string, React.CSSProperties> = {
   wrapper: { minHeight: "100vh", background: "var(--t-bg)", fontFamily: "Inter, system-ui, sans-serif" },
-  container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
+  container: { maxWidth: "1300px", margin: "0 auto", padding: "32px 40px" },
+  breadcrumb: { fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" },
+  pageHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" },
+  pageTitle: { margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" },
+  pageDescription: { margin: 0, fontSize: "14px", color: "var(--t-text-dim)" },
   primaryBtn: { padding: "10px 18px", background: "var(--t-accent)", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
   layout: { display: "grid", gridTemplateColumns: "1fr 280px", gap: "24px", alignItems: "start" },
   calendarWrapper: { background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", padding: "20px", boxShadow: "0 2px 16px rgba(0,0,0,0.3)" },

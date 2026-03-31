@@ -27,51 +27,52 @@ const Enquiries: React.FC = () => {
   }, []);
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
-    <Navbar />
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh", color: "var(--t-text)" }}>
+      <Navbar />
 
-    {/* Hero */}
-    <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
-      <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", gap: "18px" }}>
-        <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "22px" }}>📬</div>
-        <div>
-          <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Admin</p>
-          <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Contact Enquiries</h1>
-          <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Messages submitted through the contact form</p>
+      <div style={styles.container}>
+        <div style={styles.breadcrumb}>
+          <span>DRIVER MANAGEMENT</span>
+          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
+          <span style={{ color: "var(--t-text-faint)" }}>ENQUIRIES</span>
         </div>
-      </div>
-    </div>
 
-    <div style={styles.container}>
-      {loading ? (
-        <p style={{ color: "var(--t-text-dim)", fontSize: "15px" }}>Loading enquiries...</p>
-      ) : enquiries.length === 0 ? (
-        <p style={{ color: "var(--t-text-dim)", fontSize: "15px" }}>No enquiries yet.</p>
-      ) : (
-        <div style={styles.tableWrapper}>
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>Name</th>
-                <th style={styles.th}>Email</th>
-                <th style={styles.th}>Message</th>
-                <th style={styles.th}>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {enquiries.map((entry, index) => (
-                <tr key={entry._id || index} style={index % 2 === 0 ? undefined : styles.row}>
-                  <td style={styles.td}>{entry.name}</td>
-                  <td style={styles.td}>{entry.email}</td>
-                  <td style={styles.td}>{entry.message}</td>
-                  <td style={styles.td}>{new Date(entry.createdAt).toLocaleString()}</td>
+        <div style={styles.pageHeader}>
+          <div>
+            <h1 style={styles.pageTitle}>Contact Enquiries</h1>
+            <p style={styles.pageDescription}>Messages submitted through the contact form.</p>
+          </div>
+        </div>
+
+        {loading ? (
+          <p style={{ color: "var(--t-text-dim)", fontSize: "15px" }}>Loading enquiries...</p>
+        ) : enquiries.length === 0 ? (
+          <p style={{ color: "var(--t-text-dim)", fontSize: "15px" }}>No enquiries yet.</p>
+        ) : (
+          <div style={styles.tableWrapper}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>Name</th>
+                  <th style={styles.th}>Email</th>
+                  <th style={styles.th}>Message</th>
+                  <th style={styles.th}>Date</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+              </thead>
+              <tbody>
+                {enquiries.map((entry, index) => (
+                  <tr key={entry._id || index} style={index % 2 === 0 ? undefined : styles.row}>
+                    <td style={styles.td}>{entry.name}</td>
+                    <td style={styles.td}>{entry.email}</td>
+                    <td style={styles.td}>{entry.message}</td>
+                    <td style={styles.td}>{new Date(entry.createdAt).toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -80,13 +81,42 @@ const styles: { [key: string]: React.CSSProperties } = {
   container: {
     maxWidth: "1300px",
     margin: "0 auto",
-    padding: "28px 40px",
+    padding: "32px 40px",
+  },
+  breadcrumb: {
+    fontSize: "11px",
+    fontWeight: 700,
+    color: "var(--t-text-ghost)",
+    letterSpacing: "1px",
+    marginBottom: "14px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  },
+  pageHeader: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    marginBottom: "28px",
+    gap: "16px",
+    flexWrap: "wrap",
+  },
+  pageTitle: {
+    margin: "0 0 8px",
+    fontSize: "30px",
+    fontWeight: 800,
+    color: "var(--t-text)",
+    letterSpacing: "-0.5px",
+  },
+  pageDescription: {
+    margin: 0,
+    fontSize: "14px",
+    color: "var(--t-text-dim)",
   },
   tableWrapper: {
     borderRadius: "16px",
     border: "1px solid var(--t-border)",
-    boxShadow: "var(--t-shadow)",
-    backgroundColor: "var(--t-surface)",
+    background: "var(--t-surface)",
     overflowX: "auto",
   },
   table: {
