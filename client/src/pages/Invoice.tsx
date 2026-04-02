@@ -362,7 +362,7 @@ const Invoice: React.FC = () => {
     const doc = buildPDFDoc();
     const base64 = doc.output("datauristring").split(";base64,")[1];
     try {
-      await axios.post(`${API_BASE_URL}/timesheets/send-invoice-email`, { driverId: selectedDriver, invoicePdf: base64 });
+      await axios.post(`${API_BASE_URL}/timesheets/send-invoice-email`, { driverId: selectedDriver, invoicePdf: base64, amount: total.toFixed(2) });
       alert("Invoice sent successfully!");
     } catch { alert("Failed to send invoice"); }
   };
