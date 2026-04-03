@@ -109,6 +109,25 @@ const Vehicles: React.FC = () => {
       alert("Unit number is required.");
       return;
     }
+    if (form.vin.trim() && !/^[A-HJ-NPR-Z0-9]{17}$/i.test(form.vin.trim())) {
+      alert("VIN must be exactly 17 characters and contain only letters (A–Z, excluding I, O, Q) and digits (0–9).");
+      return;
+    }
+    if (form.odometer !== "") {
+      const odo = Number(form.odometer);
+      if (!Number.isInteger(odo) || odo < 0 || odo > 10_000_000) {
+        alert("Odometer must be a whole number between 0 and 10,000,000 km.");
+        return;
+      }
+    }
+    if (form.licensePlate.trim() && !/^[A-Z0-9 \-]{2,10}$/i.test(form.licensePlate.trim())) {
+      alert("License plate must be 2–10 characters and contain only letters, numbers, spaces, or hyphens.");
+      return;
+    }
+    if (form.model.trim() && !/^[A-Za-z0-9 \-\.]{1,50}$/.test(form.model.trim())) {
+      alert("Model must be 1–50 characters and contain only letters, numbers, spaces, hyphens, or periods.");
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
@@ -414,7 +433,16 @@ const Vehicles: React.FC = () => {
                 </div>
                 <div>
                   <label style={styles.label}>Model</label>
-                  <input style={styles.input} value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} placeholder="e.g. Cascadia" />
+                  <input
+                    style={{ ...styles.input, ...(form.model.trim() && !/^[A-Za-z0-9 \-\.]{1,50}$/.test(form.model.trim()) ? { borderColor: "var(--t-error)" } : {}) }}
+                    value={form.model}
+                    onChange={(e) => setForm({ ...form, model: e.target.value })}
+                    placeholder="e.g. Cascadia"
+                    maxLength={50}
+                  />
+                  {form.model.trim() && !/^[A-Za-z0-9 \-\.]{1,50}$/.test(form.model.trim()) && (
+                    <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>Only letters, numbers, spaces, hyphens, or periods allowed (max 50).</p>
+                  )}
                 </div>
                 <div>
                   <label style={styles.label}>Year</label>
@@ -422,11 +450,39 @@ const Vehicles: React.FC = () => {
                 </div>
                 <div>
                   <label style={styles.label}>VIN</label>
-                  <input style={styles.input} value={form.vin} onChange={(e) => setForm({ ...form, vin: e.target.value })} placeholder="17-character VIN" />
+                  <input
+                    style={{
+                      ...styles.input,
+                      ...(form.vin && form.vin.length !== 17 ? { borderColor: "var(--t-error)" } : {}),
+                    }}
+                    value={form.vin}
+                    maxLength={17}
+                    onChange={(e) => setForm({ ...form, vin: e.target.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g, "") })}
+                    placeholder="17-character VIN"
+                  />
+                  {form.vin.length > 0 && (
+                    <p style={{ margin: "4px 0 0", fontSize: "11px", color: form.vin.length === 17 ? "var(--t-success)" : "var(--t-error)", fontWeight: 500 }}>
+                      {form.vin.length === 17 ? "✓ Valid length" : `${form.vin.length}/17 characters`}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label style={styles.label}>License Plate</label>
-                  <input style={styles.input} value={form.licensePlate} onChange={(e) => setForm({ ...form, licensePlate: e.target.value })} />
+                  <input
+                    style={{
+                      ...styles.input,
+                      ...(form.licensePlate.trim() && !/^[A-Z0-9 \-]{2,10}$/i.test(form.licensePlate.trim()) ? { borderColor: "var(--t-error)" } : {}),
+                    }}
+                    value={form.licensePlate}
+                    maxLength={10}
+                    onChange={(e) => setForm({ ...form, licensePlate: e.target.value.toUpperCase().replace(/[^A-Z0-9 \-]/gi, "") })}
+                    placeholder="e.g. ABCD 1234"
+                  />
+                  {form.licensePlate.trim().length > 0 && !/^[A-Z0-9 \-]{2,10}$/i.test(form.licensePlate.trim()) && (
+                    <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>
+                      Must be 2–10 characters (letters, numbers, spaces, hyphens only).
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label style={styles.label}>Type</label>
@@ -457,7 +513,25 @@ const Vehicles: React.FC = () => {
               <div style={styles.formGrid}>
                 <div>
                   <label style={styles.label}>Odometer (km)</label>
-                  <input style={styles.input} type="number" value={form.odometer} onChange={(e) => setForm({ ...form, odometer: e.target.value })} />
+                  <input
+                    style={{
+                      ...styles.input,
+                      ...(form.odometer !== "" && (Number(form.odometer) < 0 || Number(form.odometer) > 10_000_000 || !Number.isInteger(Number(form.odometer))) ? { borderColor: "var(--t-error)" } : {}),
+                    }}
+                    type="number"
+                    min={0}
+                    max={10_000_000}
+                    step={1}
+                    value={form.odometer}
+                    onChange={(e) => setForm({ ...form, odometer: e.target.value })}
+                  />
+                  {form.odometer !== "" && (() => {
+                    const odo = Number(form.odometer);
+                    if (odo < 0) return <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>Odometer cannot be negative.</p>;
+                    if (odo > 10_000_000) return <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>Odometer exceeds maximum (10,000,000 km).</p>;
+                    if (!Number.isInteger(odo)) return <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>Odometer must be a whole number.</p>;
+                    return null;
+                  })()}
                 </div>
                 <div>
                   <label style={styles.label}>Ownership</label>
@@ -477,12 +551,59 @@ const Vehicles: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label style={styles.label}>Insurance Expiry</label>
-                  <input style={styles.input} type="date" value={form.insuranceExpiry} onChange={(e) => setForm({ ...form, insuranceExpiry: e.target.value })} />
+                  {(() => {
+                    const today = new Date(); today.setHours(0, 0, 0, 0);
+                    const expiry = form.insuranceExpiry ? new Date(form.insuranceExpiry + "T00:00:00") : null;
+                    const isExpired = expiry && expiry < today;
+                    const daysUntil = expiry ? Math.ceil((expiry.getTime() - today.getTime()) / 86_400_000) : null;
+                    const isSoonExpiring = daysUntil !== null && daysUntil >= 0 && daysUntil <= 30;
+                    return (
+                      <>
+                        <label style={styles.label}>Insurance Expiry</label>
+                        <input
+                          style={{ ...styles.input, ...(isExpired ? { borderColor: "var(--t-error)" } : isSoonExpiring ? { borderColor: "var(--t-warning)" } : {}) }}
+                          type="date"
+                          value={form.insuranceExpiry}
+                          onChange={(e) => setForm({ ...form, insuranceExpiry: e.target.value })}
+                        />
+                        {isExpired && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>⚠ Insurance expired {Math.abs(daysUntil!)} day{Math.abs(daysUntil!) !== 1 ? "s" : ""} ago.</p>}
+                        {isSoonExpiring && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-warning)", fontWeight: 500 }}>⚠ Expires in {daysUntil} day{daysUntil !== 1 ? "s" : ""}.</p>}
+                      </>
+                    );
+                  })()}
                 </div>
                 <div>
-                  <label style={styles.label}>Registration Expiry</label>
-                  <input style={styles.input} type="date" value={form.registrationExpiry} onChange={(e) => setForm({ ...form, registrationExpiry: e.target.value })} />
+                  {(() => {
+                    const today = new Date(); today.setHours(0, 0, 0, 0);
+                    const expiry = form.registrationExpiry ? new Date(form.registrationExpiry + "T00:00:00") : null;
+                    const isExpired = expiry && expiry < today;
+                    const daysUntil = expiry ? Math.ceil((expiry.getTime() - today.getTime()) / 86_400_000) : null;
+                    const isSoonExpiring = daysUntil !== null && daysUntil >= 0 && daysUntil <= 30;
+                    return (
+                      <>
+                        <label style={styles.label}>Registration Expiry</label>
+                        <input
+                          style={{
+                            ...styles.input,
+                            ...(isExpired ? { borderColor: "var(--t-error)" } : isSoonExpiring ? { borderColor: "var(--t-warning)" } : {}),
+                          }}
+                          type="date"
+                          value={form.registrationExpiry}
+                          onChange={(e) => setForm({ ...form, registrationExpiry: e.target.value })}
+                        />
+                        {isExpired && (
+                          <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>
+                            ⚠ Registration expired {Math.abs(daysUntil!)} day{Math.abs(daysUntil!) !== 1 ? "s" : ""} ago.
+                          </p>
+                        )}
+                        {isSoonExpiring && (
+                          <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-warning)", fontWeight: 500 }}>
+                            ⚠ Expires in {daysUntil} day{daysUntil !== 1 ? "s" : ""}.
+                          </p>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
                 <div style={{ gridColumn: "1 / -1" }}>
                   <label style={styles.label}>Notes</label>

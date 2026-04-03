@@ -261,9 +261,9 @@ const PreventiveMaintenance: React.FC = () => {
                   <tr key={s._id} style={styles.tr}>
                     <td style={styles.td}><strong>{s.vehicleId?.unitNumber || "—"}</strong> <span style={{ color: "var(--t-text-dim)", fontSize: "12px" }}>{s.vehicleId?.make}</span></td>
                     <td style={styles.td}>{s.templateId?.name || "—"}</td>
-                    <td style={styles.td}>{s.lastCompletedDate ? new Date(s.lastCompletedDate).toLocaleDateString() : "—"}</td>
+                    <td style={styles.td}>{s.lastCompletedDate ? new Date(s.lastCompletedDate + "T00:00:00").toLocaleDateString() : "—"}</td>
                     <td style={styles.td}>{s.lastCompletedOdometer ? `${s.lastCompletedOdometer.toLocaleString()} km` : "—"}</td>
-                    <td style={styles.td}>{s.nextDueDate ? new Date(s.nextDueDate).toLocaleDateString() : "—"}</td>
+                    <td style={styles.td}>{s.nextDueDate ? new Date(s.nextDueDate + "T00:00:00").toLocaleDateString() : "—"}</td>
                     <td style={styles.td}>{s.nextDueOdometer ? `${s.nextDueOdometer.toLocaleString()} km` : "—"}</td>
                     <td style={styles.td}>
                       <span style={{ ...styles.badge, background: STATUS_COLORS[s.status]?.bg || "var(--t-hover-bg)", color: STATUS_COLORS[s.status]?.color || "var(--t-text-faint)" }}>

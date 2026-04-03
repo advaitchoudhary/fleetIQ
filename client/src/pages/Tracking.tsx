@@ -86,16 +86,18 @@ const Tracking: React.FC = () => {
     : [43.65107, -79.347015];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f9fafb" }}>
+    <div style={{ minHeight: "100vh", background: "var(--t-bg)" }}>
       <Navbar />
-      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "32px 40px 0" }}>
+      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "32px 40px" }}>
+        {/* Breadcrumb */}
         <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
           <span>VEHICLE MANAGEMENT</span>
           <span style={{ color: "var(--t-text-ghost)" }}>›</span>
           <span style={{ color: "var(--t-text-faint)" }}>LIVE TRACKING</span>
         </div>
 
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" }}>
+        {/* Page Header */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" as const }}>
           <div>
             <h1 style={{ margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>Live Tracking</h1>
             <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>Monitor active vehicles, recent pings, and route history in real time.</p>
@@ -104,17 +106,17 @@ const Tracking: React.FC = () => {
       </div>
 
       <div style={{ display: "flex", height: "calc(100vh - 170px)", padding: "0 40px 40px", boxSizing: "border-box", maxWidth: "1380px", margin: "0 auto" }}>
-        <div style={{ width: 300, background: "#fff", borderRight: "1px solid #e5e7eb", overflowY: "auto", flexShrink: 0 }}>
-          <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e7eb" }}>
-            <div style={{ fontWeight: 700, fontSize: 16, color: "#111827" }}>Live Tracking</div>
-            <div style={{ fontSize: 12, color: "#9ca3af", marginTop: 2 }}>
+        <div style={{ width: 300, background: "var(--t-surface)", borderRight: "1px solid var(--t-border)", overflowY: "auto", flexShrink: 0 }}>
+          <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--t-border)" }}>
+            <div style={{ fontWeight: 700, fontSize: 16, color: "var(--t-text)" }}>Live Tracking</div>
+            <div style={{ fontSize: 12, color: "var(--t-text-ghost)", marginTop: 2 }}>
               {vehicles.filter(v => v.lastLocation?.isActive).length} active
             </div>
             {lastRefresh && (
               <div style={{
                 fontSize: 11,
                 marginTop: 4,
-                color: secondsSinceRefresh > 60 ? "#dc2626" : "#9ca3af",
+                color: secondsSinceRefresh > 60 ? "var(--t-error)" : "var(--t-text-ghost)",
                 fontWeight: secondsSinceRefresh > 60 ? 600 : 400,
               }}>
                 {secondsSinceRefresh > 60
@@ -123,22 +125,22 @@ const Tracking: React.FC = () => {
               </div>
             )}
           </div>
-          {loading && <div style={{ padding: 20, color: "#6b7280", textAlign: "center" }}>Loading...</div>}
+          {loading && <div style={{ padding: 20, color: "var(--t-text-faint)", textAlign: "center" }}>Loading...</div>}
           {vehicles.map((v) => (
             <div key={v._id} onClick={() => handleVehicleClick(v)} style={{
-              padding: "12px 20px", borderBottom: "1px solid #f3f4f6", cursor: "pointer",
-              background: selectedVehicle?._id === v._id ? "#eff6ff" : "transparent",
+              padding: "12px 20px", borderBottom: "1px solid var(--t-border)", cursor: "pointer",
+              background: selectedVehicle?._id === v._id ? "var(--t-indigo-bg)" : "transparent",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ width: 8, height: 8, borderRadius: "50%", background: v.lastLocation?.isActive ? "#22c55e" : "#d1d5db", flexShrink: 0 }} />
-                <span style={{ fontWeight: 600, fontSize: 14, color: "#111827" }}>{v.unitNumber}</span>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: v.lastLocation?.isActive ? "#22c55e" : "var(--t-border-strong)", flexShrink: 0 }} />
+                <span style={{ fontWeight: 600, fontSize: 14, color: "var(--t-text)" }}>{v.unitNumber}</span>
               </div>
-              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2, paddingLeft: 16 }}>
+              <div style={{ fontSize: 12, color: "var(--t-text-faint)", marginTop: 2, paddingLeft: 16 }}>
                 {v.assignedDriverId?.name || "Unassigned"}
                 {v.lastLocation?.speed != null && v.lastLocation.isActive ? ` · ${v.lastLocation.speed} km/h` : ""}
               </div>
               {v.lastLocation?.timestamp && (
-                <div style={{ fontSize: 11, color: "#9ca3af", paddingLeft: 16, marginTop: 1 }}>
+                <div style={{ fontSize: 11, color: "var(--t-text-ghost)", paddingLeft: 16, marginTop: 1 }}>
                   {new Date(v.lastLocation.timestamp).toLocaleTimeString()}
                 </div>
               )}
@@ -146,16 +148,16 @@ const Tracking: React.FC = () => {
           ))}
           {selectedVehicle && tripHistory.length > 0 && (
             <div style={{ padding: "12px 20px" }}>
-              <div style={{ fontWeight: 600, fontSize: 13, color: "#374151", marginBottom: 8 }}>
+              <div style={{ fontWeight: 600, fontSize: 13, color: "var(--t-text-secondary)", marginBottom: 8 }}>
                 Past Trips — {selectedVehicle.unitNumber}
               </div>
               {tripHistory.map((trip) => (
                 <div key={trip._id} onClick={() => setSelectedTrip(selectedTrip?._id === trip._id ? null : trip)}
-                  style={{ padding: "8px 10px", borderRadius: 6, background: selectedTrip?._id === trip._id ? "#dbeafe" : "#f9fafb", cursor: "pointer", marginBottom: 6, fontSize: 12 }}>
-                  <div style={{ fontWeight: 500, color: "#111827" }}>
+                  style={{ padding: "8px 10px", borderRadius: 6, background: selectedTrip?._id === trip._id ? "var(--t-indigo-bg)" : "var(--t-surface-alt)", cursor: "pointer", marginBottom: 6, fontSize: 12 }}>
+                  <div style={{ fontWeight: 500, color: "var(--t-text)" }}>
                     {new Date(trip.tripStart).toLocaleDateString()} — {trip.totalDistance} km
                   </div>
-                  <div style={{ color: "#6b7280" }}>{trip.driverId?.name || "Unknown driver"} · {trip.coordinates.length} pings</div>
+                  <div style={{ color: "var(--t-text-faint)" }}>{trip.driverId?.name || "Unknown driver"} · {trip.coordinates.length} pings</div>
                 </div>
               ))}
             </div>

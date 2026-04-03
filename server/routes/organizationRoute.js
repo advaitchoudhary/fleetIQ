@@ -4,6 +4,10 @@ const {
   getOrganizationProfile,
   updateOrganizationProfile,
   getAllOrganizations,
+  getMandatoryTrainings,
+  updateMandatoryTrainings,
+  getMandatoryDocuments,
+  updateMandatoryDocuments,
 } = require("../controller/organizationController.js");
 const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
 
@@ -32,6 +36,34 @@ router.get(
   protect,
   authorizeRoles("admin"),
   getAllOrganizations
+);
+
+// Mandatory trainings — all org members can read, only admins can write
+router.get(
+  "/mandatory-trainings",
+  protect,
+  authorizeRoles("admin", "company_admin", "dispatcher", "driver"),
+  getMandatoryTrainings
+);
+router.put(
+  "/mandatory-trainings",
+  protect,
+  authorizeRoles("admin", "company_admin"),
+  updateMandatoryTrainings
+);
+
+// Mandatory compliance documents — all org members can read, only admins can write
+router.get(
+  "/mandatory-documents",
+  protect,
+  authorizeRoles("admin", "company_admin", "dispatcher", "driver"),
+  getMandatoryDocuments
+);
+router.put(
+  "/mandatory-documents",
+  protect,
+  authorizeRoles("admin", "company_admin"),
+  updateMandatoryDocuments
 );
 
 module.exports = router;

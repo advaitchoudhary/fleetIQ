@@ -117,9 +117,81 @@ const getAllOrganizations = async (req, res) => {
   }
 };
 
+// GET /api/organizations/mandatory-trainings
+const getMandatoryTrainings = async (req, res) => {
+  try {
+    if (!req.organizationId) {
+      return res.status(400).json({ error: "No organization context" });
+    }
+    const org = await Organization.findById(req.organizationId).select("mandatoryTrainings");
+    if (!org) return res.status(404).json({ error: "Organization not found" });
+    res.json({ mandatoryTrainings: org.mandatoryTrainings || [] });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// PUT /api/organizations/mandatory-trainings
+const updateMandatoryTrainings = async (req, res) => {
+  try {
+    const { mandatoryTrainings } = req.body;
+    if (!Array.isArray(mandatoryTrainings)) {
+      return res.status(400).json({ error: "mandatoryTrainings must be an array of strings" });
+    }
+    const cleaned = mandatoryTrainings.map((t) => String(t).trim()).filter(Boolean);
+    const org = await Organization.findByIdAndUpdate(
+      req.organizationId,
+      { mandatoryTrainings: cleaned },
+      { new: true }
+    );
+    if (!org) return res.status(404).json({ error: "Organization not found" });
+    res.json({ mandatoryTrainings: org.mandatoryTrainings });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// GET /api/organizations/mandatory-documents
+const getMandatoryDocuments = async (req, res) => {
+  try {
+    if (!req.organizationId) {
+      return res.status(400).json({ error: "No organization context" });
+    }
+    const org = await Organization.findById(req.organizationId).select("mandatoryDocuments");
+    if (!org) return res.status(404).json({ error: "Organization not found" });
+    res.json({ mandatoryDocuments: org.mandatoryDocuments || [] });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// PUT /api/organizations/mandatory-documents
+const updateMandatoryDocuments = async (req, res) => {
+  try {
+    const { mandatoryDocuments } = req.body;
+    if (!Array.isArray(mandatoryDocuments)) {
+      return res.status(400).json({ error: "mandatoryDocuments must be an array of strings" });
+    }
+    const cleaned = mandatoryDocuments.map((d) => String(d).trim()).filter(Boolean);
+    const org = await Organization.findByIdAndUpdate(
+      req.organizationId,
+      { mandatoryDocuments: cleaned },
+      { new: true }
+    );
+    if (!org) return res.status(404).json({ error: "Organization not found" });
+    res.json({ mandatoryDocuments: org.mandatoryDocuments });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 module.exports = {
   registerOrganization,
   getOrganizationProfile,
   updateOrganizationProfile,
   getAllOrganizations,
+  getMandatoryTrainings,
+  updateMandatoryTrainings,
+  getMandatoryDocuments,
+  updateMandatoryDocuments,
 };

@@ -15,24 +15,16 @@ const MyInfo: React.FC = () => {
     transitNumber: "",
     institutionNumber: "",
   });
-  const [uploadingForm, setUploadingForm] = useState<string | null>(null);
   const [uploadingTraining, setUploadingTraining] = useState<string | null>(null);
 
-  // List of available trainings
-  const availableTrainings = [
-    "Defensive Driving - Tractor-Trailer",
-    "Distracted Driving",
-    "Hours of Service: Canadian Regulations",
-    "Transportation of Dangerous Goods",
-    "Vehicle Inspections",
-    "WHMIS",
-    "Winter Driving",
-    "Fall Protection for Drivers",
-    "Pallet Trucks (Walkies and Riders)",
-    "Practical Cargo Securement for Drivers (Cargo Van)",
-    "Food Safety for Drivers",
-    "Lift Truck Operator Skills"
-  ];
+  // Org-level mandatory training list — fetched dynamically
+  const [mandatoryTrainings, setMandatoryTrainings] = useState<string[]>([]);
+  const [trainingsLoading, setTrainingsLoading] = useState(true);
+
+  // Org-level mandatory compliance documents — fetched dynamically
+  const [mandatoryDocuments, setMandatoryDocuments] = useState<string[]>([]);
+  const [docsLoading, setDocsLoading] = useState(true);
+  const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
 
   useEffect(() => {
     if (driver?.email) {
@@ -46,6 +38,36 @@ const MyInfo: React.FC = () => {
         .catch((err) => console.error("Error fetching timesheets", err));
     }
   }, [driver]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const headers = { Authorization: `Bearer ${token}` };
+
+    const fetchMandatoryTrainings = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/organizations/mandatory-trainings`, { headers });
+        setMandatoryTrainings(res.data.mandatoryTrainings || []);
+      } catch (err) {
+        console.error("Failed to fetch mandatory trainings:", err);
+      } finally {
+        setTrainingsLoading(false);
+      }
+    };
+
+    const fetchMandatoryDocuments = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/organizations/mandatory-documents`, { headers });
+        setMandatoryDocuments(res.data.mandatoryDocuments || []);
+      } catch (err) {
+        console.error("Failed to fetch mandatory documents:", err);
+      } finally {
+        setDocsLoading(false);
+      }
+    };
+
+    fetchMandatoryTrainings();
+    fetchMandatoryDocuments();
+  }, []);
 
   useEffect(() => {
     const fetchDriverDetails = async () => {
@@ -79,157 +101,14 @@ const MyInfo: React.FC = () => {
 
   if (!driver || !formData) return <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", color: "var(--t-text-faint)", fontSize: "15px" }}>Loading...</div>;
 
-  // Check for missing required forms
-  const missingForms = [];
-  if (!driver.requiredOnboardingForms?.agencySignOff) missingForms.push("Agency Sign Off");
-  if (!driver.requiredOnboardingForms?.driverDeliveryExpectations) missingForms.push("Driver Delivery Expectations");
-  if (!driver.requiredOnboardingForms?.cellPhonePolicy) missingForms.push("Cell Phone Policy");
-  if (!driver.requiredOnboardingForms?.storeSurvey1) missingForms.push("Store Survey 1");
-  if (!driver.requiredOnboardingForms?.tobaccoAndLCPValidation) missingForms.push("Tobacco and LCP Validation");
-  if (!driver.requiredOnboardingForms?.driverSop) missingForms.push("Driver SOP");
-  const hasMissingForms = missingForms.length > 0;
+  // Dynamic missing forms — based on org's mandatory documents vs driver's uploaded compliance documents
+  const missingForms = mandatoryDocuments.filter(
+    (name) => !(driver.complianceDocuments || []).some((d: any) => d.name === name && d.document)
+  );
+  const hasMissingForms = mandatoryDocuments.length > 0 && missingForms.length > 0;
 
-  // Helper function to handle form download
-  const handleDownloadForm = (fileName: string) => {
-    const link = document.createElement("a");
-    link.href = `/forms/${fileName}`;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  // Helper function to render a form card
-  const renderFormCard = (formKey: string, formTitle: string, fileName: string) => {
-    const formValue = driver.requiredOnboardingForms?.[formKey];
-    return (
-      <div style={styles.formCard} key={formKey} data-mi-form-card-inner>
-        <h4 style={styles.formTitle}>{formTitle}</h4>
-        {formValue ? (
-          <div style={styles.formUploaded}>
-            <p style={styles.formStatus}>✓ Uploaded</p>
-            <a
-              href={`${API_BASE_URL.replace("/api", "")}/${formValue}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={styles.viewLink}
-            >
-              View Document
-            </a>
-            <button
-              onClick={() => handleDownloadForm(fileName)}
-              style={styles.downloadButton}
-            >
-              Download Sample
-            </button>
-            <label 
-              style={styles.uploadButton}
-              onMouseEnter={(e) => {
-                if (uploadingForm !== formKey) {
-                  e.currentTarget.style.backgroundColor = "#4338ca";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (uploadingForm !== formKey) {
-                  e.currentTarget.style.backgroundColor = "var(--t-accent)";
-                }
-              }}
-            >
-              {uploadingForm === formKey ? 'Uploading...' : 'Update'}
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                style={{ display: 'none' }}
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  setUploadingForm(formKey);
-                  const formData = new FormData();
-                  formData.append('file', file);
-                  formData.append('driverId', driver._id);
-                  formData.append('formType', formKey);
-                  try {
-                    const token = localStorage.getItem("token");
-                    const res = await axios.post(
-                      `${API_BASE_URL}/drivers/upload-required-form`,
-                      formData,
-                      {
-                        headers: {
-                          Authorization: `Bearer ${token}`,
-                          'Content-Type': 'multipart/form-data',
-                        },
-                      }
-                    );
-                    setDriver(res.data.driver);
-                    setFormData(res.data.driver);
-                    alert(`${formTitle} form updated successfully!`);
-                  } catch (err: any) {
-                    console.error(`Error uploading ${formTitle}:`, err);
-                    alert(err.response?.data?.message || `Failed to upload ${formTitle} form`);
-                  } finally {
-                    setUploadingForm(null);
-                  }
-                }}
-                disabled={uploadingForm === formKey}
-              />
-            </label>
-          </div>
-        ) : (
-          <div style={styles.formNotUploaded}>
-            <p style={styles.formStatusRequired}>⚠ Required</p>
-            <button
-              onClick={() => handleDownloadForm(fileName)}
-              style={styles.downloadButton}
-            >
-              Download Sample
-            </button>
-            <label style={styles.uploadButton}>
-              {uploadingForm === formKey ? 'Uploading...' : 'Upload'}
-              <input
-                type="file"
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                style={{ display: 'none' }}
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-                  setUploadingForm(formKey);
-                  const formData = new FormData();
-                  formData.append('file', file);
-                  formData.append('driverId', driver._id);
-                  formData.append('formType', formKey);
-                  try {
-                    const token = localStorage.getItem("token");
-                    const res = await axios.post(
-                      `${API_BASE_URL}/drivers/upload-required-form`,
-                      formData,
-                      {
-                        headers: {
-                          Authorization: `Bearer ${token}`,
-                          'Content-Type': 'multipart/form-data',
-                        },
-                      }
-                    );
-                    setDriver(res.data.driver);
-                    setFormData(res.data.driver);
-                    alert(`${formTitle} form uploaded successfully!`);
-                  } catch (err: any) {
-                    console.error(`Error uploading ${formTitle}:`, err);
-                    alert(err.response?.data?.message || `Failed to upload ${formTitle} form`);
-                  } finally {
-                    setUploadingForm(null);
-                  }
-                }}
-                disabled={uploadingForm === formKey}
-              />
-            </label>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const formsUploaded = Object.values(driver.requiredOnboardingForms || {}).filter(Boolean).length;
-  const totalForms = 6;
+  const formsUploaded = (driver.complianceDocuments || []).filter((d: any) => d.document).length;
+  const totalForms = mandatoryDocuments.length;
   const trainingsCompleted = (driver.trainings || []).filter((t: any) => t.proofDocument).length;
 
   return (
@@ -259,8 +138,8 @@ const MyInfo: React.FC = () => {
         }
         [data-mi-edit-btn]:hover { background: rgba(255,255,255,0.2) !important; }
         [data-mi-save-btn]:hover { background: #4338ca !important; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(79,70,229,0.45) !important; }
-        [data-mi-form-card-inner]:hover { box-shadow: 0 4px 16px rgba(79,70,229,0.15) !important; transform: translateY(-1px); border-color: rgba(79,70,229,0.25) !important; }
-        [data-mi-training-card-inner]:hover { box-shadow: 0 4px 16px rgba(79,70,229,0.15) !important; transform: translateY(-1px); border-color: rgba(79,70,229,0.25) !important; }
+        [data-mi-form-card-inner]:hover { box-shadow: var(--t-shadow) !important; transform: translateY(-1px); border-color: var(--t-accent-light) !important; }
+        [data-mi-training-card-inner]:hover { box-shadow: var(--t-shadow) !important; transform: translateY(-1px); border-color: var(--t-accent-light) !important; }
         input[data-mi-input]:focus { outline: none; border-color: #4F46E5 !important; box-shadow: 0 0 0 3px rgba(79,70,229,0.15); }
       `}</style>
       <Navbar />
@@ -551,20 +430,104 @@ const MyInfo: React.FC = () => {
               Save Changes
             </button>
           )}
-          {/* Required Onboarding Forms Section */}
+          {/* Compliance Documents Section */}
           <div style={styles.section} data-mi-section>
-            <h3 style={styles.sectionTitle}>📋 Required Onboarding Forms</h3>
+            <h3 style={styles.sectionTitle}>📋 Compliance Documents</h3>
             <p style={styles.sectionDescription}>
-              Please download the sample forms, fill them out, and upload them. You can update them at any time.
+              Upload the required compliance documents for your organization. You can update them at any time.
             </p>
-            <div style={styles.formsGrid} data-mi-forms-grid>
-              {renderFormCard('agencySignOff', 'Agency Sign Off', 'Agency Sign Off.pdf')}
-              {renderFormCard('driverDeliveryExpectations', 'Driver Delivery Expectations', 'Driver Delivery Expectations.pdf')}
-              {renderFormCard('cellPhonePolicy', 'Cell Phone Policy', 'Cell Phone Policy.pdf')}
-              {renderFormCard('storeSurvey1', 'Store Survey 1', 'Store Survey 1.pdf')}
-              {renderFormCard('tobaccoAndLCPValidation', 'Tobacco and LCP Validation', 'Tobacco and LCP Validation.pdf')}
-              {renderFormCard('driverSop', 'Driver SOP', 'Driver SOP.pdf')}
-            </div>
+            {docsLoading ? (
+              <div style={{ padding: "32px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "13px" }}>Loading…</div>
+            ) : mandatoryDocuments.length === 0 ? (
+              <div style={{ padding: "40px 24px", textAlign: "center" as const, background: "var(--t-surface-alt)", borderRadius: "12px", border: "1px dashed var(--t-border-strong)" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "15px", fontWeight: 700, color: "var(--t-text-secondary)" }}>No compliance documents required yet</p>
+                <p style={{ margin: 0, fontSize: "13px", color: "var(--t-text-ghost)" }}>Your organization hasn't configured required documents. Contact your administrator.</p>
+              </div>
+            ) : (
+              <div style={styles.formsGrid} data-mi-forms-grid>
+                {mandatoryDocuments.map((docName) => {
+                  const entry = (driver.complianceDocuments || []).find((d: any) => d.name === docName);
+                  const hasDoc = entry && entry.document;
+                  return (
+                    <div style={styles.formCard} key={docName} data-mi-form-card-inner>
+                      <h4 style={styles.formTitle}>{docName}</h4>
+                      {hasDoc ? (
+                        <div style={styles.formUploaded}>
+                          <p style={styles.formStatus}>✓ Uploaded</p>
+                          <a href={`${API_BASE_URL.replace("/api", "")}/${entry.document}`} target="_blank" rel="noopener noreferrer" style={styles.viewLink}>
+                            View Document
+                          </a>
+                          <label style={styles.uploadButton}>
+                            {uploadingDoc === docName ? "Uploading..." : "Update"}
+                            <input
+                              type="file"
+                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                              style={{ display: "none" }}
+                              disabled={uploadingDoc === docName}
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                setUploadingDoc(docName);
+                                const fd = new FormData();
+                                fd.append("file", file);
+                                fd.append("driverId", driver._id);
+                                fd.append("documentName", docName);
+                                try {
+                                  const token = localStorage.getItem("token");
+                                  const res = await axios.post(`${API_BASE_URL}/drivers/upload-compliance-document`, fd, {
+                                    headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+                                  });
+                                  setDriver(res.data.driver);
+                                  setFormData(res.data.driver);
+                                } catch (err: any) {
+                                  alert(err.response?.data?.message || `Failed to upload ${docName}`);
+                                } finally {
+                                  setUploadingDoc(null);
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                      ) : (
+                        <div style={styles.formNotUploaded}>
+                          <p style={styles.formStatusRequired}>⚠ Required</p>
+                          <label style={styles.uploadButton}>
+                            {uploadingDoc === docName ? "Uploading..." : "Upload"}
+                            <input
+                              type="file"
+                              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                              style={{ display: "none" }}
+                              disabled={uploadingDoc === docName}
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                setUploadingDoc(docName);
+                                const fd = new FormData();
+                                fd.append("file", file);
+                                fd.append("driverId", driver._id);
+                                fd.append("documentName", docName);
+                                try {
+                                  const token = localStorage.getItem("token");
+                                  const res = await axios.post(`${API_BASE_URL}/drivers/upload-compliance-document`, fd, {
+                                    headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
+                                  });
+                                  setDriver(res.data.driver);
+                                  setFormData(res.data.driver);
+                                } catch (err: any) {
+                                  alert(err.response?.data?.message || `Failed to upload ${docName}`);
+                                } finally {
+                                  setUploadingDoc(null);
+                                }
+                              }}
+                            />
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Trainings Section */}
@@ -573,8 +536,16 @@ const MyInfo: React.FC = () => {
             <p style={styles.sectionDescription}>
               Upload proof documents for trainings you have passed. You can update them at any time.
             </p>
+            {trainingsLoading ? (
+              <div style={{ padding: "32px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "13px" }}>Loading…</div>
+            ) : mandatoryTrainings.length === 0 ? (
+              <div style={{ padding: "40px 24px", textAlign: "center" as const, background: "var(--t-surface-alt)", borderRadius: "12px", border: "1px dashed var(--t-border-strong)" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "15px", fontWeight: 700, color: "var(--t-text-secondary)" }}>No training requirements set up yet</p>
+                <p style={{ margin: 0, fontSize: "13px", color: "var(--t-text-ghost)" }}>Your organization hasn't configured mandatory trainings. Contact your administrator.</p>
+              </div>
+            ) : (
             <div style={styles.trainingsGrid} data-mi-training-grid>
-              {availableTrainings.map((trainingName) => {
+              {mandatoryTrainings.map((trainingName) => {
                 const training = driver.trainings?.find((t: any) => t.name === trainingName);
                 const hasProof = training && training.proofDocument;
                 
@@ -704,6 +675,7 @@ const MyInfo: React.FC = () => {
                 );
               })}
             </div>
+            )}
           </div>
 
           {showBankForm && (
@@ -1012,15 +984,15 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "28px 32px",
     backgroundColor: "var(--t-surface)",
     borderRadius: "16px",
-    border: "1px solid rgba(255,255,255,0.07)",
-    boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+    border: "1px solid var(--t-border)",
+    boxShadow: "var(--t-shadow)",
   },
   sectionTitle: {
     fontSize: "10px",
     fontWeight: 700,
     marginBottom: "8px",
     marginTop: 0,
-    borderBottom: "1px solid rgba(255,255,255,0.07)",
+    borderBottom: "1px solid var(--t-border)",
     paddingBottom: "14px",
     color: "var(--t-text-faint)",
     display: "flex",
@@ -1047,7 +1019,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: "var(--t-surface-alt)",
     padding: "18px",
     borderRadius: "12px",
-    border: "1px solid rgba(255,255,255,0.07)",
+    border: "1px solid var(--t-border)",
     textAlign: "center" as const,
     transition: "box-shadow 0.2s, transform 0.2s, border-color 0.2s",
   },
@@ -1079,7 +1051,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     backgroundColor: "var(--t-success-bg)",
     color: "var(--t-success)",
-    border: "1px solid rgba(16,185,129,0.25)",
+    border: "1px solid var(--t-success-bg)",
   },
   formStatusRequired: {
     display: "inline-block",
@@ -1089,7 +1061,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     backgroundColor: "var(--t-warning-bg)",
     color: "var(--t-warning)",
-    border: "1px solid rgba(245,158,11,0.25)",
+    border: "1px solid var(--t-warning-bg)",
   },
   viewLink: {
     color: "var(--t-indigo)",
@@ -1098,11 +1070,11 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
   },
   downloadButton: {
-    backgroundColor: "rgba(16,185,129,0.1)",
+    backgroundColor: "var(--t-success-bg)",
     color: "var(--t-success)",
     padding: "6px 12px",
     borderRadius: "7px",
-    border: "1px solid rgba(16,185,129,0.2)",
+    border: "1px solid var(--t-success-bg)",
     fontSize: "11px",
     fontWeight: 600,
     cursor: "pointer",
@@ -1124,8 +1096,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontFamily: "Inter, system-ui, sans-serif",
   },
   warningBanner: {
-    backgroundColor: "rgba(245,158,11,0.08)",
-    border: "1px solid rgba(245,158,11,0.2)",
+    backgroundColor: "var(--t-warning-bg)",
+    border: "1px solid var(--t-warning-bg)",
     borderRadius: "12px",
     padding: "14px 20px",
     marginBottom: "20px",
@@ -1149,7 +1121,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: "var(--t-surface-alt)",
     padding: "18px",
     borderRadius: "12px",
-    border: "1px solid rgba(255,255,255,0.07)",
+    border: "1px solid var(--t-border)",
     textAlign: "center" as const,
     transition: "box-shadow 0.2s, transform 0.2s, border-color 0.2s",
   },
@@ -1181,7 +1153,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     backgroundColor: "var(--t-success-bg)",
     color: "var(--t-success)",
-    border: "1px solid rgba(16,185,129,0.25)",
+    border: "1px solid var(--t-success-bg)",
   },
   trainingStatusPending: {
     display: "inline-block",
@@ -1191,7 +1163,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontWeight: 600,
     backgroundColor: "var(--t-input-bg)",
     color: "var(--t-text-dim)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    border: "1px solid var(--t-input-border)",
   },
 };
 

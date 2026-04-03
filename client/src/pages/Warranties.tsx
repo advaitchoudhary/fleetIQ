@@ -26,8 +26,16 @@ const emptyForm = {
   currentMileage: "", coverageDetails: "", notes: "",
 };
 
+const todayLocal = () => {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+};
+
 const emptyClaimForm = {
-  claimDate: new Date().toISOString().slice(0, 10),
+  claimDate: todayLocal(),
   description: "", claimAmount: "", claimNumber: "", notes: "",
 };
 
@@ -46,8 +54,12 @@ const Warranties: React.FC = () => {
   const [editingWarranty, setEditingWarranty] = useState<any>(null);
   const [selectedWarranty, setSelectedWarranty] = useState<any>(null);
   const [form, setForm] = useState({ ...emptyForm });
-  const [claimForm, setClaimForm] = useState({ ...emptyClaimForm });
+  const [claimForm, setClaimForm] = useState({ ...emptyClaimForm, claimDate: todayLocal() });
   const [saving, setSaving] = useState(false);
+  const [isEditClaimModalOpen, setIsEditClaimModalOpen] = useState(false);
+  const [editingClaim, setEditingClaim] = useState<any>(null);
+  const [editingClaimWarrantyId, setEditingClaimWarrantyId] = useState<string>("");
+  const [editClaimForm, setEditClaimForm] = useState({ status: "submitted", approvedAmount: "" });
 
   const token = localStorage.getItem("token");
   const headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
@@ -171,6 +183,33 @@ const Warranties: React.FC = () => {
     setSaving(false);
   };
 
+  const openEditClaim = (warrantyId: string, claim: any) => {
+    setEditingClaimWarrantyId(warrantyId);
+    setEditingClaim(claim);
+    setEditClaimForm({ status: claim.status || "submitted", approvedAmount: claim.approvedAmount != null ? String(claim.approvedAmount) : "" });
+    setIsEditClaimModalOpen(true);
+  };
+
+  const handleUpdateClaim = async () => {
+    if (!editingClaim || !editingClaimWarrantyId) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/warranties/${editingClaimWarrantyId}/claims/${editingClaim._id}`, {
+        method: "PUT", headers,
+        body: JSON.stringify({ status: editClaimForm.status, approvedAmount: Number(editClaimForm.approvedAmount) || 0 }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.message || "Failed to update claim.");
+        setSaving(false);
+        return;
+      }
+      setIsEditClaimModalOpen(false);
+      fetchAll();
+    } catch (err) { console.error(err); alert("Network error. Please try again."); }
+    setSaving(false);
+  };
+
   const isExpiringSoon = (w: any) => {
     const days = (new Date(w.expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
     return days >= 0 && days <= 30;
@@ -280,7 +319,7 @@ const Warranties: React.FC = () => {
                       <td style={styles.td}>{w.provider || "—"}</td>
                       <td style={styles.td}>
                         <span style={{ color: isExpiringSoon(w) && w.status === "active" ? "var(--t-error)" : "var(--t-text-muted)", fontWeight: isExpiringSoon(w) ? 700 : 400 }}>
-                          {w.expiryDate ? new Date(w.expiryDate).toLocaleDateString() : "—"}
+                          {w.expiryDate ? new Date(w.expiryDate.slice(0, 10) + "T00:00:00").toLocaleDateString() : "—"}
                         </span>
                       </td>
                       <td style={styles.td}>
@@ -292,7 +331,7 @@ const Warranties: React.FC = () => {
                       <td style={styles.td} onClick={(e) => e.stopPropagation()}>
                         <div style={{ display: "flex", gap: "6px" }}>
                           <button style={styles.iconBtn} title="Edit" onClick={() => openEdit(w)}><FaEdit size={13} /></button>
-                          <button style={{ ...styles.iconBtn, color: "var(--t-info)" }} title="File Claim" onClick={() => { setSelectedWarranty(w); setClaimForm({ ...emptyClaimForm }); setIsClaimModalOpen(true); }}><FaFileAlt size={13} /></button>
+                          <button style={{ ...styles.iconBtn, color: "var(--t-info)" }} title="File Claim" onClick={() => { setSelectedWarranty(w); setClaimForm({ ...emptyClaimForm, claimDate: todayLocal() }); setIsClaimModalOpen(true); }}><FaFileAlt size={13} /></button>
                           <button style={{ ...styles.iconBtn, color: "var(--t-error)" }} title="Delete" onClick={() => { setSelectedWarranty(w); setIsDeleteModalOpen(true); }}><FaTrashAlt size={13} /></button>
                         </div>
                       </td>
@@ -311,7 +350,7 @@ const Warranties: React.FC = () => {
                               <table style={{ width: "100%", marginTop: "8px", borderCollapse: "collapse" }}>
                                 <thead>
                                   <tr>
-                                    {["Date", "Description", "Claimed", "Approved", "Status", "Claim #"].map((h) => (
+                                    {["Date", "Description", "Claimed", "Approved", "Status", "Claim #", ""].map((h) => (
                                       <th key={h} style={{ ...styles.th, background: "var(--t-surface-alt)" }}>{h}</th>
                                     ))}
                                   </tr>
@@ -319,7 +358,7 @@ const Warranties: React.FC = () => {
                                 <tbody>
                                   {w.claims.map((c: any) => (
                                     <tr key={c._id} style={styles.tr}>
-                                      <td style={styles.td}>{c.claimDate ? new Date(c.claimDate).toLocaleDateString() : "—"}</td>
+                                      <td style={styles.td}>{c.claimDate ? new Date(c.claimDate.slice(0, 10) + "T00:00:00").toLocaleDateString() : "—"}</td>
                                       <td style={styles.td}>{c.description}</td>
                                       <td style={styles.td}>${(c.claimAmount || 0).toFixed(2)}</td>
                                       <td style={styles.td}>${(c.approvedAmount || 0).toFixed(2)}</td>
@@ -329,6 +368,9 @@ const Warranties: React.FC = () => {
                                         </span>
                                       </td>
                                       <td style={styles.td}>{c.claimNumber || "—"}</td>
+                                      <td style={styles.td}>
+                                        <button onClick={() => openEditClaim(w._id, c)} style={{ ...styles.iconBtn, color: "var(--t-indigo)" }} title="Edit claim status"><FaEdit size={12} /></button>
+                                      </td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -454,6 +496,50 @@ const Warranties: React.FC = () => {
             <div style={styles.modalFooter}>
               <button style={styles.cancelBtn} onClick={() => setIsClaimModalOpen(false)}>Cancel</button>
               <button style={styles.primaryBtn} onClick={handleAddClaim} disabled={saving}>{saving ? "Saving..." : "Submit Claim"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Claim Modal */}
+      {isEditClaimModalOpen && editingClaim && (
+        <div style={styles.modalOverlay} onClick={() => setIsEditClaimModalOpen(false)}>
+          <div style={{ ...styles.modal, maxWidth: "420px" }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ flexShrink: 0, padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "12px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaEdit size={16} color="var(--t-indigo)" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Update Claim</div>
+                  <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", marginTop: "2px" }}>{editingClaim.description}</div>
+                </div>
+              </div>
+              <button style={styles.closeBtn} onClick={() => setIsEditClaimModalOpen(false)}>✕</button>
+            </div>
+            <div style={{ padding: "24px 28px", overflowY: "auto", flexGrow: 1 }}>
+              <div style={{ marginBottom: "16px" }}>
+                <label style={styles.label}>Status</label>
+                <select style={styles.input} value={editClaimForm.status} onChange={(e) => setEditClaimForm((f) => ({ ...f, status: e.target.value }))}>
+                  {CLAIM_STATUSES.map((s) => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={styles.label}>Approved Amount ($)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  style={styles.input}
+                  value={editClaimForm.approvedAmount}
+                  onChange={(e) => setEditClaimForm((f) => ({ ...f, approvedAmount: e.target.value }))}
+                  placeholder="0.00"
+                />
+              </div>
+            </div>
+            <div style={styles.modalFooter}>
+              <button style={styles.cancelBtn} onClick={() => setIsEditClaimModalOpen(false)}>Cancel</button>
+              <button style={styles.primaryBtn} onClick={handleUpdateClaim} disabled={saving}>{saving ? "Saving..." : "Update Claim"}</button>
             </div>
           </div>
         </div>

@@ -211,17 +211,44 @@ const CostTracking: React.FC = () => {
         </div>
 
         {/* Filters */}
-        <div style={styles.filtersRow}>
-          <select style={styles.select} value={selectedVehicle} onChange={(e) => setSelectedVehicle(e.target.value)}>
-            <option value="">All Vehicles</option>
-            {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model}</option>)}
-          </select>
-          <input type="date" style={styles.dateInput} value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
-          <span style={{ color: "var(--t-text-faint)", fontSize: "14px" }}>to</span>
-          <input type="date" style={styles.dateInput} value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
-          <button style={styles.filterBtn} onClick={fetchAll}>Apply</button>
-          <button style={{ ...styles.filterBtn, background: "rgba(255,255,255,0.15)", color: "#fff", border: "1px solid rgba(255,255,255,0.25)" }} onClick={handleExport}>Export</button>
-        </div>
+        {(() => {
+          const today = new Date(); today.setHours(23, 59, 59, 999);
+          const from = dateFrom ? new Date(dateFrom + "T00:00:00") : null;
+          const to = dateTo ? new Date(dateTo + "T00:00:00") : null;
+          const fromAfterTo = from && to && from > to;
+          const toInFuture = to && to > today;
+          const rangeYears = from && to ? (to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24 * 365) : 0;
+          const rangeTooLarge = rangeYears > 2;
+          const hasError = !!(fromAfterTo || rangeTooLarge);
+          return (
+            <div style={{ marginBottom: "24px" }}>
+              <div style={{ ...styles.filtersRow, marginBottom: (fromAfterTo || toInFuture || rangeTooLarge) ? "8px" : "0" }}>
+                <select style={styles.select} value={selectedVehicle} onChange={(e) => setSelectedVehicle(e.target.value)}>
+                  <option value="">All Vehicles</option>
+                  {vehicles.map((v) => <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model}</option>)}
+                </select>
+                <input
+                  type="date"
+                  style={{ ...styles.dateInput, ...(fromAfterTo || rangeTooLarge ? { borderColor: "var(--t-error)" } : {}) }}
+                  value={dateFrom}
+                  onChange={(e) => setDateFrom(e.target.value)}
+                />
+                <span style={{ color: "var(--t-text-faint)", fontSize: "14px" }}>to</span>
+                <input
+                  type="date"
+                  style={{ ...styles.dateInput, ...(fromAfterTo || rangeTooLarge ? { borderColor: "var(--t-error)" } : toInFuture ? { borderColor: "var(--t-warning)" } : {}) }}
+                  value={dateTo}
+                  onChange={(e) => setDateTo(e.target.value)}
+                />
+                <button style={{ ...styles.filterBtn, ...(hasError ? { opacity: 0.5, cursor: "not-allowed" } : {}) }} onClick={() => { if (!hasError) fetchAll(); }}>Apply</button>
+                <button style={{ ...styles.filterBtn, background: "var(--t-hover-bg)", color: "var(--t-text-secondary)", border: "1px solid var(--t-border)" }} onClick={handleExport}>Export</button>
+              </div>
+              {fromAfterTo && <p style={{ margin: 0, fontSize: "12px", color: "var(--t-error)", fontWeight: 500 }}>⚠ "From" date cannot be after "To" date.</p>}
+              {!fromAfterTo && rangeTooLarge && <p style={{ margin: 0, fontSize: "12px", color: "var(--t-error)", fontWeight: 500 }}>⚠ Date range cannot exceed 2 years.</p>}
+              {!fromAfterTo && !rangeTooLarge && toInFuture && <p style={{ margin: 0, fontSize: "12px", color: "var(--t-warning)", fontWeight: 500 }}>⚠ "To" date is in the future — results will include all data up to today.</p>}
+            </div>
+          );
+        })()}
 
         {/* Stats */}
         {summary?.totals && (

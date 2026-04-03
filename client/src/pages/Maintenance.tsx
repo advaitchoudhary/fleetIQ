@@ -33,6 +33,7 @@ const emptyForm = {
   cost: "",
   vendor: "",
   notes: "",
+  nextInspectionDate: "",
 };
 
 
@@ -104,6 +105,7 @@ const Maintenance: React.FC = () => {
       cost: rec.cost?.toString() || "",
       vendor: rec.vendor || "",
       notes: rec.notes || "",
+      nextInspectionDate: rec.nextInspectionDate ? rec.nextInspectionDate.slice(0, 10) : "",
     });
     setIsModalOpen(true);
   };
@@ -113,6 +115,47 @@ const Maintenance: React.FC = () => {
       alert("Vehicle and title are required.");
       return;
     }
+    if (form.title.trim().length > 100) {
+      alert("Title must be 100 characters or fewer.");
+      return;
+    }
+    if (form.odometer !== "") {
+      const odo = Number(form.odometer);
+      if (!Number.isInteger(odo) || odo < 0 || odo > 10_000_000) {
+        alert("Odometer must be a whole number between 0 and 10,000,000 km.");
+        return;
+      }
+    }
+    if (form.cost !== "") {
+      const cost = Number(form.cost);
+      if (isNaN(cost) || cost < 0) {
+        alert("Cost must be a positive number.");
+        return;
+      }
+    }
+    if (!form.scheduledDate) {
+      alert("Scheduled date is required.");
+      return;
+    }
+    if (form.status === "completed" && !form.completedDate) {
+      alert("Completed date is required when status is Completed.");
+      return;
+    }
+    if (form.completedDate) {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const comp = new Date(form.completedDate + "T00:00:00");
+      if (comp > today) {
+        alert("Completed date cannot be in the future.");
+        return;
+      }
+      if (form.scheduledDate) {
+        const sched = new Date(form.scheduledDate + "T00:00:00");
+        if (comp < sched) {
+          alert("Completed date cannot be before the scheduled date.");
+          return;
+        }
+      }
+    }
     setSaving(true);
     try {
       const payload = {
@@ -121,6 +164,7 @@ const Maintenance: React.FC = () => {
         cost: form.cost ? Number(form.cost) : undefined,
         scheduledDate: form.scheduledDate || undefined,
         completedDate: form.completedDate || undefined,
+        nextInspectionDate: form.nextInspectionDate || undefined,
       };
       if (editingRecord) {
         await axios.put(`${API_BASE_URL}/maintenance/${editingRecord._id}`, payload, { headers });
@@ -166,6 +210,7 @@ const Maintenance: React.FC = () => {
       { header: "Cost ($)", key: "cost" },
       { header: "Vendor", key: "vendor" },
       { header: "Notes", key: "notes" },
+      { header: "Next Inspection Date", key: "nextInspectionDate" },
     ];
     worksheet.addRows(filtered.map((r: any) => {
       const vId = r.vehicleId?._id || r.vehicleId;
@@ -180,6 +225,7 @@ const Maintenance: React.FC = () => {
         cost: r.cost != null ? r.cost : "",
         vendor: r.vendor || "",
         notes: r.notes || "",
+        nextInspectionDate: r.nextInspectionDate ? r.nextInspectionDate.slice(0, 10) : "",
       };
     }));
     const buffer = await workbook.xlsx.writeBuffer();
@@ -363,7 +409,14 @@ const Maintenance: React.FC = () => {
                 </div>
                 <div style={{ gridColumn: "1 / -1" }}>
                   <label style={styles.label}>Title *</label>
-                  <input style={styles.input} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Oil change, Tire rotation" />
+                  <input
+                    style={{ ...styles.input, ...(form.title.trim().length > 100 ? { borderColor: "var(--t-error)" } : {}) }}
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    placeholder="e.g. Oil change, Tire rotation"
+                    maxLength={100}
+                  />
+                  <p style={{ margin: "4px 0 0", fontSize: "11px", color: form.title.trim().length > 90 ? "var(--t-warning)" : "var(--t-text-ghost)", fontWeight: 500, textAlign: "right" }}>{form.title.length}/100</p>
                 </div>
               </div>
               {/* Section: Details */}
@@ -394,20 +447,114 @@ const Maintenance: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label style={styles.label}>Scheduled Date</label>
-                  <input style={styles.input} type="date" value={form.scheduledDate} onChange={(e) => setForm({ ...form, scheduledDate: e.target.value })} />
+                  {(() => {
+                    const today = new Date(); today.setHours(0, 0, 0, 0);
+                    const sched = form.scheduledDate ? new Date(form.scheduledDate + "T00:00:00") : null;
+                    const isOverdue = sched && sched < today && (form.status === "scheduled" || form.status === "in_progress");
+                    const daysOverdue = isOverdue ? Math.abs(Math.ceil((sched!.getTime() - today.getTime()) / 86_400_000)) : null;
+                    return (
+                      <>
+                        <label style={styles.label}>Scheduled Date *</label>
+                        <input
+                          style={{ ...styles.input, ...(isOverdue ? { borderColor: "var(--t-warning)" } : {}) }}
+                          type="date"
+                          value={form.scheduledDate}
+                          onChange={(e) => setForm({ ...form, scheduledDate: e.target.value })}
+                        />
+                        {isOverdue && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-warning)", fontWeight: 500 }}>⚠ Overdue by {daysOverdue} day{daysOverdue !== 1 ? "s" : ""}.</p>}
+                      </>
+                    );
+                  })()}
                 </div>
                 <div>
-                  <label style={styles.label}>Completed Date</label>
-                  <input style={styles.input} type="date" value={form.completedDate} onChange={(e) => setForm({ ...form, completedDate: e.target.value })} />
+                  {(() => {
+                    const today = new Date(); today.setHours(0, 0, 0, 0);
+                    const sched = form.scheduledDate ? new Date(form.scheduledDate + "T00:00:00") : null;
+                    const comp = form.completedDate ? new Date(form.completedDate + "T00:00:00") : null;
+                    const isBeforeSched = sched && comp && comp < sched;
+                    const isFuture = comp && comp > today;
+                    const isRequired = form.status === "completed" && !form.completedDate;
+                    const hasError = isBeforeSched || isFuture;
+                    return (
+                      <>
+                        <label style={styles.label}>Completed Date{form.status === "completed" ? " *" : ""}</label>
+                        <input
+                          style={{ ...styles.input, ...(hasError || isRequired ? { borderColor: "var(--t-error)" } : {}) }}
+                          type="date"
+                          value={form.completedDate}
+                          onChange={(e) => setForm({ ...form, completedDate: e.target.value })}
+                        />
+                        {isBeforeSched && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>⚠ Cannot be before the scheduled date.</p>}
+                        {!isBeforeSched && isFuture && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>⚠ Cannot be in the future.</p>}
+                        {isRequired && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>Required when status is Completed.</p>}
+                      </>
+                    );
+                  })()}
                 </div>
                 <div>
-                  <label style={styles.label}>Odometer (km)</label>
-                  <input style={styles.input} type="number" value={form.odometer} onChange={(e) => setForm({ ...form, odometer: e.target.value })} />
+                  {(() => {
+                    const today = new Date(); today.setHours(0, 0, 0, 0);
+                    const next = form.nextInspectionDate ? new Date(form.nextInspectionDate + "T00:00:00") : null;
+                    const isOverdue = next && next < today;
+                    const daysUntil = next ? Math.ceil((next.getTime() - today.getTime()) / 86_400_000) : null;
+                    const isSoon = daysUntil !== null && daysUntil >= 0 && daysUntil <= 30;
+                    return (
+                      <>
+                        <label style={styles.label}>Next Inspection Date</label>
+                        <input
+                          style={{ ...styles.input, ...(isOverdue ? { borderColor: "var(--t-error)" } : isSoon ? { borderColor: "var(--t-warning)" } : {}) }}
+                          type="date"
+                          value={form.nextInspectionDate}
+                          onChange={(e) => setForm({ ...form, nextInspectionDate: e.target.value })}
+                        />
+                        {isOverdue && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>⚠ Overdue by {Math.abs(daysUntil!)} day{Math.abs(daysUntil!) !== 1 ? "s" : ""}.</p>}
+                        {isSoon && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-warning)", fontWeight: 500 }}>⚠ Due in {daysUntil} day{daysUntil !== 1 ? "s" : ""}.</p>}
+                      </>
+                    );
+                  })()}
                 </div>
                 <div>
-                  <label style={styles.label}>Cost ($)</label>
-                  <input style={styles.input} type="number" step="0.01" value={form.cost} onChange={(e) => setForm({ ...form, cost: e.target.value })} />
+                  {(() => {
+                    const odo = form.odometer !== "" ? Number(form.odometer) : null;
+                    const isInvalid = odo !== null && (!Number.isInteger(odo) || odo < 0 || odo > 10_000_000);
+                    return (
+                      <>
+                        <label style={styles.label}>Odometer (km)</label>
+                        <input
+                          style={{ ...styles.input, ...(isInvalid ? { borderColor: "var(--t-error)" } : {}) }}
+                          type="number"
+                          min={0}
+                          max={10_000_000}
+                          step={1}
+                          value={form.odometer}
+                          onChange={(e) => setForm({ ...form, odometer: e.target.value })}
+                          placeholder="e.g. 150000"
+                        />
+                        {isInvalid && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>Must be a whole number between 0 and 10,000,000.</p>}
+                      </>
+                    );
+                  })()}
+                </div>
+                <div>
+                  {(() => {
+                    const cost = form.cost !== "" ? Number(form.cost) : null;
+                    const isInvalid = cost !== null && (isNaN(cost) || cost < 0);
+                    return (
+                      <>
+                        <label style={styles.label}>Cost ($)</label>
+                        <input
+                          style={{ ...styles.input, ...(isInvalid ? { borderColor: "var(--t-error)" } : {}) }}
+                          type="number"
+                          step="0.01"
+                          min={0}
+                          value={form.cost}
+                          onChange={(e) => setForm({ ...form, cost: e.target.value })}
+                          placeholder="e.g. 250.00"
+                        />
+                        {isInvalid && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>Cost must be a positive number.</p>}
+                      </>
+                    );
+                  })()}
                 </div>
                 <div style={{ gridColumn: "1 / -1" }}>
                   <label style={styles.label}>Vendor / Shop</label>

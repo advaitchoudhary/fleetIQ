@@ -31,6 +31,7 @@ const maintenanceSchema = new mongoose.Schema(
     vendor: { type: String },   // shop / mechanic name
     documents: { type: [String], default: [] }, // receipts / work orders
     notes: { type: String },
+    nextInspectionDate: { type: Date },
   },
   { timestamps: true }
 );

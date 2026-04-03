@@ -368,6 +368,12 @@ if (!fs.existsSync(TRAINING_PROOFS_DIR)) {
   fs.mkdirSync(TRAINING_PROOFS_DIR, { recursive: true });
 }
 
+// Configure multer for compliance documents
+const COMPLIANCE_DOCS_DIR = "uploads/compliance-documents/";
+if (!fs.existsSync(COMPLIANCE_DOCS_DIR)) {
+  fs.mkdirSync(COMPLIANCE_DOCS_DIR, { recursive: true });
+}
+
 const onboardingFormsStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, ONBOARDING_FORMS_DIR);
@@ -623,6 +629,71 @@ const uploadTrainingProofDocument = asyncHandler(async (req, res) => {
   }
 });
 
+const uploadComplianceDoc = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, COMPLIANCE_DOCS_DIR),
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, uniqueSuffix + path.extname(file.originalname));
+    },
+  }),
+  fileFilter: (req, file, cb) => {
+    const allowed = ["image/jpeg", "image/jpg", "image/png", "application/pdf",
+      "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+    allowed.includes(file.mimetype) ? cb(null, true) : cb(new Error("Only JPEG, PNG, PDF, and DOC files are allowed"), false);
+  },
+  limits: { fileSize: 15 * 1024 * 1024 },
+});
+
+// POST /api/drivers/upload-compliance-document
+const uploadComplianceDocument = asyncHandler(async (req, res) => {
+  try {
+    const { driverId, documentName } = req.body;
+    if (!driverId || !documentName) {
+      return res.status(400).json({ message: "Driver ID and document name are required" });
+    }
+    if (!req.file) {
+      return res.status(400).json({ message: "File is required" });
+    }
+
+    const driver = await Driver.findById(driverId).lean();
+    if (!driver) {
+      if (req.file.path) fs.unlinkSync(req.file.path);
+      return res.status(404).json({ message: "Driver not found" });
+    }
+
+    // Authorization: drivers can only update their own documents
+    if (req.user && req.user.role === "driver") {
+      const driverFromToken = await Driver.findById(req.user.id).lean();
+      if (!driverFromToken || driverFromToken.email !== driver.email) {
+        if (req.file.path) fs.unlinkSync(req.file.path);
+        return res.status(403).json({ message: "You can only update your own documents" });
+      }
+    }
+
+    const docs = (driver.complianceDocuments || []).map((d) => ({ name: d.name, document: d.document || null }));
+    const existingIdx = docs.findIndex((d) => d.name === documentName);
+
+    if (existingIdx !== -1) {
+      // Delete old file
+      const oldPath = docs[existingIdx].document;
+      if (oldPath && fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+      docs[existingIdx] = { name: documentName, document: req.file.path };
+    } else {
+      docs.push({ name: documentName, document: req.file.path });
+    }
+
+    await Driver.findByIdAndUpdate(driverId, { complianceDocuments: docs }, { new: true });
+    const updated = await Driver.findById(driverId).lean();
+    const { password, plainPassword, ...driverWithoutPassword } = updated;
+    res.status(200).json({ message: "Compliance document uploaded successfully", driver: driverWithoutPassword });
+  } catch (error) {
+    if (req.file && req.file.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    console.error("Error uploading compliance document:", error);
+    res.status(500).json({ message: "Failed to upload compliance document", error: error.message });
+  }
+});
+
 module.exports = {
   create,
   getAllDrivers,
@@ -637,5 +708,7 @@ module.exports = {
   uploadRequiredForm,
   uploadOnboardingForm,
   uploadTrainingProofDocument,
-  uploadTrainingProof
+  uploadTrainingProof,
+  uploadComplianceDocument,
+  uploadComplianceDoc,
 };
