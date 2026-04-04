@@ -6,7 +6,7 @@ const asyncHandler = require("express-async-handler");
 const { getOrgFilter } = require("../middleware/authMiddleware.js");
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
-function recalculateNextDue(schedule, template) {
+function recalculateNextDue(schedule, template, vehicleOdometer = null) {
   let nextDueDate = null;
   let nextDueOdometer = null;
 
@@ -15,11 +15,11 @@ function recalculateNextDue(schedule, template) {
       new Date(schedule.lastCompletedDate).getTime() + template.intervalDays * 24 * 60 * 60 * 1000
     );
   }
-  if (schedule.lastCompletedOdometer && template.intervalKm) {
+  if (schedule.lastCompletedOdometer != null && template.intervalKm) {
     nextDueOdometer = schedule.lastCompletedOdometer + template.intervalKm;
   }
 
-  // Determine status
+  // Determine status based on date
   const now = new Date();
   const in14Days = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
   let status = "on_track";
@@ -27,6 +27,15 @@ function recalculateNextDue(schedule, template) {
   if (nextDueDate) {
     if (nextDueDate < now) status = "overdue";
     else if (nextDueDate <= in14Days) status = "due_soon";
+  }
+
+  // Override/upgrade status based on odometer if vehicle odometer is known
+  if (nextDueOdometer != null && vehicleOdometer != null) {
+    if (vehicleOdometer >= nextDueOdometer) {
+      status = "overdue";
+    } else if (vehicleOdometer >= nextDueOdometer - 1000 && status === "on_track") {
+      status = "due_soon";
+    }
   }
 
   return { nextDueDate, nextDueOdometer, status };
@@ -80,10 +89,35 @@ const getAllSchedules = asyncHandler(async (req, res) => {
   if (status) query.status = status;
 
   const schedules = await PMSchedule.find(query)
-    .populate("vehicleId", "unitNumber make model year")
+    .populate("vehicleId", "unitNumber make model year odometer")
     .populate("templateId", "name intervalKm intervalDays maintenanceType estimatedCost")
     .sort({ nextDueDate: 1 })
     .lean();
+
+  // Recalculate and persist stale statuses on every fetch
+  const now = new Date();
+  const in14Days = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
+  const updates = [];
+  for (const s of schedules) {
+    let newStatus = "on_track";
+    if (s.nextDueDate) {
+      if (new Date(s.nextDueDate) < now) newStatus = "overdue";
+      else if (new Date(s.nextDueDate) <= in14Days) newStatus = "due_soon";
+    }
+    const vehicleOdometer = s.vehicleId?.odometer ?? null;
+    if (s.nextDueOdometer != null && vehicleOdometer != null) {
+      if (vehicleOdometer >= s.nextDueOdometer) {
+        newStatus = "overdue";
+      } else if (vehicleOdometer >= s.nextDueOdometer - 1000 && newStatus === "on_track") {
+        newStatus = "due_soon";
+      }
+    }
+    if (newStatus !== s.status) {
+      s.status = newStatus;
+      updates.push(PMSchedule.findByIdAndUpdate(s._id, { status: newStatus }));
+    }
+  }
+  if (updates.length) await Promise.all(updates);
 
   res.json(schedules);
 });
@@ -121,7 +155,7 @@ const createSchedule = asyncHandler(async (req, res) => {
   if (!template) return res.status(404).json({ message: "Template not found" });
 
   const schedule = new PMSchedule({ ...req.body, organizationId: req.organizationId });
-  const { nextDueDate, nextDueOdometer, status } = recalculateNextDue(schedule, template);
+  const { nextDueDate, nextDueOdometer, status } = recalculateNextDue(schedule, template, vehicle.odometer ?? null);
   schedule.nextDueDate = nextDueDate;
   schedule.nextDueOdometer = nextDueOdometer;
   schedule.status = status;
@@ -146,7 +180,8 @@ const updateSchedule = asyncHandler(async (req, res) => {
 
   const template = await PMTemplate.findById(schedule.templateId);
   if (template) {
-    const { nextDueDate, nextDueOdometer, status } = recalculateNextDue(schedule, template);
+    const vehicle = await Vehicle.findById(schedule.vehicleId).select("odometer").lean();
+    const { nextDueDate, nextDueOdometer, status } = recalculateNextDue(schedule, template, vehicle?.odometer ?? null);
     schedule.nextDueDate = nextDueDate;
     schedule.nextDueOdometer = nextDueOdometer;
     schedule.status = status;

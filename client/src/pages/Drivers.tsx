@@ -451,11 +451,7 @@ const Drivers: React.FC = () => {
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "32px 40px" }}>
 
         {/* Breadcrumb */}
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
-          <span>FLEET</span>
-          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
-          <span style={{ color: "var(--t-text-faint)" }}>DRIVERS</span>
-        </div>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>DRIVERS</div>
 
         {/* Page Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" as const }}>
@@ -475,7 +471,7 @@ const Drivers: React.FC = () => {
             </button>
             <button
               onClick={handleExport}
-              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "10px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
             >
               Export
             </button>

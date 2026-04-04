@@ -1,10 +1,10 @@
 # Redirect HTTP requests (port 80) to HTTPS
 server {
     listen 80;
-    server_name 3.13.233.198 premierchoicemployment.com www.premierchoicemployment.com;
+    server_name <YOUR_VPS_IP> fleetiqlogistics.com www.fleetiqlogistics.com;
 
     location / {
-        return 301 https://premierchoicemployment.com$request_uri;
+        return 301 https://fleetiqlogistics.com$request_uri;
     }
 
     # managed by Certbot
@@ -13,20 +13,20 @@ server {
 # Redirect HTTPS requests to the correct domain if accessed via IP
 server {
     listen 443 ssl;
-    server_name 3.13.233.198;
+    server_name <YOUR_VPS_IP>;
 
-    ssl_certificate /etc/letsencrypt/live/premierchoicemployment.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/premierchoicemployment.com/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/fleetiqlogistics.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/fleetiqlogistics.com/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 
-    return 301 https://premierchoicemployment.com$request_uri;
+    return 301 https://fleetiqlogistics.com$request_uri;
 }
 
 # Main HTTPS server block for your domain
 server {
     listen 443 ssl;
-    server_name premierchoicemployment.com www.premierchoicemployment.com;
+    server_name fleetiqlogistics.com www.fleetiqlogistics.com;
 
     # API proxy
     location /api/ {
@@ -57,8 +57,8 @@ server {
     }
 
     # SSL config
-    ssl_certificate /etc/letsencrypt/live/premierchoicemployment.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/premierchoicemployment.com/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/fleetiqlogistics.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/fleetiqlogistics.com/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 }

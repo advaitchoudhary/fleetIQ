@@ -5,21 +5,6 @@ import Navbar from "./Navbar";
 import axios from "axios";
 import { API_BASE_URL } from "../utils/env";
 
-const ALL_TRAININGS = [
-  "Defensive Driving - Tractor-Trailer",
-  "Distracted Driving",
-  "Hours of Service: Canadian Regulations",
-  "Transportation of Dangerous Goods",
-  "Vehicle Inspections",
-  "WHMIS",
-  "Winter Driving",
-  "Fall Protection for Drivers",
-  "Pallet Trucks (Walkies and Riders)",
-  "Practical Cargo Securement for Drivers (Cargo Van)",
-  "Food Safety for Drivers",
-  "Lift Truck Operator Skills",
-];
-
 const Profile: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,6 +20,26 @@ const Profile: React.FC = () => {
   const [trainings, setTrainings] = useState<{ name: string; proofDocument?: string }[]>(initTrainings);
   const [trainingSaving, setTrainingSaving] = useState(false);
   const [trainingSaved, setTrainingSaved] = useState(false);
+
+  // Org-level mandatory training list (dynamic — admin-configured)
+  const [mandatoryTrainings, setMandatoryTrainings] = useState<string[]>([]);
+  const [trainingsLoading, setTrainingsLoading] = useState(true);
+
+  // Configure trainings modal state
+  const [showConfigureModal, setShowConfigureModal] = useState(false);
+  const [configDraft, setConfigDraft] = useState<string[]>([]);
+  const [newTrainingInput, setNewTrainingInput] = useState("");
+  const [configureSaving, setConfigureSaving] = useState(false);
+
+  // Org-level mandatory compliance documents (dynamic — admin-configured)
+  const [mandatoryDocuments, setMandatoryDocuments] = useState<string[]>([]);
+  const [docsLoading, setDocsLoading] = useState(true);
+
+  // Configure compliance documents modal state
+  const [showDocsConfigModal, setShowDocsConfigModal] = useState(false);
+  const [docsConfigDraft, setDocsConfigDraft] = useState<string[]>([]);
+  const [newDocInput, setNewDocInput] = useState("");
+  const [docsConfigSaving, setDocsConfigSaving] = useState(false);
 
   const isCompleted = (name: string) => trainings.some((t) => t.name === name && t.proofDocument);
 
@@ -83,6 +88,36 @@ const Profile: React.FC = () => {
   };
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    const headers = { Authorization: `Bearer ${token}` };
+
+    const fetchMandatoryTrainings = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/organizations/mandatory-trainings`, { headers });
+        setMandatoryTrainings(res.data.mandatoryTrainings || []);
+      } catch (err) {
+        console.error("Failed to fetch mandatory trainings:", err);
+      } finally {
+        setTrainingsLoading(false);
+      }
+    };
+
+    const fetchMandatoryDocuments = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/organizations/mandatory-documents`, { headers });
+        setMandatoryDocuments(res.data.mandatoryDocuments || []);
+      } catch (err) {
+        console.error("Failed to fetch mandatory documents:", err);
+      } finally {
+        setDocsLoading(false);
+      }
+    };
+
+    fetchMandatoryTrainings();
+    fetchMandatoryDocuments();
+  }, []);
+
+  useEffect(() => {
     const fetchDriverTimesheets = async () => {
       if (!driver?.email) return;
 
@@ -118,6 +153,11 @@ const Profile: React.FC = () => {
     <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
       <Navbar />
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 40px" }}>
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>
+          PROFILE
+        </div>
+
         {/* Back button */}
         <button onClick={() => navigate(-1)}
           style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 16px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "8px", color: "var(--t-text-faint)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", marginBottom: "24px" }}>
@@ -226,58 +266,84 @@ const Profile: React.FC = () => {
           {/* Safety & Training Compliance */}
           <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "24px" }}>
             {(() => {
-              const completedCount = ALL_TRAININGS.filter((name) => isCompleted(name)).length;
-              const progress = Math.round((completedCount / ALL_TRAININGS.length) * 100);
+              const completedCount = mandatoryTrainings.filter((name) => isCompleted(name)).length;
+              const progress = mandatoryTrainings.length > 0 ? Math.round((completedCount / mandatoryTrainings.length) * 100) : 0;
               return (
                 <>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
                     <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>SAFETY &amp; TRAINING COMPLIANCE</p>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <span style={{ fontSize: "12px", color: "var(--t-text-dim)" }}>Progress</span>
-                      <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--t-indigo)" }}>{progress}%</span>
-                      <button onClick={saveTrainings} disabled={trainingSaving}
-                        style={{ padding: "5px 12px", background: trainingSaved ? "rgba(16,185,129,0.15)" : "var(--t-indigo-bg)", border: `1px solid ${trainingSaved ? "rgba(16,185,129,0.3)" : "rgba(79,70,229,0.3)"}`, borderRadius: "6px", color: trainingSaved ? "var(--t-success)" : "var(--t-indigo)", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
-                        {trainingSaved ? "Saved!" : trainingSaving ? "Saving…" : "Save"}
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      {mandatoryTrainings.length > 0 && (
+                        <>
+                          <span style={{ fontSize: "12px", color: "var(--t-text-dim)" }}>Progress</span>
+                          <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--t-indigo)" }}>{progress}%</span>
+                          <button onClick={saveTrainings} disabled={trainingSaving}
+                            style={{ padding: "5px 12px", background: trainingSaved ? "var(--t-success-bg)" : "var(--t-indigo-bg)", border: `1px solid ${trainingSaved ? "var(--t-success-bg)" : "var(--t-border-strong)"}`, borderRadius: "6px", color: trainingSaved ? "var(--t-success)" : "var(--t-indigo)", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                            {trainingSaved ? "Saved!" : trainingSaving ? "Saving…" : "Save"}
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => { setConfigDraft([...mandatoryTrainings]); setNewTrainingInput(""); setShowConfigureModal(true); }}
+                        style={{ padding: "5px 12px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "6px", color: "var(--t-text-faint)", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                        ⚙ Configure
                       </button>
                     </div>
                   </div>
-                  <div style={{ height: "4px", background: "var(--t-hover-bg)", borderRadius: "4px", marginBottom: "16px", overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg,#4F46E5,#818CF8)", borderRadius: "4px" }} />
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    {ALL_TRAININGS.map((name) => {
-                      const entry = trainings.find((t) => t.name === name);
-                      const done = !!entry?.proofDocument;
-                      const marked = !!entry;
-                      return (
-                        <div key={name} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "11px 14px", background: "var(--t-surface-alt)", border: `1px solid ${done ? "rgba(16,185,129,0.2)" : marked ? "rgba(79,70,229,0.2)" : "var(--t-hover-bg)"}`, borderRadius: "10px" }}>
-                          <button onClick={() => toggleTraining(name)}
-                            style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: done ? "var(--t-success)" : marked ? "var(--t-indigo)" : "var(--t-text-muted)", flexShrink: 0 }}>
-                            {done || marked ? <FaCheckCircle size={17} /> : <FaRegCircle size={17} />}
-                          </button>
-                          <div style={{ flex: 1 }}>
-                            <p style={{ margin: "0 0 1px", fontSize: "13px", fontWeight: 600, color: done ? "var(--t-success)" : marked ? "var(--t-text-secondary)" : "var(--t-text-dim)" }}>{name}</p>
-                            <p style={{ margin: 0, fontSize: "11px", color: "var(--t-text-ghost)" }}>{done ? "Completed" : marked ? "In progress" : "Not started"}</p>
-                          </div>
-                          {marked && !done && (
-                            <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "var(--t-indigo)", background: "var(--t-indigo-bg)", padding: "5px 10px", borderRadius: "6px", cursor: "pointer", border: "1px solid rgba(79,70,229,0.2)", whiteSpace: "nowrap" as const }}>
-                              <FaUpload size={9} /> Upload
-                              <input type="file" accept="image/*,.pdf" style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) handleProofUpload(name, e.target.files[0]); }} />
-                            </label>
-                          )}
-                          {done && entry?.proofDocument && (
-                            <a href={`${API_BASE_URL.replace("/api", "")}/${entry.proofDocument}`} target="_blank" rel="noopener noreferrer"
-                              style={{ fontSize: "11px", fontWeight: 600, color: "var(--t-success)", background: "rgba(16,185,129,0.1)", padding: "5px 10px", borderRadius: "6px", textDecoration: "none", border: "1px solid rgba(16,185,129,0.2)", whiteSpace: "nowrap" as const }}>
-                              View Proof
-                            </a>
-                          )}
-                          {!marked && (
-                            <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", background: "var(--t-hover-bg)", padding: "4px 9px", borderRadius: "20px", border: "1px solid var(--t-border)", whiteSpace: "nowrap" as const }}>PENDING</span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+
+                  {trainingsLoading ? (
+                    <div style={{ padding: "32px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "13px" }}>Loading…</div>
+                  ) : mandatoryTrainings.length === 0 ? (
+                    <div style={{ padding: "40px 24px", textAlign: "center" as const, background: "var(--t-surface-alt)", borderRadius: "12px", border: "1px dashed var(--t-border-strong)" }}>
+                      <p style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700, color: "var(--t-text-secondary)" }}>No mandatory trainings configured</p>
+                      <p style={{ margin: "0 0 16px", fontSize: "13px", color: "var(--t-text-ghost)" }}>Set up the required training list for your organization before tracking driver compliance.</p>
+                      <button
+                        onClick={() => { setConfigDraft([]); setNewTrainingInput(""); setShowConfigureModal(true); }}
+                        style={{ padding: "9px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                        + Configure Mandatory Trainings
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ height: "4px", background: "var(--t-hover-bg)", borderRadius: "4px", marginBottom: "16px", overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${progress}%`, background: "linear-gradient(90deg,var(--t-accent),var(--t-accent-light))", borderRadius: "4px" }} />
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        {mandatoryTrainings.map((name) => {
+                          const entry = trainings.find((t) => t.name === name);
+                          const done = !!entry?.proofDocument;
+                          const marked = !!entry;
+                          return (
+                            <div key={name} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "11px 14px", background: "var(--t-surface-alt)", border: `1px solid ${done ? "var(--t-success-bg)" : marked ? "var(--t-indigo-bg)" : "var(--t-border)"}`, borderRadius: "10px" }}>
+                              <button onClick={() => toggleTraining(name)}
+                                style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: done ? "var(--t-success)" : marked ? "var(--t-indigo)" : "var(--t-text-muted)", flexShrink: 0 }}>
+                                {done || marked ? <FaCheckCircle size={17} /> : <FaRegCircle size={17} />}
+                              </button>
+                              <div style={{ flex: 1 }}>
+                                <p style={{ margin: "0 0 1px", fontSize: "13px", fontWeight: 600, color: done ? "var(--t-success)" : marked ? "var(--t-text-secondary)" : "var(--t-text-dim)" }}>{name}</p>
+                                <p style={{ margin: 0, fontSize: "11px", color: "var(--t-text-ghost)" }}>{done ? "Completed" : marked ? "In progress" : "Not started"}</p>
+                              </div>
+                              {marked && !done && (
+                                <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 600, color: "var(--t-indigo)", background: "var(--t-indigo-bg)", padding: "5px 10px", borderRadius: "6px", cursor: "pointer", border: "1px solid var(--t-indigo-bg)", whiteSpace: "nowrap" as const }}>
+                                  <FaUpload size={9} /> Upload
+                                  <input type="file" accept="image/*,.pdf" style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) handleProofUpload(name, e.target.files[0]); }} />
+                                </label>
+                              )}
+                              {done && entry?.proofDocument && (
+                                <a href={`${API_BASE_URL.replace("/api", "")}/${entry.proofDocument}`} target="_blank" rel="noopener noreferrer"
+                                  style={{ fontSize: "11px", fontWeight: 600, color: "var(--t-success)", background: "var(--t-success-bg)", padding: "5px 10px", borderRadius: "6px", textDecoration: "none", border: "1px solid var(--t-success-bg)", whiteSpace: "nowrap" as const }}>
+                                  View Proof
+                                </a>
+                              )}
+                              {!marked && (
+                                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", background: "var(--t-hover-bg)", padding: "4px 9px", borderRadius: "20px", border: "1px solid var(--t-border)", whiteSpace: "nowrap" as const }}>PENDING</span>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
                 </>
               );
             })()}
@@ -326,39 +392,52 @@ const Profile: React.FC = () => {
 
           {/* Compliance Documents */}
           <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "24px" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
               <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>COMPLIANCE DOCUMENTS</p>
-              <FaUpload size={13} color="var(--t-text-dim)" />
+              <button
+                onClick={() => { setDocsConfigDraft([...mandatoryDocuments]); setNewDocInput(""); setShowDocsConfigModal(true); }}
+                style={{ padding: "5px 12px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "6px", color: "var(--t-text-faint)", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                ⚙ Configure
+              </button>
             </div>
-            {([
-              ["agencySignOff", "Agency Sign Off"],
-              ["driverDeliveryExpectations", "Driver Delivery Expectations"],
-              ["cellPhonePolicy", "Cell Phone Policy"],
-              ["storeSurvey1", "Store Survey 1"],
-              ["tobaccoAndLCPValidation", "Tobacco & LCP Validation"],
-              ["driverSop", "Driver SOP"],
-            ] as [string, string][]).map(([key, label]) => {
-              const doc = driver.requiredOnboardingForms?.[key];
-              const sc = doc
-                ? { label: "VALID", bg: "var(--t-success-bg)", color: "var(--t-success)", border: "rgba(16,185,129,0.25)" }
-                : { label: "PENDING", bg: "rgba(251,191,36,0.1)", color: "var(--t-warning)", border: "rgba(251,191,36,0.25)" };
-              return (
-                <div key={key} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "11px 14px", background: "var(--t-surface-alt)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "10px", marginBottom: "8px" }}>
-                  <span style={{ fontSize: "16px" }}>📄</span>
-                  <div style={{ flex: 1 }}>
-                    <p style={{ margin: "0 0 2px", fontSize: "13px", fontWeight: 600, color: "var(--t-text-secondary)" }}>{label}</p>
-                    <p style={{ margin: 0, fontSize: "11px", color: "var(--t-text-ghost)" }}>{doc ? "On file" : "Not submitted"}</p>
+
+            {docsLoading ? (
+              <div style={{ padding: "32px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "13px" }}>Loading…</div>
+            ) : mandatoryDocuments.length === 0 ? (
+              <div style={{ padding: "40px 24px", textAlign: "center" as const, background: "var(--t-surface-alt)", borderRadius: "12px", border: "1px dashed var(--t-border-strong)" }}>
+                <p style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700, color: "var(--t-text-secondary)" }}>No compliance documents configured</p>
+                <p style={{ margin: "0 0 16px", fontSize: "13px", color: "var(--t-text-ghost)" }}>Define the required documents your drivers must submit.</p>
+                <button
+                  onClick={() => { setDocsConfigDraft([]); setNewDocInput(""); setShowDocsConfigModal(true); }}
+                  style={{ padding: "9px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                  + Configure Compliance Documents
+                </button>
+              </div>
+            ) : (
+              mandatoryDocuments.map((name) => {
+                const entry = (driver.complianceDocuments || []).find((d: any) => d.name === name);
+                const doc = entry?.document;
+                const sc = doc
+                  ? { label: "VALID", bg: "var(--t-success-bg)", color: "var(--t-success)", border: "var(--t-success-bg)" }
+                  : { label: "PENDING", bg: "var(--t-warning-bg)", color: "var(--t-warning)", border: "var(--t-warning-bg)" };
+                return (
+                  <div key={name} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "11px 14px", background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", marginBottom: "8px" }}>
+                    <span style={{ fontSize: "16px" }}>📄</span>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ margin: "0 0 2px", fontSize: "13px", fontWeight: 600, color: "var(--t-text-secondary)" }}>{name}</p>
+                      <p style={{ margin: 0, fontSize: "11px", color: "var(--t-text-ghost)" }}>{doc ? "On file" : "Not submitted"}</p>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      {doc && (
+                        <a href={`${API_BASE_URL.replace("/api", "")}/${doc}`} target="_blank" rel="noopener noreferrer"
+                          style={{ fontSize: "11px", color: "var(--t-indigo)", textDecoration: "none", fontWeight: 600 }}>View</a>
+                      )}
+                      <span style={{ padding: "3px 9px", borderRadius: "20px", fontSize: "10px", fontWeight: 700, background: sc.bg, color: sc.color, border: `1px solid ${sc.border}`, letterSpacing: "0.5px" }}>{sc.label}</span>
+                    </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    {doc && (
-                      <a href={`${API_BASE_URL.replace("/api", "")}/${doc}`} target="_blank" rel="noopener noreferrer"
-                        style={{ fontSize: "11px", color: "var(--t-indigo)", textDecoration: "none", fontWeight: 600 }}>View</a>
-                    )}
-                    <span style={{ padding: "3px 9px", borderRadius: "20px", fontSize: "10px", fontWeight: 700, background: sc.bg, color: sc.color, border: `1px solid ${sc.border}`, letterSpacing: "0.5px" }}>{sc.label}</span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
 
           {/* License Details */}
@@ -479,6 +558,172 @@ const Profile: React.FC = () => {
         </div>
 
       </div>
+
+      {/* Configure Compliance Documents Modal */}
+      {showDocsConfigModal && (
+        <div style={{ position: "fixed" as const, inset: 0, background: "var(--t-modal-overlay)", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowDocsConfigModal(false); }}>
+          <div style={{ background: "var(--t-modal-bg)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "520px", maxHeight: "80vh", display: "flex", flexDirection: "column" as const, boxShadow: "var(--t-shadow-lg)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+              <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Configure Compliance Documents</h2>
+              <button onClick={() => setShowDocsConfigModal(false)} style={{ background: "none", border: "none", color: "var(--t-text-faint)", fontSize: "20px", cursor: "pointer", lineHeight: 1 }}>×</button>
+            </div>
+            <p style={{ margin: "0 0 20px", fontSize: "13px", color: "var(--t-text-ghost)" }}>These documents will be required from all drivers in your organization.</p>
+
+            <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+              <input
+                type="text"
+                value={newDocInput}
+                onChange={(e) => setNewDocInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newDocInput.trim() && !docsConfigDraft.includes(newDocInput.trim())) {
+                    setDocsConfigDraft((prev) => [...prev, newDocInput.trim()]);
+                    setNewDocInput("");
+                  }
+                }}
+                placeholder="e.g. Agency Sign Off"
+                style={{ flex: 1, padding: "9px 12px", background: "var(--t-input-bg)", border: "1px solid var(--t-input-border)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", outline: "none" }}
+              />
+              <button
+                onClick={() => {
+                  const name = newDocInput.trim();
+                  if (name && !docsConfigDraft.includes(name)) {
+                    setDocsConfigDraft((prev) => [...prev, name]);
+                    setNewDocInput("");
+                  }
+                }}
+                style={{ padding: "9px 16px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", whiteSpace: "nowrap" as const }}>
+                + Add
+              </button>
+            </div>
+
+            <div style={{ flex: 1, overflowY: "auto" as const, display: "flex", flexDirection: "column" as const, gap: "6px", marginBottom: "20px" }}>
+              {docsConfigDraft.length === 0 ? (
+                <p style={{ textAlign: "center" as const, padding: "32px", color: "var(--t-text-ghost)", fontSize: "13px", margin: 0 }}>No documents added yet.</p>
+              ) : docsConfigDraft.map((name, idx) => (
+                <div key={idx} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "8px" }}>
+                  <span style={{ flex: 1, fontSize: "13px", color: "var(--t-text-secondary)", fontWeight: 500 }}>{name}</span>
+                  <button onClick={() => setDocsConfigDraft((prev) => prev.filter((_, i) => i !== idx))}
+                    style={{ background: "none", border: "none", color: "var(--t-text-ghost)", fontSize: "16px", cursor: "pointer", lineHeight: 1, padding: "0 4px" }}>×</button>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button onClick={() => setShowDocsConfigModal(false)}
+                style={{ padding: "9px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text-faint)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                Cancel
+              </button>
+              <button
+                disabled={docsConfigSaving}
+                onClick={async () => {
+                  try {
+                    setDocsConfigSaving(true);
+                    const token = localStorage.getItem("token");
+                    const res = await axios.put(`${API_BASE_URL}/organizations/mandatory-documents`, { mandatoryDocuments: docsConfigDraft }, {
+                      headers: { Authorization: `Bearer ${token}` },
+                    });
+                    setMandatoryDocuments(res.data.mandatoryDocuments);
+                    setShowDocsConfigModal(false);
+                  } catch (err) {
+                    console.error("Failed to save mandatory documents:", err);
+                  } finally {
+                    setDocsConfigSaving(false);
+                  }
+                }}
+                style={{ padding: "9px 18px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: docsConfigSaving ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif", opacity: docsConfigSaving ? 0.7 : 1 }}>
+                {docsConfigSaving ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Configure Mandatory Trainings Modal */}
+      {showConfigureModal && (
+        <div style={{ position: "fixed" as const, inset: 0, background: "var(--t-modal-overlay)", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowConfigureModal(false); }}>
+          <div style={{ background: "var(--t-modal-bg)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "520px", maxHeight: "80vh", display: "flex", flexDirection: "column" as const, gap: "0", boxShadow: "var(--t-shadow-lg)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+              <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Configure Mandatory Trainings</h2>
+              <button onClick={() => setShowConfigureModal(false)} style={{ background: "none", border: "none", color: "var(--t-text-faint)", fontSize: "20px", cursor: "pointer", lineHeight: 1 }}>×</button>
+            </div>
+            <p style={{ margin: "0 0 20px", fontSize: "13px", color: "var(--t-text-ghost)" }}>These trainings will be required for all drivers in your organization.</p>
+
+            {/* Add new training */}
+            <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+              <input
+                type="text"
+                value={newTrainingInput}
+                onChange={(e) => setNewTrainingInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newTrainingInput.trim() && !configDraft.includes(newTrainingInput.trim())) {
+                    setConfigDraft((prev) => [...prev, newTrainingInput.trim()]);
+                    setNewTrainingInput("");
+                  }
+                }}
+                placeholder="e.g. Defensive Driving"
+                style={{ flex: 1, padding: "9px 12px", background: "var(--t-input-bg)", border: "1px solid var(--t-input-border)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", outline: "none" }}
+              />
+              <button
+                onClick={() => {
+                  const name = newTrainingInput.trim();
+                  if (name && !configDraft.includes(name)) {
+                    setConfigDraft((prev) => [...prev, name]);
+                    setNewTrainingInput("");
+                  }
+                }}
+                style={{ padding: "9px 16px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", whiteSpace: "nowrap" as const }}>
+                + Add
+              </button>
+            </div>
+
+            {/* Training list */}
+            <div style={{ flex: 1, overflowY: "auto" as const, display: "flex", flexDirection: "column" as const, gap: "6px", marginBottom: "20px" }}>
+              {configDraft.length === 0 ? (
+                <p style={{ textAlign: "center" as const, padding: "32px", color: "var(--t-text-ghost)", fontSize: "13px", margin: 0 }}>No trainings added yet. Type a name above and click Add.</p>
+              ) : configDraft.map((name, idx) => (
+                <div key={idx} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "8px" }}>
+                  <span style={{ flex: 1, fontSize: "13px", color: "var(--t-text-secondary)", fontWeight: 500 }}>{name}</span>
+                  <button
+                    onClick={() => setConfigDraft((prev) => prev.filter((_, i) => i !== idx))}
+                    style={{ background: "none", border: "none", color: "var(--t-text-ghost)", fontSize: "16px", cursor: "pointer", lineHeight: 1, padding: "0 4px" }}>
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Footer buttons */}
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button onClick={() => setShowConfigureModal(false)}
+                style={{ padding: "9px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text-faint)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                Cancel
+              </button>
+              <button
+                disabled={configureSaving}
+                onClick={async () => {
+                  try {
+                    setConfigureSaving(true);
+                    const token = localStorage.getItem("token");
+                    const res = await axios.put(`${API_BASE_URL}/organizations/mandatory-trainings`, { mandatoryTrainings: configDraft }, {
+                      headers: { Authorization: `Bearer ${token}` },
+                    });
+                    setMandatoryTrainings(res.data.mandatoryTrainings);
+                    setShowConfigureModal(false);
+                  } catch (err) {
+                    console.error("Failed to save mandatory trainings:", err);
+                  } finally {
+                    setConfigureSaving(false);
+                  }
+                }}
+                style={{ padding: "9px 18px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: configureSaving ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif", opacity: configureSaving ? 0.7 : 1 }}>
+                {configureSaving ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

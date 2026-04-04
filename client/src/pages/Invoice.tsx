@@ -6,7 +6,7 @@ import Navbar from "./Navbar";
 import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { API_BASE_URL } from "../utils/env";
-import { FaFilePdf, FaArrowRight, FaInfoCircle, FaClipboardList } from "react-icons/fa";
+import { FaFilePdf, FaArrowRight, FaInfoCircle } from "react-icons/fa";
 
 interface InvoiceItem {
   id: number; name: string; quantity: number; rate: number; tax: string; amount: number;
@@ -138,148 +138,218 @@ const Invoice: React.FC = () => {
   const buildPDFDoc = () => {
     const doc = new jsPDF();
     const pw = 210;
+    const ph = 297;
+    const marginX = 12;
+    const cardX = 8;
+    const cardY = 8;
+    const cardW = pw - 16;
+    const cardH = ph - 16;
+    const contentX = 14;
+    const contentW = pw - 28;
     const approvedRows = getApprovedRows();
 
-    // ── Page background ──
-    doc.setFillColor(13, 17, 23);
-    doc.rect(0, 0, pw, 297, "F");
+    const palette = {
+      page: [255, 255, 255] as [number, number, number],
+      card: [251, 253, 255] as [number, number, number],
+      panel: [248, 250, 252] as [number, number, number],
+      panelAlt: [244, 248, 252] as [number, number, number],
+      border: [226, 232, 240] as [number, number, number],
+      borderSoft: [235, 241, 246] as [number, number, number],
+      text: [15, 23, 42] as [number, number, number],
+      textSoft: [71, 85, 105] as [number, number, number],
+      textMuted: [100, 116, 139] as [number, number, number],
+      navy: [23, 58, 99] as [number, number, number],
+      navySoft: [230, 239, 248] as [number, number, number],
+      accent: [79, 70, 229] as [number, number, number],
+    };
 
-    // ── Card background ──
-    doc.setFillColor(22, 27, 34);
-    doc.roundedRect(8, 8, pw - 16, 268, 4, 4, "F");
+    const drawPanel = (x: number, y: number, w: number, h: number, fill: [number, number, number], radius = 4) => {
+      doc.setFillColor(...fill);
+      doc.roundedRect(x, y, w, h, radius, radius, "F");
+      doc.setDrawColor(...palette.border);
+      doc.setLineWidth(0.2);
+      doc.roundedRect(x, y, w, h, radius, radius, "S");
+    };
 
-    // ── Logo ──
-    doc.setFillColor(79, 70, 229);
-    doc.roundedRect(14, 13, 9, 9, 2, 2, "F");
-    doc.setFont("helvetica", "bold").setFontSize(10).setTextColor(255, 255, 255);
-    doc.text("Fleet", 25, 19.5);
-    doc.setTextColor(129, 140, 248);
-    doc.text("IQ", 25 + doc.getTextWidth("Fleet"), 19.5);
+    const writeLines = (lines: string[], x: number, y: number, maxWidth: number, lineGap = 5.5) => {
+      let cursorY = y;
+      lines.forEach((line) => {
+        const wrapped = doc.splitTextToSize(line, maxWidth);
+        doc.text(wrapped, x, cursorY);
+        cursorY += wrapped.length * lineGap;
+      });
+      return cursorY;
+    };
 
-    // ── INVOICE title ──
-    doc.setFont("helvetica", "bold").setFontSize(30).setTextColor(248, 250, 252);
-    doc.text("INVOICE", 14, 46);
-
-    // ── Right: dates ──
-    const rx = 138;
-    doc.setFont("helvetica", "bold").setFontSize(7).setTextColor(107, 114, 128);
-    doc.text("INVOICE DATE", rx, 16);
-    doc.setFont("helvetica", "bold").setFontSize(13).setTextColor(248, 250, 252);
-    doc.text(invoiceDate.toLocaleDateString("en-CA", { month: "long", day: "numeric", year: "numeric" }), rx, 25);
-
-    doc.setFont("helvetica", "bold").setFontSize(7).setTextColor(107, 114, 128);
-    doc.text("INVOICE PERIOD", rx, 35);
-    doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(209, 213, 219);
-    doc.text(invoicePeriod || "—", rx, 43);
-
-    // Invoice number badge
+    const invoiceDateLabel = invoiceDate.toLocaleDateString("en-CA", { month: "long", day: "numeric", year: "numeric" });
+    const invoiceDueLabel = invoiceDateLabel;
     const invNum = `#INV-${invoiceDate.getFullYear()}-${String(invoiceDate.getMonth() + 1).padStart(2, "0")}${String(invoiceDate.getDate()).padStart(2, "0")}`;
-    doc.setFillColor(25, 22, 65);
-    doc.roundedRect(rx - 1, 47, 57, 7, 2, 2, "F");
-    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(129, 140, 248);
-    doc.text(invNum, rx + 27, 51.8, { align: "center" });
-
-    // ── Divider ──
-    doc.setDrawColor(35, 40, 52);
-    doc.setLineWidth(0.4);
-    doc.line(14, 58, pw - 14, 58);
-
-    // ── FROM / TO ──
-    const ftY = 65;
-    doc.setFont("helvetica", "bold").setFontSize(7.5).setTextColor(75, 85, 99);
-    doc.text("FROM", 14, ftY);
-    doc.setDrawColor(35, 40, 52);
-    doc.setLineWidth(0.4);
-    doc.line(107, 60, 107, 108);
-    doc.text("TO", 115, ftY);
-
-    doc.setFont("helvetica", "bold").setFontSize(12).setTextColor(248, 250, 252);
-    doc.text(fromDetails.name || "—", 14, ftY + 9);
-    doc.text(toDetails.name || "—", 115, ftY + 9);
-
-    doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(156, 163, 175);
     const fromLines = [fromDetails.address, fromDetails.email, fromDetails.phone].filter(Boolean) as string[];
     const toLines = [toDetails.businessName, toDetails.contact, toDetails.address, toDetails.gst ? `GST/HST: ${toDetails.gst}` : ""].filter(Boolean) as string[];
-    fromLines.forEach((line, i) => doc.text(line, 14, ftY + 17 + i * 6));
-    toLines.forEach((line, i) => doc.text(line, 115, ftY + 17 + i * 6));
+
+    doc.setFillColor(...palette.page);
+    doc.rect(0, 0, pw, ph, "F");
+
+    doc.setFillColor(...palette.card);
+    doc.roundedRect(cardX, cardY, cardW, cardH, 5, 5, "F");
+    doc.setDrawColor(...palette.borderSoft);
+    doc.setLineWidth(0.25);
+    doc.roundedRect(cardX, cardY, cardW, cardH, 5, 5, "S");
+
+    // Header
+    doc.setFillColor(...palette.navy);
+    doc.roundedRect(contentX, 13, 11, 11, 2.5, 2.5, "F");
+    doc.setFont("helvetica", "bold").setFontSize(12).setTextColor(255, 255, 255);
+    doc.text("F", contentX + 5.5, 20.6, { align: "center" });
+
+    doc.setFont("helvetica", "bold").setFontSize(10).setTextColor(...palette.navy);
+    doc.text("FLEETIQ", contentX + 15, 17.2);
+    doc.setFont("helvetica", "normal").setFontSize(8.5).setTextColor(...palette.textMuted);
+    doc.text("Professional fleet billing", contentX + 15, 22.6);
+
+    doc.setFont("helvetica", "bold").setFontSize(28).setTextColor(...palette.text);
+    doc.text("INVOICE", pw - 14, 23, { align: "right" });
+    doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(...palette.textMuted);
+    doc.text("FleetIQ billing statement", pw - 14, 28.8, { align: "right" });
+
+    const metaX = 128;
+    const metaY = 35;
+    const metaW = pw - metaX - 14;
+    drawPanel(metaX, metaY, metaW, 36, palette.panel);
+
+    const metaItems = [
+      { label: "Invoice #", value: invNum },
+      { label: "Invoice Date", value: invoiceDateLabel },
+      { label: "Billing Period", value: invoicePeriod || "—" },
+      { label: "Due Date", value: invoiceDueLabel },
+    ];
+
+    const metaColW = (metaW - 12) / 2;
+    metaItems.forEach((item, index) => {
+      const col = index % 2;
+      const row = Math.floor(index / 2);
+      const x = metaX + 6 + col * metaColW;
+      const y = metaY + 8 + row * 14;
+      doc.setFont("helvetica", "bold").setFontSize(7).setTextColor(...palette.textMuted);
+      doc.text(item.label.toUpperCase(), x, y);
+      doc.setFont("helvetica", "bold").setFontSize(index === 0 ? 9.5 : 9).setTextColor(...palette.text);
+      doc.text(doc.splitTextToSize(item.value, metaColW - 6), x, y + 5.8);
+    });
+
+    doc.setDrawColor(...palette.border);
+    doc.setLineWidth(0.35);
+    doc.line(contentX, 78, pw - contentX, 78);
+
+    // From / To blocks
+    const blocksY = 84;
+    const gutter = 8;
+    const blockW = (contentW - gutter) / 2;
+    const blockH = 42;
+    drawPanel(contentX, blocksY, blockW, blockH, palette.panel);
+    drawPanel(contentX + blockW + gutter, blocksY, blockW, blockH, palette.panel);
+
+    doc.setFont("helvetica", "bold").setFontSize(7.5).setTextColor(...palette.textMuted);
+    doc.text("FROM", contentX + 8, blocksY + 8);
+    doc.text("BILL TO", contentX + blockW + gutter + 8, blocksY + 8);
+
+    doc.setFont("helvetica", "bold").setFontSize(12).setTextColor(...palette.text);
+    doc.text(fromDetails.name || "—", contentX + 8, blocksY + 16);
+    doc.text(toDetails.name || "—", contentX + blockW + gutter + 8, blocksY + 16);
+
+    doc.setFont("helvetica", "normal").setFontSize(8.8).setTextColor(...palette.textSoft);
+    writeLines(fromLines.length ? fromLines : ["—"], contentX + 8, blocksY + 22, blockW - 16);
+    writeLines(toLines.length ? toLines : ["—"], contentX + blockW + gutter + 8, blocksY + 22, blockW - 16);
+
+    // Table header label
+    const tableTopY = blocksY + blockH + 14;
+    doc.setFont("helvetica", "bold").setFontSize(7.5).setTextColor(...palette.textMuted);
+    doc.text("LINE ITEMS", contentX, tableTopY);
+    doc.setFont("helvetica", "bold").setFontSize(15).setTextColor(...palette.text);
+    doc.text("Approved Timesheets & Services", contentX, tableTopY + 8);
 
     // ── Table ──
-    const tableY = 117;
+    const tableY = tableTopY + 14;
     (doc as any).autoTable({
       startY: tableY,
       head: [["DATE", "CATEGORY", "HOURS", "RATE", "SUBTOTAL"]],
       body: approvedRows.length > 0 ? approvedRows : [["—", "No approved timesheets in period", "—", "—", "—"]],
-      theme: "plain",
+      theme: "grid",
       headStyles: {
-        fillColor: [22, 27, 34],
-        textColor: [75, 85, 99],
-        fontSize: 7.5,
+        fillColor: palette.navySoft,
+        textColor: palette.navy,
+        fontSize: 8,
         fontStyle: "bold",
-        cellPadding: { top: 5, bottom: 5, left: 6, right: 6 },
-        lineColor: [40, 46, 58],
-        lineWidth: 0.3,
-      },
-      bodyStyles: {
-        fillColor: [22, 27, 34],
-        textColor: [209, 213, 219],
-        fontSize: 9.5,
-        cellPadding: { top: 8, bottom: 8, left: 6, right: 6 },
-        lineColor: [30, 35, 45],
+        cellPadding: { top: 6, bottom: 6, left: 7, right: 7 },
+        lineColor: palette.border,
         lineWidth: 0.25,
       },
-      alternateRowStyles: { fillColor: [17, 22, 30] },
-      columnStyles: {
-        0: { cellWidth: 28 },
-        1: { cellWidth: 72 },
-        2: { cellWidth: 26, halign: "right" as const },
-        3: { cellWidth: 24, halign: "right" as const },
-        4: { cellWidth: 28, halign: "right" as const, fontStyle: "bold", textColor: [248, 250, 252] },
+      bodyStyles: {
+        fillColor: palette.page,
+        textColor: palette.textSoft,
+        fontSize: 9.2,
+        cellPadding: { top: 8, bottom: 8, left: 7, right: 7 },
+        lineColor: palette.borderSoft,
+        lineWidth: 0.25,
       },
-      margin: { left: 12, right: 12 },
+      alternateRowStyles: { fillColor: palette.panel },
+      columnStyles: {
+        0: { cellWidth: 40, whiteSpace: "nowrap" as const },
+        1: { cellWidth: 68 },
+        2: { cellWidth: 22, halign: "right" as const },
+        3: { cellWidth: 26, halign: "right" as const },
+        4: { cellWidth: 28, halign: "right" as const, fontStyle: "bold", textColor: palette.text },
+      },
+      margin: { left: marginX, right: marginX },
+      tableLineColor: palette.border,
+      tableLineWidth: 0.2,
     });
 
-    // ── Summary ──
+    // Totals block
     const finalY = (doc as any).lastAutoTable.finalY;
-    let sy = finalY + 13;
+    const notesY = finalY + 16;
+    const footerReserveY = ph - 26;
+    const notesW = 106;
+    const totalsW = 64;
+    const notesH = notes.trim() ? 28 : 22;
+    const totalsH = 38;
+    drawPanel(contentX, notesY, notesW, notesH, palette.panel);
+    drawPanel(pw - 14 - totalsW, notesY, totalsW, totalsH, palette.panelAlt);
 
-    doc.setFont("helvetica", "normal").setFontSize(10).setTextColor(156, 163, 175);
-    doc.text("Subtotal", 140, sy);
-    doc.text(`$${subtotal.toFixed(2)}`, 199, sy, { align: "right" });
+    doc.setFont("helvetica", "bold").setFontSize(7.5).setTextColor(...palette.textMuted);
+    doc.text("NOTES", contentX + 8, notesY + 8);
+    doc.setFont("helvetica", "normal").setFontSize(8.7).setTextColor(...palette.textSoft);
+    const noteCopy = notes.trim() || "Thank you for your business. Please remit payment by the due date.";
+    doc.text(doc.splitTextToSize(noteCopy, notesW - 16), contentX + 8, notesY + 14);
+
+    let sy = notesY + 10;
+    const totalsX = pw - 14 - totalsW + 8;
+    const totalsRight = pw - 22;
+    doc.setFont("helvetica", "normal").setFontSize(9.5).setTextColor(...palette.textSoft);
+    doc.text("Subtotal", totalsX, sy);
+    doc.text(`$${subtotal.toFixed(2)}`, totalsRight, sy, { align: "right" });
 
     sy += 8;
-    doc.text("HST (13%)", 140, sy);
-    doc.text(`$${hst.toFixed(2)}`, 199, sy, { align: "right" });
+    doc.text("HST (13%)", totalsX, sy);
+    doc.text(`$${hst.toFixed(2)}`, totalsRight, sy, { align: "right" });
 
-    doc.setDrawColor(40, 46, 58);
-    doc.setLineWidth(0.4);
-    doc.line(138, sy + 4, 200, sy + 4);
+    doc.setDrawColor(...palette.border);
+    doc.setLineWidth(0.35);
+    doc.line(totalsX, sy + 4, totalsRight, sy + 4);
 
     sy += 13;
-    doc.setFont("helvetica", "bold").setFontSize(9).setTextColor(107, 114, 128);
-    doc.text("TOTAL", 140, sy);
-    doc.setFont("helvetica", "bold").setFontSize(18).setTextColor(129, 140, 248);
-    doc.text(`$${total.toFixed(2)}`, 199, sy, { align: "right" });
+    doc.setFont("helvetica", "bold").setFontSize(8).setTextColor(...palette.textMuted);
+    doc.text("BALANCE DUE", totalsX, sy);
+    doc.setFont("helvetica", "bold").setFontSize(18).setTextColor(...palette.navy);
+    doc.text(`$${total.toFixed(2)}`, totalsRight, sy, { align: "right" });
 
-    // ── Footer ──
-    const footerY = sy + 20;
-    doc.setDrawColor(30, 35, 45);
+    // Footer
+    doc.setDrawColor(...palette.border);
     doc.setLineWidth(0.35);
-    doc.line(12, footerY - 6, pw - 12, footerY - 6);
-    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(75, 85, 99);
-    doc.text("www.fleetiq.ca", 14, footerY + 1);
-    doc.text("support@fleetiq.ca", pw / 2, footerY + 1, { align: "center" });
-    doc.text("© 2026 FleetIQ Inc. All rights reserved.", pw - 14, footerY + 1, { align: "right" });
-
-    // ── Notes ──
-    if (notes.trim()) {
-      const notesY = footerY + 15;
-      doc.setFillColor(17, 22, 30);
-      doc.roundedRect(12, notesY - 5, pw - 24, 22, 3, 3, "F");
-      doc.setFont("helvetica", "bold").setFontSize(7.5).setTextColor(75, 85, 99);
-      doc.text("NOTES", 22, notesY + 2);
-      doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(156, 163, 175);
-      doc.text(doc.splitTextToSize(notes, 168), 22, notesY + 9);
-    }
+    doc.line(contentX, footerReserveY - 6, pw - contentX, footerReserveY - 6);
+    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...palette.textMuted);
+    doc.text("www.fleetiqlogistics.com", contentX, footerReserveY + 1);
+    doc.text("support@fleetiqlogistics.com", pw / 2, footerReserveY + 1, { align: "center" });
+    doc.text("© 2026 FleetIQ Inc. All rights reserved.", pw - contentX, footerReserveY + 1, { align: "right" });
 
     return doc;
   };
@@ -292,12 +362,15 @@ const Invoice: React.FC = () => {
     const doc = buildPDFDoc();
     const base64 = doc.output("datauristring").split(";base64,")[1];
     try {
-      await axios.post(`${API_BASE_URL}/timesheets/send-invoice-email`, { driverId: selectedDriver, invoicePdf: base64 });
+      await axios.post(`${API_BASE_URL}/timesheets/send-invoice-email`, { driverId: selectedDriver, invoicePdf: base64, amount: total.toFixed(2) });
       alert("Invoice sent successfully!");
     } catch { alert("Failed to send invoice"); }
   };
 
   const isDisabled = !selectedDriver || selectedDriver === "__placeholder__";
+  const invoiceNumber = `INV-${invoiceDate.getFullYear()}-${String(invoiceDate.getMonth() + 1).padStart(2, "0")}${String(invoiceDate.getDate()).padStart(2, "0")}`;
+  const dueDateLabel = invoiceDate.toLocaleDateString("en-CA", { month: "long", day: "numeric", year: "numeric" });
+  const approvedTimesheets = timesheets.filter((t) => t.status === "approved");
 
   const STATUS_BADGE: Record<string, { bg: string; border: string; color: string; label: string }> = {
     approved: { bg: "var(--t-success-bg)",  border: "rgba(16,185,129,0.25)",  color: "var(--t-success)", label: "Approved" },
@@ -312,9 +385,307 @@ const Invoice: React.FC = () => {
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
         input:focus, select:focus, textarea:focus { border-color: var(--t-accent) !important; box-shadow: 0 0 0 3px rgba(79,70,229,0.15) !important; outline: none; }
         select option { background: var(--t-surface); color: var(--t-text); }
+        .fi-premium-invoice {
+          --fi-bg: #ffffff;
+          --fi-surface: #ffffff;
+          --fi-surface-soft: #f8fafc;
+          --fi-surface-muted: #fcfdff;
+          --fi-border: #e5e7eb;
+          --fi-border-strong: #dbe3ee;
+          --fi-text: #0f172a;
+          --fi-text-soft: #475569;
+          --fi-text-muted: #64748b;
+          --fi-primary: #173a63;
+          --fi-primary-strong: #0f2f52;
+          --fi-total-bg: #f4f8fc;
+          background: var(--fi-bg);
+          color: var(--fi-text);
+          border: 1px solid var(--fi-border);
+          border-radius: 24px;
+          padding: 32px;
+          box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
+        }
+        .fi-premium-invoice__header,
+        .fi-premium-invoice__party-grid,
+        .fi-premium-invoice__footer-grid {
+          display: grid;
+          grid-template-columns: 1.2fr 0.9fr;
+          gap: 22px;
+        }
+        .fi-premium-invoice__header {
+          align-items: start;
+          padding-bottom: 28px;
+          border-bottom: 1px solid var(--fi-border);
+        }
+        .fi-premium-invoice__brand {
+          display: flex;
+          gap: 16px;
+          align-items: flex-start;
+        }
+        .fi-premium-invoice__logo {
+          width: 52px;
+          height: 52px;
+          border-radius: 16px;
+          background: linear-gradient(135deg, #173a63 0%, #24548f 100%);
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          font-weight: 800;
+          letter-spacing: -0.04em;
+          flex-shrink: 0;
+        }
+        .fi-premium-invoice__eyebrow,
+        .fi-premium-invoice__section-label,
+        .fi-premium-invoice__meta-item dt {
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+        }
+        .fi-premium-invoice__eyebrow {
+          color: var(--fi-primary);
+          margin-bottom: 6px;
+        }
+        .fi-premium-invoice__brand-name {
+          margin: 0 0 12px;
+          font-size: 30px;
+          line-height: 1;
+          font-weight: 800;
+          letter-spacing: -0.04em;
+          color: var(--fi-text);
+        }
+        .fi-premium-invoice__company-meta {
+          display: grid;
+          gap: 4px;
+        }
+        .fi-premium-invoice__company-meta p,
+        .fi-premium-invoice__party-card p,
+        .fi-premium-invoice__notes-text {
+          margin: 0;
+          font-size: 14px;
+          line-height: 1.6;
+          color: var(--fi-text-soft);
+        }
+        .fi-premium-invoice__meta-panel,
+        .fi-premium-invoice__party-card,
+        .fi-premium-invoice__table-card,
+        .fi-premium-invoice__notes-card,
+        .fi-premium-invoice__totals-card {
+          border: 1px solid var(--fi-border);
+          border-radius: 16px;
+          background: var(--fi-surface);
+        }
+        .fi-premium-invoice__meta-panel {
+          background: var(--fi-surface-soft);
+          padding: 20px 22px;
+        }
+        .fi-premium-invoice__meta-kicker {
+          display: inline-block;
+          margin-bottom: 8px;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
+          text-transform: uppercase;
+          color: var(--fi-text-muted);
+        }
+        .fi-premium-invoice__title {
+          margin: 0;
+          font-size: 34px;
+          line-height: 1;
+          letter-spacing: -0.05em;
+          font-weight: 800;
+          color: var(--fi-primary-strong);
+        }
+        .fi-premium-invoice__meta-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 14px 18px;
+          margin: 18px 0 0;
+        }
+        .fi-premium-invoice__meta-item dt {
+          margin: 0 0 5px;
+          color: var(--fi-text-muted);
+        }
+        .fi-premium-invoice__meta-item dd {
+          margin: 0;
+          font-size: 14px;
+          line-height: 1.45;
+          font-weight: 600;
+          color: var(--fi-text);
+        }
+        .fi-premium-invoice__party-grid,
+        .fi-premium-invoice__footer-grid {
+          margin-top: 24px;
+        }
+        .fi-premium-invoice__party-card,
+        .fi-premium-invoice__notes-card,
+        .fi-premium-invoice__totals-card {
+          padding: 20px 22px;
+        }
+        .fi-premium-invoice__section-label {
+          display: inline-block;
+          margin-bottom: 10px;
+          color: var(--fi-text-muted);
+        }
+        .fi-premium-invoice__section-title,
+        .fi-premium-invoice__party-name {
+          margin: 0 0 8px;
+          font-size: 18px;
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          color: var(--fi-text);
+        }
+        .fi-premium-invoice__table-card {
+          margin-top: 24px;
+          overflow: hidden;
+        }
+        .fi-premium-invoice__table-head {
+          padding: 20px 22px 16px;
+          border-bottom: 1px solid var(--fi-border);
+        }
+        .fi-premium-invoice__table-wrap {
+          width: 100%;
+          overflow-x: auto;
+        }
+        .fi-premium-invoice__table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        .fi-premium-invoice__table thead th {
+          background: var(--fi-surface-soft);
+          color: var(--fi-text-muted);
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          padding: 14px 18px;
+          border-bottom: 1px solid var(--fi-border);
+          text-align: left;
+        }
+        .fi-premium-invoice__table tbody td {
+          padding: 16px 18px;
+          border-bottom: 1px solid #edf2f7;
+          font-size: 14px;
+          line-height: 1.5;
+          color: var(--fi-text-soft);
+          vertical-align: top;
+        }
+        .fi-premium-invoice__table tbody tr:nth-child(even) td {
+          background: var(--fi-surface-muted);
+        }
+        .fi-premium-invoice__table tbody tr:last-child td {
+          border-bottom: none;
+        }
+        .fi-premium-invoice__item-title {
+          font-weight: 600;
+          color: var(--fi-text);
+        }
+        .fi-premium-invoice__item-subtitle {
+          margin-top: 4px;
+          font-size: 12px;
+          color: var(--fi-text-muted);
+        }
+        .fi-premium-invoice__table .is-numeric {
+          text-align: right;
+          white-space: nowrap;
+        }
+        .fi-premium-invoice__amount {
+          font-weight: 700;
+          color: var(--fi-text);
+        }
+        .fi-premium-invoice__empty {
+          text-align: center;
+          padding: 34px 18px !important;
+          color: var(--fi-text-muted);
+        }
+        .fi-premium-invoice__totals-card {
+          background: var(--fi-total-bg);
+        }
+        .fi-premium-invoice__totals-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          padding: 8px 0;
+          font-size: 14px;
+          color: var(--fi-text-soft);
+        }
+        .fi-premium-invoice__totals-row strong {
+          font-weight: 700;
+          color: var(--fi-text);
+        }
+        .fi-premium-invoice__totals-total {
+          margin-top: 14px;
+          padding-top: 18px;
+          border-top: 1px solid var(--fi-border-strong);
+        }
+        .fi-premium-invoice__total-label {
+          display: block;
+          margin-bottom: 6px;
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--fi-text-muted);
+        }
+        .fi-premium-invoice__total-value {
+          display: block;
+          font-size: 34px;
+          line-height: 1;
+          font-weight: 800;
+          letter-spacing: -0.04em;
+          color: var(--fi-primary-strong);
+        }
+        .fi-premium-invoice__footer {
+          margin-top: 24px;
+          padding-top: 18px;
+          border-top: 1px solid var(--fi-border);
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-between;
+          gap: 10px 18px;
+          font-size: 12px;
+          color: var(--fi-text-muted);
+        }
+        @media (max-width: 1180px) {
+          .fi-invoice-layout {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 980px) {
+          .fi-premium-invoice {
+            padding: 24px;
+          }
+          .fi-premium-invoice__header,
+          .fi-premium-invoice__party-grid,
+          .fi-premium-invoice__footer-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+        @media print {
+          .fi-premium-invoice {
+            box-shadow: none;
+            border-radius: 0;
+            break-inside: avoid;
+          }
+          .fi-premium-invoice__meta-panel,
+          .fi-premium-invoice__table thead th,
+          .fi-premium-invoice__table tbody tr:nth-child(even) td,
+          .fi-premium-invoice__totals-card {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+        }
       `}</style>
 
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "36px 40px" }}>
+
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>
+          INVOICES
+        </div>
 
         {/* ── Page Header ── */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "16px", marginBottom: "32px" }}>
@@ -345,7 +716,7 @@ const Invoice: React.FC = () => {
         </div>
 
         {/* ── Two-column layout ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: "20px", alignItems: "start" }}>
+        <div className="fi-invoice-layout" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: "20px", alignItems: "start" }}>
 
           {/* ── LEFT COLUMN ── */}
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -416,140 +787,165 @@ const Invoice: React.FC = () => {
           {/* ── RIGHT COLUMN ── */}
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
 
-            {/* From / To cards */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
-
-              {/* FROM */}
-              <div style={styles.card}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
-                  <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-dim)", textTransform: "uppercase", letterSpacing: "1px" }}>From (Organization)</span>
-                  <button
-                    onClick={() => {}}
-                    style={{ background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "6px", width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--t-text-faint)" }}
-                    title="Edit"
-                  >
-                    ✎
-                  </button>
-                </div>
-                {fromDetails.name ? (
+            <section className="fi-premium-invoice">
+              <header className="fi-premium-invoice__header">
+                <div className="fi-premium-invoice__brand">
+                  <div className="fi-premium-invoice__logo" aria-hidden="true">
+                    <span>F</span>
+                  </div>
                   <div>
-                    <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--t-text)", marginBottom: "8px" }}>{fromDetails.name}</div>
-                    {fromDetails.address && <div style={{ fontSize: "12px", color: "var(--t-text-faint)", marginBottom: "3px" }}>{fromDetails.address}</div>}
-                    {fromDetails.email && <div style={{ fontSize: "12px", color: "var(--t-indigo)" }}>{fromDetails.email}</div>}
-                    {fromDetails.phone && <div style={{ fontSize: "12px", color: "var(--t-text-faint)", marginTop: "3px" }}>{fromDetails.phone}</div>}
-                  </div>
-                ) : (
-                  <div style={{ fontSize: "13px", color: "var(--t-text-ghost)" }}>Loading org profile…</div>
-                )}
-              </div>
-
-              {/* TO */}
-              <div style={styles.card}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
-                  <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-dim)", textTransform: "uppercase", letterSpacing: "1px" }}>To (Driver)</span>
-                  <button
-                    onClick={() => {}}
-                    style={{ background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "6px", width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--t-text-faint)" }}
-                    title="Edit"
-                  >
-                    ✎
-                  </button>
-                </div>
-                {selectedDriver === "__placeholder__" ? (
-                  <div>
-                    <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--t-text-muted)", marginBottom: "6px" }}>No Driver Selected</div>
-                    <div style={{ fontSize: "12px", color: "var(--t-text-ghost)", lineHeight: 1.6 }}>Select a driver from settings to populate contact details and tax ID.</div>
-                  </div>
-                ) : (
-                  <div>
-                    <div style={{ fontSize: "16px", fontWeight: 700, color: "var(--t-text)", marginBottom: "8px" }}>{toDetails.name}</div>
-                    {toDetails.businessName && <div style={{ fontSize: "12px", color: "var(--t-text-faint)", marginBottom: "3px" }}>{toDetails.businessName}</div>}
-                    {toDetails.contact && <div style={{ fontSize: "12px", color: "var(--t-text-faint)", marginBottom: "3px" }}>{toDetails.contact}</div>}
-                    {toDetails.gst && <div style={{ fontSize: "12px", color: "var(--t-indigo)" }}>GST/HST: {toDetails.gst}</div>}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Timesheets & Activities */}
-            <div style={styles.card}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px" }}>
-                <h2 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "var(--t-text)" }}>Timesheets & Activities</h2>
-                <button style={{ background: "none", border: "none", color: "var(--t-indigo)", fontSize: "11px", fontWeight: 700, cursor: "pointer", letterSpacing: "0.5px", fontFamily: "Inter, system-ui, sans-serif" }}>
-                  + MANUAL ENTRY
-                </button>
-              </div>
-
-              {/* Table header */}
-              <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1.4fr 1fr 0.8fr 0.8fr", gap: "0", borderBottom: "1px solid var(--t-border)", paddingBottom: "10px", marginBottom: "4px" }}>
-                {["DATE / REFERENCE", "DESCRIPTION", "QUANTITY / HRS", "RATE", "AMOUNT"].map((h) => (
-                  <div key={h} style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", padding: "0 8px" }}>{h}</div>
-                ))}
-              </div>
-
-              {timesheets.length === 0 ? (
-                <div style={{ padding: "48px 0", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-                  <FaClipboardList size={32} style={{ color: "var(--t-text-muted)" }} />
-                  <div style={{ fontSize: "14px", fontWeight: 600, color: "var(--t-text-ghost)" }}>
-                    {selectedDriver === "__placeholder__" ? "Select a driver to view active timesheets" : "No timesheets found for the selected period."}
-                  </div>
-                  <div style={{ fontSize: "12px", color: "var(--t-text-muted)" }}>
-                    {selectedDriver === "__placeholder__" ? "Telematics will sync shift data here" : "Try adjusting the billing period."}
+                    <div className="fi-premium-invoice__eyebrow">FleetIQ</div>
+                    <h2 className="fi-premium-invoice__brand-name">Invoice</h2>
+                    <div className="fi-premium-invoice__company-meta">
+                      <p>{fromDetails.name || "FleetIQ Inc."}</p>
+                      {fromDetails.address && <p>{fromDetails.address}</p>}
+                      {fromDetails.email && <p>{fromDetails.email}</p>}
+                      {fromDetails.phone && <p>{fromDetails.phone}</p>}
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <div>
-                  {timesheets.map((t) => {
-                    const rate = categoryRates[t.category] || 0;
-                    let start = new Date(`1970-01-01T${t.startTime}`);
-                    let end   = new Date(`1970-01-01T${t.endTime}`);
-                    if (end <= start) end.setDate(end.getDate() + 1);
-                    const hrs = (end.getTime() - start.getTime()) / 3600000;
-                    const rowAmt = (hrs * rate).toFixed(2);
-                    const badge = STATUS_BADGE[t.status] || STATUS_BADGE.pending;
-                    return (
-                      <div key={t._id} style={{ display: "grid", gridTemplateColumns: "1.2fr 1.4fr 1fr 0.8fr 0.8fr", borderBottom: "1px solid var(--t-stripe)", padding: "12px 0" }}>
-                        <div style={{ fontSize: "13px", color: "var(--t-text-faint)", padding: "0 8px" }}>{t.date}</div>
-                        <div style={{ padding: "0 8px" }}>
-                          <div style={{ fontSize: "13px", color: "var(--t-text)", fontWeight: 500 }}>{t.category}</div>
-                          <span style={{ fontSize: "10px", fontWeight: 600, color: badge.color, background: badge.bg, border: `1px solid ${badge.border}`, padding: "1px 7px", borderRadius: "20px", marginTop: "3px", display: "inline-block" }}>{badge.label}</span>
-                        </div>
-                        <div style={{ fontSize: "13px", color: "var(--t-text-faint)", padding: "0 8px" }}>{hrs.toFixed(2)} hrs</div>
-                        <div style={{ fontSize: "13px", color: "var(--t-text-faint)", padding: "0 8px" }}>${rate.toFixed(2)}</div>
-                        <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--t-text)", padding: "0 8px" }}>${rowAmt}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
 
-              {/* Summary */}
-              <div style={{ marginTop: "24px", paddingTop: "20px", borderTop: "1px solid var(--t-border)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "var(--t-text-dim)", marginBottom: "10px" }}>
-                  <span>Subtotal</span><span style={{ color: "var(--t-text-faint)" }}>${subtotal.toFixed(2)}</span>
+                <div className="fi-premium-invoice__meta-panel">
+                  <span className="fi-premium-invoice__meta-kicker">Client Billing</span>
+                  <h3 className="fi-premium-invoice__title">INVOICE</h3>
+                  <dl className="fi-premium-invoice__meta-grid">
+                    <div className="fi-premium-invoice__meta-item">
+                      <dt>Invoice #</dt>
+                      <dd>{invoiceNumber}</dd>
+                    </div>
+                    <div className="fi-premium-invoice__meta-item">
+                      <dt>Invoice Date</dt>
+                      <dd>{dueDateLabel}</dd>
+                    </div>
+                    <div className="fi-premium-invoice__meta-item">
+                      <dt>Billing Period</dt>
+                      <dd>{invoicePeriod || "—"}</dd>
+                    </div>
+                    <div className="fi-premium-invoice__meta-item">
+                      <dt>Due Date</dt>
+                      <dd>{dueDateLabel}</dd>
+                    </div>
+                  </dl>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "var(--t-text-dim)", paddingBottom: "14px", marginBottom: "14px", borderBottom: "1px solid var(--t-border)" }}>
-                  <span>HST (13%)</span><span style={{ color: "var(--t-text-faint)" }}>${hst.toFixed(2)}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "15px", fontWeight: 700, color: "var(--t-text)" }}>Total Amount</span>
-                  <span style={{ fontSize: "22px", fontWeight: 800, color: "var(--t-indigo)" }}>${total.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
+              </header>
 
-            {/* Invoice Notes */}
-            <div style={styles.card}>
-              <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", textTransform: "uppercase", letterSpacing: "1px", display: "block", marginBottom: "10px" }}>
-                Invoice Notes & Internal Memo
-              </label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Enter any additional payment terms or operational notes here..."
-                style={{ width: "100%", minHeight: "100px", background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "12px 14px", fontSize: "13px", color: "var(--t-text-faint)", resize: "vertical", outline: "none", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box", lineHeight: 1.65 }}
-              />
-            </div>
+              <section className="fi-premium-invoice__party-grid">
+                <article className="fi-premium-invoice__party-card">
+                  <span className="fi-premium-invoice__section-label">From</span>
+                  <div className="fi-premium-invoice__party-name">{fromDetails.name || "—"}</div>
+                  {fromDetails.address && <p>{fromDetails.address}</p>}
+                  {fromDetails.email && <p>{fromDetails.email}</p>}
+                  {fromDetails.phone && <p>{fromDetails.phone}</p>}
+                </article>
+
+                <article className="fi-premium-invoice__party-card">
+                  <span className="fi-premium-invoice__section-label">Bill To</span>
+                  {selectedDriver === "__placeholder__" ? (
+                    <>
+                      <div className="fi-premium-invoice__party-name">No Driver Selected</div>
+                      <p>Select a driver from settings to populate billing details.</p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="fi-premium-invoice__party-name">{toDetails.name || "—"}</div>
+                      {toDetails.businessName && <p>{toDetails.businessName}</p>}
+                      {toDetails.contact && <p>{toDetails.contact}</p>}
+                      {toDetails.address && <p>{toDetails.address}</p>}
+                      {toDetails.gst && <p>GST/HST: {toDetails.gst}</p>}
+                    </>
+                  )}
+                </article>
+              </section>
+
+              <section className="fi-premium-invoice__table-card">
+                <div className="fi-premium-invoice__table-head">
+                  <span className="fi-premium-invoice__section-label">Line Items</span>
+                  <h3 className="fi-premium-invoice__section-title">Approved Timesheets & Services</h3>
+                </div>
+                <div className="fi-premium-invoice__table-wrap">
+                  <table className="fi-premium-invoice__table">
+                    <thead>
+                      <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th className="is-numeric">Hours</th>
+                        <th className="is-numeric">Rate</th>
+                        <th className="is-numeric">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {approvedTimesheets.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="fi-premium-invoice__empty">
+                            {selectedDriver === "__placeholder__" ? "Select a driver to preview line items." : "No approved timesheets found for the selected period."}
+                          </td>
+                        </tr>
+                      ) : (
+                        approvedTimesheets.map((t) => {
+                          const rate = categoryRates[t.category] || 0;
+                          let start = new Date(`1970-01-01T${t.startTime}`);
+                          let end = new Date(`1970-01-01T${t.endTime}`);
+                          if (end <= start) end.setDate(end.getDate() + 1);
+                          const hrs = (end.getTime() - start.getTime()) / 3600000;
+                          const rowAmt = hrs * rate;
+                          const badge = STATUS_BADGE[t.status] || STATUS_BADGE.pending;
+
+                          return (
+                            <tr key={t._id}>
+                              <td>{t.date}</td>
+                              <td>
+                                <div className="fi-premium-invoice__item-title">{t.category}</div>
+                                <div className="fi-premium-invoice__item-subtitle">{badge.label} timesheet</div>
+                              </td>
+                              <td className="is-numeric">{hrs.toFixed(2)}</td>
+                              <td className="is-numeric">${rate.toFixed(2)}</td>
+                              <td className="is-numeric fi-premium-invoice__amount">${rowAmt.toFixed(2)}</td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+
+              <section className="fi-premium-invoice__footer-grid">
+                <div className="fi-premium-invoice__notes-card">
+                  <span className="fi-premium-invoice__section-label">Notes</span>
+                  <h3 className="fi-premium-invoice__section-title">Payment Terms & Memo</h3>
+                  <p className="fi-premium-invoice__notes-text">
+                    {notes.trim() || "Thank you for your business. Please remit payment by the due date. For billing questions, contact FleetIQ support."}
+                  </p>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Enter any additional payment terms or operational notes here..."
+                    style={{ width: "100%", minHeight: "110px", marginTop: "16px", background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "12px 14px", fontSize: "13px", color: "var(--t-text-faint)", resize: "vertical", outline: "none", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box", lineHeight: 1.65 }}
+                  />
+                </div>
+
+                <aside className="fi-premium-invoice__totals-card">
+                  <div className="fi-premium-invoice__totals-row">
+                    <span>Subtotal</span>
+                    <strong>${subtotal.toFixed(2)}</strong>
+                  </div>
+                  <div className="fi-premium-invoice__totals-row">
+                    <span>HST (13%)</span>
+                    <strong>${hst.toFixed(2)}</strong>
+                  </div>
+                  <div className="fi-premium-invoice__totals-total">
+                    <span className="fi-premium-invoice__total-label">Balance Due</span>
+                    <strong className="fi-premium-invoice__total-value">${total.toFixed(2)}</strong>
+                  </div>
+                </aside>
+              </section>
+
+              <footer className="fi-premium-invoice__footer">
+                <span>www.fleetiqlogistics.com</span>
+                <span>support@fleetiqlogistics.com</span>
+                <span>© 2026 FleetIQ Inc. All rights reserved.</span>
+              </footer>
+            </section>
 
           </div>
         </div>

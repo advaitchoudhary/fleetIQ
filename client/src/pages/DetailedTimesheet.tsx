@@ -442,6 +442,11 @@ const DetailedTimesheet: React.FC = () => {
     <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "var(--t-bg)", minHeight: "100vh" }}>
     <Navbar />
 
+    {/* Breadcrumb */}
+    <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px", padding: "14px 40px 0" }}>
+      TIMESHEET DETAIL
+    </div>
+
     {/* Page Header Bar */}
     <div style={{ padding: "16px 40px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
       <button

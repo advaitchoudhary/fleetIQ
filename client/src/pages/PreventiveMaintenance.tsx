@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { FaTools, FaPlus, FaEdit, FaTrashAlt, FaWrench } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrashAlt, FaWrench } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
@@ -203,26 +203,20 @@ const PreventiveMaintenance: React.FC = () => {
   return (
     <div style={styles.wrapper}>
       <Navbar />
-      {/* Hero */}
-      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
-        <div style={{ maxWidth: "1300px", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px", flexWrap: "wrap" as const }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-            <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
-              <FaTools size={22} />
-            </div>
-            <div>
-              <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Fleet</p>
-              <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Preventive Maintenance</h1>
-              <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>PM templates, schedules, and automated work order generation</p>
-            </div>
+      <div style={styles.container}>
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>PREVENTIVE MAINTENANCE</div>
+
+        <div style={styles.pageHeader}>
+          <div>
+            <h1 style={styles.pageTitle}>Preventive Maintenance</h1>
+            <p style={styles.pageDescription}>PM templates, schedules, and automated work order generation.</p>
           </div>
-          <div style={{ display: "flex", gap: "10px" }}>
-            <button style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} onClick={openAddSchedule}><FaWrench size={13} /> Assign to Vehicle</button>
-            <button style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.25)", color: "#fff", borderRadius: "8px", padding: "10px 18px", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }} onClick={openAddTemplate}><FaPlus size={13} /> New Template</button>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <button style={styles.secondaryBtn} onClick={openAddSchedule}><FaWrench size={13} /> Assign to Vehicle</button>
+            <button style={styles.primaryBtn} onClick={openAddTemplate}><FaPlus size={13} /> New Template</button>
           </div>
         </div>
-      </div>
-      <div style={styles.container}>
 
         {dueSchedules.length > 0 && (
           <div style={styles.alertBanner}>
@@ -264,9 +258,9 @@ const PreventiveMaintenance: React.FC = () => {
                   <tr key={s._id} style={styles.tr}>
                     <td style={styles.td}><strong>{s.vehicleId?.unitNumber || "—"}</strong> <span style={{ color: "var(--t-text-dim)", fontSize: "12px" }}>{s.vehicleId?.make}</span></td>
                     <td style={styles.td}>{s.templateId?.name || "—"}</td>
-                    <td style={styles.td}>{s.lastCompletedDate ? new Date(s.lastCompletedDate).toLocaleDateString() : "—"}</td>
+                    <td style={styles.td}>{s.lastCompletedDate ? new Date(s.lastCompletedDate + "T00:00:00").toLocaleDateString() : "—"}</td>
                     <td style={styles.td}>{s.lastCompletedOdometer ? `${s.lastCompletedOdometer.toLocaleString()} km` : "—"}</td>
-                    <td style={styles.td}>{s.nextDueDate ? new Date(s.nextDueDate).toLocaleDateString() : "—"}</td>
+                    <td style={styles.td}>{s.nextDueDate ? new Date(s.nextDueDate + "T00:00:00").toLocaleDateString() : "—"}</td>
                     <td style={styles.td}>{s.nextDueOdometer ? `${s.nextDueOdometer.toLocaleString()} km` : "—"}</td>
                     <td style={styles.td}>
                       <span style={{ ...styles.badge, background: STATUS_COLORS[s.status]?.bg || "var(--t-hover-bg)", color: STATUS_COLORS[s.status]?.color || "var(--t-text-faint)" }}>
@@ -491,9 +485,12 @@ const PreventiveMaintenance: React.FC = () => {
 
 const styles: Record<string, React.CSSProperties> = {
   wrapper: { minHeight: "100vh", background: "var(--t-bg)", fontFamily: "Inter, system-ui, sans-serif" },
-  container: { maxWidth: "1300px", margin: "0 auto", padding: "28px 40px" },
-  primaryBtn: { padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" },
-  secondaryBtn: { padding: "10px 18px", background: "var(--t-hover-bg)", color: "var(--t-text-faint)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", cursor: "pointer", fontSize: "14px", fontWeight: 500, display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif" },
+  container: { maxWidth: "1300px", margin: "0 auto", padding: "32px 40px" },
+  pageHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" },
+  pageTitle: { margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" },
+  pageDescription: { margin: 0, fontSize: "14px", color: "var(--t-text-dim)" },
+  primaryBtn: { display: "flex", alignItems: "center", gap: "8px", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", padding: "10px 18px", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" },
+  secondaryBtn: { display: "flex", alignItems: "center", gap: "8px", background: "var(--t-hover-bg)", color: "var(--t-text-secondary)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "10px", cursor: "pointer", padding: "10px 18px", fontSize: "13px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" },
   alertBanner: { background: "var(--t-warning-bg)", border: "1px solid rgba(245,158,11,0.2)", borderRadius: "10px", padding: "12px 18px", marginBottom: "20px", fontSize: "14px", color: "var(--t-warning)" },
   tabRow: { display: "flex", gap: "8px", marginBottom: "20px", borderBottom: "1px solid var(--t-border)" },
   tab: { padding: "10px 20px", background: "none", border: "none", borderBottom: "2px solid transparent", cursor: "pointer", fontSize: "14px", fontWeight: 600, color: "var(--t-text-dim)", fontFamily: "Inter, system-ui, sans-serif", marginBottom: "-1px" },

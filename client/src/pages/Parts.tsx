@@ -111,6 +111,29 @@ const Parts: React.FC = () => {
       alert("Part name is required.");
       return;
     }
+    if (form.name.trim().length > 100) {
+      alert("Part name must be 100 characters or fewer.");
+      return;
+    }
+    if (form.partNumber.trim() && !/^[A-Za-z0-9 \-\/\.]{1,50}$/.test(form.partNumber.trim())) {
+      alert("Part number must be 1–50 characters and contain only letters, numbers, spaces, hyphens, slashes, or periods.");
+      return;
+    }
+    const qty = Number(form.quantity);
+    if (!Number.isInteger(qty) || qty < 0 || qty > 1_000_000) {
+      alert("Quantity must be a whole number between 0 and 1,000,000.");
+      return;
+    }
+    const minQty = Number(form.minimumQuantity);
+    if (!Number.isInteger(minQty) || minQty < 0 || minQty > 1_000_000) {
+      alert("Minimum quantity must be a whole number between 0 and 1,000,000.");
+      return;
+    }
+    const cost = Number(form.unitCost);
+    if (isNaN(cost) || cost < 0) {
+      alert("Unit cost must be a positive number.");
+      return;
+    }
     setSaving(true);
     try {
       const body = {
@@ -201,11 +224,7 @@ const Parts: React.FC = () => {
       <Navbar />
       <div style={{ ...styles.container, padding: "32px 40px" }}>
         {/* Breadcrumb */}
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
-          <span>FLEET</span>
-          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
-          <span style={{ color: "var(--t-text-faint)" }}>PARTS INVENTORY</span>
-        </div>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>PARTS INVENTORY</div>
 
         {/* Page Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" as const }}>
@@ -327,26 +346,128 @@ const Parts: React.FC = () => {
             <div style={{ padding: "0 28px 24px", overflowY: "auto", flexGrow: 1 }}>
               <div style={{ height: "24px" }} />
               <div style={styles.formGrid}>
-                {[
-                  { label: "Part Name *", key: "name", type: "text" },
-                  { label: "Part Number", key: "partNumber", type: "text" },
-                  { label: "Quantity", key: "quantity", type: "number" },
-                  { label: "Minimum Quantity", key: "minimumQuantity", type: "number" },
-                  { label: "Unit Cost ($)", key: "unitCost", type: "number" },
-                  { label: "Supplier", key: "supplier", type: "text" },
-                  { label: "Location (shelf/bin)", key: "location", type: "text" },
-                ].map(({ label, key, type }) => (
-                  <div key={key} style={styles.formGroup}>
-                    <label style={styles.label}>{label}</label>
-                    <input
-                      type={type}
-                      style={styles.input}
-                      value={(form as any)[key]}
-                      onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                      min={type === "number" ? "0" : undefined}
-                    />
-                  </div>
-                ))}
+                {/* Part Name */}
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Part Name *</label>
+                  <input
+                    type="text"
+                    style={{ ...styles.input, ...(form.name.trim().length > 100 ? { borderColor: "var(--t-error)" } : {}) }}
+                    value={form.name}
+                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                    maxLength={100}
+                    placeholder="e.g. Air Filter"
+                  />
+                  <p style={{ margin: "4px 0 0", fontSize: "11px", color: form.name.length > 90 ? "var(--t-warning)" : "var(--t-text-ghost)", fontWeight: 500, textAlign: "right" }}>{form.name.length}/100</p>
+                </div>
+                {/* Part Number */}
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Part Number</label>
+                  <input
+                    type="text"
+                    style={{ ...styles.input, ...(form.partNumber.trim() && !/^[A-Za-z0-9 \-\/\.]{1,50}$/.test(form.partNumber.trim()) ? { borderColor: "var(--t-error)" } : {}) }}
+                    value={form.partNumber}
+                    onChange={(e) => setForm((f) => ({ ...f, partNumber: e.target.value }))}
+                    maxLength={50}
+                    placeholder="e.g. AF-1234"
+                  />
+                  {form.partNumber.trim() && !/^[A-Za-z0-9 \-\/\.]{1,50}$/.test(form.partNumber.trim()) && (
+                    <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>Letters, numbers, spaces, - / . only (max 50).</p>
+                  )}
+                </div>
+                {/* Quantity */}
+                <div style={styles.formGroup}>
+                  {(() => {
+                    const qty = form.quantity !== "" ? Number(form.quantity) : null;
+                    const isInvalid = qty !== null && (!Number.isInteger(qty) || qty < 0 || qty > 1_000_000);
+                    return (
+                      <>
+                        <label style={styles.label}>Quantity</label>
+                        <input
+                          type="number"
+                          min={0}
+                          max={1_000_000}
+                          step={1}
+                          style={{ ...styles.input, ...(isInvalid ? { borderColor: "var(--t-error)" } : {}) }}
+                          value={form.quantity}
+                          onChange={(e) => setForm((f) => ({ ...f, quantity: e.target.value }))}
+                        />
+                        {isInvalid && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>Whole number, 0–1,000,000.</p>}
+                      </>
+                    );
+                  })()}
+                </div>
+                {/* Minimum Quantity */}
+                <div style={styles.formGroup}>
+                  {(() => {
+                    const minQty = form.minimumQuantity !== "" ? Number(form.minimumQuantity) : null;
+                    const qty = Number(form.quantity);
+                    const isInvalid = minQty !== null && (!Number.isInteger(minQty) || minQty < 0 || minQty > 1_000_000);
+                    const isAboveStock = minQty !== null && !isInvalid && minQty > qty;
+                    return (
+                      <>
+                        <label style={styles.label}>Minimum Quantity</label>
+                        <input
+                          type="number"
+                          min={0}
+                          max={1_000_000}
+                          step={1}
+                          style={{ ...styles.input, ...(isInvalid ? { borderColor: "var(--t-error)" } : isAboveStock ? { borderColor: "var(--t-warning)" } : {}) }}
+                          value={form.minimumQuantity}
+                          onChange={(e) => setForm((f) => ({ ...f, minimumQuantity: e.target.value }))}
+                        />
+                        {isInvalid && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>Whole number, 0–1,000,000.</p>}
+                        {!isInvalid && isAboveStock && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-warning)", fontWeight: 500 }}>⚠ Exceeds current stock — will trigger low-stock alert.</p>}
+                      </>
+                    );
+                  })()}
+                </div>
+                {/* Unit Cost */}
+                <div style={styles.formGroup}>
+                  {(() => {
+                    const cost = form.unitCost !== "" ? Number(form.unitCost) : null;
+                    const isInvalid = cost !== null && (isNaN(cost) || cost < 0);
+                    return (
+                      <>
+                        <label style={styles.label}>Unit Cost ($)</label>
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          style={{ ...styles.input, ...(isInvalid ? { borderColor: "var(--t-error)" } : {}) }}
+                          value={form.unitCost}
+                          onChange={(e) => setForm((f) => ({ ...f, unitCost: e.target.value }))}
+                          placeholder="0.00"
+                        />
+                        {isInvalid && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)", fontWeight: 500 }}>Must be a positive number.</p>}
+                      </>
+                    );
+                  })()}
+                </div>
+                {/* Supplier */}
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Supplier</label>
+                  <input
+                    type="text"
+                    style={styles.input}
+                    value={form.supplier}
+                    onChange={(e) => setForm((f) => ({ ...f, supplier: e.target.value }))}
+                    maxLength={100}
+                    placeholder="e.g. AutoZone"
+                  />
+                </div>
+                {/* Location */}
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Location (shelf/bin)</label>
+                  <input
+                    type="text"
+                    style={styles.input}
+                    value={form.location}
+                    onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+                    maxLength={100}
+                    placeholder="e.g. Shelf A-3"
+                  />
+                </div>
+                {/* Category */}
                 <div style={styles.formGroup}>
                   <label style={styles.label}>Category</label>
                   <select style={styles.input} value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}>

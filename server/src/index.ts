@@ -54,9 +54,15 @@ import pmRoutes from "../routes/pmRoute.js";
 // @ts-ignore
 import trackingRoutes from "../routes/trackingRoute.js";
 // @ts-ignore
+import chatRoutes from "../routes/chatRoute.js";
+// @ts-ignore
 import Location from "../model/locationModel.js";
 // @ts-ignore
 import Vehicle from "../model/vehicleModel.js";
+// @ts-ignore
+import cron from "node-cron";
+// @ts-ignore
+import { runDailyDigest } from "../utils/dailyDigest.js";
 
 const app = express();
 
@@ -71,13 +77,12 @@ app.use(compression());
 app.options("*", cors({
     origin: (origin, callback) => {
        const allowedOrigins = [
-          'http://3.13.233.198',
           'http://localhost:5173',
           'http://127.0.0.1:5173',
           'http://192.168.29.113:5173',
-          'http://premierchoicemployment.com',
-          'https://premierchoicemployment.com',
-          'https://www.premierchoicemployment.com'
+          'http://fleetiqlogistics.com',
+          'https://fleetiqlogistics.com',
+          'https://www.fleetiqlogistics.com'
     ];
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin || allowedOrigins.includes(origin)) {
@@ -96,13 +101,12 @@ app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
 app.use(cors({
     origin: (origin, callback) => {
        const allowedOrigins = [
-          'http://3.13.233.198',
           'http://localhost:5173',
           'http://127.0.0.1:5173',
           'http://192.168.29.113:5173',
-          'http://premierchoicemployment.com',
-          'https://premierchoicemployment.com',
-          'https://www.premierchoicemployment.com'
+          'http://fleetiqlogistics.com',
+          'https://fleetiqlogistics.com',
+          'https://www.fleetiqlogistics.com'
     ];
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin || allowedOrigins.includes(origin)) {
@@ -125,7 +129,7 @@ app.use(cookieParser());
 app.use("/api/payments", paymentRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: "10mb" }));
 
 const PORT = process.env.PORT || 8000;
 const MONGOURL = process.env.MONGO_URL as string;
@@ -166,6 +170,12 @@ mongoose
             }
         }, STALE_TRIP_INTERVAL);
 
+        // Daily digest email — runs at 07:00 every morning
+        cron.schedule("0 7 * * *", () => {
+            runDailyDigest().catch((err: Error) => console.error("[DailyDigest] Error:", err));
+        });
+        console.log("📧 Daily digest cron scheduled at 07:00");
+
         app.listen(PORT, () => {
             console.log(`🚀 Server is running on port ${PORT}`)
         })
@@ -203,5 +213,6 @@ app.use("/api/warranties", warrantyRoutes);
 app.use("/api/service-history", serviceHistoryRoutes);
 app.use("/api/pm", pmRoutes);
 app.use("/api/tracking", trackingRoutes);
+app.use("/api/chat", chatRoutes);
 // Phase 3 — Driver Payments (Stripe Connect) and Phase 4 — Subscriptions are
 // mounted before bodyParser.json() above so Stripe webhooks receive raw body.

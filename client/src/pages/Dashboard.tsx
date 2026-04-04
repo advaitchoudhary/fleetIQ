@@ -578,6 +578,11 @@ const Timesheet: React.FC = () => {
       `}</style>
       <Navbar />
 
+      {/* Breadcrumb */}
+      <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px", padding: "14px 40px 0" }}>
+        DASHBOARD
+      </div>
+
       {/* ── Driver Hero ─────────────────────────────────────────────────── */}
       <div style={heroOuter} className="db-hero">
         <div style={heroInner} className="db-hero-inner">

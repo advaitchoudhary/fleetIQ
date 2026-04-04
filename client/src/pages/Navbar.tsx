@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   FaClock,
@@ -39,6 +39,8 @@ const Navbar: React.FC = () => {
   const [showNotification, setShowNotification] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const sidebarRef = useRef<HTMLElement>(null);
+  const sidebarScrollRef = useRef<number>(0);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -151,6 +153,13 @@ const Navbar: React.FC = () => {
       }
     `;
   }, [isSidebarCollapsed, isInsideOrg]);
+
+  // Restore sidebar scroll position after every re-render (e.g. route change)
+  useLayoutEffect(() => {
+    if (sidebarRef.current) {
+      sidebarRef.current.scrollTop = sidebarScrollRef.current;
+    }
+  });
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -318,6 +327,8 @@ const Navbar: React.FC = () => {
 
       {/* Sidebar Navigation */}
       <nav
+        ref={sidebarRef}
+        onScroll={(e) => { sidebarScrollRef.current = (e.currentTarget as HTMLElement).scrollTop; }}
         style={{
           ...styles.sidebar,
           left: "0px",
@@ -400,7 +411,7 @@ const Navbar: React.FC = () => {
           {ADMIN_ROLES.includes(user?.role ?? "") && (
             <>
               {renderNavItem("/admin-home",          <FaThLarge size={16} />,       "Home")}
-              {renderNavItem("/users",               <FaUsers size={16} />,         "Users")}
+              {renderNavItem("/users",               <FaUsers size={16} />,         "Drivers")}
               {renderNavItem("/invoice",             <FaFileInvoice size={16} />,   "Invoice")}
               {renderNavItem("/applications",        <FaClipboardList size={16} />, "All Timesheets")}
               {renderNavItem("/enquiries",           <FaPhoneAlt size={16} />,      "Enquiries")}
@@ -696,7 +707,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     height: "100%",
     overflowY: "auto",
     overflowX: "hidden",
-    backgroundColor: "var(--t-bg)",
+    backgroundColor: "var(--t-surface)",
     color: "var(--t-text)",
     transition: "left 0.3s ease, width 0.3s ease",
     zIndex: 1000,

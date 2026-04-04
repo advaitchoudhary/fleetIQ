@@ -337,6 +337,11 @@ const MyTimesheet: React.FC = () => {
       `}</style>
       <Navbar />
 
+      {/* Breadcrumb */}
+      <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px", padding: "14px 40px 0" }}>
+        MY TIMESHEET
+      </div>
+
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <div style={tsHero} data-ts-hero>
         <div style={tsHeroInner} data-ts-hero-inner>

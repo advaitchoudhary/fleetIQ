@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { FaCreditCard, FaCheckCircle, FaExternalLinkAlt, FaArrowUp } from "react-icons/fa";
+import { FaCheckCircle, FaExternalLinkAlt, FaArrowUp } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
@@ -155,22 +155,18 @@ const Subscription: React.FC = () => {
   }
 
   return (
-    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh", color: "var(--t-text)" }}>
       <Navbar />
-      {/* Hero */}
-      <div style={{ background: "linear-gradient(135deg, #0F172A 0%, #1e1b4b 55%, #312e81 100%)", padding: "36px 40px" }}>
-        <div style={{ maxWidth: "1000px", margin: "0 auto", display: "flex", alignItems: "center", gap: "18px" }}>
-          <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
-            <FaCreditCard size={22} />
-          </div>
+      <div style={styles.pageContainer}>
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>SUBSCRIPTION</div>
+
+        <div style={styles.pageHeader}>
           <div>
-            <p style={{ margin: 0, fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Billing</p>
-            <h1 style={{ margin: "4px 0 0", fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>Subscription</h1>
-            <p style={{ margin: "4px 0 0", fontSize: "13px", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>Manage your fleet platform plan</p>
+            <h1 style={styles.pageTitle}>Subscription</h1>
+            <p style={styles.pageDescription}>Manage your fleet platform plan.</p>
           </div>
         </div>
-      </div>
-      <div style={{ padding: "28px 40px", maxWidth: "1000px", margin: "0 auto" }}>
 
         {/* Current Plan Banner */}
         {!loading && (
@@ -306,6 +302,10 @@ const Subscription: React.FC = () => {
 };
 
 const styles: Record<string, React.CSSProperties> = {
+  pageContainer: { padding: "32px 40px", maxWidth: "1000px", margin: "0 auto" },
+  pageHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" },
+  pageTitle: { margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" },
+  pageDescription: { margin: 0, fontSize: "14px", color: "var(--t-text-dim)" },
   badge: { display: "inline-block", padding: "3px 10px", borderRadius: "20px", fontSize: "12px", fontWeight: 600 },
   portalBtn: { display: "inline-flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "14px", fontWeight: 600, cursor: "pointer", color: "var(--t-text-muted)" },
   toggleBtn: { padding: "8px 20px", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "4px" },

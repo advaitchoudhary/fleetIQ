@@ -13,7 +13,9 @@ const {
   uploadRequiredForm,
   uploadOnboardingForm,
   uploadTrainingProofDocument,
-  uploadTrainingProof
+  uploadTrainingProof,
+  uploadComplianceDocument,
+  uploadComplianceDoc,
 } = require("../controller/driverController.js");
 
 const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
@@ -59,6 +61,14 @@ route.post(
   authorizeRoles("driver", "admin"),
   uploadTrainingProof.single("file"),
   uploadTrainingProofDocument
+);
+
+route.post(
+  "/upload-compliance-document",
+  protect,
+  authorizeRoles("driver", "admin", "company_admin"),
+  uploadComplianceDoc.single("file"),
+  uploadComplianceDocument
 );
 
 module.exports = route;

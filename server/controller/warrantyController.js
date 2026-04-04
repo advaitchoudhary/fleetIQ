@@ -44,6 +44,12 @@ const getAllWarranties = asyncHandler(async (req, res) => {
   const orgFilter = getOrgFilter(req);
   const { vehicleId, status } = req.query;
 
+  // Auto-expire any active warranties whose expiry date has passed
+  await Warranty.updateMany(
+    { ...orgFilter, status: "active", expiryDate: { $lt: new Date() } },
+    { $set: { status: "expired" } }
+  );
+
   const query = { ...orgFilter };
   if (vehicleId) query.vehicleId = vehicleId;
   if (status) query.status = status;

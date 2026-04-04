@@ -7,6 +7,18 @@ const organizationSchema = new mongoose.Schema(
     phone: { type: String },
     address: { type: String },
     dotNumber: { type: String }, // DOT/MC number for trucking compliance
+    digestSections: {
+      type: [String],
+      default: [], // empty = use server default (DIGEST_DEFAULT_SECTIONS env var)
+    },
+    mandatoryTrainings: {
+      type: [String],
+      default: [], // admin configures the list; empty = not set up yet
+    },
+    mandatoryDocuments: {
+      type: [String],
+      default: [], // admin configures the list of required compliance document names
+    },
     subscription: {
       plan: {
         type: String,

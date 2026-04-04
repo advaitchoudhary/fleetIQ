@@ -7,7 +7,7 @@ import {
   FaUsers, FaClipboardList, FaFileAlt, FaCreditCard, FaHistory,
   FaEnvelope, FaTruck, FaWrench, FaCheckSquare, FaGasPump,
   FaBox, FaShieldAlt, FaChartBar, FaCalendarAlt, FaTools,
-  FaLock, FaCheckCircle, FaExternalLinkAlt, FaPlus,
+  FaLock, FaCheckCircle, FaExternalLinkAlt,
   FaExclamationCircle,
 } from "react-icons/fa";
 
@@ -116,18 +116,6 @@ const AdminHome: React.FC = () => {
               </div>
             )}
           </div>
-          <button
-            onClick={() => navigate("/vehicles")}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: "8px",
-              padding: "12px 22px", background: "var(--t-accent)", border: "none",
-              borderRadius: "10px", color: "#fff", fontSize: "14px", fontWeight: 600,
-              cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif",
-              boxShadow: "0 4px 14px rgba(79,70,229,0.35)",
-            }}
-          >
-            <FaPlus size={11} /> New Vehicle
-          </button>
         </div>
 
         {/* ── Stats Row ── */}
@@ -265,31 +253,35 @@ const FeatureSection: React.FC<FeatureSectionProps> = ({
             key={f.path}
             onClick={() => unlocked && navigate(f.path)}
             style={{
-              background: "var(--t-surface-alt)",
-              border: `1px solid ${unlocked ? "var(--t-border)" : "var(--t-surface-alt)"}`,
+              background: "var(--t-surface)",
+              border: `1px solid ${unlocked ? "var(--t-border)" : "var(--t-border)"}`,
               borderRadius: "14px",
               padding: "22px",
               cursor: unlocked ? "pointer" : "default",
               opacity: unlocked ? 1 : 0.38,
-              transition: "border-color 0.2s, background 0.2s",
+              transition: "border-color 0.2s, background 0.2s, box-shadow 0.2s",
               position: "relative",
+              boxShadow: "var(--t-shadow)",
             }}
             onMouseEnter={(e) => {
               if (!unlocked) return;
-              e.currentTarget.style.borderColor = `${f.accent}44`;
-              e.currentTarget.style.background = "var(--t-hover-bg)";
+              e.currentTarget.style.borderColor = `${f.accent}66`;
+              e.currentTarget.style.background = "var(--t-surface)";
+              e.currentTarget.style.boxShadow = "var(--t-shadow-lg)";
             }}
             onMouseLeave={(e) => {
               if (!unlocked) return;
               e.currentTarget.style.borderColor = "var(--t-border)";
-              e.currentTarget.style.background = "var(--t-surface-alt)";
+              e.currentTarget.style.background = "var(--t-surface)";
+              e.currentTarget.style.boxShadow = "var(--t-shadow)";
             }}
           >
             {/* Top row */}
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "18px" }}>
               <div style={{
                 width: "44px", height: "44px", borderRadius: "12px",
-                background: unlocked ? `${f.accent}1a` : "rgba(107,114,128,0.1)",
+                background: unlocked ? `${f.accent}22` : "rgba(107,114,128,0.15)",
+                border: unlocked ? `1px solid ${f.accent}33` : "1px solid rgba(107,114,128,0.2)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 color: unlocked ? f.accent : "var(--t-text-dim)",
                 flexShrink: 0,
@@ -317,7 +309,7 @@ const FeatureSection: React.FC<FeatureSectionProps> = ({
             <div style={{ fontSize: "15px", fontWeight: 700, color: unlocked ? "var(--t-text)" : "var(--t-text-ghost)", marginBottom: "6px" }}>
               {f.title}
             </div>
-            <div style={{ fontSize: "12px", color: "var(--t-text-dim)", lineHeight: 1.65 }}>
+            <div style={{ fontSize: "12px", color: "var(--t-text-faint)", lineHeight: 1.65 }}>
               {f.desc}
             </div>
           </div>

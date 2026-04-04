@@ -122,6 +122,11 @@ const ChangePassword: React.FC = () => {
     <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "var(--t-bg)", minHeight: "100vh" }}>
       <Navbar />
 
+      {/* Breadcrumb */}
+      <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px", padding: "14px 40px 0" }}>
+        CHANGE PASSWORD
+      </div>
+
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 20px" }}>
         <div style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", boxShadow: "var(--t-shadow)", padding: "40px", width: "100%", maxWidth: "440px" }}>
 

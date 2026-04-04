@@ -1,40 +1,34 @@
 #!/bin/bash
+set -e
 
-cd /var/www/fleet-management
+APP_DIR=/var/www/fleet-management
+WEB_ROOT=/var/www/html
+
+cd "$APP_DIR"
 
 git reset --hard
-
 git pull
 
-npm install browser-image-compression
-
-cd /var/www/fleet-management/client
-
-npm install
-
+# --- Frontend ---
+cd "$APP_DIR/client"
+npm install --legacy-peer-deps
 npm run build
+rm -rf "$WEB_ROOT"/*
+cp -r dist/* "$WEB_ROOT"/
 
-sudo rm -rf /var/www/html/*
+# --- Nginx ---
+nginx -t && systemctl reload nginx
 
-sudo cp -r dist/* /var/www/html/
-
-sudo nginx -t
-
-sudo systemctl reload nginx
-
-
-cd /var/www/fleet-management/server
-
+# --- Backend ---
+cd "$APP_DIR/server"
+npm install --legacy-peer-deps
 npm install --save-dev typescript
-
 npm run build
 
-pm2 delete fleet-api
+# --- PM2 ---
+pm2 delete fleet-api 2>/dev/null || true
 pm2 start dist/index.js --name fleet-api
 pm2 save
 pm2 startup
+
 pm2 ls
-
- pm2 restart fleet-api
-
-cd /var/www/fleet-management

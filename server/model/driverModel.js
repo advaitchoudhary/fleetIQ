@@ -39,6 +39,10 @@ const driverSchema = new mongoose.Schema(
             name: { type: String, required: true }, // Training name
             proofDocument: { type: String, required: false } // File path for proof document
         }],
+        complianceDocuments: [{
+            name: { type: String, required: true }, // Document name (from org mandatoryDocuments)
+            document: { type: String, required: false } // File path for uploaded document
+        }],
         username: { type: String, unique: true, required: true },
         password: { type: String, required: true },
         workStatus: { type: String, required: true },

@@ -70,6 +70,11 @@ const PaymentHistory: React.FC = () => {
     <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh" }}>
       <Navbar />
       <div style={{ padding: "24px", maxWidth: "1100px", margin: "0 auto" }}>
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>
+          PAYMENT HISTORY
+        </div>
+
         {/* Header */}
         <div style={{ marginBottom: "24px" }}>
           <h1 style={{ margin: 0, fontSize: "24px", fontWeight: 700, color: "var(--t-text)", display: "flex", alignItems: "center", gap: "10px" }}>
