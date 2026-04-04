@@ -411,7 +411,7 @@ const Navbar: React.FC = () => {
           {ADMIN_ROLES.includes(user?.role ?? "") && (
             <>
               {renderNavItem("/admin-home",          <FaThLarge size={16} />,       "Home")}
-              {renderNavItem("/users",               <FaUsers size={16} />,         "Users")}
+              {renderNavItem("/users",               <FaUsers size={16} />,         "Drivers")}
               {renderNavItem("/invoice",             <FaFileInvoice size={16} />,   "Invoice")}
               {renderNavItem("/applications",        <FaClipboardList size={16} />, "All Timesheets")}
               {renderNavItem("/enquiries",           <FaPhoneAlt size={16} />,      "Enquiries")}
@@ -707,7 +707,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     height: "100%",
     overflowY: "auto",
     overflowX: "hidden",
-    backgroundColor: "var(--t-bg)",
+    backgroundColor: "var(--t-surface)",
     color: "var(--t-text)",
     transition: "left 0.3s ease, width 0.3s ease",
     zIndex: 1000,

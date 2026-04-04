@@ -677,6 +677,11 @@ const AllTimesheets: React.FC = () => {
 
       <div style={{ maxWidth: "1400px", margin: "0 auto", padding: "32px 40px" }}>
 
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>
+          ALL TIMESHEETS
+        </div>
+
         {/* Page Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "32px", gap: "16px", flexWrap: "wrap" as const }}>
           <div>

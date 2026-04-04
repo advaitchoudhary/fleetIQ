@@ -54,6 +54,8 @@ import pmRoutes from "../routes/pmRoute.js";
 // @ts-ignore
 import trackingRoutes from "../routes/trackingRoute.js";
 // @ts-ignore
+import chatRoutes from "../routes/chatRoute.js";
+// @ts-ignore
 import Location from "../model/locationModel.js";
 // @ts-ignore
 import Vehicle from "../model/vehicleModel.js";
@@ -211,5 +213,6 @@ app.use("/api/warranties", warrantyRoutes);
 app.use("/api/service-history", serviceHistoryRoutes);
 app.use("/api/pm", pmRoutes);
 app.use("/api/tracking", trackingRoutes);
+app.use("/api/chat", chatRoutes);
 // Phase 3 — Driver Payments (Stripe Connect) and Phase 4 — Subscriptions are
 // mounted before bodyParser.json() above so Stripe webhooks receive raw body.

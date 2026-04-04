@@ -31,11 +31,8 @@ const Enquiries: React.FC = () => {
       <Navbar />
 
       <div style={styles.container}>
-        <div style={styles.breadcrumb}>
-          <span>DRIVER MANAGEMENT</span>
-          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
-          <span style={{ color: "var(--t-text-faint)" }}>ENQUIRIES</span>
-        </div>
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>ENQUIRIES</div>
 
         <div style={styles.pageHeader}>
           <div>
@@ -82,16 +79,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     maxWidth: "1300px",
     margin: "0 auto",
     padding: "32px 40px",
-  },
-  breadcrumb: {
-    fontSize: "11px",
-    fontWeight: 700,
-    color: "var(--t-text-ghost)",
-    letterSpacing: "1px",
-    marginBottom: "14px",
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
   },
   pageHeader: {
     display: "flex",

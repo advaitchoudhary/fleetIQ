@@ -451,11 +451,7 @@ const Drivers: React.FC = () => {
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "32px 40px" }}>
 
         {/* Breadcrumb */}
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
-          <span>DRIVER MANAGEMENT</span>
-          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
-          <span style={{ color: "var(--t-text-faint)" }}>DRIVERS</span>
-        </div>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>DRIVERS</div>
 
         {/* Page Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" as const }}>

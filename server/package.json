@@ -12,6 +12,7 @@
   "author": "Paras Choudhary",
   "license": "ISC",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.82.0",
     "@types/compression": "^1.8.1",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
@@ -28,6 +29,7 @@
     "mongoose": "^8.10.1",
     "multer": "^1.4.5-lts.1",
     "node-cron": "^4.2.1",
+    "openai": "^6.33.0",
     "pdf2json": "^3.1.5",
     "pdfkit": "^0.17.0",
     "resend": "^6.9.4",

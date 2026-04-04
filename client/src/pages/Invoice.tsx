@@ -682,6 +682,11 @@ const Invoice: React.FC = () => {
 
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "36px 40px" }}>
 
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>
+          INVOICES
+        </div>
+
         {/* ── Page Header ── */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: "16px", marginBottom: "32px" }}>
           <div>

@@ -144,6 +144,11 @@ const MyInfo: React.FC = () => {
       `}</style>
       <Navbar />
 
+      {/* Breadcrumb */}
+      <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px", padding: "14px 40px 0" }}>
+        MY INFO
+      </div>
+
       {/* ── Hero Section ─────────────────────────────────────────────── */}
       <div style={styles.hero}>
         <div style={styles.heroInner}>

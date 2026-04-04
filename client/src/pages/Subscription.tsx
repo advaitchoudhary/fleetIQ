@@ -158,11 +158,8 @@ const Subscription: React.FC = () => {
     <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh", color: "var(--t-text)" }}>
       <Navbar />
       <div style={styles.pageContainer}>
-        <div style={styles.breadcrumb}>
-          <span>PAYMENTS & BILLING</span>
-          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
-          <span style={{ color: "var(--t-text-faint)" }}>SUBSCRIPTION</span>
-        </div>
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>SUBSCRIPTION</div>
 
         <div style={styles.pageHeader}>
           <div>
@@ -306,7 +303,6 @@ const Subscription: React.FC = () => {
 
 const styles: Record<string, React.CSSProperties> = {
   pageContainer: { padding: "32px 40px", maxWidth: "1000px", margin: "0 auto" },
-  breadcrumb: { fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" },
   pageHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" },
   pageTitle: { margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" },
   pageDescription: { margin: 0, fontSize: "14px", color: "var(--t-text-dim)" },

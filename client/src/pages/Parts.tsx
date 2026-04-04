@@ -224,11 +224,7 @@ const Parts: React.FC = () => {
       <Navbar />
       <div style={{ ...styles.container, padding: "32px 40px" }}>
         {/* Breadcrumb */}
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
-          <span>FLEET OPERATIONS</span>
-          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
-          <span style={{ color: "var(--t-text-faint)" }}>PARTS INVENTORY</span>
-        </div>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>PARTS INVENTORY</div>
 
         {/* Page Header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" as const }}>

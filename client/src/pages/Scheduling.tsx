@@ -123,11 +123,8 @@ const Scheduling: React.FC = () => {
     <div style={styles.wrapper}>
       <Navbar />
       <div style={styles.container}>
-        <div style={styles.breadcrumb}>
-          <span>FLEET OPERATIONS</span>
-          <span style={{ color: "var(--t-text-ghost)" }}>›</span>
-          <span style={{ color: "var(--t-text-faint)" }}>SCHEDULING</span>
-        </div>
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>SCHEDULING</div>
 
         <div style={styles.pageHeader}>
           <div>
@@ -336,7 +333,6 @@ const Scheduling: React.FC = () => {
 const styles: Record<string, React.CSSProperties> = {
   wrapper: { minHeight: "100vh", background: "var(--t-bg)", fontFamily: "Inter, system-ui, sans-serif" },
   container: { maxWidth: "1300px", margin: "0 auto", padding: "32px 40px" },
-  breadcrumb: { fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" },
   pageHeader: { display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" },
   pageTitle: { margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" },
   pageDescription: { margin: 0, fontSize: "14px", color: "var(--t-text-dim)" },

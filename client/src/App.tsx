@@ -39,11 +39,19 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ChatWidget from "./components/ChatWidget";
+import { useAuth } from "./contexts/AuthContext";
+
+const AuthenticatedChat: React.FC = () => {
+  const { user } = useAuth();
+  return user ? <ChatWidget /> : null;
+};
 
 const App: React.FC = () => {
   return (
     <ThemeProvider>
     <AuthProvider>
+      <AuthenticatedChat />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
