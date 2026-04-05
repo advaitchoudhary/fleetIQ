@@ -367,6 +367,22 @@ const updateTimesheetStatus = async (req, res) => {
 
     res.status(200).json({ message: `Timesheet ${status} successfully`, updatedTimesheet });
 
+    // Create driver notification for status change
+    if (updatedTimesheet.driver) {
+      const Notification = require("../model/notificationModel");
+      const dateStr = updatedTimesheet.date
+        ? new Date(updatedTimesheet.date).toLocaleDateString("en-CA")
+        : "your timesheet";
+      Notification.create({
+        organizationId: updatedTimesheet.organizationId,
+        message: status === "approved"
+          ? `Your timesheet for ${dateStr} has been approved.`
+          : `Your timesheet for ${dateStr} has been rejected. Please contact your admin.`,
+        email: updatedTimesheet.driver,
+        field: "timesheet_status",
+      }).catch(err => console.error("Timesheet notification failed:", err));
+    }
+
     if (status === "approved" && updatedTimesheet.driver) {
       const driverDoc = await Driver.findOne({ email: updatedTimesheet.driver }, "name").lean();
       sendTimesheetApprovedEmail(

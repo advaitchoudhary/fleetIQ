@@ -5,6 +5,8 @@ import Login from "./pages/Login";
 import FileDriverApplication from "./pages/FileDriverApplication";
 import Dashboard from "./pages/Dashboard";
 import DriverHome from "./pages/DriverHome";
+import DriverNotifications from "./pages/DriverNotifications";
+import DriverPayStubs from "./pages/DriverPayStubs";
 import Users from "./pages/Drivers";
 import AdminHome from "./pages/AdminHome";
 import Profile from "./pages/Profile";
@@ -75,6 +77,24 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute requiredRole="driver">
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/my-notifications"
+          element={
+            <ProtectedRoute requiredRole="driver">
+              <DriverNotifications />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/my-pay-stubs"
+          element={
+            <ProtectedRoute requiredRole="driver">
+              <DriverPayStubs />
             </ProtectedRoute>
           }
         />

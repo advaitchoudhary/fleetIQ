@@ -43,6 +43,7 @@ const Navbar: React.FC = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [subscriptionPlan, setSubscriptionPlan] = useState<string | null>(null);
   const [headerOrgName, setHeaderOrgName] = useState<string>("");
+  const [driverUnreadCount, setDriverUnreadCount] = useState(0);
   const sidebarRef = useRef<HTMLElement>(null);
   const sidebarScrollRef = useRef<number>(0);
 
@@ -90,6 +91,20 @@ const Navbar: React.FC = () => {
     })
       .then((r) => r.ok ? r.json() : null)
       .then((data) => { if (data?.name) setHeaderOrgName(data.name); })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (!storedUser) return;
+    const parsedUser = JSON.parse(storedUser);
+    if (parsedUser?.role !== "driver" || !parsedUser?.email) return;
+    const token = localStorage.getItem("token");
+    fetch(`${API_BASE_URL}/notifications?email=${encodeURIComponent(parsedUser.email)}&read=false`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => setDriverUnreadCount(Array.isArray(data) ? data.length : 0))
       .catch(() => {});
   }, []);
 
@@ -473,7 +488,19 @@ const Navbar: React.FC = () => {
               {renderNavItem("/dashboard",             <MdDashboard size={18} />,   "Home",               true)}
               {renderNavItem("/my-timesheet-submit", <FaFileAlt size={18} />,       "Submit Timesheet",   true)}
               {renderNavItem("/my-timesheet",        <FaClock size={18} />,         "My Timesheet",       true)}
+              {renderNavItem("/my-pay-stubs",        <FaDollarSign size={18} />,    "Pay Stubs",          true)}
               {renderNavItem("/my-info",             <FaUser size={18} />,          "My Info",            true)}
+              {renderNavItem("/my-notifications",
+                <div style={{ position: "relative", display: "flex" }}>
+                  <FaBell size={18} />
+                  {driverUnreadCount > 0 && (
+                    <span style={{ position: "absolute", top: "-5px", right: "-6px", background: "var(--t-error)", color: "#fff", fontSize: "9px", fontWeight: 700, minWidth: "14px", height: "14px", borderRadius: "7px", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 3px", lineHeight: 1 }}>
+                      {driverUnreadCount > 9 ? "9+" : driverUnreadCount}
+                    </span>
+                  )}
+                </div>,
+                "Notifications", true
+              )}
               {renderNavItem("/contact-us",          <FaPhoneAlt size={18} />,      "Contact Us",         true)}
             </>
           )}
