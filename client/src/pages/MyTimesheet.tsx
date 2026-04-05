@@ -322,55 +322,49 @@ const MyTimesheet: React.FC = () => {
         [data-ts-pill] { transition: all 0.15s ease; }
         [data-ts-pill]:hover { background: rgba(79,70,229,0.2) !important; color: var(--t-indigo) !important; border-color: rgba(79,70,229,0.4) !important; }
         input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1) opacity(0.4); }
-        @media (max-width: 1024px) {
-          [data-ts-hero-inner] { flex-direction: column !important; gap: 20px !important; }
-          [data-ts-stats] { grid-template-columns: repeat(2,1fr) !important; }
-          [data-ts-content] { padding: 20px 16px !important; }
-        }
         @media (max-width: 640px) {
-          [data-ts-hero] { padding: 20px 16px !important; }
-          [data-ts-stats] { grid-template-columns: repeat(2,1fr) !important; gap: 8px !important; }
           [data-ts-filter-bar] { flex-direction: column !important; align-items: stretch !important; }
           [data-ts-pills] { flex-wrap: wrap !important; }
-          [data-ts-content] { padding: 14px 12px !important; }
         }
       `}</style>
       <Navbar />
 
-      {/* Breadcrumb */}
-      <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px", padding: "14px 40px 0" }}>
-        MY TIMESHEET
-      </div>
+      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "32px 40px" }}>
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>
+          MY TIMESHEETS
+        </div>
 
-      {/* ── Hero ─────────────────────────────────────────────────────── */}
-      <div style={tsHero} data-ts-hero>
-        <div style={tsHeroInner} data-ts-hero-inner>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", flexShrink: 0 }}>
-            <div style={tsAvatar}>{(driverName || "D").charAt(0).toUpperCase()}</div>
+        {/* Page Header */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{ width: "52px", height: "52px", borderRadius: "12px", background: "linear-gradient(135deg, #4F46E5, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: 800, color: "#fff", flexShrink: 0 }}>
+              {(driverName || "D").charAt(0).toUpperCase()}
+            </div>
             <div>
-              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Driver Portal</p>
-              <h1 style={{ margin: "3px 0 0", fontSize: "26px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px", lineHeight: 1 }}>My Timesheets</h1>
-              {driverName && <p style={{ margin: "5px 0 0", fontSize: "13px", color: "var(--t-text-ghost)", fontWeight: 500 }}>{driverName}</p>}
+              <h1 style={{ margin: "0 0 6px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>My Timesheets</h1>
+              <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>{driverName}</p>
             </div>
           </div>
-          <div style={tsStatsGrid} data-ts-stats>
-            {[
-              { value: driverHours.toFixed(1), label: "Hrs This Week", color: "var(--t-indigo)", accent: "rgba(79,70,229,0.3)" },
-              { value: String(timesheets.length), label: "Total Entries", color: "var(--t-indigo)", accent: "rgba(99,102,241,0.3)" },
-              { value: String(approvedCount), label: "Approved", color: "var(--t-success)", accent: "rgba(16,185,129,0.3)" },
-              { value: String(pendingCount), label: "Pending", color: "var(--t-warning)", accent: "rgba(245,158,11,0.3)" },
-            ].map(({ value, label, color, accent }) => (
-              <div key={label} style={{ ...tsStatCard, borderTop: `2px solid ${accent}` }} data-ts-stat>
-                <div style={{ ...tsStatNum, color }}>{value}</div>
-                <div style={tsStatLbl}>{label}</div>
-              </div>
-            ))}
-          </div>
         </div>
-      </div>
+
+        {/* Stats Row */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" }}>
+          {[
+            { value: driverHours.toFixed(1), label: "Hrs This Week", color: "var(--t-indigo)" },
+            { value: String(timesheets.length), label: "Total Entries", color: "var(--t-indigo)" },
+            { value: String(approvedCount), label: "Approved", color: "var(--t-success)" },
+            { value: String(pendingCount), label: "Pending", color: "var(--t-warning)" },
+          ].map(({ value, label, color }) => (
+            <div key={label} style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "12px", padding: "20px 24px", boxShadow: "var(--t-shadow)" }} data-ts-stat>
+              <div style={{ fontSize: "28px", fontWeight: 700, color, lineHeight: 1 }}>{value}</div>
+              <div style={{ fontSize: "13px", color: "var(--t-text-dim)", marginTop: "4px" }}>{label}</div>
+            </div>
+          ))}
+        </div>
 
       {/* ── Content ──────────────────────────────────────────────────── */}
-      <div style={tsContent} data-ts-content>
+      <div>
         {loading && (
           <div style={{ textAlign: "center" as const, padding: "60px", color: "var(--t-text-ghost)", fontSize: "15px" }}>Loading timesheets…</div>
         )}
@@ -418,7 +412,7 @@ const MyTimesheet: React.FC = () => {
               <table style={{ width: "100%", borderCollapse: "collapse" as const, minWidth: "1200px", tableLayout: "fixed" as const }}>
                 <thead>
                   {table.getHeaderGroups().map((hg) => (
-                    <tr key={hg.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    <tr key={hg.id} style={{ borderBottom: "1px solid var(--t-border)" }}>
                       {hg.headers.map((h) => (
                         <th key={h.id} style={{ padding: "13px 16px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", textAlign: "left" as const, textTransform: "uppercase" as const, letterSpacing: "0.8px", whiteSpace: "nowrap" as const, background: "var(--t-surface)" }}>
                           {flexRender(h.column.columnDef.header, h.getContext())}
@@ -429,7 +423,7 @@ const MyTimesheet: React.FC = () => {
                 </thead>
                 <tbody>
                   {table.getRowModel().rows.map((row, i) => (
-                    <tr key={row.id} data-ts-row style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", background: i % 2 === 1 ? "rgba(255,255,255,0.01)" : "transparent" }}>
+                    <tr key={row.id} data-ts-row style={{ borderBottom: "1px solid var(--t-border)", background: i % 2 === 1 ? "var(--t-stripe)" : "transparent" }}>
                       {row.getVisibleCells().map((cell) => (
                         <td key={cell.id} style={{ padding: "12px 16px", textAlign: "left" as const, fontSize: "13px", color: "var(--t-text-faint)", verticalAlign: "middle" }}>
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -446,68 +440,12 @@ const MyTimesheet: React.FC = () => {
           </div>
         )}
       </div>
+      </div>
     </div>
   );
 };
 
 // ── MyTimesheet style constants ───────────────────────────────────────
-const tsHero: React.CSSProperties = {
-  background: "var(--t-surface-alt)",
-  padding: "28px 40px",
-  borderBottom: "1px solid var(--t-border)",
-};
-const tsHeroInner: React.CSSProperties = {
-  maxWidth: "1300px",
-  margin: "0 auto",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "24px",
-};
-const tsAvatar: React.CSSProperties = {
-  width: "52px",
-  height: "52px",
-  borderRadius: "12px",
-  background: "linear-gradient(135deg, #4F46E5, #7c3aed)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontSize: "22px",
-  fontWeight: 800,
-  color: "#fff",
-  flexShrink: 0,
-};
-const tsStatsGrid: React.CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "repeat(4,1fr)",
-  gap: "10px",
-};
-const tsStatCard: React.CSSProperties = {
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.07)",
-  borderRadius: "12px",
-  padding: "14px 18px",
-  minWidth: "90px",
-};
-const tsStatNum: React.CSSProperties = {
-  fontSize: "24px",
-  fontWeight: 800,
-  color: "var(--t-text)",
-  lineHeight: 1,
-  marginBottom: "4px",
-};
-const tsStatLbl: React.CSSProperties = {
-  fontSize: "10px",
-  fontWeight: 700,
-  color: "var(--t-text-ghost)",
-  textTransform: "uppercase" as const,
-  letterSpacing: "0.6px",
-};
-const tsContent: React.CSSProperties = {
-  maxWidth: "1300px",
-  margin: "0 auto",
-  padding: "24px 40px",
-};
 const tsFilterBar: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
@@ -520,7 +458,7 @@ const tsSearchBox: React.CSSProperties = {
   alignItems: "center",
   gap: "10px",
   background: "var(--t-surface)",
-  border: "1px solid rgba(255,255,255,0.08)",
+  border: "1px solid var(--t-border)",
   borderRadius: "10px",
   padding: "10px 14px",
   flex: 1,
@@ -529,8 +467,8 @@ const tsSearchBox: React.CSSProperties = {
 const tsPill: React.CSSProperties = {
   padding: "7px 14px",
   borderRadius: "20px",
-  border: "1px solid rgba(255,255,255,0.08)",
-  background: "rgba(255,255,255,0.04)",
+  border: "1px solid var(--t-border)",
+  background: "var(--t-hover-bg)",
   fontSize: "13px",
   fontWeight: 500,
   color: "var(--t-text-dim)",
@@ -551,7 +489,7 @@ const tsActivePill: React.CSSProperties = {
 const tsDateInput: React.CSSProperties = {
   padding: "9px 12px",
   borderRadius: "8px",
-  border: "1px solid rgba(255,255,255,0.1)",
+  border: "1px solid var(--t-border)",
   fontSize: "13px",
   background: "var(--t-input-bg)",
   color: "var(--t-text-secondary)",
@@ -560,7 +498,7 @@ const tsDateInput: React.CSSProperties = {
 const tsTableCard: React.CSSProperties = {
   background: "var(--t-surface)",
   borderRadius: "16px",
-  border: "1px solid rgba(255,255,255,0.07)",
+  border: "1px solid var(--t-border)",
   overflow: "hidden",
 };
 

@@ -18,6 +18,7 @@ const PLANS = [
       "Driver payouts via Stripe",
       "Dispatcher portal",
       "Email notifications",
+      "AI assistant included",
     ],
   },
   {
@@ -35,6 +36,7 @@ const PLANS = [
       "Maintenance due alerts",
       "Cost per kilometre reporting",
       "Document uploads",
+      "AI assistant included",
     ],
   },
   {
@@ -50,6 +52,7 @@ const PLANS = [
       "Everything in Vehicle Management",
       "Driver ↔ Vehicle assignment",
       "Unified fleet dashboard",
+      "AI assistant included",
       "Priority support",
       "Onboarding assistance",
       "14-day free trial",

@@ -26,6 +26,8 @@ import {
   FaChevronLeft,
   FaChevronRight,
   FaMapMarkerAlt,
+  FaLock,
+  FaFileAlt,
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md"; // Material Dashboard Icon
 import { useAuth } from "../contexts/AuthContext";
@@ -39,6 +41,8 @@ const Navbar: React.FC = () => {
   const [showNotification, setShowNotification] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<string | null>(null);
+  const [headerOrgName, setHeaderOrgName] = useState<string>("");
   const sidebarRef = useRef<HTMLElement>(null);
   const sidebarScrollRef = useRef<number>(0);
 
@@ -59,8 +63,35 @@ const Navbar: React.FC = () => {
     };
 
     fetchNotifications(); // Always fetch on mount
-
   }, []); // Only run on component mount
+
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await fetch(`${API_BASE_URL}/subscriptions/current`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        setSubscriptionPlan(data.plan || null);
+      } catch {
+        // silently ignore — gate defaults to open if fetch fails
+      }
+    };
+    fetchSubscription();
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    fetch(`${API_BASE_URL}/organizations/profile`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (data?.name) setHeaderOrgName(data.name); })
+      .catch(() => {});
+  }, []);
 
   const handleMarkAllRead = useCallback(async () => {
     try {
@@ -113,25 +144,70 @@ const Navbar: React.FC = () => {
     return base;
   };
 
-  const renderNavItem = (to: string, icon: React.ReactNode, label: string, isDriver = false) => (
-    <li style={{ ...styles.navItem, position: "relative" as const }}>
-      <Link to={to} style={getLinkStyle(to, isDriver)}>
-        {icon}{!isSidebarCollapsed && <span>{label}</span>}
-      </Link>
-      {isActive(to) && !isSidebarCollapsed && (
-        <div style={{
-          position: "absolute",
-          right: 0,
-          top: "50%",
-          transform: "translateY(-50%)",
-          width: "3px",
-          height: "26px",
-          background: "linear-gradient(180deg, #818CF8 0%, #4F46E5 100%)",
-          borderRadius: "3px 0 0 3px",
-        }} />
-      )}
-    </li>
-  );
+  const renderNavItem = (to: string, icon: React.ReactNode, label: string, isDriver = false, locked = false) => {
+    if (locked) {
+      return (
+        <li key={to} style={{ ...styles.navItem, position: "relative" as const }}>
+          <div
+            title={`Upgrade your plan to access ${label}`}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              padding: isSidebarCollapsed ? "10px 0" : "9px 14px",
+              margin: isSidebarCollapsed ? "2px 8px" : "2px 8px",
+              borderRadius: "10px",
+              cursor: "not-allowed",
+              justifyContent: isSidebarCollapsed ? "center" : "flex-start",
+              color: "var(--t-text-ghost)",
+              fontSize: "13px",
+              fontWeight: 500,
+              userSelect: "none" as const,
+            }}
+          >
+            <span style={{ opacity: 0.45, flexShrink: 0, display: "flex" }}>{icon}</span>
+            {!isSidebarCollapsed && (
+              <>
+                <span style={{ flex: 1, opacity: 0.45 }}>{label}</span>
+                <span style={{
+                  display: "inline-flex", alignItems: "center", gap: "3px",
+                  fontSize: "9px", fontWeight: 700, letterSpacing: "0.4px",
+                  color: "var(--t-accent)", opacity: 0.7,
+                  background: "var(--t-indigo-bg)",
+                  border: "1px solid rgba(79,70,229,0.2)",
+                  borderRadius: "4px", padding: "2px 5px", flexShrink: 0,
+                }}>
+                  <FaLock size={7} />UPGRADE
+                </span>
+              </>
+            )}
+            {isSidebarCollapsed && (
+              <FaLock size={8} style={{ position: "absolute", bottom: "6px", right: "6px", color: "var(--t-accent)", opacity: 0.7 }} />
+            )}
+          </div>
+        </li>
+      );
+    }
+    return (
+      <li style={{ ...styles.navItem, position: "relative" as const }}>
+        <Link to={to} style={getLinkStyle(to, isDriver)} {...(isDriver ? { "data-driver": "true" } : {})}>
+          {icon}{!isSidebarCollapsed && <span>{label}</span>}
+        </Link>
+        {isActive(to) && !isSidebarCollapsed && (
+          <div style={{
+            position: "absolute",
+            right: 0,
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: "3px",
+            height: "26px",
+            background: "linear-gradient(180deg, #818CF8 0%, #4F46E5 100%)",
+            borderRadius: "3px 0 0 3px",
+          }} />
+        )}
+      </li>
+    );
+  };
   const notificationRef = useRef<HTMLDivElement>(null);
 
   // CSS injection: push page content right and down to avoid sidebar/header overlap
@@ -208,6 +284,22 @@ const Navbar: React.FC = () => {
         transition: "left 0.3s ease, width 0.3s ease",
         position: "fixed",
       }} data-nav-header>
+        {/* Left: org / company name */}
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
+          {(() => {
+            const name = headerOrgName || (user?.role === "driver" ? (user as any).orgName : "");
+            if (!name) return null;
+            return (
+              <>
+                <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "var(--t-accent)", flexShrink: 0 }} />
+                <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--t-text-dim)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "280px" }}>
+                  {name}
+                </span>
+              </>
+            );
+          })()}
+        </div>
+
         <div style={styles.authButtons} data-nav-auth>
           {ADMIN_ROLES.includes(user?.role ?? "") && (
             <div style={styles.notificationIconWrapper}>
@@ -375,33 +467,11 @@ const Navbar: React.FC = () => {
           </button>
         </div>
 
-        {/* Driver profile block */}
-        {user?.role === "driver" && (
-          <div style={{
-            ...styles.driverProfile,
-            ...(isSidebarCollapsed ? { justifyContent: "center", padding: "12px 0", margin: "4px 8px" } : {}),
-          }}>
-            <div style={styles.driverAvatar}>
-              {(user.name || "D").charAt(0).toUpperCase()}
-            </div>
-            {!isSidebarCollapsed && (
-              <div style={styles.driverProfileInfo}>
-                <div style={styles.driverProfileName}>{user.name || "Driver"}</div>
-                {(user as any).driverId && (
-                  <div style={styles.driverIdBadge}>{(user as any).driverId}</div>
-                )}
-                {(user as any).orgName && (
-                  <div style={styles.driverOrgBadge}>{(user as any).orgName}</div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
         <ul style={styles.navList}>
           {user?.role === "driver" && (
             <>
-              {renderNavItem("/dashboard",          <MdDashboard size={18} />,    "Dashboard",          true)}
+              {renderNavItem("/dashboard",             <MdDashboard size={18} />,   "Home",               true)}
+              {renderNavItem("/my-timesheet-submit", <FaFileAlt size={18} />,       "Submit Timesheet",   true)}
               {renderNavItem("/my-timesheet",        <FaClock size={18} />,         "My Timesheet",       true)}
               {renderNavItem("/my-info",             <FaUser size={18} />,          "My Info",            true)}
               {renderNavItem("/contact-us",          <FaPhoneAlt size={18} />,      "Contact Us",         true)}
@@ -410,38 +480,52 @@ const Navbar: React.FC = () => {
 
           {ADMIN_ROLES.includes(user?.role ?? "") && (
             <>
-              {renderNavItem("/admin-home",          <FaThLarge size={16} />,       "Home")}
-              {renderNavItem("/users",               <FaUsers size={16} />,         "Drivers")}
-              {renderNavItem("/invoice",             <FaFileInvoice size={16} />,   "Invoice")}
-              {renderNavItem("/applications",        <FaClipboardList size={16} />, "All Timesheets")}
-              {renderNavItem("/enquiries",           <FaPhoneAlt size={16} />,      "Enquiries")}
-              {renderNavItem("/driver-applications", <FaClipboardList size={16} />, "Driver Applications")}
+              {(() => {
+                const isSuperAdmin = user?.role === "admin";
+                const hasDriver = isSuperAdmin || subscriptionPlan === "driver" || subscriptionPlan === "bundle";
+                const hasVehicle = isSuperAdmin || subscriptionPlan === "vehicle" || subscriptionPlan === "bundle";
 
-              <li style={{ ...styles.navItem, marginTop: "14px" }}>
-                {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Vehicle Management</span> : <div style={styles.sectionDivider} />}
-              </li>
-              {renderNavItem("/vehicles",            <FaTruck size={16} />,         "Vehicles")}
-              {renderNavItem("/tracking",            <FaMapMarkerAlt size={16} />,  "Live Tracking")}
-              {renderNavItem("/maintenance",         <FaWrench size={16} />,        "Maintenance")}
-              {renderNavItem("/inspections",         <FaCheckSquare size={16} />,   "Inspections")}
-              {renderNavItem("/fuel-logs",           <FaGasPump size={16} />,       "Fuel Logs")}
+                return (
+                  <>
+                    {renderNavItem("/admin-home",          <FaThLarge size={16} />,       "Home")}
 
-              <li style={{ ...styles.navItem, marginTop: "14px" }}>
-                {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Fleet Operations</span> : <div style={styles.sectionDivider} />}
-              </li>
-              {renderNavItem("/parts",               <FaBox size={16} />,           "Parts Inventory")}
-              {renderNavItem("/warranties",          <FaShieldAlt size={16} />,     "Warranties")}
-              {renderNavItem("/service-history",     <FaHistory size={16} />,       "Service History")}
-              {renderNavItem("/cost-tracking",       <FaChartBar size={16} />,      "Cost Tracking")}
-              {renderNavItem("/preventive-maintenance", <FaCheckSquareIcon size={16} />, "Preventive Maint.")}
-              {renderNavItem("/scheduling",          <FaCalendarAlt size={16} />,   "Scheduling")}
+                    <li style={{ ...styles.navItem, marginTop: "14px" }}>
+                      {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Driver Management</span> : <div style={styles.sectionDivider} />}
+                    </li>
+                    {renderNavItem("/users",               <FaUsers size={16} />,         "Drivers",             false, !hasDriver)}
+                    {renderNavItem("/invoice",             <FaFileInvoice size={16} />,   "Invoice",             false, !hasDriver)}
+                    {renderNavItem("/applications",        <FaClipboardList size={16} />, "All Timesheets",      false, !hasDriver)}
+                    {renderNavItem("/enquiries",           <FaPhoneAlt size={16} />,      "Enquiries",           false, !hasDriver)}
+                    {renderNavItem("/driver-applications", <FaClipboardList size={16} />, "Driver Applications", false, !hasDriver)}
 
-              <li style={{ ...styles.navItem, marginTop: "14px" }}>
-                {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Payments & Billing</span> : <div style={styles.sectionDivider} />}
-              </li>
-              {renderNavItem("/payments",            <FaDollarSign size={16} />,    "Driver Payments")}
-              {renderNavItem("/payment-history",     <FaHistory size={16} />,       "Payment History")}
-              {renderNavItem("/subscription",        <FaCreditCard size={16} />,    "Subscription")}
+                    <li style={{ ...styles.navItem, marginTop: "14px" }}>
+                      {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Vehicle Management</span> : <div style={styles.sectionDivider} />}
+                    </li>
+                    {renderNavItem("/vehicles",               <FaTruck size={16} />,            "Vehicles",           false, !hasVehicle)}
+                    {renderNavItem("/tracking",               <FaMapMarkerAlt size={16} />,     "Live Tracking",      false, !hasVehicle)}
+                    {renderNavItem("/maintenance",            <FaWrench size={16} />,           "Maintenance",        false, !hasVehicle)}
+                    {renderNavItem("/inspections",            <FaCheckSquare size={16} />,      "Inspections",        false, !hasVehicle)}
+                    {renderNavItem("/fuel-logs",              <FaGasPump size={16} />,          "Fuel Logs",          false, !hasVehicle)}
+
+                    <li style={{ ...styles.navItem, marginTop: "14px" }}>
+                      {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Fleet Operations</span> : <div style={styles.sectionDivider} />}
+                    </li>
+                    {renderNavItem("/parts",                  <FaBox size={16} />,              "Parts Inventory",    false, !hasVehicle)}
+                    {renderNavItem("/warranties",             <FaShieldAlt size={16} />,        "Warranties",         false, !hasVehicle)}
+                    {renderNavItem("/service-history",        <FaHistory size={16} />,          "Service History",    false, !hasVehicle)}
+                    {renderNavItem("/cost-tracking",          <FaChartBar size={16} />,         "Cost Tracking",      false, !hasVehicle)}
+                    {renderNavItem("/preventive-maintenance", <FaCheckSquareIcon size={16} />,  "Preventive Maint.",  false, !hasVehicle)}
+                    {renderNavItem("/scheduling",             <FaCalendarAlt size={16} />,      "Scheduling",         false, !hasVehicle)}
+
+                    <li style={{ ...styles.navItem, marginTop: "14px" }}>
+                      {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Payments & Billing</span> : <div style={styles.sectionDivider} />}
+                    </li>
+                    {renderNavItem("/payments",               <FaDollarSign size={16} />,       "Driver Payments",    false, !hasDriver)}
+                    {renderNavItem("/payment-history",        <FaHistory size={16} />,          "Payment History",    false, !hasDriver)}
+                    {renderNavItem("/subscription",           <FaCreditCard size={16} />,       "Subscription")}
+                  </>
+                );
+              })()}
             </>
           )}
         </ul>
@@ -485,6 +569,26 @@ const Navbar: React.FC = () => {
           </button>
         </div>
 
+        {/* Driver profile block at bottom */}
+        {user?.role === "driver" && (
+          <div style={{
+            ...styles.adminProfile,
+            ...(isSidebarCollapsed ? { justifyContent: "center", padding: "12px 0", margin: "0 8px 14px" } : {}),
+          }}>
+            <div style={styles.driverAvatar}>
+              {((user as any).name || "D").charAt(0).toUpperCase()}
+            </div>
+            {!isSidebarCollapsed && (
+              <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
+                <div style={styles.adminName}>{(user as any).name || "Driver"}</div>
+                <div style={styles.adminRole}>
+                  {(user as any).driverId || "Driver"}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Admin profile block at bottom */}
         {ADMIN_ROLES.includes(user?.role ?? "") && (
           <div style={{
@@ -512,7 +616,7 @@ const Navbar: React.FC = () => {
 const styles: { [key: string]: React.CSSProperties } = {
   header: {
     display: "flex",
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
     alignItems: "center",
     padding: "0 24px",
     height: "56px",
@@ -939,12 +1043,9 @@ nav ul li a[style*="linear-gradient"]:hover {
 }
 
 /* Driver nav links get an indigo tinted hover */
-nav ul li a[href="/dashboard"]:hover,
-nav ul li a[href="/my-timesheet"]:hover,
-nav ul li a[href="/my-info"]:hover,
-nav ul li a[href="/contact-us"]:hover {
-  background-color: rgba(99,102,241,0.18) !important;
-  color: #e0e7ff !important;
+nav ul li a[data-driver="true"]:hover {
+  background-color: rgba(99,102,241,0.12) !important;
+  color: var(--t-accent) !important;
 }
 `;
 if (typeof document !== "undefined" && !document.getElementById("hide-on-mobile-style")) {

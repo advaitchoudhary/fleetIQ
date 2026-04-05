@@ -4,6 +4,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import FileDriverApplication from "./pages/FileDriverApplication";
 import Dashboard from "./pages/Dashboard";
+import DriverHome from "./pages/DriverHome";
 import Users from "./pages/Drivers";
 import AdminHome from "./pages/AdminHome";
 import Profile from "./pages/Profile";
@@ -63,6 +64,14 @@ const App: React.FC = () => {
         {/* Driver Role Routes */}
         <Route
           path="/dashboard"
+          element={
+            <ProtectedRoute requiredRole="driver">
+              <DriverHome />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-timesheet-submit"
           element={
             <ProtectedRoute requiredRole="driver">
               <Dashboard />
