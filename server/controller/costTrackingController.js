@@ -8,14 +8,17 @@ const mongoose = require("mongoose");
 // GET /api/costs/summary?from=&to=&vehicleId=
 const getCostSummary = asyncHandler(async (req, res) => {
   const orgFilter = getOrgFilter(req);
+  const aggOrgFilter = orgFilter.organizationId
+    ? { organizationId: new mongoose.Types.ObjectId(orgFilter.organizationId) }
+    : {};
   const { from, to, vehicleId } = req.query;
 
   const dateFilter = {};
   if (from) dateFilter.$gte = new Date(from);
   if (to) dateFilter.$lte = new Date(to);
 
-  const maintenanceMatch = { ...orgFilter, status: "completed" };
-  const fuelMatch = { ...orgFilter };
+  const maintenanceMatch = { ...aggOrgFilter, status: "completed" };
+  const fuelMatch = { ...aggOrgFilter };
   if (Object.keys(dateFilter).length) {
     maintenanceMatch.completedDate = dateFilter;
     fuelMatch.date = dateFilter;
@@ -92,6 +95,9 @@ const getCostSummary = asyncHandler(async (req, res) => {
 // GET /api/costs/trend?vehicleId=&months=6
 const getCostTrend = asyncHandler(async (req, res) => {
   const orgFilter = getOrgFilter(req);
+  const aggOrgFilter = orgFilter.organizationId
+    ? { organizationId: new mongoose.Types.ObjectId(orgFilter.organizationId) }
+    : {};
   const months = parseInt(req.query.months) || 6;
   const { vehicleId } = req.query;
 
@@ -100,8 +106,8 @@ const getCostTrend = asyncHandler(async (req, res) => {
   since.setDate(1);
   since.setHours(0, 0, 0, 0);
 
-  const maintenanceMatch = { ...orgFilter, status: "completed", completedDate: { $gte: since } };
-  const fuelMatch = { ...orgFilter, date: { $gte: since } };
+  const maintenanceMatch = { ...aggOrgFilter, status: "completed", completedDate: { $gte: since } };
+  const fuelMatch = { ...aggOrgFilter, date: { $gte: since } };
   if (vehicleId) {
     maintenanceMatch.vehicleId = new mongoose.Types.ObjectId(vehicleId);
     fuelMatch.vehicleId = new mongoose.Types.ObjectId(vehicleId);
@@ -171,9 +177,12 @@ const getCostTrend = asyncHandler(async (req, res) => {
 // GET /api/costs/by-category?from=&to=
 const getCostByCategory = asyncHandler(async (req, res) => {
   const orgFilter = getOrgFilter(req);
+  const aggOrgFilter = orgFilter.organizationId
+    ? { organizationId: new mongoose.Types.ObjectId(orgFilter.organizationId) }
+    : {};
   const { from, to } = req.query;
 
-  const match = { ...orgFilter, status: "completed" };
+  const match = { ...aggOrgFilter, status: "completed" };
   if (from || to) {
     match.completedDate = {};
     if (from) match.completedDate.$gte = new Date(from);
