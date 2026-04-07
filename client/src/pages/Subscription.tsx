@@ -24,6 +24,7 @@ const PLANS = [
       "Invoice generation & PDF export",
       "Contact enquiries inbox",
       "Admin notifications",
+      "AI assistant included",
     ],
   },
   {
@@ -45,6 +46,7 @@ const PLANS = [
       "Scheduling calendar",
       "Maintenance due & overdue alerts",
       "Admin notifications",
+      "AI assistant included",
     ],
   },
   {
@@ -57,7 +59,9 @@ const PLANS = [
     features: [
       "Everything in Driver Management",
       "Everything in Vehicle Management",
-      "Multi-company support",
+      "Driver ↔ Vehicle assignment",
+      "Unified fleet dashboard",
+      "AI assistant included",
       "14-day free trial included",
     ],
   },
@@ -283,7 +287,9 @@ const Subscription: React.FC = () => {
                       <>
                         {subscription?.stripeSubscriptionId
                           ? <><FaArrowUp size={12} /> Switch to {plan.name}</>
-                          : `Start Free Trial`}
+                          : currentStatus === "trialing"
+                            ? <><FaArrowUp size={12} /> Upgrade Plan</>
+                            : "Start Free Trial"}
                       </>
                     )}
                   </button>

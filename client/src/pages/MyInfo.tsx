@@ -144,42 +144,30 @@ const MyInfo: React.FC = () => {
       `}</style>
       <Navbar />
 
-      {/* Breadcrumb */}
-      <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px", padding: "14px 40px 0" }}>
-        MY INFO
-      </div>
+      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "32px 40px" }} data-mi-container>
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>
+          MY INFO
+        </div>
 
-      {/* ── Hero Section ─────────────────────────────────────────────── */}
-      <div style={styles.hero}>
-        <div style={styles.heroInner}>
-          <div style={styles.heroAvatar}>
-            {(driver.name || "D").charAt(0).toUpperCase()}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <h1 style={styles.heroName} data-mi-title>{driver.name}</h1>
-            <div style={styles.heroBadgeRow}>
-              {driver.driverId && (
-                <span style={styles.heroBadgeId}>{driver.driverId}</span>
-              )}
-              {driver.organizationId?.name && (
-                <span style={styles.heroBadgeOrg}>{driver.organizationId.name}</span>
-              )}
-              <span style={{ ...styles.heroBadgeStatus, background: driver.status === "Active" ? "rgba(16,185,129,0.2)" : "rgba(107,114,128,0.2)", border: driver.status === "Active" ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(107,114,128,0.4)", color: driver.status === "Active" ? "var(--t-success)" : "var(--t-text-faint)" }}>
-                ● {driver.status || "Active"}
-              </span>
+        {/* Page Header */}
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", gap: "16px", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{ width: "52px", height: "52px", borderRadius: "12px", background: "linear-gradient(135deg, #4F46E5, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: 800, color: "#fff", flexShrink: 0 }}>
+              {(driver.name || "D").charAt(0).toUpperCase()}
             </div>
-            <div style={styles.heroStats} data-mi-hero-stats>
-              <div style={styles.heroStat}>
-                <span style={styles.heroStatNum}>{formsUploaded}/{totalForms}</span>
-                <span style={styles.heroStatLabel}>Forms Uploaded</span>
-              </div>
-              <div style={styles.heroStat}>
-                <span style={styles.heroStatNum}>{trainingsCompleted}</span>
-                <span style={styles.heroStatLabel}>Trainings Passed</span>
-              </div>
-              <div style={styles.heroStat}>
-                <span style={styles.heroStatNum}>{driver.status || "—"}</span>
-                <span style={styles.heroStatLabel}>Status</span>
+            <div>
+              <h1 style={{ margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }} data-mi-title>{driver.name}</h1>
+              <div style={styles.heroBadgeRow}>
+                {driver.driverId && (
+                  <span style={styles.heroBadgeId}>{driver.driverId}</span>
+                )}
+                {driver.organizationId?.name && (
+                  <span style={styles.heroBadgeOrg}>{driver.organizationId.name}</span>
+                )}
+                <span style={{ ...styles.heroBadgeStatus, background: driver.status === "Active" ? "rgba(16,185,129,0.2)" : "rgba(107,114,128,0.2)", border: driver.status === "Active" ? "1px solid rgba(16,185,129,0.4)" : "1px solid rgba(107,114,128,0.4)", color: driver.status === "Active" ? "var(--t-success)" : "var(--t-text-faint)" }}>
+                  ● {driver.status || "Active"}
+                </span>
               </div>
             </div>
           </div>
@@ -191,9 +179,22 @@ const MyInfo: React.FC = () => {
             {isEditing ? "✕ Cancel" : "✎ Edit Info"}
           </button>
         </div>
-      </div>
 
-      <div style={styles.container} data-mi-container>
+        {/* Stats Row */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" }}>
+          {[
+            { value: `${formsUploaded}/${totalForms}`, label: "Forms Uploaded" },
+            { value: String(trainingsCompleted), label: "Trainings Passed" },
+            { value: driver.status || "—", label: "Status" },
+          ].map(({ value, label }) => (
+            <div key={label} style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "12px", padding: "20px 24px", boxShadow: "var(--t-shadow)" }}>
+              <div style={{ fontSize: "28px", fontWeight: 700, color: "var(--t-accent)", lineHeight: 1 }}>{value}</div>
+              <div style={{ fontSize: "13px", color: "var(--t-text-dim)", marginTop: "4px" }}>{label}</div>
+            </div>
+          ))}
+        </div>
+
+      <div>
         {hasMissingForms && (
           <div style={styles.warningBanner}>
             <p style={styles.warningText}>
@@ -779,44 +780,12 @@ const MyInfo: React.FC = () => {
           )}
         </div>
       </div>
+      </div>
     </div>
   );
 };
 
 const styles: { [key: string]: React.CSSProperties } = {
-  hero: {
-    background: "linear-gradient(135deg, #0A0F1E 0%, var(--t-bg) 55%, var(--t-surface) 100%)",
-    borderBottom: "1px solid rgba(255,255,255,0.06)",
-    padding: "36px 40px 32px",
-  },
-  heroInner: {
-    maxWidth: "1200px",
-    margin: "0 auto",
-    display: "flex",
-    alignItems: "flex-start",
-    gap: "24px",
-  },
-  heroAvatar: {
-    width: "72px",
-    height: "72px",
-    borderRadius: "14px",
-    background: "linear-gradient(135deg, #4F46E5, #7c3aed)",
-    border: "1px solid rgba(129,140,248,0.35)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "30px",
-    fontWeight: 700,
-    color: "#fff",
-    flexShrink: 0,
-  },
-  heroName: {
-    fontSize: "26px",
-    fontWeight: 800,
-    color: "#fff",
-    margin: "0 0 10px",
-    letterSpacing: "-0.4px",
-  },
   heroBadgeRow: {
     display: "flex",
     flexWrap: "wrap" as const,
@@ -847,30 +816,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     borderRadius: "6px",
     padding: "3px 10px",
   },
-  heroStats: {
-    display: "flex",
-    gap: "32px",
-  },
-  heroStat: {
-    display: "flex",
-    flexDirection: "column" as const,
-    gap: "3px",
-  },
-  heroStatNum: {
-    fontSize: "20px",
-    fontWeight: 800,
-    color: "var(--t-indigo)",
-    lineHeight: 1,
-  },
-  heroStatLabel: {
-    fontSize: "10px",
-    color: "rgba(255,255,255,0.4)",
-    fontWeight: 600,
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.6px",
-  },
   heroEditBtn: {
-    marginLeft: "auto",
     flexShrink: 0,
     background: "var(--t-border)",
     border: "1px solid rgba(255,255,255,0.12)",
@@ -883,11 +829,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     transition: "background 0.2s",
     alignSelf: "flex-start",
     fontFamily: "Inter, system-ui, sans-serif",
-  },
-  container: {
-    maxWidth: "1200px",
-    margin: "0 auto",
-    padding: "28px 24px 60px",
   },
   saveBtn: {
     backgroundColor: "var(--t-accent)",

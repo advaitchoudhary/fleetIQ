@@ -4,7 +4,7 @@ import {
   FaTruck, FaUsers, FaFileAlt, FaCreditCard, FaCalendarAlt,
   FaShieldAlt, FaTools, FaChartBar, FaCheckCircle, FaArrowRight,
   FaCar, FaGasPump, FaClipboardList, FaBell, FaBuilding,
-  FaLayerGroup, FaAngleDown, FaChevronDown, FaQuoteLeft,
+  FaLayerGroup, FaAngleDown, FaChevronDown, FaQuoteLeft, FaRobot,
 } from "react-icons/fa";
 
 const Landing: React.FC = () => {
@@ -94,7 +94,7 @@ const Landing: React.FC = () => {
         "Parts & warranty tracking",
         "Cost tracking & service history",
         "Scheduling calendar",
-        "Multi-company support",
+        "Driver ↔ Vehicle assignment",
       ],
       cta: "Start Free Trial",
       highlight: true,
@@ -951,6 +951,82 @@ const Landing: React.FC = () => {
                   <div style={{ fontSize: "20px", fontWeight: 800, color: "#a78bfa" }}>2 / 4</div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── AI ASSISTANT ── */}
+      <section className="land-section" style={{ backgroundColor: "#F8FAFC", padding: "100px 48px" }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+          <div className="land-deep-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
+            {/* Visual panel */}
+            <div className="land-reveal-left" style={{
+              background: "linear-gradient(135deg, #0F172A, #1e1b4b)",
+              borderRadius: "20px", padding: "36px",
+              boxShadow: "0 24px 64px rgba(0,0,0,0.25)",
+              border: "1px solid rgba(255,255,255,0.07)",
+            }}>
+              <div style={{ marginBottom: "22px", display: "flex", alignItems: "center", gap: "10px" }}>
+                <div style={{ width: "36px", height: "36px", borderRadius: "10px", background: "rgba(79,70,229,0.3)", border: "1px solid rgba(79,70,229,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <FaRobot size={16} color="#818CF8" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "13px", fontWeight: 700, color: "#fff" }}>FleetIQ Assistant</div>
+                  <div style={{ fontSize: "11px", color: "#10b981", fontWeight: 600 }}>● Online</div>
+                </div>
+              </div>
+              {[
+                { role: "user", text: "How many vehicles are overdue for maintenance?" },
+                { role: "ai", text: "Based on your fleet, 3 vehicles are overdue: Unit #104 (oil change), Unit #207 (brake inspection), and Unit #312 (tire rotation). Head to Preventive Maintenance to generate work orders." },
+                { role: "user", text: "Which driver has the most hours this week?" },
+                { role: "ai", text: "You can check this in All Timesheets — filter by the current week and sort by total hours to see the breakdown across your team." },
+              ].map((msg, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start", marginBottom: "10px" }}>
+                  <div style={{
+                    maxWidth: "80%", padding: "10px 14px", fontSize: "12px", lineHeight: 1.6,
+                    borderRadius: msg.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+                    background: msg.role === "user" ? "#4F46E5" : "rgba(255,255,255,0.07)",
+                    color: msg.role === "user" ? "#fff" : "rgba(255,255,255,0.8)",
+                    border: msg.role === "user" ? "none" : "1px solid rgba(255,255,255,0.1)",
+                  }}>
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Text content */}
+            <div className="land-reveal-right">
+              <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase", color: "#4F46E5", marginBottom: "14px" }}>
+                AI-POWERED
+              </p>
+              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 800, color: "#111827", marginTop: 0, marginBottom: "18px", lineHeight: 1.12, letterSpacing: "-0.5px" }}>
+                Your fleet has an AI assistant built in
+              </h2>
+              <p style={{ fontSize: "16px", color: "#6b7280", lineHeight: 1.75, marginBottom: "32px" }}>
+                Ask anything about your fleet — maintenance schedules, driver status, warranty claims, fuel costs. The FleetIQ Assistant knows your platform inside out and gives instant, role-aware answers.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {[
+                  { icon: <FaRobot size={15} />, text: "Instant answers about vehicles, drivers & maintenance" },
+                  { icon: <FaCheckCircle size={15} />, text: "Role-scoped — drivers only see their own data" },
+                  { icon: <FaShieldAlt size={15} />, text: "Admins get full fleet-wide context" },
+                  { icon: <FaBell size={15} />, text: "Ask about overdue alerts, expiring licences & more" },
+                  { icon: <FaCalendarAlt size={15} />, text: "Step-by-step guidance on using any feature" },
+                ].map((f, i) => (
+                  <div key={i} className="land-check-item">
+                    <span style={{ color: "#4F46E5", flexShrink: 0 }}>{f.icon}</span>
+                    {f.text}
+                  </div>
+                ))}
+              </div>
+              <button
+                className="land-hero-btn-primary"
+                style={{ marginTop: "36px" }}
+                onClick={() => navigate("/register")}
+              >
+                Try it free
+              </button>
             </div>
           </div>
         </div>

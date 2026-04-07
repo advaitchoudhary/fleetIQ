@@ -564,8 +564,6 @@ const Timesheet: React.FC = () => {
           .db-two-col { grid-template-columns: 1fr !important; }
           .db-section-card { padding: 16px !important; }
           .db-main { padding: 0 12px 80px !important; margin-top: 12px !important; }
-          .db-hero { padding: 20px 16px !important; }
-          .db-hero-inner { flex-direction: column !important; align-items: flex-start !important; gap: 14px !important; }
         }
         @media (min-width: 769px) {
           .db-two-col { grid-template-columns: 1fr 1fr; }
@@ -578,37 +576,24 @@ const Timesheet: React.FC = () => {
       `}</style>
       <Navbar />
 
-      {/* Breadcrumb */}
-      <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px", padding: "14px 40px 0" }}>
-        DASHBOARD
-      </div>
+      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "32px 40px" }}>
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>
+          SUBMIT TIMESHEET
+        </div>
 
-      {/* ── Driver Hero ─────────────────────────────────────────────────── */}
-      <div style={heroOuter} className="db-hero">
-        <div style={heroInner} className="db-hero-inner">
-          <div style={{ display: "flex", alignItems: "center", gap: "16px", flexShrink: 0 }}>
-            <div style={avatarCircle}>{(driverName || "D").charAt(0).toUpperCase()}</div>
-            <div>
-              <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", textTransform: "uppercase" as const, letterSpacing: "1.2px" }}>Senior Logistics Op</p>
-              <h1 style={{ margin: "3px 0 0", fontSize: "22px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.4px", lineHeight: 1 }}>
-                {driverName || "Driver"}
-              </h1>
-              {driverIdDisplay && (
-                <p style={{ margin: "5px 0 0", fontSize: "12px", color: "var(--t-text-ghost)", fontWeight: 500, fontFamily: "monospace" }}>
-                  • {driverIdDisplay}
-                </p>
-              )}
-            </div>
+        {/* Page Header */}
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "28px" }}>
+          <div style={{ width: "52px", height: "52px", borderRadius: "12px", background: "linear-gradient(135deg, #4F46E5, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: 800, color: "#fff", flexShrink: 0 }}>
+            {(driverName || "D").charAt(0).toUpperCase()}
           </div>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" as const, alignItems: "center" }}>
-            {orgName && <span style={orgBadge}>🏢 {orgName}</span>}
-            <span style={driverStatus === "Active" ? activeBadge : inactiveBadge}>● {driverStatus}</span>
+          <div>
+            <h1 style={{ margin: "0 0 6px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>Submit Timesheet</h1>
+            <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>{driverName}</p>
           </div>
         </div>
-      </div>
 
       <div style={styles.mainContent} data-db-content>
-        <h2 style={styles.pageTitle} data-db-title>Enter Your Timesheet</h2>
 
         {assignedVehicle && (
           <div style={{
@@ -932,6 +917,7 @@ const Timesheet: React.FC = () => {
           </button>
         </form>
       </div>
+      </div>
 
       {/* Error Modal */}
       {showErrorModal && (
@@ -952,60 +938,6 @@ const Timesheet: React.FC = () => {
 };
 
 // ── Style constants ───────────────────────────────────────────────────────────
-const heroOuter: CSSProperties = {
-  background: "var(--t-surface-alt)",
-  padding: "28px 40px",
-  borderBottom: "1px solid var(--t-border)",
-};
-const heroInner: CSSProperties = {
-  maxWidth: "680px",
-  margin: "0 auto",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "20px",
-  flexWrap: "wrap" as const,
-};
-const avatarCircle: CSSProperties = {
-  width: "52px",
-  height: "52px",
-  borderRadius: "12px",
-  background: "linear-gradient(135deg, #4F46E5, #7c3aed)",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontSize: "22px",
-  fontWeight: 800,
-  color: "var(--t-surface)",
-  flexShrink: 0,
-};
-const orgBadge: CSSProperties = {
-  background: "var(--t-border)",
-  color: "var(--t-text-faint)",
-  border: "1px solid var(--t-border)",
-  borderRadius: "20px",
-  padding: "3px 12px",
-  fontSize: "12px",
-  fontWeight: 600,
-};
-const activeBadge: CSSProperties = {
-  background: "rgba(16,185,129,0.15)",
-  color: "var(--t-success)",
-  border: "1px solid rgba(16,185,129,0.3)",
-  borderRadius: "20px",
-  padding: "3px 12px",
-  fontSize: "12px",
-  fontWeight: 600,
-};
-const inactiveBadge: CSSProperties = {
-  background: "var(--t-error-bg)",
-  color: "var(--t-error)",
-  border: "1px solid var(--t-border)",
-  borderRadius: "20px",
-  padding: "3px 12px",
-  fontSize: "12px",
-  fontWeight: 600,
-};
 const sectionDivider: CSSProperties = {
   fontSize: "10px",
   fontWeight: 700,
@@ -1047,8 +979,8 @@ const styles: { [key: string]: CSSProperties } = {
     fontFamily: "Inter, system-ui, sans-serif",
   },
   mainContent: {
-    margin: "20px auto 60px",
-    padding: "0 16px",
+    margin: "0 auto 60px",
+    padding: 0,
     width: "100%",
     maxWidth: "680px",
     boxSizing: "border-box" as const,

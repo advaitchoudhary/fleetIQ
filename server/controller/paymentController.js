@@ -212,6 +212,15 @@ const initiatePayout = async (req, res) => {
       paidAt: new Date(),
     });
 
+    // Notify driver of payment
+    const Notification = require("../model/notificationModel");
+    Notification.create({
+      organizationId: req.organizationId,
+      message: `A payment of $${(amountCents / 100).toFixed(2)} CAD has been sent to your account.`,
+      email: driver.email,
+      field: "payment",
+    }).catch(err => console.error("Payment notification failed:", err));
+
     res.status(201).json({
       message: "Payout initiated successfully.",
       payment: { ...payment.toObject(), stripeTransferId: transfer.id, status: "paid", paidAt: new Date() },
@@ -258,6 +267,7 @@ const getDriverPaymentHistory = async (req, res) => {
   if (!driver) return res.status(404).json({ message: "Driver record not found" });
 
   const payments = await Payment.find({ driverId: driver._id })
+    .populate("timesheetIds", "date customer category totalHours")
     .sort({ createdAt: -1 });
 
   res.json(payments);
