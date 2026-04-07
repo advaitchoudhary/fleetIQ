@@ -8,11 +8,11 @@ const {
   deleteNotification,
 } = require("../controller/notificationController.js");
 
-const { protect } = require("../middleware/authMiddleware.js");
+const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
 
 const route = express.Router();
 
-route.post("/", protect, createNotification);
+route.post("/", protect, authorizeRoles("admin", "company_admin", "dispatcher"), createNotification);
 route.get("/", protect, getNotifications);
 route.post("/markAllRead", protect, markAllNotificationsAsRead);
 route.post("/:id/markRead", protect, markNotificationAsRead);

@@ -185,6 +185,40 @@ const updateMandatoryDocuments = async (req, res) => {
   }
 };
 
+// GET /api/organizations/timesheet-categories
+const getTimesheetCategories = async (req, res) => {
+  try {
+    if (!req.organizationId) {
+      return res.status(400).json({ error: "No organization context" });
+    }
+    const org = await Organization.findById(req.organizationId).select("timesheetCategories");
+    if (!org) return res.status(404).json({ error: "Organization not found" });
+    res.json({ timesheetCategories: org.timesheetCategories || [] });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// PUT /api/organizations/timesheet-categories
+const updateTimesheetCategories = async (req, res) => {
+  try {
+    const { timesheetCategories } = req.body;
+    if (!Array.isArray(timesheetCategories)) {
+      return res.status(400).json({ error: "timesheetCategories must be an array of strings" });
+    }
+    const cleaned = timesheetCategories.map((c) => String(c).trim()).filter(Boolean);
+    const org = await Organization.findByIdAndUpdate(
+      req.organizationId,
+      { timesheetCategories: cleaned },
+      { new: true }
+    );
+    if (!org) return res.status(404).json({ error: "Organization not found" });
+    res.json({ timesheetCategories: org.timesheetCategories });
+  } catch (error) {
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
 module.exports = {
   registerOrganization,
   getOrganizationProfile,
@@ -194,4 +228,6 @@ module.exports = {
   updateMandatoryTrainings,
   getMandatoryDocuments,
   updateMandatoryDocuments,
+  getTimesheetCategories,
+  updateTimesheetCategories,
 };

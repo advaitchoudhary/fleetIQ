@@ -19,6 +19,10 @@ const organizationSchema = new mongoose.Schema(
       type: [String],
       default: [], // admin configures the list of required compliance document names
     },
+    timesheetCategories: {
+      type: [String],
+      default: [], // admin configures the available timesheet categories for their org
+    },
     subscription: {
       plan: {
         type: String,

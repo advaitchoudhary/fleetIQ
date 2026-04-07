@@ -53,8 +53,28 @@ const getOrgFilter = (req) => {
   return { organizationId: req.organizationId };
 };
 
+// Soft auth: sets req.user if a valid token is present, but never blocks the request.
+// Used for public routes that should optionally capture the caller's org.
+const softAuth = (req, res, next) => {
+  const JWT_SECRET = process.env.JWT_SECRET;
+  const token =
+    req.header("Authorization")?.split(" ")[1] ||
+    req.cookies?.admin_token;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      req.user = decoded;
+      req.organizationId = decoded.organizationId || null;
+    } catch {
+      // invalid/expired token — treat as unauthenticated, don't block
+    }
+  }
+  next();
+};
+
 module.exports = {
   protect,
   authorizeRoles,
   getOrgFilter,
+  softAuth,
 };

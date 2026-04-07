@@ -120,60 +120,68 @@ const updateAllDriversHours = async (req, res) => {
   }
 };
 
-const create = asyncHandler(async (req, res) => {
-  const { email, username, password } = req.body;
+const create = async (req, res) => {
+  try {
+    const { email, username, password } = req.body;
 
-  const orgFilter = getOrgFilter(req);
-  const driverExist = await Driver.findOne({ email, ...orgFilter });
-  if (driverExist) {
-    res.status(400).json({ message: "Driver already exists" });
-    return;
-  }
-
-  // Check username uniqueness globally (usernames must be unique across all orgs for login)
-  if (username) {
-    const usernameExist = await Driver.findOne({ username: username.trim() });
-    if (usernameExist) {
-      res.status(400).json({ message: "Username already exists" });
+    const orgFilter = getOrgFilter(req);
+    const driverExist = await Driver.findOne({ email, ...orgFilter });
+    if (driverExist) {
+      res.status(400).json({ message: "Driver already exists" });
       return;
     }
+
+    // Check username uniqueness globally (usernames must be unique across all orgs for login)
+    if (username) {
+      const usernameExist = await Driver.findOne({ username: username.trim() });
+      if (usernameExist) {
+        res.status(400).json({ message: "Username already exists" });
+        return;
+      }
+    }
+
+    // Hash the password before storing
+    const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
+
+    // Auto-generate driverId: ORG_SEQ_TIMESTAMP
+    let driverId;
+    if (req.organizationId) {
+      const org = await Organization.findById(req.organizationId).lean();
+      const orgPrefix = (org?.name || "DRV")
+        .replace(/[^a-zA-Z0-9]/g, "")
+        .slice(0, 4)
+        .toUpperCase()
+        .padEnd(4, "X");
+      const driverCount = await Driver.countDocuments({ organizationId: req.organizationId });
+      const seq = String(driverCount + 1).padStart(3, "0");
+      driverId = `${orgPrefix}_${seq}_${Date.now()}`;
+    }
+
+    const newDriver = new Driver({
+      ...req.body,
+      organizationId: req.organizationId || null,
+      driverId,
+      password: hashedPassword,
+      plainPassword: password,
+    });
+    const savedData = await newDriver.save();
+
+    if (savedData.email && password) {
+      sendDriverCredentialsEmail(savedData.email, savedData.name, savedData.username, password)
+        .catch(err => console.error("Driver credentials email failed:", err));
+    }
+
+    const savedDataObj = savedData.toObject();
+    const { password: _pw, plainPassword, ...driverWithoutPassword } = savedDataObj;
+    res.status(201).json(driverWithoutPassword);
+  } catch (err) {
+    if (err.name === "ValidationError") {
+      return res.status(400).json({ message: err.message });
+    }
+    console.error("Driver create error:", err);
+    res.status(500).json({ message: "Server error" });
   }
-
-  // Hash the password before storing
-  const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
-
-  // Auto-generate driverId: ORG_SEQ_TIMESTAMP
-  let driverId;
-  if (req.organizationId) {
-    const org = await Organization.findById(req.organizationId).lean();
-    const orgPrefix = (org?.name || "DRV")
-      .replace(/[^a-zA-Z0-9]/g, "")
-      .slice(0, 4)
-      .toUpperCase()
-      .padEnd(4, "X");
-    const driverCount = await Driver.countDocuments({ organizationId: req.organizationId });
-    const seq = String(driverCount + 1).padStart(3, "0");
-    driverId = `${orgPrefix}_${seq}_${Date.now()}`;
-  }
-
-  const newDriver = new Driver({
-    ...req.body,
-    organizationId: req.organizationId || null,
-    driverId,
-    password: hashedPassword,
-    plainPassword: password, // store plain for reference/admin display
-  });
-  const savedData = await newDriver.save();
-
-  if (savedData.email && password) {
-    sendDriverCredentialsEmail(savedData.email, savedData.name, savedData.username, password)
-      .catch(err => console.error("Driver credentials email failed:", err));
-  }
-
-  const savedDataObj = savedData.toObject();
-  const { password: _pw, plainPassword, ...driverWithoutPassword } = savedDataObj;
-  res.status(201).json(driverWithoutPassword);
-});
+};
 
 const getAllDrivers = asyncHandler(async (req, res) => {
   const orgFilter = getOrgFilter(req);
@@ -295,6 +303,10 @@ const changePassword = async (req, res) => {
 
     if (!driverToUpdate) return res.status(404).json({ error: "Driver not found" });
 
+    if (!newPassword || newPassword.length < 8) {
+      return res.status(400).json({ error: "New password must be at least 8 characters" });
+    }
+
     // If Driver is changing own password → verify old password
     if (decoded.role === "driver") {
       const isMatch = await bcrypt.compare(oldPassword, driverToUpdate.password);
@@ -319,22 +331,27 @@ const changePassword = async (req, res) => {
 
 const updateDriverById = asyncHandler(async (req, res) => {
   const orgFilter = getOrgFilter(req);
-  const updatedDriver = await Driver.findOneAndUpdate(
-    { _id: req.params.id, ...orgFilter },
-    req.body,
-    {
-      new: true,
-      runValidators: true,
-    }
-  ).lean();
+  // Strip password fields — password changes must go through /change-password
+  const { password, plainPassword, ...safeBody } = req.body;
+  try {
+    const updatedDriver = await Driver.findOneAndUpdate(
+      { _id: req.params.id, ...orgFilter },
+      safeBody,
+      { new: true, runValidators: true }
+    ).lean();
 
-  if (!updatedDriver) {
-    res.status(404).json({ message: "Driver not found" });
-    return;
+    if (!updatedDriver) {
+      res.status(404).json({ message: "Driver not found" });
+      return;
+    }
+    const { password: _pw, plainPassword: _pp, ...driverWithoutPassword } = updatedDriver;
+    res.json(driverWithoutPassword);
+  } catch (err) {
+    if (err.name === "ValidationError") {
+      return res.status(400).json({ message: err.message });
+    }
+    throw err;
   }
-  // Exclude password and plainPassword from response
-  const { password, plainPassword, ...driverWithoutPassword } = updatedDriver;
-  res.json(driverWithoutPassword);
 });
 
 const deleteDriverById = asyncHandler(async (req, res) => {

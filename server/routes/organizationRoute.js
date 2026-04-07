@@ -8,6 +8,8 @@ const {
   updateMandatoryTrainings,
   getMandatoryDocuments,
   updateMandatoryDocuments,
+  getTimesheetCategories,
+  updateTimesheetCategories,
 } = require("../controller/organizationController.js");
 const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
 
@@ -64,6 +66,20 @@ router.put(
   protect,
   authorizeRoles("admin", "company_admin"),
   updateMandatoryDocuments
+);
+
+// Timesheet categories — drivers can read, only admins can write
+router.get(
+  "/timesheet-categories",
+  protect,
+  authorizeRoles("admin", "company_admin", "dispatcher", "driver"),
+  getTimesheetCategories
+);
+router.put(
+  "/timesheet-categories",
+  protect,
+  authorizeRoles("admin", "company_admin"),
+  updateTimesheetCategories
 );
 
 module.exports = router;

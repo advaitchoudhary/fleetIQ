@@ -90,6 +90,17 @@ const Drivers: React.FC = () => {
   const [showAddWorkAuthPicker, setShowAddWorkAuthPicker] = useState(false);
   const [showEditWorkAuthPicker, setShowEditWorkAuthPicker] = useState(false);
 
+  const FALLBACK_CATEGORIES = ["Backhaul", "Combo", "Extra Sheet/E.W", "Regular/Banner", "Wholesale", "Wholesale DZ"];
+  const [orgCategories, setOrgCategories] = useState<string[]>(FALLBACK_CATEGORIES);
+  const [addModalError, setAddModalError] = useState("");
+  const [editModalError, setEditModalError] = useState("");
+  const [orgCategoriesConfigured, setOrgCategoriesConfigured] = useState(false);
+  const [showCatModal, setShowCatModal] = useState(false);
+  const [catDraft, setCatDraft] = useState<string[]>([]);
+  const [newCatInput, setNewCatInput] = useState("");
+  const [catSaving, setCatSaving] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -107,6 +118,7 @@ const Drivers: React.FC = () => {
     wholesaleRate: "",
     voilaRate: "",
     tcsLinehaulTrentonRate: "",
+    categoryRates: {} as Record<string, string>,
     licence: "",
     licence_expiry_date: "",
     status: "Active",
@@ -149,6 +161,18 @@ const Drivers: React.FC = () => {
   useEffect(() => {
     fetchDrivers();
     fetchPendingApplicationsCount();
+    const token = localStorage.getItem("token");
+    axios.get(`${API_BASE_URL}/organizations/timesheet-categories`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((res) => {
+      const cats: string[] = res.data.timesheetCategories || [];
+      if (cats.length > 0) {
+        setOrgCategories(cats);
+        setOrgCategoriesConfigured(true);
+      } else {
+        setOrgCategoriesConfigured(false);
+      }
+    }).catch(() => {});
   }, []);
 
   // Fetch pending applications count
@@ -203,7 +227,7 @@ const Drivers: React.FC = () => {
       }
     } catch (error: any) {
       console.error("Error creating driver:", error);
-      alert(error.response?.data?.message || "Failed to create driver");
+      setAddModalError(error.response?.data?.message || "Failed to create driver. Please check all fields and try again.");
     }
   };
 
@@ -218,7 +242,7 @@ const Drivers: React.FC = () => {
       setIsEditModalOpen(false);
     } catch (error: any) {
       console.error("Error updating driver:", error);
-      alert(error.response?.data?.message || "Failed to update driver");
+      setEditModalError(error.response?.data?.message || "Failed to update driver. Please check all fields and try again.");
     }
   };
 
@@ -362,41 +386,51 @@ const Drivers: React.FC = () => {
 
   // Handlers for modals
   const handleEdit = (driver: any) => {
-    setSelectedDriver(driver);
+    // Seed categoryRates from legacy rate fields for backwards compat
+    const legacyMap: Record<string, string> = {
+      "Backhaul": "backhaulRate", "Combo": "comboRate",
+      "Extra Sheet/E.W": "extraSheetEWRate", "Regular/Banner": "regularBannerRate",
+      "Wholesale": "wholesaleRate", "Wholesale DZ": "wholesaleRate",
+    };
+    const seededRates: Record<string, string> = { ...(driver.categoryRates || {}) };
+    for (const [cat, field] of Object.entries(legacyMap)) {
+      if (!seededRates[cat] && driver[field]) seededRates[cat] = String(driver[field]);
+    }
+    setSelectedDriver({ ...driver, categoryRates: seededRates });
     setEditedDriver(driver);
     setIsEditModalOpen(true);
     setIsUpdateDisabled(true);
     setUsernameError("");
+    setEditModalError("");
     setEditFieldErrors({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" });
     fetchDriverPayouts(driver._id);
   };
 
   const handleCopyPassword = (password: string): void => {
+    const showCopied = () => { setCopySuccess(true); setTimeout(() => setCopySuccess(false), 2000); };
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(password)
-        .then(() => alert("Password copied to clipboard!"))
-        .catch((err) => {
-          console.error("Clipboard write failed:", err);
-          fallbackCopy(password);
-        });
+      navigator.clipboard.writeText(password).then(showCopied).catch((err) => {
+        console.error("Clipboard write failed:", err);
+        fallbackCopy(password);
+      });
     } else {
       fallbackCopy(password);
     }
   };
-  
+
   const fallbackCopy = (text: string) => {
     const textarea = document.createElement("textarea");
     textarea.value = text;
-    textarea.style.position = "fixed";  // Avoid scrolling to bottom
+    textarea.style.position = "fixed";
     document.body.appendChild(textarea);
     textarea.focus();
     textarea.select();
     try {
-      const successful = document.execCommand("copy");
-      alert(successful ? "Password copied to clipboard!" : "Failed to copy password.");
+      document.execCommand("copy");
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
       console.error("Fallback copy failed:", err);
-      alert("Copy not supported.");
     }
     document.body.removeChild(textarea);
   };
@@ -476,7 +510,7 @@ const Drivers: React.FC = () => {
               Export
             </button>
             <button
-              onClick={() => { setIsAddModalOpen(true); setAddFieldErrors({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" }); }}
+              onClick={() => { setIsAddModalOpen(true); setAddModalError(""); setAddFieldErrors({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" }); }}
               style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}
             >
               + Add Driver
@@ -776,37 +810,41 @@ const Drivers: React.FC = () => {
               </div>
 
               {/* RATE CONFIGURATION */}
-              <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "28px 0 20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
                 <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
                 <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1.2px", whiteSpace: "nowrap" as const }}>RATE CONFIGURATION</span>
                 <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+                <button
+                  onClick={() => { setCatDraft([...orgCategories]); setNewCatInput(""); setShowCatModal(true); }}
+                  style={{ padding: "4px 10px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "6px", color: "var(--t-text-faint)", fontSize: "10px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", whiteSpace: "nowrap" as const, flexShrink: 0 }}>
+                  ⚙ Configure
+                </button>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
-                {([["BACKHAUL RATE", "backhaulRate"], ["COMBO RATE", "comboRate"], ["EXTRA SHEET/E.W", "extraSheetEWRate"], ["REGULAR/BANNER", "regularBannerRate"]] as [string, string][]).map(([label, field]) => (
-                  <div key={field} style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "14px 16px" }}>
-                    <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", marginBottom: "10px" }}>{label}</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--t-text-ghost)" }}>$</span>
-                      <input type="number" placeholder="0.00" style={{ flex: 1, background: "none", border: "none", color: "var(--t-text)", fontSize: "16px", fontWeight: 700, fontFamily: "Inter, system-ui, sans-serif", outline: "none", width: "100%", padding: 0 }}
-                        onChange={(e) => setSelectedDriver({ ...selectedDriver, [field]: e.target.value })} />
+              {!orgCategoriesConfigured ? (
+                <div style={{ padding: "28px 20px", textAlign: "center" as const, background: "var(--t-surface-alt)", borderRadius: "10px", border: "1px dashed var(--t-border-strong)", marginBottom: "12px" }}>
+                  <p style={{ margin: "0 0 4px", fontSize: "14px", fontWeight: 700, color: "var(--t-text-dim)" }}>No categories configured yet</p>
+                  <p style={{ margin: "0 0 14px", fontSize: "12px", color: "var(--t-text-ghost)" }}>Click ⚙ Configure above to set up categories, then fill in rates.</p>
+                  <button
+                    onClick={() => { setCatDraft([]); setNewCatInput(""); setShowCatModal(true); }}
+                    style={{ padding: "8px 18px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                    + Configure Categories
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "12px", marginBottom: "12px" }}>
+                  {orgCategories.map((cat) => (
+                    <div key={cat} style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "14px 16px" }}>
+                      <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", marginBottom: "10px" }}>{cat.toUpperCase()}</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--t-text-ghost)" }}>$</span>
+                        <input type="number" placeholder="0.00" style={{ flex: 1, background: "none", border: "none", color: "var(--t-text)", fontSize: "16px", fontWeight: 700, fontFamily: "Inter, system-ui, sans-serif", outline: "none", width: "100%", padding: 0 }}
+                          onChange={(e) => setSelectedDriver((prev: any) => ({ ...prev, categoryRates: { ...prev.categoryRates, [cat]: e.target.value } }))} />
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
-                {([["WHOLESALE RATE", "wholesaleRate"], ["VOILA RATE", "voilaRate"], ["TCS LINEHAUL TRENTON", "tcsLinehaulTrentonRate"]] as [string, string][]).map(([label, field]) => (
-                  <div key={field} style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "14px 16px" }}>
-                    <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", marginBottom: "10px" }}>{label}</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--t-text-ghost)" }}>$</span>
-                      <input type="number" placeholder="0.00" style={{ flex: 1, background: "none", border: "none", color: "var(--t-text)", fontSize: "16px", fontWeight: 700, fontFamily: "Inter, system-ui, sans-serif", outline: "none", width: "100%", padding: 0 }}
-                        onChange={(e) => setSelectedDriver({ ...selectedDriver, [field]: e.target.value })} />
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
               {/* LICENSING & EXPIRY */}
               <div style={{ display: "flex", alignItems: "center", gap: "14px", margin: "28px 0 20px" }}>
@@ -868,8 +906,8 @@ const Drivers: React.FC = () => {
                       style={{ flex: 1, padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" }}
                       onChange={(e) => setSelectedDriver({ ...selectedDriver, password: e.target.value })} />
                     <button onClick={() => handleCopyPassword(selectedDriver.password)}
-                      style={{ padding: "11px 14px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", borderRadius: "8px", color: "var(--t-indigo)", cursor: "pointer", display: "flex", alignItems: "center" }}>
-                      <FaClipboard size={13} />
+                      style={{ padding: "11px 14px", background: copySuccess ? "var(--t-success-bg)" : "var(--t-indigo-bg)", border: `1px solid ${copySuccess ? "rgba(5,150,105,0.3)" : "rgba(79,70,229,0.25)"}`, borderRadius: "8px", color: copySuccess ? "var(--t-success)" : "var(--t-indigo)", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", transition: "all 0.2s", fontSize: "11px", fontWeight: 600, whiteSpace: "nowrap" as const }}>
+                      <FaClipboard size={13} />{copySuccess ? "Copied!" : ""}
                     </button>
                   </div>
                 </div>
@@ -884,13 +922,23 @@ const Drivers: React.FC = () => {
             </div>
 
             {/* Footer */}
-            <div style={{ padding: "20px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", justifyContent: "flex-end", gap: "12px", flexShrink: 0 }}>
+            <div style={{ padding: "20px 28px", borderTop: "1px solid var(--t-hover-bg)", flexShrink: 0 }}>
+              {addModalError && (
+                <div style={{ marginBottom: "12px", padding: "10px 14px", background: "var(--t-error-bg)", border: "1px solid var(--t-error)", borderRadius: "8px", color: "var(--t-error)", fontSize: "13px", fontWeight: 500 }}>
+                  {addModalError}
+                </div>
+              )}
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
               <button onClick={() => setIsAddModalOpen(false)} style={{ padding: "11px 20px", background: "none", border: "none", color: "var(--t-text-dim)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
                 Close without saving
               </button>
               <button
                 onClick={() => {
-                  if (usernameError) { alert("Please resolve username error before submitting."); return; }
+                  if (usernameError) { setAddModalError("Please resolve the username error before submitting."); return; }
+                  if (!(selectedDriver.name || "").trim()) { setAddModalError("Name is required."); return; }
+                  if (!(selectedDriver.email || "").trim()) { setAddModalError("Email is required."); return; }
+                  if (!(selectedDriver.username || "").trim()) { setAddModalError("Username is required."); return; }
+                  setAddModalError("");
                   const sinDigits = (selectedDriver.sinNo || "").replace(/\D/g, "");
                   const contactDigits = (selectedDriver.contact || "").replace(/^\+1[\s\-\(]*/, "").replace(/\D/g, "");
                   const errors = { sinNo: sinDigits.length !== 9 ? "SIN must be 9 digits." : "", contact: contactDigits.length > 0 && contactDigits.length !== 10 ? "Enter a valid 10-digit phone number." : "", licence: !(selectedDriver.licence || "").trim() ? "Licence class is required." : "", licence_expiry_date: validateExpiryDate(selectedDriver.licence_expiry_date || "") };
@@ -902,6 +950,7 @@ const Drivers: React.FC = () => {
               >
                 ✓ Add Driver Profile
               </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1013,35 +1062,42 @@ const Drivers: React.FC = () => {
               <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
                 <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>RATE CONFIGURATION</span>
                 <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+                <button
+                  onClick={() => { setCatDraft([...orgCategories]); setNewCatInput(""); setShowCatModal(true); }}
+                  style={{ padding: "4px 10px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "6px", color: "var(--t-text-faint)", fontSize: "10px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", whiteSpace: "nowrap" as const, flexShrink: 0 }}>
+                  ⚙ Configure
+                </button>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
-                {([["BACKHAUL RATE", "backhaulRate"], ["COMBO RATE", "comboRate"], ["EXTRA SHEET / E.W", "extraSheetEWRate"], ["REGULAR / BANNER", "regularBannerRate"]] as [string, string][]).map(([label, field]) => (
-                  <div key={field} style={{ background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.18)", borderRadius: "10px", padding: "14px" }}>
-                    <label style={{ fontSize: "9px", fontWeight: 700, color: "var(--t-indigo)", letterSpacing: "0.8px", display: "block", marginBottom: "8px" }}>{label}</label>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ fontSize: "14px", color: "var(--t-text-dim)" }}>$</span>
-                      <input type="number" defaultValue={selectedDriver?.[field]}
-                        style={{ flex: 1, padding: "8px 10px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "6px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", width: "100%", boxSizing: "border-box" as const }}
-                        onChange={(e) => handleInputChange(field, e.target.value)} />
+              {!orgCategoriesConfigured ? (
+                <div style={{ padding: "28px 20px", textAlign: "center" as const, background: "var(--t-indigo-bg)", borderRadius: "10px", border: "1px dashed rgba(79,70,229,0.3)", marginBottom: "12px" }}>
+                  <p style={{ margin: "0 0 4px", fontSize: "14px", fontWeight: 700, color: "var(--t-text-dim)" }}>No categories configured yet</p>
+                  <p style={{ margin: "0 0 14px", fontSize: "12px", color: "var(--t-text-ghost)" }}>Click ⚙ Configure above to set up categories, then fill in rates.</p>
+                  <button
+                    onClick={() => { setCatDraft([]); setNewCatInput(""); setShowCatModal(true); }}
+                    style={{ padding: "8px 18px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "12px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                    + Configure Categories
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "12px", marginBottom: "12px" }}>
+                  {orgCategories.map((cat) => (
+                    <div key={cat} style={{ background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.18)", borderRadius: "10px", padding: "14px" }}>
+                      <label style={{ fontSize: "9px", fontWeight: 700, color: "var(--t-indigo)", letterSpacing: "0.8px", display: "block", marginBottom: "8px" }}>{cat.toUpperCase()}</label>
+                      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                        <span style={{ fontSize: "14px", color: "var(--t-text-dim)" }}>$</span>
+                        <input
+                          type="number"
+                          key={`${selectedDriver?._id}-${cat}`}
+                          defaultValue={selectedDriver?.categoryRates?.[cat] ?? ""}
+                          style={{ flex: 1, padding: "8px 10px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "6px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", width: "100%", boxSizing: "border-box" as const }}
+                          onChange={(e) => setSelectedDriver((prev: any) => ({ ...prev, categoryRates: { ...prev.categoryRates, [cat]: e.target.value } }))}
+                        />
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
-                {([["WHOLESALE RATE", "wholesaleRate"], ["VOILA RATE", "voilaRate"], ["TCS LINEHAUL TRENTON", "tcsLinehaulTrentonRate"]] as [string, string][]).map(([label, field]) => (
-                  <div key={field} style={{ background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.18)", borderRadius: "10px", padding: "14px" }}>
-                    <label style={{ fontSize: "9px", fontWeight: 700, color: "var(--t-indigo)", letterSpacing: "0.8px", display: "block", marginBottom: "8px" }}>{label}</label>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ fontSize: "14px", color: "var(--t-text-dim)" }}>$</span>
-                      <input type="number" defaultValue={selectedDriver?.[field]}
-                        style={{ flex: 1, padding: "8px 10px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "6px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", width: "100%", boxSizing: "border-box" as const }}
-                        onChange={(e) => handleInputChange(field, e.target.value)} />
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
               {/* Section: Licensing & Expiry */}
               <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
@@ -1180,7 +1236,13 @@ const Drivers: React.FC = () => {
             </div>
 
             {/* Modal Footer */}
-            <div style={{ padding: "20px 28px", borderTop: "1px solid var(--t-border)", display: "flex", justifyContent: "flex-end", gap: "12px", flexShrink: 0 }}>
+            <div style={{ padding: "20px 28px", borderTop: "1px solid var(--t-border)", flexShrink: 0 }}>
+              {editModalError && (
+                <div style={{ marginBottom: "12px", padding: "10px 14px", background: "var(--t-error-bg)", border: "1px solid var(--t-error)", borderRadius: "8px", color: "var(--t-error)", fontSize: "13px", fontWeight: 500 }}>
+                  {editModalError}
+                </div>
+              )}
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px" }}>
               <button onClick={() => { setIsEditModalOpen(false); setUsernameError(""); }}
                 style={{ padding: "11px 20px", background: "none", border: "none", color: "var(--t-text-dim)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
                 Close without saving
@@ -1203,6 +1265,7 @@ const Drivers: React.FC = () => {
                 style={{ display: "flex", alignItems: "center", gap: "8px", padding: "11px 22px", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}>
                 ✓ Update Driver Records
               </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1228,6 +1291,84 @@ const Drivers: React.FC = () => {
                 onClick={() => setIsDeleteModalOpen(false)}
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Configure Timesheet Categories Modal */}
+      {showCatModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 2100, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowCatModal(false); }}>
+          <div style={{ background: "var(--t-modal-bg)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "480px", maxHeight: "80vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+              <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Configure Timesheet Categories</h2>
+              <button onClick={() => setShowCatModal(false)} style={{ background: "none", border: "none", color: "var(--t-text-faint)", fontSize: "22px", cursor: "pointer", lineHeight: 1 }}>×</button>
+            </div>
+            <p style={{ margin: "0 0 20px", fontSize: "13px", color: "var(--t-text-ghost)" }}>
+              These categories will appear in the rate grid and in the driver timesheet submission form.
+            </p>
+
+            <div style={{ display: "flex", gap: "8px", marginBottom: "14px" }}>
+              <input
+                type="text"
+                value={newCatInput}
+                onChange={(e) => setNewCatInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const v = newCatInput.trim();
+                    if (v && !catDraft.includes(v)) { setCatDraft((p) => [...p, v]); setNewCatInput(""); }
+                  }
+                }}
+                placeholder="e.g. Backhaul"
+                style={{ flex: 1, padding: "9px 12px", background: "var(--t-input-bg)", border: "1px solid var(--t-input-border)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", outline: "none" }}
+              />
+              <button
+                onClick={() => { const v = newCatInput.trim(); if (v && !catDraft.includes(v)) { setCatDraft((p) => [...p, v]); setNewCatInput(""); } }}
+                style={{ padding: "9px 16px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", whiteSpace: "nowrap" }}>
+                + Add
+              </button>
+            </div>
+
+            <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "6px", marginBottom: "20px" }}>
+              {catDraft.length === 0 ? (
+                <p style={{ textAlign: "center", padding: "32px", color: "var(--t-text-ghost)", fontSize: "13px", margin: 0 }}>No categories yet. Add one above.</p>
+              ) : catDraft.map((cat, idx) => (
+                <div key={idx} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "8px" }}>
+                  <span style={{ flex: 1, fontSize: "13px", color: "var(--t-text-secondary)", fontWeight: 500 }}>{cat}</span>
+                  <button onClick={() => setCatDraft((p) => p.filter((_, i) => i !== idx))}
+                    style={{ background: "none", border: "none", color: "var(--t-text-ghost)", fontSize: "18px", cursor: "pointer", lineHeight: 1, padding: "0 4px" }}>×</button>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button onClick={() => setShowCatModal(false)}
+                style={{ padding: "9px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text-faint)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                Cancel
+              </button>
+              <button
+                disabled={catSaving}
+                onClick={async () => {
+                  try {
+                    setCatSaving(true);
+                    const token = localStorage.getItem("token");
+                    const res = await axios.put(`${API_BASE_URL}/organizations/timesheet-categories`, { timesheetCategories: catDraft }, {
+                      headers: { Authorization: `Bearer ${token}` },
+                    });
+                    const saved: string[] = res.data.timesheetCategories || [];
+                    setOrgCategories(saved.length > 0 ? saved : FALLBACK_CATEGORIES);
+                    setOrgCategoriesConfigured(saved.length > 0);
+                    setShowCatModal(false);
+                  } catch (err) {
+                    console.error("Failed to save categories:", err);
+                  } finally {
+                    setCatSaving(false);
+                  }
+                }}
+                style={{ padding: "9px 18px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: catSaving ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif", opacity: catSaving ? 0.7 : 1 }}>
+                {catSaving ? "Saving…" : "Save"}
               </button>
             </div>
           </div>

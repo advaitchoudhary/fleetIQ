@@ -9,7 +9,7 @@ const { startTrip, updateLocation, endTrip, getLiveLocations, getTripHistory, ge
 const locationRateLimit = rateLimit({
   windowMs: 2 * 60 * 1000,
   max: 5,
-  keyGenerator: (req) => req.user?.id || req.ip,
+  keyGenerator: (req) => req.user.id,
   message: { message: "Too many location updates. Please wait before sending again." },
   standardHeaders: true,
   legacyHeaders: false,

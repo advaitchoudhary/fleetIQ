@@ -62,6 +62,7 @@ const endTrip = async (req, res) => {
     const { vehicleId } = req.body;
     const trip = await Location.findById(tripId);
     if (!trip) return res.status(404).json({ message: "Trip not found" });
+    if (trip.driverId.toString() !== req.user.id) return res.status(403).json({ message: "Not authorized to end this trip" });
     const totalDistance = haversineDistance(trip.coordinates);
     await Location.findByIdAndUpdate(tripId, { tripEnd: new Date(), totalDistance });
     if (vehicleId) await Vehicle.findByIdAndUpdate(vehicleId, { "lastLocation.isActive": false });
@@ -109,8 +110,8 @@ const getMyVehicle = async (req, res) => {
     const vehicle = await Vehicle.findOne({ assignedDriverId: driverId })
       .select("unitNumber make model")
       .lean();
-    if (!vehicle) return res.status(404).json({ message: "No vehicle assigned" });
-    res.json(vehicle);
+    if (!vehicle) return res.status(200).json({ vehicle: null });
+    res.json({ vehicle });
   } catch (err) {
     console.error("getMyVehicle error:", err);
     res.status(500).json({ message: "Server error" });

@@ -67,7 +67,8 @@ const ChangePassword: React.FC = () => {
   const handleSubmit = async () => {
     setError(""); setSuccess("");
 
-    if (!oldPassword || !newPassword || !confirmPassword) {
+    const isAdminResettingDriver = selectedRole === "driver" && userRole !== "driver";
+    if ((!isAdminResettingDriver && !oldPassword) || !newPassword || !confirmPassword) {
       setError("All fields are required."); return;
     }
     if (newPassword.length < 8) {
@@ -115,8 +116,9 @@ const ChangePassword: React.FC = () => {
     fontFamily: "Inter, system-ui, sans-serif",
   });
 
-  const isDisabled = loading || !oldPassword || !newPassword || !confirmPassword ||
-    (selectedRole === "driver" && userRole !== "driver" && !selectedDriver);
+  const isAdminResettingDriver = selectedRole === "driver" && userRole !== "driver";
+  const isDisabled = loading || (!isAdminResettingDriver && !oldPassword) || !newPassword || !confirmPassword ||
+    (isAdminResettingDriver && !selectedDriver);
 
   return (
     <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "var(--t-bg)", minHeight: "100vh" }}>
@@ -191,25 +193,27 @@ const ChangePassword: React.FC = () => {
                 </div>
               )}
 
-              {/* Current Password */}
-              <div style={{ marginBottom: "14px" }}>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "var(--t-text-faint)", marginBottom: "5px" }}>Current Password</label>
-                <div style={{ position: "relative" }}>
-                  <FaLock style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--t-text-faint)", fontSize: "13px" }} />
-                  <input
-                    type={showOld ? "text" : "password"}
-                    placeholder="Enter current password"
-                    value={oldPassword}
-                    onChange={(e) => setOldPassword(e.target.value)}
-                    onFocus={() => setFocused("old")}
-                    onBlur={() => setFocused(null)}
-                    style={inputStyle("old")}
-                  />
-                  <span onClick={() => setShowOld(v => !v)} style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "var(--t-text-faint)" }}>
-                    {showOld ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
-                  </span>
+              {/* Current Password — hidden when admin is resetting a driver's password */}
+              {!isAdminResettingDriver && (
+                <div style={{ marginBottom: "14px" }}>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "var(--t-text-faint)", marginBottom: "5px" }}>Current Password</label>
+                  <div style={{ position: "relative" }}>
+                    <FaLock style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--t-text-faint)", fontSize: "13px" }} />
+                    <input
+                      type={showOld ? "text" : "password"}
+                      placeholder="Enter current password"
+                      value={oldPassword}
+                      onChange={(e) => setOldPassword(e.target.value)}
+                      onFocus={() => setFocused("old")}
+                      onBlur={() => setFocused(null)}
+                      style={inputStyle("old")}
+                    />
+                    <span onClick={() => setShowOld(v => !v)} style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", cursor: "pointer", color: "var(--t-text-faint)" }}>
+                      {showOld ? <FaEyeSlash size={14} /> : <FaEye size={14} />}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* New Password */}
               <div style={{ marginBottom: "6px" }}>
