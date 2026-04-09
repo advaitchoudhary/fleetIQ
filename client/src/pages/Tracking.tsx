@@ -27,6 +27,7 @@ const inactiveIcon = new L.Icon({
 
 type Vehicle = {
   _id: string; unitNumber: string; make: string; model: string; type: string; status: string;
+  telematicsSource?: string;
   assignedDriverId?: { name: string; email: string } | null;
   lastLocation?: { lat: number; lng: number; speed: number; timestamp: string; isActive: boolean; } | null;
 };
@@ -173,6 +174,11 @@ const Tracking: React.FC = () => {
                   Driver: {v.assignedDriverId?.name || "Unassigned"}<br />
                   Speed: {v.lastLocation.speed ?? 0} km/h<br />
                   Updated: {new Date(v.lastLocation.timestamp).toLocaleTimeString()}
+                  <div style={{ fontSize: 11, color: v.telematicsSource && v.telematicsSource !== "none" ? "#7c3aed" : "#6b7280", marginTop: 2 }}>
+                    {v.telematicsSource === "geotab" ? "🛰️ Hardware GPS — Geotab" :
+                     v.telematicsSource === "samsara" ? "🛰️ Hardware GPS — Samsara" :
+                     "📱 Browser GPS"}
+                  </div>
                 </Popup>
               </Marker>
             ) : null)}

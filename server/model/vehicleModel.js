@@ -43,6 +43,11 @@ const vehicleSchema = new mongoose.Schema(
     registrationExpiry: { type: Date },
     photos: { type: [String], default: [] },
     notes: { type: String },
+    telematicsSource: {
+      type: String,
+      enum: ["none", "browser", "geotab", "samsara"],
+      default: "none",
+    },
     lastLocation: {
       lat: { type: Number, default: null },
       lng: { type: Number, default: null },

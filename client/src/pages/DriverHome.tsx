@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import { useAuth } from "../contexts/AuthContext";
@@ -53,6 +53,96 @@ const DriverHome: React.FC = () => {
   const [timesheets, setTimesheets] = useState<Timesheet[]>([]);
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Trip tracking state
+  const [trackingActive, setTrackingActive] = useState(false);
+  const [tripId, setTripId] = useState<string | null>(null);
+  const [lastPing, setLastPing] = useState<Date | null>(null);
+  const [tripStart, setTripStart] = useState<Date | null>(null);
+  const [geoError, setGeoError] = useState<string | null>(null);
+  const [pingFailCount, setPingFailCount] = useState(0);
+  const trackingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Restore active trip from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("activeTrip");
+    if (saved) {
+      try {
+        const { tripId: tid, tripStart: ts } = JSON.parse(saved);
+        setTripId(tid);
+        setTripStart(new Date(ts));
+        setTrackingActive(true);
+      } catch { localStorage.removeItem("activeTrip"); }
+    }
+    return () => { if (trackingIntervalRef.current) clearInterval(trackingIntervalRef.current); };
+  }, []);
+
+  const sendLocationPing = (currentTripId: string, vehicleId: string) => {
+    if (!navigator.geolocation) { setGeoError("Geolocation not supported"); return; }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const token = localStorage.getItem("token");
+          await axios.post(`${API_BASE_URL}/tracking/location`, {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            speed: pos.coords.speed != null ? pos.coords.speed * 3.6 : 0,
+            vehicleId,
+            tripId: currentTripId,
+          }, { headers: { Authorization: `Bearer ${token}` } });
+          setLastPing(new Date());
+          setGeoError(null);
+          setPingFailCount(0);
+        } catch { setPingFailCount(c => c + 1); }
+      },
+      () => { setGeoError("Location access denied"); },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const handleStartTrip = async () => {
+    if (!vehicle) return;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(`${API_BASE_URL}/tracking/trips/start`,
+        { vehicleId: vehicle._id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const newTripId = res.data.tripId;
+      const now = new Date();
+      setTripId(newTripId);
+      setTripStart(now);
+      setTrackingActive(true);
+      setGeoError(null);
+      setPingFailCount(0);
+      localStorage.setItem("activeTrip", JSON.stringify({ tripId: newTripId, vehicleId: vehicle._id, tripStart: now }));
+      sendLocationPing(newTripId, vehicle._id);
+      trackingIntervalRef.current = setInterval(() => sendLocationPing(newTripId, vehicle._id), 30000);
+    } catch { setGeoError("Failed to start trip"); }
+  };
+
+  const handleEndTrip = async () => {
+    if (!tripId || !vehicle) return;
+    if (trackingIntervalRef.current) clearInterval(trackingIntervalRef.current);
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(`${API_BASE_URL}/tracking/trips/${tripId}/end`,
+        { vehicleId: vehicle._id },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setTrackingActive(false);
+      setTripId(null);
+      setTripStart(null);
+      setLastPing(null);
+      setPingFailCount(0);
+      localStorage.removeItem("activeTrip");
+    } catch {
+      // Restore interval so trip continues if end fails
+      if (tripId && vehicle) {
+        trackingIntervalRef.current = setInterval(() => sendLocationPing(tripId, vehicle._id), 30000);
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -189,6 +279,53 @@ const DriverHome: React.FC = () => {
                 )}
               </div>
             </div>
+
+            {/* Trip Tracking card */}
+            {vehicle && (
+              <div style={{
+                background: trackingActive ? "#f0fdf4" : "var(--t-surface)",
+                border: `1px solid ${trackingActive ? "#86efac" : "var(--t-border)"}`,
+                borderRadius: "14px", padding: "16px 20px", marginBottom: "24px",
+                display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+                boxShadow: "var(--t-shadow)",
+              }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: "var(--t-text)" }}>
+                    {trackingActive ? "🟢 Trip Active" : "🚛 Start Trip"} — {vehicle.unitNumber}
+                  </div>
+                  {trackingActive && tripStart && (
+                    <div style={{ fontSize: 13, color: "var(--t-text-dim)", marginTop: 4 }}>
+                      Started: {tripStart.toLocaleTimeString()} &nbsp;|&nbsp;
+                      Last ping: {lastPing ? lastPing.toLocaleTimeString() : "pending..."}
+                    </div>
+                  )}
+                  {!trackingActive && (
+                    <div style={{ fontSize: 13, color: "var(--t-text-dim)", marginTop: 2 }}>Share your location with dispatch</div>
+                  )}
+                  {geoError && (
+                    <div style={{ fontSize: 12, color: "#b91c1c", background: "#fee2e2", borderRadius: 6, padding: "4px 8px", marginTop: 6 }}>
+                      {geoError}
+                    </div>
+                  )}
+                  {!geoError && pingFailCount >= 3 && (
+                    <div style={{ fontSize: 12, color: "#92400e", background: "#fef3c7", borderRadius: 6, padding: "4px 8px", marginTop: 6 }}>
+                      Location sync failed. Check your connection.
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={trackingActive ? handleEndTrip : handleStartTrip}
+                  style={{
+                    background: trackingActive ? "#ef4444" : "#2563eb",
+                    color: "#fff", border: "none", borderRadius: 8,
+                    padding: "10px 20px", fontWeight: 600, fontSize: 14,
+                    cursor: "pointer", whiteSpace: "nowrap",
+                  }}
+                >
+                  {trackingActive ? "End Trip" : "Start Trip"}
+                </button>
+              </div>
+            )}
 
             {/* Quick actions */}
             <div style={{ marginBottom: "28px" }}>

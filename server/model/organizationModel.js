@@ -19,6 +19,11 @@ const organizationSchema = new mongoose.Schema(
       type: [String],
       default: [], // admin configures the list of required compliance document names
     },
+    integrationType: {
+      type: String,
+      enum: ["browser", "geotab", "samsara"],
+      default: "browser",
+    },
     subscription: {
       plan: {
         type: String,

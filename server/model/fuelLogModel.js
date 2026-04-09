@@ -29,6 +29,7 @@ const fuelLogSchema = new mongoose.Schema(
     },
     fuelStation: { type: String },
     city: { type: String },
+    state: { type: String, default: null }, // state/province code for IFTA (e.g. "NY", "ON")
     receiptPhoto: { type: String }, // file path
     notes: { type: String },
   },

@@ -488,7 +488,7 @@ const FileDriverApplication: React.FC = () => {
                   <br />
                   • Download and save application to your mobile/computer device &gt; Fill out with above information and upload
                   <br />
-                  <strong>ATTENTION:</strong> For Assistance in filling application, PLEASE CALL/TEXT +1 (519) 280-1311 OR EMAIL admin@premierchoicemployment.ca
+                  <strong>ATTENTION:</strong> For Assistance in filling application, PLEASE CALL/TEXT +1 (519) 280-1311 OR EMAIL admin@fleetiqlogistics.com
                 </p>
                 <div style={styles.formGroup}>
                   <button
