@@ -3,27 +3,27 @@ import axios from "axios";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
-const Enquiries: React.FC = () => {
-  const [enquiries, setEnquiries] = useState<any[]>([]);
+const Inquiries: React.FC = () => {
+  const [inquiries, setInquiries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchEnquiries = async () => {
+    const fetchInquiries = async () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(`${API_BASE_URL}/contacts`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        setEnquiries(Array.isArray(response.data) ? response.data : []);
+        setInquiries(Array.isArray(response.data) ? response.data : []);
       } catch (error) {
-        console.error("Error fetching enquiries:", error);
-        setEnquiries([]);
+        console.error("Error fetching inquiries:", error);
+        setInquiries([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchEnquiries();
+    fetchInquiries();
   }, []);
 
   return (
@@ -32,19 +32,19 @@ const Enquiries: React.FC = () => {
 
       <div style={styles.container}>
         {/* Breadcrumb */}
-        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>ENQUIRIES</div>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>INQUIRIES</div>
 
         <div style={styles.pageHeader}>
           <div>
-            <h1 style={styles.pageTitle}>Contact Enquiries</h1>
+            <h1 style={styles.pageTitle}>Contact Inquiries</h1>
             <p style={styles.pageDescription}>Messages submitted through the contact form.</p>
           </div>
         </div>
 
         {loading ? (
-          <p style={{ color: "var(--t-text-dim)", fontSize: "15px" }}>Loading enquiries...</p>
-        ) : enquiries.length === 0 ? (
-          <p style={{ color: "var(--t-text-dim)", fontSize: "15px" }}>No enquiries yet.</p>
+          <p style={{ color: "var(--t-text-dim)", fontSize: "15px" }}>Loading inquiries...</p>
+        ) : inquiries.length === 0 ? (
+          <p style={{ color: "var(--t-text-dim)", fontSize: "15px" }}>No inquiries yet.</p>
         ) : (
           <div style={styles.tableWrapper}>
             <table style={styles.table}>
@@ -57,7 +57,7 @@ const Enquiries: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {enquiries.map((entry, index) => (
+                {inquiries.map((entry, index) => (
                   <tr key={entry._id || index} style={index % 2 === 0 ? undefined : styles.row}>
                     <td style={styles.td}>{entry.name}</td>
                     <td style={styles.td}>{entry.email}</td>
@@ -135,4 +135,4 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-export default Enquiries;
+export default Inquiries;

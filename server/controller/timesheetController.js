@@ -371,7 +371,7 @@ const updateTimesheetStatus = async (req, res) => {
     if (updatedTimesheet.driver) {
       const Notification = require("../model/notificationModel");
       const dateStr = updatedTimesheet.date
-        ? new Date(updatedTimesheet.date).toLocaleDateString("en-CA")
+        ? String(updatedTimesheet.date).slice(0, 10)
         : "your timesheet";
       Notification.create({
         organizationId: updatedTimesheet.organizationId,

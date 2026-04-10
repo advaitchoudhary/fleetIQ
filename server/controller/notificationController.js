@@ -46,7 +46,7 @@ const getNotificationsByEmail = asyncHandler(async (req, res) => {
   res.status(200).json(notifications);
 });
 
-// 3. Mark a single notification as “read” by ID
+// 3. Mark a single notification as "read" by ID
 const markNotificationAsRead = asyncHandler(async (req, res) => {
   const id = req.params.id;
   if (!id) {
@@ -60,16 +60,24 @@ const markNotificationAsRead = asyncHandler(async (req, res) => {
     return;
   }
 
+  // Drivers can only mark their own notifications as read
+  if (req.user.role === "driver" && notification.email !== req.user.email) {
+    res.status(403).json({ message: "Forbidden" });
+    return;
+  }
+
   notification.read = true;
   const updated = await notification.save({ validateBeforeSave: false });
   res.status(200).json(updated);
 });
 
 const markAllNotificationsAsRead = asyncHandler(async (req, res) => {
-    const orgFilter = getOrgFilter(req);
-    await Notification.updateMany({ read: false, ...orgFilter }, { $set: { read: true } });
-    res.status(200).json({ message: "All notifications marked as read" });
-  });
+  const orgFilter = getOrgFilter(req);
+  // Scope to the calling user's email so admins don't mark driver notifications and vice versa
+  const emailFilter = { email: req.user.email };
+  await Notification.updateMany({ read: false, ...orgFilter, ...emailFilter }, { $set: { read: true } });
+  res.status(200).json({ message: "All notifications marked as read" });
+});
 
 // 4. Delete a single notification by ID
 const deleteNotification = asyncHandler(async (req, res) => {
@@ -79,27 +87,39 @@ const deleteNotification = asyncHandler(async (req, res) => {
     return;
   }
 
-  const deleted = await Notification.findByIdAndDelete(id);
-  if (!deleted) {
+  const notification = await Notification.findById(id);
+  if (!notification) {
     res.status(404).json({ message: "Notification not found" });
     return;
   }
 
+  // Drivers can only delete their own notifications
+  if (req.user.role === "driver" && notification.email !== req.user.email) {
+    res.status(403).json({ message: "Forbidden" });
+    return;
+  }
+
+  await notification.deleteOne();
   res.status(200).json({ message: "Notification deleted successfully", deletedId: id });
 });
 
 const getNotifications = asyncHandler(async (req, res) => {
-    const email = req.query.email;
-    const orgFilter = getOrgFilter(req);
-    let filter = { ...orgFilter };
-    if (email) filter.email = email;
-    if (typeof req.query.read !== "undefined") {
-      filter.read = req.query.read === "true";
-    }
+  const email = req.query.email;
+  const orgFilter = getOrgFilter(req);
+  let filter = { ...orgFilter };
+  // Drivers always see only their own notifications regardless of query param
+  if (req.user.role === "driver") {
+    filter.email = req.user.email;
+  } else if (email) {
+    filter.email = email;
+  }
+  if (typeof req.query.read !== "undefined") {
+    filter.read = req.query.read === "true";
+  }
 
-    const notifications = await Notification.find(filter).sort({ createdAt: -1 });
-    res.status(200).json(notifications);
-  });
+  const notifications = await Notification.find(filter).sort({ createdAt: -1 });
+  res.status(200).json(notifications);
+});
 
 module.exports = {
   createNotification,
@@ -107,5 +127,5 @@ module.exports = {
   markNotificationAsRead,
   deleteNotification,
   getNotifications,
-  markAllNotificationsAsRead
+  markAllNotificationsAsRead,
 };

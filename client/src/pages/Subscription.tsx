@@ -22,7 +22,7 @@ const PLANS = [
       "Training certificate management (12 types)",
       "Licence expiry alerts",
       "Invoice generation & PDF export",
-      "Contact enquiries inbox",
+      "Contact inquiries inbox",
       "Admin notifications",
       "AI assistant included",
     ],

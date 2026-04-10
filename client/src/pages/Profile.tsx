@@ -41,6 +41,16 @@ const Profile: React.FC = () => {
   const [newDocInput, setNewDocInput] = useState("");
   const [docsConfigSaving, setDocsConfigSaving] = useState(false);
 
+  // Org-level timesheet categories (admin-configured)
+  const [timesheetCategories, setTimesheetCategories] = useState<string[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+
+  // Configure timesheet categories modal state
+  const [showCategoriesModal, setShowCategoriesModal] = useState(false);
+  const [categoriesDraft, setCategoriesDraft] = useState<string[]>([]);
+  const [newCategoryInput, setNewCategoryInput] = useState("");
+  const [categoriesSaving, setCategoriesSaving] = useState(false);
+
   const isCompleted = (name: string) => trainings.some((t) => t.name === name && t.proofDocument);
 
   const toggleTraining = (name: string) => {
@@ -113,8 +123,20 @@ const Profile: React.FC = () => {
       }
     };
 
+    const fetchTimesheetCategories = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/organizations/timesheet-categories`, { headers });
+        setTimesheetCategories(res.data.timesheetCategories || []);
+      } catch (err) {
+        console.error("Failed to fetch timesheet categories:", err);
+      } finally {
+        setCategoriesLoading(false);
+      }
+    };
+
     fetchMandatoryTrainings();
     fetchMandatoryDocuments();
+    fetchTimesheetCategories();
   }, []);
 
   useEffect(() => {
@@ -230,33 +252,37 @@ const Profile: React.FC = () => {
             <div style={{ marginBottom: "20px" }}>
               <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>RATE &amp; COMPENSATION SCHEDULE</p>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
-              {([
-                ["STANDARD BACKHAUL", driver.backhaulRate, "/km"],
-                ["EXTRA SHEET / E.W", driver.extraSheetEWRate, "/unit"],
-                ["COMBO RATE", driver.comboRate, "/km"],
-                ["REGULAR / BANNER", driver.regularBannerRate, "/km"],
-                ["WHOLESALE", driver.wholesaleRate, "/km"],
-                ["VOILA", driver.voilaRate, "/km"],
-              ] as [string, number | undefined, string][]).map(([label, value, unit]) => (
-                <div key={label} style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "14px" }}>
-                  <p style={{ margin: "0 0 6px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.6px" }}>{label}</p>
-                  {value ? (
-                    <p style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>
-                      ${value}<span style={{ fontSize: "12px", fontWeight: 500, color: "var(--t-text-dim)" }}>{unit}</span>
-                    </p>
-                  ) : (
-                    <p style={{ margin: 0, fontSize: "13px", color: "var(--t-text-ghost)", fontWeight: 500 }}>Not set</p>
-                  )}
+            {(() => {
+              const legacyMap: Record<string, string> = {
+                "Backhaul": "backhaulRate", "Combo": "comboRate",
+                "Extra Sheet/E.W": "extraSheetEWRate", "Regular/Banner": "regularBannerRate",
+                "Wholesale": "wholesaleRate", "Wholesale DZ": "wholesaleRate",
+              };
+              const cats = timesheetCategories.length > 0
+                ? timesheetCategories
+                : ["Backhaul", "Combo", "Extra Sheet/E.W", "Regular/Banner", "Wholesale", "Wholesale DZ"];
+              return (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "10px" }}>
+                  {cats.map((cat) => {
+                    const fromMap = driver.categoryRates?.[cat];
+                    const fromLegacy = legacyMap[cat] ? driver[legacyMap[cat]] : undefined;
+                    const value = fromMap ?? fromLegacy;
+                    return (
+                      <div key={cat} style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "14px" }}>
+                        <p style={{ margin: "0 0 6px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.6px" }}>{cat.toUpperCase()}</p>
+                        {value ? (
+                          <p style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>
+                            ${value}<span style={{ fontSize: "12px", fontWeight: 500, color: "var(--t-text-dim)" }}>/km</span>
+                          </p>
+                        ) : (
+                          <p style={{ margin: 0, fontSize: "13px", color: "var(--t-text-ghost)", fontWeight: 500 }}>Not set</p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
-            {driver.tcsLinehaulTrentonRate && (
-              <div style={{ marginTop: "10px", background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "14px" }}>
-                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.6px" }}>TCS LINEHAUL TRENTON</p>
-                <p style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>${driver.tcsLinehaulTrentonRate}<span style={{ fontSize: "12px", fontWeight: 500, color: "var(--t-text-dim)" }}>/km</span></p>
-              </div>
-            )}
+              );
+            })()}
           </div>
         </div>
 
@@ -488,6 +514,43 @@ const Profile: React.FC = () => {
           </div>
         </div>
 
+        {/* Timesheet Categories */}
+        <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "24px", marginBottom: "20px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+            <div>
+              <p style={{ margin: "0 0 2px", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>TIMESHEET CATEGORIES</p>
+              <p style={{ margin: 0, fontSize: "12px", color: "var(--t-text-ghost)" }}>Categories available to drivers when submitting timesheets</p>
+            </div>
+            <button
+              onClick={() => { setCategoriesDraft([...timesheetCategories]); setNewCategoryInput(""); setShowCategoriesModal(true); }}
+              style={{ padding: "5px 12px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "6px", color: "var(--t-text-faint)", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+              ⚙ Configure
+            </button>
+          </div>
+
+          {categoriesLoading ? (
+            <div style={{ padding: "32px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "13px" }}>Loading…</div>
+          ) : timesheetCategories.length === 0 ? (
+            <div style={{ padding: "40px 24px", textAlign: "center" as const, background: "var(--t-surface-alt)", borderRadius: "12px", border: "1px dashed var(--t-border-strong)" }}>
+              <p style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700, color: "var(--t-text-secondary)" }}>No categories configured</p>
+              <p style={{ margin: "0 0 16px", fontSize: "13px", color: "var(--t-text-ghost)" }}>Drivers will see a default list. Add custom categories to match your operations.</p>
+              <button
+                onClick={() => { setCategoriesDraft([]); setNewCategoryInput(""); setShowCategoriesModal(true); }}
+                style={{ padding: "9px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                + Configure Categories
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "8px" }}>
+              {timesheetCategories.map((cat) => (
+                <span key={cat} style={{ padding: "6px 14px", background: "var(--t-indigo-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "20px", fontSize: "12px", fontWeight: 600, color: "var(--t-accent)" }}>
+                  {cat}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Timesheets */}
         <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", overflow: "hidden", marginBottom: "20px" }}>
           <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--t-border)" }}>
@@ -633,6 +696,86 @@ const Profile: React.FC = () => {
                 }}
                 style={{ padding: "9px 18px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: docsConfigSaving ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif", opacity: docsConfigSaving ? 0.7 : 1 }}>
                 {docsConfigSaving ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Configure Timesheet Categories Modal */}
+      {showCategoriesModal && (
+        <div style={{ position: "fixed" as const, inset: 0, background: "var(--t-modal-overlay)", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowCategoriesModal(false); }}>
+          <div style={{ background: "var(--t-modal-bg)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "520px", maxHeight: "80vh", display: "flex", flexDirection: "column" as const, boxShadow: "var(--t-shadow-lg)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+              <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Configure Timesheet Categories</h2>
+              <button onClick={() => setShowCategoriesModal(false)} style={{ background: "none", border: "none", color: "var(--t-text-faint)", fontSize: "20px", cursor: "pointer", lineHeight: 1 }}>×</button>
+            </div>
+            <p style={{ margin: "0 0 20px", fontSize: "13px", color: "var(--t-text-ghost)" }}>These categories will be available to all drivers when submitting timesheets.</p>
+
+            <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+              <input
+                type="text"
+                value={newCategoryInput}
+                onChange={(e) => setNewCategoryInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newCategoryInput.trim() && !categoriesDraft.includes(newCategoryInput.trim())) {
+                    setCategoriesDraft((prev) => [...prev, newCategoryInput.trim()]);
+                    setNewCategoryInput("");
+                  }
+                }}
+                placeholder="e.g. Backhaul"
+                style={{ flex: 1, padding: "9px 12px", background: "var(--t-input-bg)", border: "1px solid var(--t-input-border)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", outline: "none" }}
+              />
+              <button
+                onClick={() => {
+                  const cat = newCategoryInput.trim();
+                  if (cat && !categoriesDraft.includes(cat)) {
+                    setCategoriesDraft((prev) => [...prev, cat]);
+                    setNewCategoryInput("");
+                  }
+                }}
+                style={{ padding: "9px 16px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", whiteSpace: "nowrap" as const }}>
+                + Add
+              </button>
+            </div>
+
+            <div style={{ flex: 1, overflowY: "auto" as const, display: "flex", flexDirection: "column" as const, gap: "6px", marginBottom: "20px" }}>
+              {categoriesDraft.length === 0 ? (
+                <p style={{ textAlign: "center" as const, padding: "32px", color: "var(--t-text-ghost)", fontSize: "13px", margin: 0 }}>No categories added yet. Type a name above and click Add.</p>
+              ) : categoriesDraft.map((cat, idx) => (
+                <div key={idx} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "8px" }}>
+                  <span style={{ flex: 1, fontSize: "13px", color: "var(--t-text-secondary)", fontWeight: 500 }}>{cat}</span>
+                  <button onClick={() => setCategoriesDraft((prev) => prev.filter((_, i) => i !== idx))}
+                    style={{ background: "none", border: "none", color: "var(--t-text-ghost)", fontSize: "16px", cursor: "pointer", lineHeight: 1, padding: "0 4px" }}>×</button>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+              <button onClick={() => setShowCategoriesModal(false)}
+                style={{ padding: "9px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text-faint)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                Cancel
+              </button>
+              <button
+                disabled={categoriesSaving}
+                onClick={async () => {
+                  try {
+                    setCategoriesSaving(true);
+                    const token = localStorage.getItem("token");
+                    const res = await axios.put(`${API_BASE_URL}/organizations/timesheet-categories`, { timesheetCategories: categoriesDraft }, {
+                      headers: { Authorization: `Bearer ${token}` },
+                    });
+                    setTimesheetCategories(res.data.timesheetCategories);
+                    setShowCategoriesModal(false);
+                  } catch (err) {
+                    console.error("Failed to save timesheet categories:", err);
+                  } finally {
+                    setCategoriesSaving(false);
+                  }
+                }}
+                style={{ padding: "9px 18px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: categoriesSaving ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif", opacity: categoriesSaving ? 0.7 : 1 }}>
+                {categoriesSaving ? "Saving…" : "Save"}
               </button>
             </div>
           </div>

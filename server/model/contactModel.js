@@ -2,9 +2,19 @@ const mongoose = require("mongoose");
 
 const contactSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true },
-    message: { type: String, required: true }
+    organizationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Organization",
+      default: null,
+    },
+    name: { type: String, required: true, trim: true, minlength: 1 },
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+      match: [/^\S+@\S+\.\S+$/, "Invalid email format"],
+    },
+    message: { type: String, required: true, trim: true, minlength: 1 },
   },
   { timestamps: true }
 );

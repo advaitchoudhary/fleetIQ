@@ -26,7 +26,7 @@ const DRIVER_FEATURES = [
   { icon: FaCreditCard,    title: "Payments",          desc: "Execute payroll, review expenses and track operator bonuses.",          path: "/payments",            accent: "var(--t-indigo)", badge: null         },
   { icon: FaHistory,       title: "Payment History",   desc: "Full audit trail of all driver payouts and transactions.",             path: "/payment-history",     accent: "var(--t-indigo)", badge: null         },
   { icon: FaFileAlt,       title: "Invoices",          desc: "Generate and export driver invoices as PDF documents.",               path: "/invoice",             accent: "var(--t-indigo)", badge: null         },
-  { icon: FaEnvelope,      title: "Enquiries",         desc: "Read and respond to contact form submissions from drivers.",           path: "/enquiries",           accent: "var(--t-indigo)", badge: null         },
+  { icon: FaEnvelope,      title: "Inquiries",         desc: "Read and respond to contact form submissions from drivers.",           path: "/inquiries",           accent: "var(--t-indigo)", badge: null         },
 ];
 
 const VEHICLE_FEATURES = [
