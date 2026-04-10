@@ -8,7 +8,7 @@ import { API_BASE_URL } from "../utils/env";
 
 const durationRegex = /^(\d+\s*hr)?\s*(\d+\s*min)?$/i;
 
-const Timesheet: React.FC = () => {
+const SubmitTimesheet: React.FC = () => {
   type TimesheetType = {
     date: string;
     startTime: string;
@@ -50,8 +50,8 @@ const Timesheet: React.FC = () => {
   const [timesheet, setTimesheet] = useState<TimesheetType>(() => getEmptyTimesheet(""));
   const [errors, setErrors] = useState<Partial<Record<keyof TimesheetType, string>>>({});
   const [loading, setLoading] = useState(false);
-  const categoryOptions = ["Backhaul", "Combo", "Extra Sheet/E.W", "Regular/Banner", "Wholesale", "Wholesale DZ", "voila", "TCS linehaul trenton"];
-  const customerOptions = ["Sobeys Capital Inc."];
+  const FALLBACK_CATEGORIES = ["Backhaul", "Combo", "Extra Sheet/E.W", "Regular/Banner", "Wholesale", "Wholesale DZ"];
+  const [categoryOptions, setCategoryOptions] = useState<string[]>(FALLBACK_CATEGORIES);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessagesList, setErrorMessagesList] = useState<string[]>([]);
   const { user } = useAuth();
@@ -132,13 +132,29 @@ const Timesheet: React.FC = () => {
       }
     };
     fetchDriverInfo();
+
+    const fetchCategories = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`${API_BASE_URL}/organizations/timesheet-categories`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const cats: string[] = res.data.timesheetCategories || [];
+        if (cats.length > 0) setCategoryOptions(cats);
+      } catch {
+        // keep fallback list
+      }
+    };
+    fetchCategories();
   }, [user?.id]);
 
   useEffect(() => {
     const fetchAssignedVehicle = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/tracking/my-vehicle`);
-        const vehicle = { _id: res.data._id, unitNumber: res.data.unitNumber };
+        const v = res.data.vehicle;
+        if (!v) return;
+        const vehicle = { _id: v._id, unitNumber: v.unitNumber };
         setAssignedVehicle(vehicle);
         // Resume active trip if driver refreshed mid-trip
         const saved = localStorage.getItem("activeTrip");
@@ -675,10 +691,7 @@ const Timesheet: React.FC = () => {
             </div>
             <div>
               <p style={fieldLabel}>Customer Selection</p>
-              <select name="customer" value={timesheet.customer} onChange={handleChange} style={errors.customer ? { ...styles.input, borderColor: "var(--t-error)" } : styles.input}>
-                <option value="">Select Customer</option>
-                {customerOptions.map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
+              <input type="text" name="customer" value={timesheet.customer} onChange={handleChange} placeholder="Enter customer name" style={errors.customer ? { ...styles.input, borderColor: "var(--t-error)" } : styles.input} />
               {errors.customer && <span style={styles.error}>{errors.customer}</span>}
             </div>
             <div style={{ marginTop: "14px" }}>
@@ -1131,4 +1144,4 @@ const styles: { [key: string]: CSSProperties } = {
   },
 };
 
-export default Timesheet;
+export default SubmitTimesheet;

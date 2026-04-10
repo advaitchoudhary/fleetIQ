@@ -1,16 +1,16 @@
 import React, { Suspense } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import FileDriverApplication from "./pages/FileDriverApplication";
-import Dashboard from "./pages/Dashboard";
+import SubmitTimesheet from "./pages/SubmitTimesheet";
 import DriverHome from "./pages/DriverHome";
 import DriverNotifications from "./pages/DriverNotifications";
 import DriverPayStubs from "./pages/DriverPayStubs";
 import Users from "./pages/Drivers";
 import AdminHome from "./pages/AdminHome";
 import Profile from "./pages/Profile";
-import Enquiries from "./pages/Enquiries";
+import Inquiries from "./pages/Inquiries";
 import ContactUs from "./pages/ContactUs";
 import Invoice from "./pages/Invoice";
 import Applications from "./pages/AllTimesheets";
@@ -77,7 +77,7 @@ const App: React.FC = () => {
           path="/my-timesheet-submit"
           element={
             <ProtectedRoute requiredRole="driver">
-              <Dashboard />
+              <SubmitTimesheet />
             </ProtectedRoute>
           }
         />
@@ -109,14 +109,8 @@ const App: React.FC = () => {
           }
         />
 
-        <Route
-          path="/contact-us"
-          element={
-            <ProtectedRoute>
-              <ContactUs />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/contact-us" element={<ContactUs />} />
+        <Route path="/driver-login" element={<Navigate to="/login" replace />} />
 
         {/* Admin Role Routes */}
         <Route
@@ -135,6 +129,7 @@ const App: React.FC = () => {
             </ProtectedRoute>
           }
         />
+        <Route path="/drivers" element={<Navigate to="/users" replace />} />
         <Route
           path="/applications"
           element={
@@ -162,10 +157,10 @@ const App: React.FC = () => {
         />
 
         <Route
-          path="/enquiries"
+          path="/inquiries"
           element={
             <ProtectedRoute requiredRole="admin">
-              <Enquiries />
+              <Inquiries />
             </ProtectedRoute>
           }
         />

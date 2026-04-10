@@ -94,6 +94,11 @@ const Navbar: React.FC = () => {
       .catch(() => {});
   }, []);
 
+  const { user, logout, isInsideOrg, activeOrgName, exitOrg } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (!storedUser) return;
@@ -106,7 +111,7 @@ const Navbar: React.FC = () => {
       .then((r) => r.ok ? r.json() : [])
       .then((data) => setDriverUnreadCount(Array.isArray(data) ? data.length : 0))
       .catch(() => {});
-  }, []);
+  }, [location.pathname]);
 
   const handleMarkAllRead = useCallback(async () => {
     try {
@@ -125,10 +130,6 @@ const Navbar: React.FC = () => {
       console.error("Error marking notifications as read", error);
     }
   }, [notifications]);
-  const { user, logout, isInsideOrg, activeOrgName, exitOrg } = useAuth();
-  const { isDark, toggleTheme } = useTheme();
-  const navigate = useNavigate();
-  const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
 
   const getLinkStyle = (path: string, isDriver = false): React.CSSProperties => {
@@ -360,8 +361,8 @@ const Navbar: React.FC = () => {
                                   method: "POST",
                                   headers: authHeaders,
                                 });
-                                const updatedNotifications = notifications.map((n, i) =>
-                                  i === index ? { ...n, read: true } : n
+                                const updatedNotifications = notifications.map((n) =>
+                                  n._id === notification._id ? { ...n, read: true } : n
                                 );
                                 setNotifications(updatedNotifications);
                                 setUnreadCount(unreadCount - 1);
@@ -395,7 +396,7 @@ const Navbar: React.FC = () => {
                                       method: "DELETE",
                                       headers: authHeaders,
                                     });
-                                    const filtered = notifications.filter((_, i) => i !== index);
+                                    const filtered = notifications.filter((n) => n._id !== notification._id);
                                     setNotifications(filtered);
                                     setUnreadCount((prev) => prev - (notification.read ? 0 : 1));
                                   } catch (err) {
@@ -487,7 +488,7 @@ const Navbar: React.FC = () => {
             <>
               {renderNavItem("/dashboard",             <MdDashboard size={18} />,   "Home",               true)}
               {renderNavItem("/my-timesheet-submit", <FaFileAlt size={18} />,       "Submit Timesheet",   true)}
-              {renderNavItem("/my-timesheet",        <FaClock size={18} />,         "My Timesheet",       true)}
+              {renderNavItem("/my-timesheet",        <FaClock size={18} />,         "My Timesheets",      true)}
               {renderNavItem("/my-pay-stubs",        <FaDollarSign size={18} />,    "Pay Stubs",          true)}
               {renderNavItem("/my-info",             <FaUser size={18} />,          "My Info",            true)}
               {renderNavItem("/my-notifications",
@@ -522,7 +523,7 @@ const Navbar: React.FC = () => {
                     {renderNavItem("/users",               <FaUsers size={16} />,         "Drivers",             false, !hasDriver)}
                     {renderNavItem("/invoice",             <FaFileInvoice size={16} />,   "Invoice",             false, !hasDriver)}
                     {renderNavItem("/applications",        <FaClipboardList size={16} />, "All Timesheets",      false, !hasDriver)}
-                    {renderNavItem("/enquiries",           <FaPhoneAlt size={16} />,      "Enquiries",           false, !hasDriver)}
+                    {renderNavItem("/inquiries",           <FaPhoneAlt size={16} />,      "Inquiries",           false, !hasDriver)}
                     {renderNavItem("/driver-applications", <FaClipboardList size={16} />, "Driver Applications", false, !hasDriver)}
 
                     <li style={{ ...styles.navItem, marginTop: "14px" }}>

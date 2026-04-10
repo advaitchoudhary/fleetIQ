@@ -24,6 +24,10 @@ const organizationSchema = new mongoose.Schema(
       enum: ["browser", "geotab", "samsara"],
       default: "browser",
     },
+    timesheetCategories: {
+      type: [String],
+      default: [], // admin configures the available timesheet categories for their org
+    },
     subscription: {
       plan: {
         type: String,

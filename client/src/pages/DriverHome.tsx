@@ -165,7 +165,7 @@ const DriverHome: React.FC = () => {
 
         try {
           const vRes = await axios.get(`${API_BASE_URL}/tracking/my-vehicle`, { headers });
-          setVehicle(vRes.data);
+          setVehicle(vRes.data.vehicle || null);
         } catch {
           // no vehicle assigned
         }
@@ -179,7 +179,14 @@ const DriverHome: React.FC = () => {
   }, [user?.id, user?.email]);
 
   const licenceDaysLeft = driver?.licence_expiry_date
-    ? Math.ceil((new Date(driver.licence_expiry_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    ? (() => {
+        // Parse date-only strings without UTC offset to avoid off-by-one in local timezones
+        const raw = driver.licence_expiry_date;
+        const dateStr = raw.includes("T") ? raw.split("T")[0] : raw;
+        const [y, m, d] = dateStr.split("-").map(Number);
+        const expiry = new Date(y, m - 1, d);
+        return Math.ceil((expiry.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      })()
     : null;
 
   const licenceColor =
@@ -245,7 +252,7 @@ const DriverHome: React.FC = () => {
                   {licenceDaysLeft === null ? "No date set"
                     : licenceDaysLeft <= 0 ? "Renew immediately"
                     : licenceDaysLeft <= 30 ? "Expiring soon"
-                    : driver?.licence_expiry_date ? new Date(driver.licence_expiry_date).toLocaleDateString("en-CA") : ""}
+                    : driver?.licence_expiry_date ? String(driver.licence_expiry_date).slice(0, 10) : ""}
                 </div>
               </div>
 

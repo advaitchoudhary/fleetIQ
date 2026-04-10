@@ -12,7 +12,7 @@ const driverSchema = new mongoose.Schema(
         name: { type: String, required: true },
         email: { type: String, required: true, unique: true },
         contact: { type: String, required: true },
-        address: { type: String, required: true },
+        address: { type: String, required: false },
         hst_gst: { type: String, required: false },
         business_name: { type: String, required: false },
         backhaulRate: { type: Number, required: false },
@@ -28,6 +28,7 @@ const driverSchema = new mongoose.Schema(
         wholesaleRate: { type: Number, required: false },
         voilaRate: { type: Number, required: false },
         tcsLinehaulTrentonRate: { type: Number, required: false },
+        categoryRates: { type: Map, of: Number, default: {} }, // keyed by category name
         licence: { type: String, required: true },
         licence_expiry_date: { type: Date, required: true },
         status: {
