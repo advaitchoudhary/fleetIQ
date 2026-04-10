@@ -56,6 +56,12 @@ import trackingRoutes from "../routes/trackingRoute.js";
 // @ts-ignore
 import chatRoutes from "../routes/chatRoute.js";
 // @ts-ignore
+import telematicsRoutes from "../routes/telematicsRoute.js";
+// @ts-ignore
+import iftaRoutes from "../routes/iftaRoute.js";
+// @ts-ignore
+import { pollAllDevices } from "../utils/telematicsAdapter.js";
+// @ts-ignore
 import Location from "../model/locationModel.js";
 // @ts-ignore
 import Vehicle from "../model/vehicleModel.js";
@@ -170,6 +176,12 @@ mongoose
             }
         }, STALE_TRIP_INTERVAL);
 
+        // Hardware telematics poll — every 5 minutes
+        setInterval(() => {
+            pollAllDevices().catch((err: Error) => console.error("[Telematics] Poll error:", err));
+        }, 5 * 60 * 1000);
+        console.log("🛰️  Telematics polling scheduled every 5 minutes");
+
         // Daily digest email — runs at 07:00 every morning
         cron.schedule("0 7 * * *", () => {
             runDailyDigest().catch((err: Error) => console.error("[DailyDigest] Error:", err));
@@ -213,6 +225,8 @@ app.use("/api/warranties", warrantyRoutes);
 app.use("/api/service-history", serviceHistoryRoutes);
 app.use("/api/pm", pmRoutes);
 app.use("/api/tracking", trackingRoutes);
+app.use("/api/telematics", telematicsRoutes);
+app.use("/api/ifta", iftaRoutes);
 app.use("/api/chat", chatRoutes);
 // Phase 3 — Driver Payments (Stripe Connect) and Phase 4 — Subscriptions are
 // mounted before bodyParser.json() above so Stripe webhooks receive raw body.

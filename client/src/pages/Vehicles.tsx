@@ -57,6 +57,13 @@ const Vehicles: React.FC = () => {
   const [selectedDriverId, setSelectedDriverId] = useState<string>("");
   const [assigning, setAssigning] = useState(false);
 
+  // Telematics state
+  const [telematicsModal, setTelematicsModal] = useState<{ vehicleId: string; unitNumber: string } | null>(null);
+  const [telProvider, setTelProvider] = useState<"geotab" | "samsara">("geotab");
+  const [telForm, setTelForm] = useState({ server: "my.geotab.com", database: "", username: "", password: "", apiToken: "", deviceSerial: "" });
+  const [telLoading, setTelLoading] = useState(false);
+  const [telResult, setTelResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
   // Build headers fresh on each call so a re-login token is always picked up
   const getHeaders = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
 
@@ -194,6 +201,45 @@ const Vehicles: React.FC = () => {
       alert(err.response?.data?.message || "Failed to assign driver");
     } finally {
       setAssigning(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setTelLoading(true);
+    setTelResult(null);
+    try {
+      const credentials = telProvider === "geotab"
+        ? { server: telForm.server, database: telForm.database, username: telForm.username, password: telForm.password }
+        : { apiToken: telForm.apiToken };
+      await axios.post("/api/telematics/test", { provider: telProvider, credentials });
+      setTelResult({ ok: true, msg: "Connection successful!" });
+    } catch (err: any) {
+      setTelResult({ ok: false, msg: err.response?.data?.message || "Connection failed" });
+    } finally {
+      setTelLoading(false);
+    }
+  };
+
+  const handlePairDevice = async () => {
+    if (!telematicsModal) return;
+    setTelLoading(true);
+    setTelResult(null);
+    try {
+      const credentials = telProvider === "geotab"
+        ? { server: telForm.server, database: telForm.database, username: telForm.username, password: telForm.password }
+        : { apiToken: telForm.apiToken };
+      await axios.post("/api/telematics/devices", {
+        vehicleId: telematicsModal.vehicleId,
+        provider: telProvider,
+        deviceSerial: telForm.deviceSerial,
+        credentials,
+      });
+      setTelResult({ ok: true, msg: "Device paired successfully!" });
+      setTimeout(() => setTelematicsModal(null), 1500);
+    } catch (err: any) {
+      setTelResult({ ok: false, msg: err.response?.data?.message || "Pairing failed" });
+    } finally {
+      setTelLoading(false);
     }
   };
 
@@ -347,6 +393,11 @@ const Vehicles: React.FC = () => {
                         <span style={{ ...styles.badge, background: sc.bg, color: sc.color }}>
                           {v.status?.replace(/_/g, " ")}
                         </span>
+                        {v.telematicsSource && v.telematicsSource !== "none" && (
+                          <span style={{ background: "#f3e8ff", color: "#7c3aed", borderRadius: 4, padding: "2px 6px", fontSize: 11, marginLeft: 6 }}>
+                            🛰️ {v.telematicsSource === "geotab" ? "Geotab" : "Samsara"}
+                          </span>
+                        )}
                       </td>
                       <td style={styles.td}>
                         {v.assignedDriverId ? (
@@ -368,6 +419,18 @@ const Vehicles: React.FC = () => {
                             title="Assign Driver"
                           >
                             <FaUserPlus size={14} />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setTelematicsModal({ vehicleId: v._id, unitNumber: v.unitNumber });
+                              setTelProvider("geotab");
+                              setTelForm({ server: "my.geotab.com", database: "", username: "", password: "", apiToken: "", deviceSerial: "" });
+                              setTelResult(null);
+                            }}
+                            style={{ background: "#7c3aed", color: "#fff", border: "none", borderRadius: 6, padding: "6px 12px", cursor: "pointer", fontSize: 13 }}
+                            title="Connect hardware GPS device"
+                          >
+                            🛰️ Connect
                           </button>
                           <button
                             onClick={() => { setSelectedVehicle(v); setIsDeleteModalOpen(true); }}
@@ -668,6 +731,70 @@ const Vehicles: React.FC = () => {
                 {assigning ? "Saving..." : "Confirm"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Telematics Modal */}
+      {telematicsModal && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+          <div style={{ background: "#fff", borderRadius: 12, padding: 32, width: 440, maxWidth: "90vw" }}>
+            <h3 style={{ margin: "0 0 4px" }}>Connect Hardware GPS</h3>
+            <p style={{ margin: "0 0 20px", color: "#6b7280", fontSize: 14 }}>Vehicle: {telematicsModal.unitNumber}</p>
+
+            <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+              {(["geotab", "samsara"] as const).map(p => (
+                <button key={p} onClick={() => setTelProvider(p)} style={{ flex: 1, padding: "8px 0", borderRadius: 6, border: `2px solid ${telProvider === p ? "#7c3aed" : "#e5e7eb"}`, background: telProvider === p ? "#f5f3ff" : "#fff", color: telProvider === p ? "#7c3aed" : "#374151", cursor: "pointer", fontWeight: telProvider === p ? 600 : 400, textTransform: "capitalize" }}>
+                  {p === "geotab" ? "Geotab" : "Samsara"}
+                </button>
+              ))}
+            </div>
+
+            {telProvider === "geotab" ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[["Server URL", "server", "my.geotab.com"], ["Database", "database", ""], ["Username", "username", ""], ["Password", "password", ""]].map(([label, field, placeholder]) => (
+                  <div key={field}>
+                    <label style={{ fontSize: 13, color: "#374151", display: "block", marginBottom: 4 }}>{label}</label>
+                    <input type={field === "password" ? "password" : "text"} value={(telForm as any)[field]} onChange={e => setTelForm(f => ({ ...f, [field]: e.target.value }))} placeholder={placeholder} style={{ width: "100%", padding: "8px 10px", border: "1px solid #d1d5db", borderRadius: 6, fontSize: 14, boxSizing: "border-box" }} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[["API Token", "apiToken", "samsara_api_..."], ["Samsara Vehicle ID", "deviceSerial", "281474978005248"]].map(([label, field, placeholder]) => (
+                  <div key={field}>
+                    <label style={{ fontSize: 13, color: "#374151", display: "block", marginBottom: 4 }}>{label}</label>
+                    <input type={field === "apiToken" ? "password" : "text"} value={(telForm as any)[field]} onChange={e => setTelForm(f => ({ ...f, [field]: e.target.value }))} placeholder={placeholder} style={{ width: "100%", padding: "8px 10px", border: "1px solid #d1d5db", borderRadius: 6, fontSize: 14, boxSizing: "border-box" }} />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {telProvider === "geotab" && (
+              <div style={{ marginTop: 10 }}>
+                <label style={{ fontSize: 13, color: "#374151", display: "block", marginBottom: 4 }}>Device Serial</label>
+                <input type="text" value={telForm.deviceSerial} onChange={e => setTelForm(f => ({ ...f, deviceSerial: e.target.value }))} placeholder="b9 (Geotab device ID)" style={{ width: "100%", padding: "8px 10px", border: "1px solid #d1d5db", borderRadius: 6, fontSize: 14, boxSizing: "border-box" }} />
+              </div>
+            )}
+
+            {telResult && (
+              <p style={{ marginTop: 12, padding: "8px 12px", borderRadius: 6, background: telResult.ok ? "#f0fdf4" : "#fef2f2", color: telResult.ok ? "#15803d" : "#dc2626", fontSize: 13 }}>
+                {telResult.ok ? "✅ " : "❌ "}{telResult.msg}
+              </p>
+            )}
+
+            <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
+              <button onClick={handleTestConnection} disabled={telLoading} style={{ flex: 1, padding: "9px 0", borderRadius: 6, border: "1px solid #d1d5db", background: "#fff", color: "#111827", cursor: "pointer", fontSize: 14 }}>
+                {telLoading ? "Testing..." : "Test Connection"}
+              </button>
+              <button onClick={handlePairDevice} disabled={telLoading} style={{ flex: 1, padding: "9px 0", borderRadius: 6, border: "none", background: "#7c3aed", color: "#fff", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>
+                {telLoading ? "Saving..." : "Save & Pair"}
+              </button>
+            </div>
+
+            <button onClick={() => setTelematicsModal(null)} style={{ marginTop: 12, width: "100%", padding: "8px 0", border: "none", background: "none", color: "#6b7280", cursor: "pointer", fontSize: 14 }}>
+              Cancel
+            </button>
           </div>
         </div>
       )}

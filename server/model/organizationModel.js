@@ -19,6 +19,11 @@ const organizationSchema = new mongoose.Schema(
       type: [String],
       default: [], // admin configures the list of required compliance document names
     },
+    integrationType: {
+      type: String,
+      enum: ["browser", "geotab", "samsara"],
+      default: "browser",
+    },
     timesheetCategories: {
       type: [String],
       default: [], // admin configures the available timesheet categories for their org

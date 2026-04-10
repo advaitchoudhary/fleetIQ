@@ -531,6 +531,7 @@ const Navbar: React.FC = () => {
                     </li>
                     {renderNavItem("/vehicles",               <FaTruck size={16} />,            "Vehicles",           false, !hasVehicle)}
                     {renderNavItem("/tracking",               <FaMapMarkerAlt size={16} />,     "Live Tracking",      false, !hasVehicle)}
+                    {renderNavItem("/ifta",                   <FaFileAlt size={16} />,          "IFTA Reports",       false, !hasVehicle)}
                     {renderNavItem("/maintenance",            <FaWrench size={16} />,           "Maintenance",        false, !hasVehicle)}
                     {renderNavItem("/inspections",            <FaCheckSquare size={16} />,      "Inspections",        false, !hasVehicle)}
                     {renderNavItem("/fuel-logs",              <FaGasPump size={16} />,          "Fuel Logs",          false, !hasVehicle)}

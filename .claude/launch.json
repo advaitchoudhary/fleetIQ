@@ -3,15 +3,15 @@
   "configurations": [
     {
       "name": "frontend",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "/Users/advaitchoudhary/.nvm/versions/node/v22.19.0/bin/node",
+      "runtimeArgs": ["node_modules/.bin/vite"],
       "port": 5173,
       "cwd": "client"
     },
     {
       "name": "backend",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeExecutable": "/Users/advaitchoudhary/.nvm/versions/node/v22.19.0/bin/node",
+      "runtimeArgs": ["node_modules/.bin/ts-node", "-r", "dotenv/config", "src/index.ts"],
       "port": 8000,
       "cwd": "server"
     }
