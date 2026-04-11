@@ -69,6 +69,8 @@ import Vehicle from "../model/vehicleModel.js";
 import cron from "node-cron";
 // @ts-ignore
 import { runDailyDigest } from "../utils/dailyDigest.js";
+// @ts-ignore
+import { runSubscriptionReminders } from "../utils/subscriptionReminders.js";
 
 const app = express();
 
@@ -187,6 +189,13 @@ mongoose
             runDailyDigest().catch((err: Error) => console.error("[DailyDigest] Error:", err));
         });
         console.log("📧 Daily digest cron scheduled at 07:00");
+
+        // Subscription trial warning emails — runs at 09:00 every morning
+        // Sends 3-day and 1-day warnings to orgs whose trial is about to expire
+        cron.schedule("0 9 * * *", () => {
+            runSubscriptionReminders().catch((err: Error) => console.error("[SubscriptionReminders] Error:", err));
+        });
+        console.log("🔔 Subscription reminder cron scheduled at 09:00");
 
         app.listen(PORT, () => {
             console.log(`🚀 Server is running on port ${PORT}`)

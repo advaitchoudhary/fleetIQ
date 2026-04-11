@@ -80,8 +80,12 @@ const AdminHome: React.FC = () => {
   const plan   = subscription?.plan   || "inactive";
   const status = subscription?.status || "inactive";
   const sc     = STATUS_CFG[status]   || STATUS_CFG.inactive;
-  const showDriver  = ["bundle", "driver"].includes(plan)  || status === "trialing";
-  const showVehicle = ["bundle", "vehicle"].includes(plan) || status === "trialing";
+  // Features are only accessible when the subscription is genuinely active or trialing.
+  // An expired trial returns status="inactive" from the server, so both checks are needed:
+  // the plan must include the module AND the subscription must be in an active/trialing state.
+  const isSubscriptionActive = status === "active" || status === "trialing";
+  const showDriver  = isSubscriptionActive && ["bundle", "driver"].includes(plan);
+  const showVehicle = isSubscriptionActive && ["bundle", "vehicle"].includes(plan);
   const trialDaysLeft = subscription?.trialEndsAt
     ? Math.max(0, Math.ceil((new Date(subscription.trialEndsAt).getTime() - Date.now()) / 86400000))
     : null;
@@ -171,6 +175,47 @@ const AdminHome: React.FC = () => {
             fontSize: "13px", color: "var(--t-warning)", display: "flex", alignItems: "center", gap: "10px",
           }}>
             <FaExclamationCircle size={14} /> Your last payment failed. Please update your payment method to restore full access.
+          </div>
+        )}
+
+        {/* Expired trial / inactive subscription warning */}
+        {!loading && status === "inactive" && (
+          <div style={{
+            background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.2)",
+            borderRadius: "10px", padding: "14px 18px", marginBottom: "32px",
+            fontSize: "13px", color: "var(--t-error)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", flexWrap: "wrap",
+          }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <FaExclamationCircle size={14} />
+              {subscription?.trialEndsAt
+                ? "Your free trial has expired. Subscribe to restore access to all features."
+                : "No active subscription. Choose a plan to unlock all features."}
+            </span>
+            <button
+              onClick={() => navigate("/subscription")}
+              style={{ padding: "6px 14px", background: "var(--t-error)", color: "#fff", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
+            >
+              View Plans
+            </button>
+          </div>
+        )}
+
+        {/* Cancelled subscription warning */}
+        {!loading && status === "cancelled" && (
+          <div style={{
+            background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.2)",
+            borderRadius: "10px", padding: "14px 18px", marginBottom: "32px",
+            fontSize: "13px", color: "var(--t-error)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", flexWrap: "wrap",
+          }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <FaExclamationCircle size={14} /> Your subscription has been cancelled. Resubscribe to restore access.
+            </span>
+            <button
+              onClick={() => navigate("/subscription")}
+              style={{ padding: "6px 14px", background: "var(--t-error)", color: "#fff", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
+            >
+              Resubscribe
+            </button>
           </div>
         )}
 

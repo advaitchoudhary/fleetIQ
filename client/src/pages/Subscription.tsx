@@ -138,6 +138,12 @@ const Subscription: React.FC = () => {
   const currentStatus = subscription?.status || "inactive";
   const sc = STATUS_COLORS[currentStatus] || STATUS_COLORS.inactive;
   const isActive = ["trialing", "active"].includes(currentStatus);
+  // Trial is considered used when: (a) the server explicitly flagged it, or
+  // (b) trialEndsAt exists AND the org is no longer actively trialing.
+  // Actively-trialing orgs (status === "trialing") have trialEndsAt set but have
+  // NOT consumed their trial yet — they should still see trial messaging.
+  const trialAlreadyUsed = !!subscription?.trialUsed ||
+    (!!subscription?.trialEndsAt && currentStatus !== "trialing");
 
   const trialDaysLeft = (() => {
     if (currentStatus !== "trialing" || !subscription?.trialEndsAt) return null;
@@ -192,13 +198,18 @@ const Subscription: React.FC = () => {
                     : `Trial ended ${new Date(subscription.trialEndsAt).toLocaleDateString()}`}
                 </div>
               )}
+              {subscription?.trialEndsAt && currentStatus === "inactive" && (
+                <div style={{ fontSize: "13px", color: "var(--t-error)", marginTop: "4px" }}>
+                  Your free trial expired on {new Date(subscription.trialEndsAt).toLocaleDateString()}. Subscribe to restore access.
+                </div>
+              )}
               {subscription?.currentPeriodEnd && currentStatus === "active" && (
                 <div style={{ fontSize: "13px", color: "var(--t-text-dim)", marginTop: "4px" }}>
                   Next billing date: {new Date(subscription.currentPeriodEnd).toLocaleDateString()}
                 </div>
               )}
             </div>
-            {subscription?.stripeSubscriptionId && (
+            {subscription?.stripeCustomerId && (
               <button onClick={handleBillingPortal} disabled={portalLoading} style={styles.portalBtn}>
                 {portalLoading ? "Loading..." : <>Manage Billing <FaExternalLinkAlt size={12} /></>}
               </button>
@@ -209,7 +220,14 @@ const Subscription: React.FC = () => {
         {/* Past-due warning */}
         {currentStatus === "past_due" && (
           <div style={{ background: "rgba(234,179,8,0.08)", border: "1px solid rgba(234,179,8,0.2)", borderRadius: "10px", padding: "14px 18px", marginBottom: "20px", fontSize: "14px", color: "var(--t-warning)" }}>
-            ⚠️ Your last payment failed. Please update your payment method in the billing portal to restore access.
+            Your last payment failed. Please update your payment method in the billing portal to restore access.
+          </div>
+        )}
+
+        {/* Cancelled subscription notice */}
+        {currentStatus === "cancelled" && (
+          <div style={{ background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "10px", padding: "14px 18px", marginBottom: "20px", fontSize: "14px", color: "var(--t-error)" }}>
+            Your subscription has been cancelled. Choose a plan below to reactivate your account.
           </div>
         )}
 
@@ -263,7 +281,7 @@ const Subscription: React.FC = () => {
                   <span style={{ fontSize: "14px", color: "var(--t-text-dim)" }}>/month{billing === "annual" ? " (billed annually)" : ""}</span>
                 </div>
                 <ul style={{ margin: "0 0 24px", paddingLeft: "0", listStyle: "none", display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {plan.features.map((f) => (
+                  {plan.features.filter((f) => !(trialAlreadyUsed && f === "14-day free trial included")).map((f) => (
                     <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "13px", color: "var(--t-text-muted)" }}>
                       <FaCheckCircle style={{ color: "var(--t-indigo)", marginTop: "2px", flexShrink: 0 }} size={13} />
                       {f}
@@ -289,7 +307,9 @@ const Subscription: React.FC = () => {
                           ? <><FaArrowUp size={12} /> Switch to {plan.name}</>
                           : currentStatus === "trialing"
                             ? <><FaArrowUp size={12} /> Upgrade Plan</>
-                            : "Start Free Trial"}
+                            : trialAlreadyUsed
+                              ? "Subscribe Now"
+                              : "Start Free Trial"}
                       </>
                     )}
                   </button>
@@ -300,7 +320,9 @@ const Subscription: React.FC = () => {
         </div>
 
         <p style={{ textAlign: "center", marginTop: "20px", fontSize: "13px", color: "var(--t-text-faint)" }}>
-          All plans include a 14-day free trial. No credit card required to start. Cancel anytime.
+          {trialAlreadyUsed
+            ? "Cancel anytime. Billed monthly or annually."
+            : "All plans include a 14-day free trial. No credit card required to start. Cancel anytime."}
         </p>
       </div>
     </div>

@@ -42,6 +42,8 @@ const Navbar: React.FC = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [subscriptionPlan, setSubscriptionPlan] = useState<string | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
+  const [subscriptionTrialEndsAt, setSubscriptionTrialEndsAt] = useState<string | null>(null);
   const [headerOrgName, setHeaderOrgName] = useState<string>("");
   const [driverUnreadCount, setDriverUnreadCount] = useState(0);
   const sidebarRef = useRef<HTMLElement>(null);
@@ -76,6 +78,8 @@ const Navbar: React.FC = () => {
         if (!res.ok) return;
         const data = await res.json();
         setSubscriptionPlan(data.plan || null);
+        setSubscriptionStatus(data.status || null);
+        setSubscriptionTrialEndsAt(data.trialEndsAt || null);
       } catch {
         // silently ignore — gate defaults to open if fetch fails
       }
@@ -510,8 +514,10 @@ const Navbar: React.FC = () => {
             <>
               {(() => {
                 const isSuperAdmin = user?.role === "admin";
-                const hasDriver = isSuperAdmin || subscriptionPlan === "driver" || subscriptionPlan === "bundle";
-                const hasVehicle = isSuperAdmin || subscriptionPlan === "vehicle" || subscriptionPlan === "bundle";
+                const trialExpired = subscriptionStatus === "trialing" && subscriptionTrialEndsAt && new Date(subscriptionTrialEndsAt) < new Date();
+                const isSubActive = (subscriptionStatus === "active" || subscriptionStatus === "trialing") && !trialExpired;
+                const hasDriver = isSuperAdmin || (isSubActive && (subscriptionPlan === "driver" || subscriptionPlan === "bundle"));
+                const hasVehicle = isSuperAdmin || (isSubActive && (subscriptionPlan === "vehicle" || subscriptionPlan === "bundle"));
 
                 return (
                   <>

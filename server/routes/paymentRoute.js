@@ -1,4 +1,5 @@
 const express = require("express");
+const bodyParser = require("body-parser");
 const {
   onboardDriver,
   getOnboardStatus,
@@ -12,8 +13,10 @@ const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
 const { requireDriverModule } = require("../middleware/featureGate.js");
 
 const router = express.Router();
+const jsonParser = bodyParser.json();
 
-// Stripe webhook — must use raw body, registered BEFORE express.json
+// Stripe webhook — must use raw body; express.raw() here takes precedence over
+// any global bodyParser.json() middleware, so this is safe regardless of mount order.
 router.post(
   "/webhook",
   express.raw({ type: "application/json" }),
@@ -23,6 +26,7 @@ router.post(
 // Admin: driver Stripe Connect onboarding
 router.post(
   "/onboard/:driverId",
+  jsonParser,
   protect,
   authorizeRoles("admin", "company_admin"),
   requireDriverModule,
@@ -40,6 +44,7 @@ router.get(
 // Admin: calculate and initiate payouts
 router.post(
   "/calculate",
+  jsonParser,
   protect,
   authorizeRoles("admin", "company_admin"),
   requireDriverModule,
@@ -48,6 +53,7 @@ router.post(
 
 router.post(
   "/initiate",
+  jsonParser,
   protect,
   authorizeRoles("admin", "company_admin"),
   requireDriverModule,
