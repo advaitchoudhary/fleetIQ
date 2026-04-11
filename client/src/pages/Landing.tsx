@@ -4,7 +4,8 @@ import {
   FaTruck, FaUsers, FaFileAlt, FaCreditCard, FaCalendarAlt,
   FaShieldAlt, FaTools, FaChartBar, FaCheckCircle, FaArrowRight,
   FaCar, FaGasPump, FaClipboardList, FaBell, FaBuilding,
-  FaLayerGroup, FaAngleDown, FaChevronDown, FaQuoteLeft, FaRobot,
+  FaAngleDown, FaChevronDown, FaQuoteLeft, FaRobot,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 
 const Landing: React.FC = () => {
@@ -38,8 +39,8 @@ const Landing: React.FC = () => {
   const driverFeatures = [
     { icon: <FaUsers size={16} />, text: "Digital driver onboarding & applications" },
     { icon: <FaFileAlt size={16} />, text: "Timesheet submission from any device" },
-    { icon: <FaClipboardList size={16} />, text: "Document & compliance tracking" },
-    { icon: <FaBell size={16} />, text: "Licence & certification expiry alerts" },
+    { icon: <FaClipboardList size={16} />, text: "Driver notes, warnings & incident log" },
+    { icon: <FaShieldAlt size={16} />, text: "Document & licence expiry dashboard" },
     { icon: <FaCreditCard size={16} />, text: "Rate management per driver category" },
     { icon: <FaCheckCircle size={16} />, text: "Admin approval workflow for timesheets" },
   ];
@@ -51,6 +52,8 @@ const Landing: React.FC = () => {
     { icon: <FaGasPump size={16} />, text: "Fuel consumption & L/100km analytics" },
     { icon: <FaShieldAlt size={16} />, text: "Parts inventory & warranty tracking" },
     { icon: <FaChartBar size={16} />, text: "Full cost tracking & service history" },
+    { icon: <FaMapMarkerAlt size={16} />, text: "Live GPS tracking & real-time admin map" },
+    { icon: <FaCalendarAlt size={16} />, text: "Scheduling calendar & job dispatch" },
   ];
 
   const paymentFeatures = [
@@ -73,31 +76,13 @@ const Landing: React.FC = () => {
         "Unlimited driver profiles",
         "Digital driver applications",
         "Timesheet submission & approval",
-        "Document & compliance tracking",
+        "Driver notes, warnings & incident log",
+        "Licence & document expiry dashboard",
         "Stripe driver payouts",
         "Payment history & invoicing",
-    ],
+      ],
       cta: "Get Started",
       highlight: false,
-    },
-    {
-      name: "Fleet Bundle",
-      price: "$79",
-      period: "/mo",
-      desc: "The complete platform — drivers, vehicles, and payments in one place.",
-      color: "#4F46E5",
-      features: [
-        "Everything in Driver Management",
-        "Full vehicle registry",
-        "Maintenance & inspection logs",
-        "Fuel consumption analytics",
-        "Parts & warranty tracking",
-        "Cost tracking & service history",
-        "Scheduling calendar",
-        "Driver ↔ Vehicle assignment",
-      ],
-      cta: "Start Free Trial",
-      highlight: true,
     },
     {
       name: "Vehicle & Fleet Operations",
@@ -112,9 +97,28 @@ const Landing: React.FC = () => {
         "Fuel logs & L/100km stats",
         "Parts inventory management",
         "Warranty & service history",
+        "Live GPS tracking & admin map",
+        "Scheduling calendar & job dispatch",
       ],
       cta: "Get Started",
       highlight: false,
+    },
+    {
+      name: "Fleet Bundle",
+      price: "$79",
+      period: "/mo",
+      desc: "The complete platform — drivers, vehicles, and payments in one place.",
+      color: "#4F46E5",
+      features: [
+        "Everything in Driver Management",
+        "Everything in Vehicle & Fleet Operations",
+        "Driver ↔ Vehicle assignment",
+        "IFTA mileage & fuel tax reporting",
+        "Multi-company support",
+        "Priority support",
+      ],
+      cta: "Start Free Trial",
+      highlight: true,
     },
   ];
 
@@ -675,7 +679,7 @@ const Landing: React.FC = () => {
               {
                 icon: <FaTruck size={20} style={{ color: "#0891b2" }} />,
                 title: "Vehicle Operations",
-                desc: "Full vehicle registry with maintenance scheduling, DVIR inspections, fuel analytics, and parts inventory — all linked to your fleet.",
+                desc: "Full vehicle registry with maintenance scheduling, DVIR inspections, fuel analytics, parts inventory, and job dispatch — all linked to your fleet.",
                 iconBg: "#e0f2fe", borderColor: "#0891b2", path: "/register",
               },
               {
@@ -697,10 +701,10 @@ const Landing: React.FC = () => {
                 iconBg: "#fef3c7", borderColor: "#d97706", path: "/register",
               },
               {
-                icon: <FaLayerGroup size={20} style={{ color: "#dc2626" }} />,
-                title: "Flexible Subscriptions",
-                desc: "Driver Management, Vehicle & Fleet Operations, or the full Fleet Bundle. Pay for what you use and scale as your fleet grows.",
-                iconBg: "#fee2e2", borderColor: "#dc2626", path: "/pricing",
+                icon: <FaMapMarkerAlt size={20} style={{ color: "#dc2626" }} />,
+                title: "Live Vehicle Tracking",
+                desc: "Real-time GPS tracking with a live admin map, trip history, and polyline replay. Drivers share location from any browser — no hardware required.",
+                iconBg: "#fee2e2", borderColor: "#dc2626", path: "/register",
               },
             ].map((feature, i) => (
               <div
@@ -848,7 +852,7 @@ const Landing: React.FC = () => {
                 Keep every vehicle road-ready
               </h2>
               <p style={{ fontSize: "16px", color: "#6b7280", lineHeight: 1.75, marginBottom: "32px" }}>
-                From registration to retirement, FleetIQ tracks every vehicle in your fleet. Schedule preventive maintenance, log DVIR inspections, monitor fuel burn, and manage parts & warranties — all in one place.
+                From registration to retirement, FleetIQ tracks every vehicle in your fleet. Schedule preventive maintenance, log DVIR inspections, monitor fuel burn, manage parts & warranties, and run IFTA mileage reports — all in one place.
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {vehicleFeatures.map((f, i) => (
@@ -1362,7 +1366,7 @@ const Landing: React.FC = () => {
           <div style={{ display: "flex", gap: "28px", alignItems: "center" }}>
             {[
               { label: "Log In", path: "/login" },
-              { label: "Driver Application", path: "/file-application" },
+
               { label: "Pricing", path: "/pricing" },
               { label: "Terms of Service", path: "/terms" },
               { label: "Privacy Policy", path: "/privacy" },

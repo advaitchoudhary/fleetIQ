@@ -129,6 +129,7 @@ const Drivers: React.FC = () => {
     workStatus: "",
     workAuthExpiry: "",
     trainings: [],
+    emergencyContact: { name: "", phone: "", relationship: "" },
   });
 
   const [editedDriver, setEditedDriver] = useState<any>(null);
@@ -137,11 +138,62 @@ const Drivers: React.FC = () => {
   const [, setError] = useState("");
   const [searchText, setSearchText] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"highest" | "lowest" | "none">("none");
-  const [pendingApplicationsCount, setPendingApplicationsCount] = useState<number>(0);
-  const [isApplicationsButtonHovered, setIsApplicationsButtonHovered] = useState(false);
   const [driverPayouts, setDriverPayouts] = useState<any[]>([]);
   const [payoutsLoading, setPayoutsLoading] = useState(false);
-  
+  const [driverNotes, setDriverNotes] = useState<any[]>([]);
+  const [notesLoading, setNotesLoading] = useState(false);
+  const [newNoteType, setNewNoteType] = useState("General");
+  const [newNoteBody, setNewNoteBody] = useState("");
+  const [noteSubmitting, setNoteSubmitting] = useState(false);
+  const [orgNotesSummary, setOrgNotesSummary] = useState<Record<string, { count: number; worstType: string }>>({});
+
+  const fetchDriverNotes = async (driverId: string) => {
+    setNotesLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API_BASE_URL}/drivers/${driverId}/notes`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDriverNotes(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setDriverNotes([]);
+    } finally {
+      setNotesLoading(false);
+    }
+  };
+
+  const handleAddNote = async (driverId: string) => {
+    if (!newNoteBody.trim()) return;
+    setNoteSubmitting(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        `${API_BASE_URL}/drivers/${driverId}/notes`,
+        { type: newNoteType, body: newNoteBody.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setDriverNotes((prev) => [res.data, ...prev]);
+      setNewNoteBody("");
+      setNewNoteType("General");
+    } catch {
+      // silent — note body validation is client-side
+    } finally {
+      setNoteSubmitting(false);
+    }
+  };
+
+  const handleDeleteNote = async (driverId: string, noteId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_BASE_URL}/drivers/${driverId}/notes/${noteId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDriverNotes((prev) => prev.filter((n) => n._id !== noteId));
+    } catch {
+      // silent
+    }
+  };
+
   const fetchDriverPayouts = async (driverId: string) => {
     setPayoutsLoading(true);
     try {
@@ -160,8 +212,28 @@ const Drivers: React.FC = () => {
   // Fetch users on component mount
   useEffect(() => {
     fetchDrivers();
-    fetchPendingApplicationsCount();
+
     const token = localStorage.getItem("token");
+    // Fetch all org notes to build per-driver summary for table indicator
+    const TYPE_PRIORITY: Record<string, number> = { Incident: 4, Warning: 3, General: 2, Compliment: 1 };
+    axios.get(`${API_BASE_URL}/driver-notes`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((res) => {
+      const allNotes: any[] = Array.isArray(res.data) ? res.data : [];
+      const summary: Record<string, { count: number; worstType: string }> = {};
+      allNotes.forEach((n) => {
+        const dId = n.driverId?._id || n.driverId;
+        if (!dId) return;
+        const id = String(dId);
+        if (!summary[id]) summary[id] = { count: 0, worstType: "General" };
+        summary[id].count += 1;
+        if ((TYPE_PRIORITY[n.type] || 0) > (TYPE_PRIORITY[summary[id].worstType] || 0)) {
+          summary[id].worstType = n.type;
+        }
+      });
+      setOrgNotesSummary(summary);
+    }).catch(() => {});
+
     axios.get(`${API_BASE_URL}/organizations/timesheet-categories`, {
       headers: { Authorization: `Bearer ${token}` },
     }).then((res) => {
@@ -175,20 +247,6 @@ const Drivers: React.FC = () => {
     }).catch(() => {});
   }, []);
 
-  // Fetch pending applications count
-  const fetchPendingApplicationsCount = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`${API_BASE_URL}/driver-applications?status=Pending`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setPendingApplicationsCount(response.data.length);
-    } catch (err) {
-      console.error("Failed to fetch pending applications count:", err);
-    }
-  };
     const fetchDrivers = async () => {
       try {
         setLoading(true);
@@ -404,6 +462,9 @@ const Drivers: React.FC = () => {
     setEditModalError("");
     setEditFieldErrors({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" });
     fetchDriverPayouts(driver._id);
+    fetchDriverNotes(driver._id);
+    setNewNoteBody("");
+    setNewNoteType("General");
   };
 
   const handleCopyPassword = (password: string): void => {
@@ -494,15 +555,7 @@ const Drivers: React.FC = () => {
             <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>Manage driver profiles, rates & credentials for the entire logistical network.</p>
           </div>
           <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
-            <button
-              onClick={() => navigate("/driver-applications")}
-              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "10px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", position: "relative" as const }}
-            >
-              <FaClipboard size={13} /> Driver Applications
-              {pendingApplicationsCount > 0 && (
-                <span style={{ position: "absolute" as const, top: "-6px", right: "-6px", background: "#ef4444", color: "#fff", borderRadius: "50%", width: "18px", height: "18px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700 }}>{pendingApplicationsCount}</span>
-              )}
-            </button>
+
             <button
               onClick={handleExport}
               style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "10px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
@@ -546,7 +599,7 @@ const Drivers: React.FC = () => {
           <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
             <thead>
               <tr style={{ borderBottom: "1px solid var(--t-hover-bg)" }}>
-                {["S.NO", "DRIVER", "CONTACT INFORMATION", "STATUS", "HOURS (WK)", "WORK AUTHORIZATION", "ACTIONS"].map((h) => (
+                {["S.NO", "DRIVER", "CONTACT INFORMATION", "STATUS", "HOURS (WK)", "WORK AUTHORIZATION", "NOTES", "ACTIONS"].map((h) => (
                   <th key={h} style={{ padding: "14px 16px", textAlign: "left" as const, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", whiteSpace: "nowrap" as const }}>
                     {h}
                   </th>
@@ -556,7 +609,7 @@ const Drivers: React.FC = () => {
             <tbody>
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: "48px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "14px" }}>No matching drivers found.</td>
+                  <td colSpan={8} style={{ padding: "48px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "14px" }}>No matching drivers found.</td>
                 </tr>
               ) : (
                 filteredData.map((driver: any, idx: number) => {
@@ -628,6 +681,31 @@ const Drivers: React.FC = () => {
                       {/* WORK AUTH */}
                       <td style={{ padding: "18px 16px", fontSize: "13px", color: "var(--t-text-faint)" }}>
                         {driver.workStatus || "—"}
+                      </td>
+
+                      {/* NOTES indicator */}
+                      <td style={{ padding: "18px 16px" }}>
+                        {(() => {
+                          const ns = orgNotesSummary[String(driver._id)];
+                          if (!ns) return <span style={{ color: "var(--t-text-faint)", fontSize: "12px" }}>—</span>;
+                          const noteColors: Record<string, { color: string; bg: string; border: string }> = {
+                            Incident:   { color: "#ef4444", bg: "rgba(239,68,68,0.1)",   border: "rgba(239,68,68,0.25)"   },
+                            Warning:    { color: "#f97316", bg: "rgba(249,115,22,0.1)",  border: "rgba(249,115,22,0.25)"  },
+                            General:    { color: "#4f46e5", bg: "rgba(79,70,229,0.1)",   border: "rgba(79,70,229,0.25)"   },
+                            Compliment: { color: "#10b981", bg: "rgba(16,185,129,0.1)",  border: "rgba(16,185,129,0.25)"  },
+                          };
+                          const c = noteColors[ns.worstType] || noteColors.General;
+                          return (
+                            <span style={{
+                              display: "inline-flex", alignItems: "center", gap: "4px",
+                              padding: "3px 9px", borderRadius: "20px", fontSize: "11px", fontWeight: 700,
+                              background: c.bg, color: c.color, border: `1px solid ${c.border}`,
+                              whiteSpace: "nowrap" as const,
+                            }}>
+                              {ns.count} {ns.worstType}
+                            </span>
+                          );
+                        })()}
                       </td>
 
                       {/* ACTIONS */}
@@ -870,10 +948,10 @@ const Drivers: React.FC = () => {
                   </div>
                   {showAddExpiryPicker && (<>
                     <div onClick={() => setShowAddExpiryPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
-                    <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
+                    <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "var(--t-select-bg)", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", border: "1px solid var(--t-border-strong)" }}>
                       <DayPicker mode="single" selected={selectedDriver.licence_expiry_date ? parseISO(selectedDriver.licence_expiry_date) : undefined}
                         onSelect={(d) => { if (d) { const dateStr = format(d, "yyyy-MM-dd"); setSelectedDriver({ ...selectedDriver, licence_expiry_date: dateStr }); setAddFieldErrors((prev) => ({ ...prev, licence_expiry_date: validateExpiryDate(dateStr) })); setShowAddExpiryPicker(false); } }}
-                        styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }} />
+                        styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0", color: "var(--t-text)" } as React.CSSProperties }} />
                     </div>
                   </>)}
                   {addFieldErrors.licence_expiry_date && <p style={{ margin: "4px 0 0", fontSize: "11px", color: addFieldErrors.licence_expiry_date.startsWith("Warning") ? "var(--t-warning)" : "var(--t-error)" }}>{addFieldErrors.licence_expiry_date}</p>}
@@ -888,10 +966,10 @@ const Drivers: React.FC = () => {
                     </div>
                     {showAddWorkAuthPicker && (<>
                       <div onClick={() => setShowAddWorkAuthPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
-                      <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
+                      <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "var(--t-select-bg)", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", border: "1px solid var(--t-border-strong)" }}>
                         <DayPicker mode="single" selected={selectedDriver.workAuthExpiry ? parseISO(selectedDriver.workAuthExpiry) : undefined}
                           onSelect={(d) => { if (d) { setSelectedDriver({ ...selectedDriver, workAuthExpiry: format(d, "yyyy-MM-dd") }); setShowAddWorkAuthPicker(false); } }}
-                          styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }} />
+                          styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0", color: "var(--t-text)" } as React.CSSProperties }} />
                       </div>
                     </>)}
                   </div>
@@ -916,6 +994,35 @@ const Drivers: React.FC = () => {
                   <input type="text" placeholder="Enter address"
                     style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => setSelectedDriver({ ...selectedDriver, address: e.target.value })} />
+                </div>
+              </div>
+
+              {/* Section: Emergency Contact */}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>EMERGENCY CONTACT</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px" }}>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>FULL NAME</label>
+                  <input type="text" placeholder="e.g. Jane Doe"
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    value={selectedDriver.emergencyContact?.name || ""}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, emergencyContact: { ...selectedDriver.emergencyContact, name: e.target.value } })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>PHONE NUMBER</label>
+                  <input type="text" placeholder="e.g. +1 (416) 555-0100"
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    value={selectedDriver.emergencyContact?.phone || ""}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, emergencyContact: { ...selectedDriver.emergencyContact, phone: formatContact(e.target.value) } })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>RELATIONSHIP</label>
+                  <input type="text" placeholder="e.g. Spouse, Parent"
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    value={selectedDriver.emergencyContact?.relationship || ""}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, emergencyContact: { ...selectedDriver.emergencyContact, relationship: e.target.value } })} />
                 </div>
               </div>
 
@@ -1179,6 +1286,118 @@ const Drivers: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* Section: Emergency Contact */}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>EMERGENCY CONTACT</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>FULL NAME</label>
+                  <input type="text" placeholder="e.g. Jane Doe"
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    value={selectedDriver?.emergencyContact?.name || ""}
+                    onChange={(e) => handleInputChange("emergencyContact", { ...selectedDriver?.emergencyContact, name: e.target.value })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>PHONE NUMBER</label>
+                  <input type="text" placeholder="e.g. +1 (416) 555-0100"
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    value={selectedDriver?.emergencyContact?.phone || ""}
+                    onChange={(e) => handleInputChange("emergencyContact", { ...selectedDriver?.emergencyContact, phone: formatContact(e.target.value) })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>RELATIONSHIP</label>
+                  <input type="text" placeholder="e.g. Spouse, Parent"
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    value={selectedDriver?.emergencyContact?.relationship || ""}
+                    onChange={(e) => handleInputChange("emergencyContact", { ...selectedDriver?.emergencyContact, relationship: e.target.value })} />
+                </div>
+              </div>
+
+              {/* Section: Notes & Incidents */}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>NOTES & INCIDENTS</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+              </div>
+
+              {/* Add note form */}
+              <div style={{ display: "flex", gap: "10px", marginBottom: "16px", alignItems: "flex-start" }}>
+                <select
+                  value={newNoteType}
+                  onChange={(e) => setNewNoteType(e.target.value)}
+                  style={{ padding: "10px 12px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer", flexShrink: 0 }}
+                >
+                  {["General", "Warning", "Incident", "Compliment"].map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+                <textarea
+                  placeholder="Write a note…"
+                  value={newNoteBody}
+                  onChange={(e) => setNewNoteBody(e.target.value)}
+                  rows={2}
+                  style={{ flex: 1, padding: "10px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", resize: "vertical" as const, minHeight: "60px" }}
+                />
+                <button
+                  onClick={() => handleAddNote(selectedDriver._id)}
+                  disabled={noteSubmitting || !newNoteBody.trim()}
+                  style={{ padding: "10px 18px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 600, cursor: newNoteBody.trim() ? "pointer" : "not-allowed", fontFamily: "Inter, system-ui, sans-serif", opacity: newNoteBody.trim() ? 1 : 0.5, flexShrink: 0 }}
+                >
+                  {noteSubmitting ? "Adding…" : "Add Note"}
+                </button>
+              </div>
+
+              {/* Notes list */}
+              {notesLoading ? (
+                <div style={{ padding: "20px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "13px" }}>Loading notes…</div>
+              ) : driverNotes.length === 0 ? (
+                <div style={{ background: "var(--t-surface-alt)", border: "1px dashed var(--t-border)", borderRadius: "10px", padding: "24px", textAlign: "center" as const }}>
+                  <p style={{ margin: 0, color: "var(--t-text-ghost)", fontSize: "13px" }}>No notes yet. Add the first one above.</p>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: "10px" }}>
+                  {driverNotes.map((note: any) => {
+                    const typeCfg: Record<string, { color: string; bg: string }> = {
+                      General:    { color: "#4F46E5", bg: "rgba(79,70,229,0.1)"   },
+                      Warning:    { color: "#f97316", bg: "rgba(249,115,22,0.1)"  },
+                      Incident:   { color: "#ef4444", bg: "rgba(239,68,68,0.1)"   },
+                      Compliment: { color: "#10b981", bg: "rgba(16,185,129,0.1)"  },
+                    };
+                    const cfg = typeCfg[note.type] || typeCfg.General;
+                    const dateStr = note.createdAt
+                      ? new Date(note.createdAt).toLocaleString("en-CA", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })
+                      : "";
+                    return (
+                      <div key={note._id} style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "14px 16px" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.5px", padding: "3px 10px", borderRadius: "20px", background: cfg.bg, color: cfg.color }}>
+                              {note.type.toUpperCase()}
+                            </span>
+                            <span style={{ fontSize: "12px", color: "var(--t-text-ghost)" }}>
+                              {note.authorName} · {dateStr}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteNote(selectedDriver._id, note._id)}
+                            title="Delete note"
+                            style={{ background: "none", border: "none", color: "var(--t-text-ghost)", cursor: "pointer", padding: "2px 6px", fontSize: "13px", lineHeight: 1, borderRadius: "4px" }}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--t-text-ghost)")}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <p style={{ margin: 0, fontSize: "13px", color: "var(--t-text-secondary)", lineHeight: 1.6, whiteSpace: "pre-wrap" as const }}>
+                          {note.body}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Section: Payout History */}
               <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>

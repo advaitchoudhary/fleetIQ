@@ -2,7 +2,7 @@ import React, { Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
-import FileDriverApplication from "./pages/FileDriverApplication";
+
 import SubmitTimesheet from "./pages/SubmitTimesheet";
 import DriverHome from "./pages/DriverHome";
 import DriverNotifications from "./pages/DriverNotifications";
@@ -19,7 +19,8 @@ import MyTimesheet from "./pages/MyTimesheet";
 import DetailedTimesheet from "./pages/DetailedTimesheet";
 import Logout from "./pages/Logout";
 import ChangePassword from "./pages/ChangePassword";
-import DriverApplications from "./pages/DriverApplications";
+import ExpiryDashboard from "./pages/ExpiryDashboard";
+import DriverNotesPage from "./pages/DriverNotesPage";
 import Vehicles from "./pages/Vehicles";
 import Maintenance from "./pages/Maintenance";
 import Inspections from "./pages/Inspections";
@@ -44,6 +45,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ChatWidget from "./components/ChatWidget";
+import CookieBanner from "./components/CookieBanner";
 import { useAuth } from "./contexts/AuthContext";
 
 const AuthenticatedChat: React.FC = () => {
@@ -56,11 +58,12 @@ const App: React.FC = () => {
     <ThemeProvider>
     <AuthProvider>
       <AuthenticatedChat />
+      <CookieBanner />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/file-application" element={<FileDriverApplication />} />
+
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
 
@@ -130,6 +133,8 @@ const App: React.FC = () => {
           }
         />
         <Route path="/drivers" element={<Navigate to="/users" replace />} />
+        <Route path="/expiry-dashboard" element={<ProtectedRoute requiredRole="admin"><ExpiryDashboard /></ProtectedRoute>} />
+        <Route path="/driver-notes" element={<ProtectedRoute requiredRole="admin"><DriverNotesPage /></ProtectedRoute>} />
         <Route
           path="/applications"
           element={
@@ -165,14 +170,6 @@ const App: React.FC = () => {
           }
         />
 
-        <Route
-          path="/driver-applications"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <DriverApplications />
-            </ProtectedRoute>
-          }
-        />
 
         <Route
           path="/my-info"

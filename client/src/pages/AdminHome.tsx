@@ -4,11 +4,11 @@ import axios from "axios";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 import {
-  FaUsers, FaClipboardList, FaFileAlt, FaCreditCard, FaHistory,
+  FaUsers, FaFileAlt, FaCreditCard, FaHistory,
   FaEnvelope, FaTruck, FaWrench, FaCheckSquare, FaGasPump,
   FaBox, FaShieldAlt, FaChartBar, FaCalendarAlt, FaTools,
   FaLock, FaCheckCircle, FaExternalLinkAlt,
-  FaExclamationCircle,
+  FaExclamationCircle, FaClipboardList,
 } from "react-icons/fa";
 
 const STATUS_CFG: Record<string, { bg: string; border: string; color: string; label: string }> = {
@@ -21,7 +21,9 @@ const STATUS_CFG: Record<string, { bg: string; border: string; color: string; la
 
 const DRIVER_FEATURES = [
   { icon: FaUsers,         title: "Drivers",          desc: "View all drivers, filter by status and manage compliance.",             path: "/users",               accent: "var(--t-indigo)", badge: null         },
-  { icon: FaClipboardList, title: "Applications",      desc: "Onboard new fleet operators and manage driver background checks.",      path: "/driver-applications", accent: "var(--t-indigo)", badge: null         },
+  { icon: FaExclamationCircle, title: "Doc Expiry",   desc: "Licence and work authorization expiry across all drivers.",             path: "/expiry-dashboard",    accent: "var(--t-error)",   badge: null         },
+  { icon: FaClipboardList,    title: "Driver Notes",  desc: "Fleet-wide log of notes, warnings, incidents and compliments.",          path: "/driver-notes",        accent: "var(--t-indigo)", badge: null         },
+
   { icon: FaFileAlt,       title: "Timesheets",        desc: "Approve hours worked and manage shift rotations for the fleet.",        path: "/applications",        accent: "var(--t-warning)", badge: "pending"    },
   { icon: FaCreditCard,    title: "Payments",          desc: "Execute payroll, review expenses and track operator bonuses.",          path: "/payments",            accent: "var(--t-indigo)", badge: null         },
   { icon: FaHistory,       title: "Payment History",   desc: "Full audit trail of all driver payouts and transactions.",             path: "/payment-history",     accent: "var(--t-indigo)", badge: null         },

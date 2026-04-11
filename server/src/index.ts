@@ -20,6 +20,10 @@ import uploadRoutes from "../routes/uploadRoute";
 // @ts-ignore
 import driverRoute from "../routes/driverRoute";
 // @ts-ignore
+import driverNoteRoute from "../routes/driverNoteRoute.js";
+// @ts-ignore
+import driverNoteAllRoute from "../routes/driverNoteAllRoute.js";
+// @ts-ignore
 import contactRoutes from "../routes/contactRoute";
 // @ts-ignore
 import notificationRoutes from "../routes/notificationRoute.js";
@@ -216,6 +220,8 @@ mongoose
 app.use("/api/auth", authRoutes);
 app.use("/api/organizations", organizationRoutes);
 app.use("/api/drivers", driverRoute);
+app.use("/api/drivers/:driverId/notes", driverNoteRoute);
+app.use("/api/driver-notes", driverNoteAllRoute);
 app.use("/api/timesheets", timesheetRoutes);
 app.use("/api/timesheet", timesheetRoutes);
 app.use("/api/uploads", uploadRoutes);

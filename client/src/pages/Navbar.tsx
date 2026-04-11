@@ -527,10 +527,12 @@ const Navbar: React.FC = () => {
                       {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Driver Management</span> : <div style={styles.sectionDivider} />}
                     </li>
                     {renderNavItem("/users",               <FaUsers size={16} />,         "Drivers",             false, !hasDriver)}
+                    {renderNavItem("/expiry-dashboard",   <FaShieldAlt size={16} />,     "Doc Expiry",          false, !hasDriver)}
+                    {renderNavItem("/driver-notes",       <FaClipboardList size={16} />, "Driver Notes",        false, !hasDriver)}
                     {renderNavItem("/invoice",             <FaFileInvoice size={16} />,   "Invoice",             false, !hasDriver)}
                     {renderNavItem("/applications",        <FaClipboardList size={16} />, "All Timesheets",      false, !hasDriver)}
                     {renderNavItem("/inquiries",           <FaPhoneAlt size={16} />,      "Inquiries",           false, !hasDriver)}
-                    {renderNavItem("/driver-applications", <FaClipboardList size={16} />, "Driver Applications", false, !hasDriver)}
+
 
                     <li style={{ ...styles.navItem, marginTop: "14px" }}>
                       {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Vehicle Management</span> : <div style={styles.sectionDivider} />}
