@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import ExcelJS from "exceljs";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -69,22 +69,30 @@ const Drivers: React.FC = () => {
     return "";
   };
 
+  const validateWorkAuthExpiry = (dateStr: string): string => {
+    if (!dateStr) return "Work authorization expiry date is required.";
+    const date = new Date(dateStr + "T00:00:00");
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (date <= today) return "Work authorization expiry date must be in the future.";
+    return "";
+  };
+
   const [data, setData] = useState<any[]>([]);
   const [usernameError, setUsernameError] = useState("");
-  const checkUsernameExists = async (username: string) => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/drivers/check?username=${username}`);
-      if (response.data.exists) {
-        setUsernameError("Username already exists.");
-      } else {
-        setUsernameError("");
+  const usernameDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const checkUsernameExists = (username: string) => {
+    if (usernameDebounceRef.current) clearTimeout(usernameDebounceRef.current);
+    usernameDebounceRef.current = setTimeout(async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/drivers/check?username=${username}`);
+        setUsernameError(response.data.exists ? "Username already exists." : "");
+      } catch (err) {
+        console.error("Failed to check username:", err);
       }
-    } catch (err) {
-      console.error("Failed to check username:", err);
-    }
+    }, 400);
   };
-  const [addFieldErrors, setAddFieldErrors] = useState({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" });
-  const [editFieldErrors, setEditFieldErrors] = useState({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" });
+  const [addFieldErrors, setAddFieldErrors] = useState({ name: "", email: "", contact: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "", password: "" });
+  const [editFieldErrors, setEditFieldErrors] = useState({ name: "", email: "", contact: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "" });
   const [showAddExpiryPicker, setShowAddExpiryPicker] = useState(false);
   const [showEditExpiryPicker, setShowEditExpiryPicker] = useState(false);
   const [showAddWorkAuthPicker, setShowAddWorkAuthPicker] = useState(false);
@@ -122,13 +130,12 @@ const Drivers: React.FC = () => {
     licence: "",
     licence_expiry_date: "",
     status: "Active",
-    trainings: "",
+    trainings: [],
     username: "",
     password: generatePassword(),
     sinNo: "",
     workStatus: "",
     workAuthExpiry: "",
-    trainings: [],
     emergencyContact: { name: "", phone: "", relationship: "" },
   });
 
@@ -460,7 +467,7 @@ const Drivers: React.FC = () => {
     setIsUpdateDisabled(true);
     setUsernameError("");
     setEditModalError("");
-    setEditFieldErrors({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" });
+    setEditFieldErrors({ name: "", email: "", contact: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "" });
     fetchDriverPayouts(driver._id);
     fetchDriverNotes(driver._id);
     setNewNoteBody("");
@@ -563,7 +570,7 @@ const Drivers: React.FC = () => {
               Export
             </button>
             <button
-              onClick={() => { setIsAddModalOpen(true); setAddModalError(""); setAddFieldErrors({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" }); }}
+              onClick={() => { setIsAddModalOpen(true); setAddModalError(""); setUsernameError(""); setAddFieldErrors({ name: "", email: "", contact: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "", password: "" }); }}
               style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}
             >
               + Add Driver
@@ -823,18 +830,20 @@ const Drivers: React.FC = () => {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", marginBottom: "14px" }}>
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>FULL NAME</label>
-                  <input type="text" placeholder="Enter name" style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
-                    onChange={(e) => setSelectedDriver({ ...selectedDriver, name: e.target.value })} />
+                  <input type="text" placeholder="Enter name" style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${addFieldErrors.name ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { setSelectedDriver({ ...selectedDriver, name: e.target.value }); setAddFieldErrors((prev) => ({ ...prev, name: e.target.value.trim() === "" ? "Name is required." : "" })); }} />
+                  {addFieldErrors.name && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{addFieldErrors.name}</p>}
                 </div>
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>EMAIL ADDRESS</label>
-                  <input type="email" placeholder="Enter email" style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
-                    onChange={(e) => setSelectedDriver({ ...selectedDriver, email: e.target.value })} />
+                  <input type="email" placeholder="Enter email" style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${addFieldErrors.email ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { const v = e.target.value; setSelectedDriver({ ...selectedDriver, email: v }); const emailErr = !v.trim() ? "Email is required." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? "Enter a valid email address." : ""; setAddFieldErrors((prev) => ({ ...prev, email: emailErr })); }} />
+                  {addFieldErrors.email && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{addFieldErrors.email}</p>}
                 </div>
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>USERNAME</label>
-                  <input type="text" placeholder="Enter username" value={selectedDriver.username} style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
-                    onChange={(e) => { const v = e.target.value.trim(); setSelectedDriver({ ...selectedDriver, username: v }); checkUsernameExists(v); }} />
+                  <input type="text" placeholder="Enter username" value={selectedDriver.username} style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${usernameError ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { const v = e.target.value.trim(); setSelectedDriver({ ...selectedDriver, username: v }); if (v) { checkUsernameExists(v); } else { setUsernameError(""); } }} />
                   {usernameError && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{usernameError}</p>}
                 </div>
               </div>
@@ -960,7 +969,7 @@ const Drivers: React.FC = () => {
                   <div style={{ position: "relative" as const }}>
                     <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTH EXPIRY</label>
                     <div onClick={() => setShowAddWorkAuthPicker(v => !v)}
-                      style={{ padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+                      style={{ padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${addFieldErrors.workAuthExpiry ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
                       <span style={{ color: selectedDriver.workAuthExpiry ? "var(--t-text)" : "var(--t-text-ghost)" }}>{selectedDriver.workAuthExpiry ? format(parseISO(selectedDriver.workAuthExpiry), "MMM d, yyyy") : "Select expiry date"}</span>
                       <FaCalendarAlt size={13} style={{ color: "var(--t-text-ghost)" }} />
                     </div>
@@ -968,10 +977,11 @@ const Drivers: React.FC = () => {
                       <div onClick={() => setShowAddWorkAuthPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
                       <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "var(--t-select-bg)", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", border: "1px solid var(--t-border-strong)" }}>
                         <DayPicker mode="single" selected={selectedDriver.workAuthExpiry ? parseISO(selectedDriver.workAuthExpiry) : undefined}
-                          onSelect={(d) => { if (d) { setSelectedDriver({ ...selectedDriver, workAuthExpiry: format(d, "yyyy-MM-dd") }); setShowAddWorkAuthPicker(false); } }}
+                          onSelect={(d) => { if (d) { const dateStr = format(d, "yyyy-MM-dd"); setSelectedDriver({ ...selectedDriver, workAuthExpiry: dateStr }); setAddFieldErrors((prev) => ({ ...prev, workAuthExpiry: validateWorkAuthExpiry(dateStr) })); setShowAddWorkAuthPicker(false); } }}
                           styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0", color: "var(--t-text)" } as React.CSSProperties }} />
                       </div>
                     </>)}
+                    {addFieldErrors.workAuthExpiry && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{addFieldErrors.workAuthExpiry}</p>}
                   </div>
                 )}
               </div>
@@ -981,13 +991,14 @@ const Drivers: React.FC = () => {
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>PASSWORD</label>
                   <div style={{ display: "flex", gap: "8px" }}>
                     <input type="text" value={selectedDriver.password} placeholder="Enter password"
-                      style={{ flex: 1, padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" }}
-                      onChange={(e) => setSelectedDriver({ ...selectedDriver, password: e.target.value })} />
+                      style={{ flex: 1, padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${addFieldErrors.password ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" }}
+                      onChange={(e) => { setSelectedDriver({ ...selectedDriver, password: e.target.value }); setAddFieldErrors((prev) => ({ ...prev, password: e.target.value.trim().length < 6 ? "Password must be at least 6 characters." : "" })); }} />
                     <button onClick={() => handleCopyPassword(selectedDriver.password)}
                       style={{ padding: "11px 14px", background: copySuccess ? "var(--t-success-bg)" : "var(--t-indigo-bg)", border: `1px solid ${copySuccess ? "rgba(5,150,105,0.3)" : "rgba(79,70,229,0.25)"}`, borderRadius: "8px", color: copySuccess ? "var(--t-success)" : "var(--t-indigo)", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", transition: "all 0.2s", fontSize: "11px", fontWeight: 600, whiteSpace: "nowrap" as const }}>
                       <FaClipboard size={13} />{copySuccess ? "Copied!" : ""}
                     </button>
                   </div>
+                  {addFieldErrors.password && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{addFieldErrors.password}</p>}
                 </div>
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>ADDRESS</label>
@@ -1041,16 +1052,27 @@ const Drivers: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  if (usernameError) { setAddModalError("Please resolve the username error before submitting."); return; }
-                  if (!(selectedDriver.name || "").trim()) { setAddModalError("Name is required."); return; }
-                  if (!(selectedDriver.email || "").trim()) { setAddModalError("Email is required."); return; }
-                  if (!(selectedDriver.username || "").trim()) { setAddModalError("Username is required."); return; }
-                  setAddModalError("");
+                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                   const sinDigits = (selectedDriver.sinNo || "").replace(/\D/g, "");
                   const contactDigits = (selectedDriver.contact || "").replace(/^\+1[\s\-\(]*/, "").replace(/\D/g, "");
-                  const errors = { sinNo: sinDigits.length !== 9 ? "SIN must be 9 digits." : "", contact: contactDigits.length > 0 && contactDigits.length !== 10 ? "Enter a valid 10-digit phone number." : "", licence: !(selectedDriver.licence || "").trim() ? "Licence class is required." : "", licence_expiry_date: validateExpiryDate(selectedDriver.licence_expiry_date || "") };
+                  const needsWorkAuthExpiry = workAuthNeedsExpiry(selectedDriver.workStatus);
+                  const emailVal = (selectedDriver.email || "").trim();
+                  const errors = {
+                    name: !(selectedDriver.name || "").trim() ? "Name is required." : "",
+                    email: !emailVal ? "Email is required." : !emailRegex.test(emailVal) ? "Enter a valid email address." : "",
+                    contact: contactDigits.length > 0 && contactDigits.length !== 10 ? "Enter a valid 10-digit phone number." : "",
+                    sinNo: sinDigits.length !== 9 ? "SIN must be 9 digits." : "",
+                    licence: !(selectedDriver.licence || "").trim() ? "Licence class is required." : "",
+                    licence_expiry_date: validateExpiryDate(selectedDriver.licence_expiry_date || ""),
+                    workAuthExpiry: needsWorkAuthExpiry ? validateWorkAuthExpiry(selectedDriver.workAuthExpiry || "") : "",
+                    password: (selectedDriver.password || "").trim().length < 6 ? "Password must be at least 6 characters." : "",
+                  };
                   setAddFieldErrors(errors);
-                  if (errors.sinNo || errors.contact || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning"))) return;
+                  if (usernameError) { setAddModalError("Please resolve the username error before submitting."); return; }
+                  if (!(selectedDriver.username || "").trim()) { setAddModalError("Username is required."); return; }
+                  const hasError = errors.name || errors.email || errors.contact || errors.sinNo || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning")) || errors.workAuthExpiry || errors.password;
+                  if (hasError) { setAddModalError(""); return; }
+                  setAddModalError("");
                   createDriver({ ...selectedDriver, username: (selectedDriver.username || "").trim() });
                 }}
                 style={{ display: "flex", alignItems: "center", gap: "8px", padding: "11px 22px", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}
@@ -1095,14 +1117,16 @@ const Drivers: React.FC = () => {
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>FULL NAME</label>
                   <input type="text" defaultValue={selectedDriver?.name}
-                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
-                    onChange={(e) => handleInputChange("name", e.target.value)} />
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${editFieldErrors.name ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { handleInputChange("name", e.target.value); setEditFieldErrors((prev) => ({ ...prev, name: e.target.value.trim() === "" ? "Name is required." : "" })); }} />
+                  {editFieldErrors.name && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{editFieldErrors.name}</p>}
                 </div>
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>EMAIL ADDRESS</label>
                   <input type="email" defaultValue={selectedDriver?.email}
-                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
-                    onChange={(e) => handleInputChange("email", e.target.value)} />
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${editFieldErrors.email ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { const v = e.target.value; handleInputChange("email", v); const emailErr = !v.trim() ? "Email is required." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? "Enter a valid email address." : ""; setEditFieldErrors((prev) => ({ ...prev, email: emailErr })); }} />
+                  {editFieldErrors.email && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{editFieldErrors.email}</p>}
                 </div>
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>USERNAME</label>
@@ -1266,7 +1290,7 @@ const Drivers: React.FC = () => {
                   <div style={{ position: "relative" as const }}>
                     <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTH EXPIRY DATE</label>
                     <div onClick={() => setShowEditWorkAuthPicker(v => !v)}
-                      style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" as const }}>
+                      style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${editFieldErrors.workAuthExpiry ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" as const }}>
                       <span style={{ color: selectedDriver?.workAuthExpiry ? "var(--t-text)" : "var(--t-text-ghost)" }}>
                         {selectedDriver?.workAuthExpiry ? format(parseISO(selectedDriver.workAuthExpiry), "MMM d, yyyy") : "Select expiry date"}
                       </span>
@@ -1278,11 +1302,12 @@ const Drivers: React.FC = () => {
                         <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "var(--t-select-bg)", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", border: "1px solid var(--t-border-strong)" }}>
                           <DayPicker mode="single"
                             selected={selectedDriver?.workAuthExpiry ? parseISO(selectedDriver.workAuthExpiry) : undefined}
-                            onSelect={(d) => { if (d) { handleInputChange("workAuthExpiry", format(d, "yyyy-MM-dd")); setShowEditWorkAuthPicker(false); } }}
+                            onSelect={(d) => { if (d) { const dateStr = format(d, "yyyy-MM-dd"); handleInputChange("workAuthExpiry", dateStr); setEditFieldErrors((prev) => ({ ...prev, workAuthExpiry: validateWorkAuthExpiry(dateStr) })); setShowEditWorkAuthPicker(false); } }}
                             styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0", color: "var(--t-text)" } as React.CSSProperties }} />
                         </div>
                       </>
                     )}
+                    {editFieldErrors.workAuthExpiry && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{editFieldErrors.workAuthExpiry}</p>}
                   </div>
                 )}
               </div>
@@ -1468,17 +1493,26 @@ const Drivers: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  if (usernameError) { alert("Please resolve username error before submitting."); return; }
+                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                   const sinDigits = (selectedDriver.sinNo || "").replace(/\D/g, "");
                   const contactDigits = (selectedDriver.contact || "").replace(/^\+1[\s\-\(]*/, "").replace(/\D/g, "");
+                  const needsWorkAuthExpiry = workAuthNeedsExpiry(selectedDriver?.workStatus);
+                  const emailVal = (selectedDriver.email || "").trim();
                   const errors = {
-                    sinNo: sinDigits.length !== 9 ? "SIN must be 9 digits." : "",
+                    name: !(selectedDriver.name || "").trim() ? "Name is required." : "",
+                    email: !emailVal ? "Email is required." : !emailRegex.test(emailVal) ? "Enter a valid email address." : "",
                     contact: contactDigits.length > 0 && contactDigits.length !== 10 ? "Enter a valid 10-digit phone number." : "",
+                    sinNo: sinDigits.length !== 9 ? "SIN must be 9 digits." : "",
                     licence: !(selectedDriver.licence || "").trim() ? "Licence class is required." : "",
                     licence_expiry_date: validateExpiryDate(selectedDriver.licence_expiry_date || ""),
+                    workAuthExpiry: needsWorkAuthExpiry ? validateWorkAuthExpiry(selectedDriver.workAuthExpiry || "") : "",
                   };
                   setEditFieldErrors(errors);
-                  if (errors.sinNo || errors.contact || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning"))) return;
+                  if (usernameError) { setEditModalError("Please resolve the username error before submitting."); return; }
+                  if (!(selectedDriver.username || "").trim()) { setEditModalError("Username is required."); return; }
+                  const hasError = errors.name || errors.email || errors.contact || errors.sinNo || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning")) || errors.workAuthExpiry;
+                  if (hasError) { setEditModalError(""); return; }
+                  setEditModalError("");
                   updateDriver(selectedDriver);
                 }}
                 style={{ display: "flex", alignItems: "center", gap: "8px", padding: "11px 22px", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}>

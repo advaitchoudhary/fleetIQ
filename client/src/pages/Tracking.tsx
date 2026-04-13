@@ -41,6 +41,7 @@ const Tracking: React.FC = () => {
   const [tripHistory, setTripHistory] = useState<Trip[]>([]);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
+  const [planError, setPlanError] = useState<"upgrade" | "inactive" | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [secondsSinceRefresh, setSecondsSinceRefresh] = useState(0);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -52,8 +53,20 @@ const Tracking: React.FC = () => {
       setVehicles(res.data);
       setLastRefresh(new Date());
       setSecondsSinceRefresh(0);
-    } catch (e) {
-      console.error("Failed to fetch live locations:", e);
+    } catch (e: any) {
+      const status = e.response?.status;
+      if (status === 403) {
+        setPlanError("upgrade");
+        // Stop polling — no point retrying a plan gate
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        if (stalenessRef.current) clearInterval(stalenessRef.current);
+      } else if (status === 402) {
+        setPlanError("inactive");
+        if (intervalRef.current) clearInterval(intervalRef.current);
+        if (stalenessRef.current) clearInterval(stalenessRef.current);
+      } else {
+        console.error("Failed to fetch live locations:", e);
+      }
     } finally {
       setLoading(false);
     }
@@ -85,6 +98,30 @@ const Tracking: React.FC = () => {
   const mapCenter: [number, number] = vehiclesWithLocation.length > 0
     ? [vehiclesWithLocation[0].lastLocation!.lat, vehiclesWithLocation[0].lastLocation!.lng]
     : [43.65107, -79.347015];
+
+  if (planError) {
+    return (
+      <div style={{ minHeight: "100vh", background: "var(--t-bg)" }}>
+        <Navbar />
+        <div style={{ maxWidth: "600px", margin: "0 auto", padding: "80px 40px", textAlign: "center" as const, fontFamily: "Inter, system-ui, sans-serif" }}>
+          <div style={{ width: "64px", height: "64px", borderRadius: "16px", background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px", margin: "0 auto 20px" }}>
+            🗺️
+          </div>
+          <h2 style={{ margin: "0 0 10px", fontSize: "22px", fontWeight: 800, color: "var(--t-text)" }}>
+            {planError === "upgrade" ? "Fleet Bundle Required" : "Subscription Inactive"}
+          </h2>
+          <p style={{ margin: "0 0 24px", fontSize: "14px", color: "var(--t-text-dim)", lineHeight: 1.6 }}>
+            {planError === "upgrade"
+              ? "Live GPS tracking is available exclusively on the Fleet Bundle plan. Upgrade to unlock real-time vehicle tracking, the admin map, and trip history."
+              : "Your subscription has expired. Please renew your plan to access Live Tracking."}
+          </p>
+          <a href="/subscription" style={{ display: "inline-block", padding: "12px 28px", background: "var(--t-accent)", color: "#fff", borderRadius: "10px", fontSize: "14px", fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}>
+            {planError === "upgrade" ? "Upgrade to Fleet Bundle" : "Renew Subscription"}
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--t-bg)" }}>

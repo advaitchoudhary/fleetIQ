@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 
@@ -53,12 +53,10 @@ const AuthenticatedChat: React.FC = () => {
   return user ? <ChatWidget /> : null;
 };
 
-const App: React.FC = () => {
+const AnimatedRoutes: React.FC = () => {
+  const location = useLocation();
   return (
-    <ThemeProvider>
-    <AuthProvider>
-      <AuthenticatedChat />
-      <CookieBanner />
+    <div key={location.pathname} className="page-enter">
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
@@ -232,7 +230,7 @@ const App: React.FC = () => {
         <Route path="/preventive-maintenance" element={<ProtectedRoute requiredRole="admin"><PreventiveMaintenance /></ProtectedRoute>} />
         <Route path="/scheduling" element={<ProtectedRoute requiredRole="admin"><Scheduling /></ProtectedRoute>} />
         <Route path="/tracking" element={<ProtectedRoute requiredRole="admin"><Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "#6b7280" }}>Loading map...</div>}><Tracking /></Suspense></ProtectedRoute>} />
-        <Route path="/ifta" element={<ProtectedRoute><IFTA /></ProtectedRoute>} />
+        <Route path="/ifta" element={<ProtectedRoute requiredRole="admin"><IFTA /></ProtectedRoute>} />
 
         {/* Phase 3 — Driver Payments */}
         <Route
@@ -296,7 +294,18 @@ const App: React.FC = () => {
           }
         />
       </Routes>
-    </AuthProvider>
+    </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <AuthenticatedChat />
+        <CookieBanner />
+        <AnimatedRoutes />
+      </AuthProvider>
     </ThemeProvider>
   );
 };

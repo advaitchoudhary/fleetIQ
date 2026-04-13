@@ -518,6 +518,7 @@ const Navbar: React.FC = () => {
                 const isSubActive = (subscriptionStatus === "active" || subscriptionStatus === "trialing") && !trialExpired;
                 const hasDriver = isSuperAdmin || (isSubActive && (subscriptionPlan === "driver" || subscriptionPlan === "bundle"));
                 const hasVehicle = isSuperAdmin || (isSubActive && (subscriptionPlan === "vehicle" || subscriptionPlan === "bundle"));
+                const hasTracking = isSuperAdmin || (isSubActive && subscriptionPlan === "bundle");
 
                 return (
                   <>
@@ -538,7 +539,7 @@ const Navbar: React.FC = () => {
                       {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Vehicle Management</span> : <div style={styles.sectionDivider} />}
                     </li>
                     {renderNavItem("/vehicles",               <FaTruck size={16} />,            "Vehicles",           false, !hasVehicle)}
-                    {renderNavItem("/tracking",               <FaMapMarkerAlt size={16} />,     "Live Tracking",      false, !hasVehicle)}
+                    {renderNavItem("/tracking",               <FaMapMarkerAlt size={16} />,     "Live Tracking",      false, !hasTracking)}
                     {renderNavItem("/ifta",                   <FaFileAlt size={16} />,          "IFTA Reports",       false, !hasVehicle)}
                     {renderNavItem("/maintenance",            <FaWrench size={16} />,           "Maintenance",        false, !hasVehicle)}
                     {renderNavItem("/inspections",            <FaCheckSquare size={16} />,      "Inspections",        false, !hasVehicle)}

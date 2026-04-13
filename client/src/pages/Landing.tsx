@@ -52,7 +52,6 @@ const Landing: React.FC = () => {
     { icon: <FaGasPump size={16} />, text: "Fuel consumption & L/100km analytics" },
     { icon: <FaShieldAlt size={16} />, text: "Parts inventory & warranty tracking" },
     { icon: <FaChartBar size={16} />, text: "Full cost tracking & service history" },
-    { icon: <FaMapMarkerAlt size={16} />, text: "Live GPS tracking & real-time admin map" },
     { icon: <FaCalendarAlt size={16} />, text: "Scheduling calendar & job dispatch" },
   ];
 
@@ -97,7 +96,6 @@ const Landing: React.FC = () => {
         "Fuel logs & L/100km stats",
         "Parts inventory management",
         "Warranty & service history",
-        "Live GPS tracking & admin map",
         "Scheduling calendar & job dispatch",
       ],
       cta: "Get Started",
@@ -113,6 +111,8 @@ const Landing: React.FC = () => {
         "Everything in Driver Management",
         "Everything in Vehicle & Fleet Operations",
         "Driver ↔ Vehicle assignment",
+        "Live GPS tracking & real-time admin map",
+        "Trip history with polyline replay",
         "IFTA mileage & fuel tax reporting",
         "Multi-company support",
         "Priority support",
@@ -703,7 +703,7 @@ const Landing: React.FC = () => {
               {
                 icon: <FaMapMarkerAlt size={20} style={{ color: "#dc2626" }} />,
                 title: "Live Vehicle Tracking",
-                desc: "Real-time GPS tracking with a live admin map, trip history, and polyline replay. Drivers share location from any browser — no hardware required.",
+                desc: "Real-time GPS tracking with a live admin map, trip history, and polyline replay. Drivers share location from any browser — no hardware required. Requires Fleet Bundle.",
                 iconBg: "#fee2e2", borderColor: "#dc2626", path: "/register",
               },
             ].map((feature, i) => (

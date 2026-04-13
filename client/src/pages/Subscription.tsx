@@ -61,6 +61,8 @@ const PLANS = [
       "Everything in Vehicle Management",
       "Driver ↔ Vehicle assignment",
       "Unified fleet dashboard",
+      "Live GPS tracking & real-time admin map",
+      "Trip history with polyline replay",
       "AI assistant included",
       "14-day free trial included",
     ],
