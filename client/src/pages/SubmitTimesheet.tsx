@@ -66,7 +66,6 @@ const SubmitTimesheet: React.FC = () => {
   const [extraWorkSheet, setExtraWorkSheet] = useState("");
   const [extraWorkSheetDuration, setExtraWorkSheetDuration] = useState({ duration: "", from: "", to: "" });
   const [extraWorkSheetComments, setExtraWorkSheetComments] = useState({ comments: "" });
-  const [extraDelayYesNo, setExtraDelayYesNo] = useState(""); // "yes" | "no"
 
   const [hasDelay, setHasDelay] = useState<string[]>([]);
   const [storeDelay, setStoreDelay] = useState({ duration: "", from: "", to: "", reason: "" });
@@ -82,6 +81,7 @@ const SubmitTimesheet: React.FC = () => {
   const [geoError, setGeoError] = useState<string | null>(null);
   const [pingFailCount, setPingFailCount] = useState(0);
   const trackingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isSubmittingRef = useRef(false);
 
   // Helper function for duration calculation
   function calculateDuration(from: string, to: string): string {
@@ -293,24 +293,26 @@ const SubmitTimesheet: React.FC = () => {
   const handleFileChange = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      // Reject files larger than 6MB
       if (file.size > 6 * 1024 * 1024) {
         alert("File size should not exceed 6MB.");
         return;
       }
+      const isImage = file.type.startsWith("image/");
       try {
-        const options = {
-          maxSizeMB: 0.5,
-          maxWidthOrHeight: 1024,
-          useWebWorker: true,
-        };
-
-        const compressedFile = await imageCompression(file, options);
+        let finalFile: File;
+        if (isImage) {
+          const options = { maxSizeMB: 0.5, maxWidthOrHeight: 1024, useWebWorker: true };
+          finalFile = await imageCompression(file, options);
+        } else {
+          // Non-image files (e.g. PDF) — skip compression, use as-is
+          finalFile = file;
+        }
         const newAttachments = [...timesheet.attachments];
-        newAttachments[index] = compressedFile;
+        newAttachments[index] = finalFile;
         setTimesheet((prev) => ({ ...prev, attachments: newAttachments }));
       } catch (err) {
-        console.error("❌ Compression failed:", err);
+        console.error("❌ File processing failed:", err);
+        alert("Failed to process the file. Please try a different file.");
       }
     }
   };
@@ -318,30 +320,70 @@ const SubmitTimesheet: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     console.log("🔵 Submitting timesheet:", timesheet);
     e.preventDefault();
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     setLoading(true);
 
-    // Delay duration regex validation
+    // Delay From/To required when toggle is enabled
+    if (hasDelay.includes("store") && (!storeDelay.from || !storeDelay.to)) {
+      setErrorMessagesList(["Store Delay is enabled — From and To times are required."]);
+      setShowErrorModal(true);
+      setLoading(false);
+      return;
+    }
+    if (hasDelay.includes("road") && (!roadDelay.from || !roadDelay.to)) {
+      setErrorMessagesList(["Road Delay is enabled — From and To times are required."]);
+      setShowErrorModal(true);
+      setLoading(false);
+      return;
+    }
+    if (hasDelay.includes("other") && (!otherDelay.from || !otherDelay.to)) {
+      setErrorMessagesList(["Other Delay is enabled — From and To times are required."]);
+      setShowErrorModal(true);
+      setLoading(false);
+      return;
+    }
+
+    // Delay duration format validation
     if (hasDelay.includes("store") && storeDelay.duration && !durationRegex.test(storeDelay.duration.trim())) {
-      alert("Please enter Store Delay duration in correct format (e.g., '2 hr 30 min', '45 min')");
+      setErrorMessagesList(["Store Delay duration format is invalid (e.g., '2 hr 30 min', '45 min')."]);
+      setShowErrorModal(true);
       setLoading(false);
       return;
     }
-
     if (hasDelay.includes("road") && roadDelay.duration && !durationRegex.test(roadDelay.duration.trim())) {
-      alert("Please enter Road Delay duration in correct format (e.g., '2 hr', '45 min')");
+      setErrorMessagesList(["Road Delay duration format is invalid (e.g., '2 hr', '45 min')."]);
+      setShowErrorModal(true);
       setLoading(false);
       return;
     }
-
     if (hasDelay.includes("other") && otherDelay.duration && !durationRegex.test(otherDelay.duration.trim())) {
-      alert("Please enter Other Delay duration in correct format (e.g., '1 hr', '30 min')");
+      setErrorMessagesList(["Other Delay duration format is invalid (e.g., '1 hr', '30 min')."]);
+      setShowErrorModal(true);
       setLoading(false);
       return;
     }
 
     let validationErrors: Partial<Record<keyof TimesheetType, string>> = {};
 
+    const fieldLabels: Partial<Record<keyof TimesheetType, string>> = {
+      date: "Date",
+      startTime: "Start Time",
+      endTime: "End Time",
+      customer: "Customer",
+      category: "Category",
+      tripNumber: "Trip Number",
+      loadID: "Load ID",
+      gateOutTime: "Gate Out Time",
+      gateInTime: "Gate In Time",
+      startKM: "Start KM",
+      endKM: "End KM",
+    };
+
     const requiredFields: (keyof TimesheetType)[] = [
+      "date",
+      "startTime",
+      "endTime",
       "customer",
       "category",
       "tripNumber",
@@ -354,7 +396,7 @@ const SubmitTimesheet: React.FC = () => {
 
     requiredFields.forEach((field) => {
       if (!timesheet[field] || (typeof timesheet[field] === "string" && timesheet[field].trim() === "")) {
-        validationErrors[field] = `${field.replace(/([A-Z])/g, " $1")} is required.`;
+        validationErrors[field] = `${fieldLabels[field] ?? field} is required.`;
       }
     });
 
@@ -396,10 +438,11 @@ const SubmitTimesheet: React.FC = () => {
           endKM: Number(timesheet.endKM),
           attachments: [],
         };
-        payload.extraDelay = extraDelayYesNo;
+        const hasAnyDelay = hasDelay.some(d => ["store", "road", "other"].includes(d));
+        payload.extraDelay = hasAnyDelay ? "yes" : "no";
 
         // Only include delay fields if valid
-        if (extraDelayYesNo === 'yes') {
+        if (hasAnyDelay) {
           if (storeDelay.duration && storeDelay.from && storeDelay.to) {
             payload.storeDelay = storeDelay;
           }
@@ -441,7 +484,8 @@ const SubmitTimesheet: React.FC = () => {
           }
         });
         // Always append extraDelay after constructing formData
-        formData.append("extraDelay", extraDelayYesNo?.toLowerCase?.() || "no");
+        const hasAnyDelayFD = hasDelay.some(d => ["store", "road", "other"].includes(d));
+        formData.append("extraDelay", hasAnyDelayFD ? "yes" : "no");
 
         formData.append("totalHours", totalHours);
 
@@ -489,7 +533,6 @@ const SubmitTimesheet: React.FC = () => {
       setExtraWorkSheet("");
       setExtraWorkSheetDuration({ duration: "", from: "", to: "" });
       setExtraWorkSheetComments({ comments: "" });
-      setExtraDelayYesNo("");
       setHasDelay([]);
       setStoreDelay({ duration: "", from: "", to: "", reason: "" });
       setRoadDelay({ duration: "", from: "", to: "", reason: "" });
@@ -502,6 +545,7 @@ const SubmitTimesheet: React.FC = () => {
       alert("Failed to submit timesheet. Please try again.");
     } finally {
       setLoading(false);
+      isSubmittingRef.current = false;
     }
   };
 
@@ -708,46 +752,32 @@ const SubmitTimesheet: React.FC = () => {
           <div style={formSectionCard} className="db-section-card">
             <p style={sectionDivider}>Timing &amp; Gate Access</p>
             {/* Trip Date */}
-            <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "14px 16px", marginBottom: "14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <span style={{ fontSize: "16px" }}>📅</span>
-                <div>
-                  <p style={{ margin: "0 0 2px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>TRIP DATE</p>
-                  <input type="date" name="date" value={timesheet.date} onChange={handleChange}
-                    style={{ background: "none", border: "none", color: "var(--t-text-secondary)", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer", padding: 0 }} />
-                </div>
-              </div>
-              <button type="button" style={{ background: "none", border: "1px solid var(--t-border)", color: "var(--t-text-faint)", borderRadius: "6px", padding: "4px 10px", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>EDIT</button>
+            <div style={{ marginBottom: "14px" }}>
+              <p style={fieldLabel}>Trip Date</p>
+              <input type="date" name="date" value={timesheet.date} onChange={handleChange}
+                style={{ ...styles.input, colorScheme: "dark" }} />
             </div>
             <div style={twoCol} className="db-two-col">
-              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "12px 14px" }}>
-                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
-                  <span>⏱</span> START TIME
-                </p>
+              <div>
+                <p style={fieldLabel}>Start Time</p>
                 <input type="time" name="startTime" value={timesheet.startTime} onChange={handleChange}
-                  style={{ background: "none", border: "none", color: "var(--t-text-secondary)", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
+                  style={{ ...styles.input, colorScheme: "dark" }} />
               </div>
-              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "12px 14px" }}>
-                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
-                  <span>⏱</span> END TIME
-                </p>
+              <div>
+                <p style={fieldLabel}>End Time</p>
                 <input type="time" name="endTime" value={timesheet.endTime} onChange={handleChange}
-                  style={{ background: "none", border: "none", color: "var(--t-text-secondary)", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
+                  style={{ ...styles.input, colorScheme: "dark" }} />
               </div>
-              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "12px 14px" }}>
-                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
-                  <span>🚪</span> GATE OUT
-                </p>
+              <div>
+                <p style={fieldLabel}>Gate Out</p>
                 <input type="time" name="gateOutTime" value={timesheet.gateOutTime} onChange={handleChange}
-                  style={{ background: "none", border: "none", color: "var(--t-text-secondary)", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
+                  style={{ ...styles.input, colorScheme: "dark" }} />
                 {errors.gateOutTime && <span style={styles.error}>{errors.gateOutTime}</span>}
               </div>
-              <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: "12px", padding: "12px 14px" }}>
-                <p style={{ margin: "0 0 4px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "flex", alignItems: "center", gap: "5px" }}>
-                  <span>🚪</span> GATE IN
-                </p>
+              <div>
+                <p style={fieldLabel}>Gate In</p>
                 <input type="time" name="gateInTime" value={timesheet.gateInTime} onChange={handleChange}
-                  style={{ background: "none", border: "none", color: "var(--t-text-secondary)", fontSize: "15px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", padding: 0, width: "100%" }} />
+                  style={{ ...styles.input, colorScheme: "dark" }} />
                 {errors.gateInTime && <span style={styles.error}>{errors.gateInTime}</span>}
               </div>
             </div>
@@ -831,7 +861,6 @@ const SubmitTimesheet: React.FC = () => {
             <p style={sectionDivider}>Conditions &amp; Delays</p>
             {/* Extra Delay toggle */}
             {[
-              { key: "traffic", icon: "⚠️", label: "Traffic Delay", color: "var(--t-warning)" },
               { key: "store", icon: "🔧", label: "Extra Labor / Store Delay", color: "var(--t-indigo)" },
               { key: "road", icon: "🚫", label: "Road Delay", color: "var(--t-error)" },
               { key: "other", icon: "📋", label: "Other Delay", color: "var(--t-success)" },
@@ -844,9 +873,6 @@ const SubmitTimesheet: React.FC = () => {
                 <label style={{ position: "relative" as const, display: "inline-block", width: "44px", height: "24px", cursor: "pointer", flexShrink: 0 }}>
                   <input type="checkbox" checked={hasDelay.includes(key)}
                     onChange={e => {
-                      if (key === "traffic") {
-                        setExtraDelayYesNo(e.target.checked ? "yes" : "no");
-                      }
                       setHasDelay(prev => e.target.checked ? [...prev, key] : prev.filter(d => d !== key));
                     }}
                     style={{ opacity: 0, width: 0, height: 0 }} />
@@ -916,7 +942,7 @@ const SubmitTimesheet: React.FC = () => {
                     <label style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", height: "100%", background: "rgba(255,255,255,0.04)", border: "1px dashed rgba(255,255,255,0.12)", borderRadius: "10px", cursor: "pointer", gap: "6px", minHeight: "100px" }}>
                       <span style={{ fontSize: "22px", color: "var(--t-text-ghost)" }}>📷</span>
                       <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.5px" }}>ADD PROOF</span>
-                      <input type="file" accept="image/png,image/jpeg,image/jpg" onChange={e => handleFileChange(i, e)} style={{ display: "none" }} />
+                      <input type="file" accept="image/png,image/jpeg,image/jpg,application/pdf" onChange={e => handleFileChange(i, e)} style={{ display: "none" }} />
                     </label>
                   )}
                 </div>
