@@ -39,6 +39,7 @@ import CompanyRegister from "./pages/CompanyRegister";
 import OrgSelector from "./pages/OrgSelector";
 const Tracking = React.lazy(() => import("./pages/Tracking"));
 import IFTA from "./pages/IFTA";
+import Integrations from "./pages/Integrations";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -230,7 +231,8 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/preventive-maintenance" element={<ProtectedRoute requiredRole="admin"><PreventiveMaintenance /></ProtectedRoute>} />
         <Route path="/scheduling" element={<ProtectedRoute requiredRole="admin"><Scheduling /></ProtectedRoute>} />
         <Route path="/tracking" element={<ProtectedRoute requiredRole="admin"><Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "#6b7280" }}>Loading map...</div>}><Tracking /></Suspense></ProtectedRoute>} />
-        <Route path="/ifta" element={<ProtectedRoute requiredRole="admin"><IFTA /></ProtectedRoute>} />
+        <Route path="/ifta" element={<ProtectedRoute><IFTA /></ProtectedRoute>} />
+        <Route path="/integrations" element={<ProtectedRoute requiredRole="admin"><Integrations /></ProtectedRoute>} />
 
         {/* Phase 3 — Driver Payments */}
         <Route

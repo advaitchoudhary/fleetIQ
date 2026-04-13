@@ -28,6 +28,7 @@ import {
   FaMapMarkerAlt,
   FaLock,
   FaFileAlt,
+  FaPlug,
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md"; // Material Dashboard Icon
 import { useAuth } from "../contexts/AuthContext";
@@ -541,6 +542,7 @@ const Navbar: React.FC = () => {
                     {renderNavItem("/vehicles",               <FaTruck size={16} />,            "Vehicles",           false, !hasVehicle)}
                     {renderNavItem("/tracking",               <FaMapMarkerAlt size={16} />,     "Live Tracking",      false, !hasTracking)}
                     {renderNavItem("/ifta",                   <FaFileAlt size={16} />,          "IFTA Reports",       false, !hasVehicle)}
+                    {renderNavItem("/integrations",           <FaPlug size={16} />,             "Integrations",       false, !hasVehicle)}
                     {renderNavItem("/maintenance",            <FaWrench size={16} />,           "Maintenance",        false, !hasVehicle)}
                     {renderNavItem("/inspections",            <FaCheckSquare size={16} />,      "Inspections",        false, !hasVehicle)}
                     {renderNavItem("/fuel-logs",              <FaGasPump size={16} />,          "Fuel Logs",          false, !hasVehicle)}

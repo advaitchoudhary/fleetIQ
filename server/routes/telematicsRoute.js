@@ -8,6 +8,8 @@ const {
   getOrgDevices,
   unpairDevice,
   syncNow,
+  discoverDevices,
+  bulkPair,
 } = require("../controller/telematicsController");
 
 const ADMIN_ROLES = ["admin", "company_admin"];
@@ -18,5 +20,7 @@ router.post("/devices", protect, authorizeRoles(...ADMIN_ROLES), requireVehicleM
 router.get("/devices", protect, authorizeRoles(...ALL_ADMIN), requireVehicleModule, getOrgDevices);
 router.delete("/devices/:id", protect, authorizeRoles(...ADMIN_ROLES), requireVehicleModule, unpairDevice);
 router.post("/devices/:id/sync", protect, authorizeRoles(...ADMIN_ROLES), requireVehicleModule, syncNow);
+router.post("/discover", protect, authorizeRoles(...ADMIN_ROLES), requireVehicleModule, discoverDevices);
+router.post("/bulk-pair", protect, authorizeRoles(...ADMIN_ROLES), requireVehicleModule, bulkPair);
 
 module.exports = router;

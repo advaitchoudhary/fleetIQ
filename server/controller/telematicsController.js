@@ -94,4 +94,68 @@ const syncNow = async (req, res) => {
   }
 };
 
-module.exports = { testConnection, pairDevice, getOrgDevices, unpairDevice, syncNow };
+// Discover available hardware devices from provider (read-only, nothing saved)
+const discoverDevices = async (req, res) => {
+  try {
+    const { provider, credentials } = req.body;
+    if (!provider || !credentials) return res.status(400).json({ message: "provider and credentials are required" });
+    let devices = [];
+    if (provider === "geotab") {
+      devices = await geotabClient.listDevices(credentials);
+    } else if (provider === "samsara") {
+      devices = await samsaraClient.listVehicles(credentials.apiToken);
+    } else {
+      return res.status(400).json({ message: "Invalid provider" });
+    }
+    res.json({ devices });
+  } catch (err) {
+    res.status(400).json({ message: err.message || "Discovery failed" });
+  }
+};
+
+// Bulk pair: one set of credentials, N vehicle→device mappings
+const bulkPair = async (req, res) => {
+  try {
+    const { provider, credentials, mappings } = req.body;
+    const organizationId = req.organizationId;
+    if (!provider || !credentials || !Array.isArray(mappings) || mappings.length === 0)
+      return res.status(400).json({ message: "provider, credentials, and mappings[] are required" });
+
+    // Verify credentials once before saving anything
+    if (provider === "geotab") {
+      await geotabClient.authenticate(credentials);
+    } else if (provider === "samsara") {
+      await samsaraClient.testConnection(credentials.apiToken);
+    } else {
+      return res.status(400).json({ message: "Invalid provider" });
+    }
+
+    const encryptedCredentials = encrypt(credentials);
+    const errors = [];
+    let paired = 0;
+
+    for (const { vehicleId, deviceSerial } of mappings) {
+      if (!vehicleId || !deviceSerial) continue;
+      try {
+        await TelematicsDevice.findOneAndUpdate(
+          { organizationId, vehicleId },
+          { organizationId, vehicleId, provider, deviceSerial, credentials: encryptedCredentials, isActive: true, lastError: null },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+        paired++;
+      } catch (e) {
+        errors.push({ vehicleId, error: e.message });
+      }
+    }
+
+    // Update org integration type once
+    await Organization.findByIdAndUpdate(organizationId, { integrationType: provider });
+
+    res.status(201).json({ paired, errors });
+  } catch (err) {
+    console.error("bulkPair error:", err);
+    res.status(500).json({ message: err.message || "Server error" });
+  }
+};
+
+module.exports = { testConnection, pairDevice, getOrgDevices, unpairDevice, syncNow, discoverDevices, bulkPair };

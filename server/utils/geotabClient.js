@@ -50,4 +50,23 @@ async function getPositions(orgId, credentials, deviceSerials) {
     }));
 }
 
-module.exports = { authenticate, getPositions };
+async function listDevices(credentials) {
+  const session = await authenticate(credentials);
+  const { server, database, result } = session;
+  const url = `https://${server}/apiv1`;
+  const response = await axios.post(url, {
+    method: "Get",
+    params: {
+      typeName: "Device",
+      credentials: { userName: credentials.username, sessionId: result.credentials.sessionId, database },
+    },
+  }, { timeout: 15000 });
+  if (response.data.error) throw new Error(response.data.error.message);
+  return (response.data.result || []).map(d => ({
+    id: d.id,
+    name: d.name || d.id,
+    serial: d.serialNumber || d.id,
+  }));
+}
+
+module.exports = { authenticate, getPositions, listDevices };

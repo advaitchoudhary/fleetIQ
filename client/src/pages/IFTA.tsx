@@ -1,7 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
+
+interface Vehicle {
+  _id: string;
+  unitNumber: string;
+  make: string;
+  model: string;
+}
 
 interface JurisdictionRow {
   code: string;
@@ -25,18 +32,25 @@ export default function IFTA() {
   const [quarter, setQuarter] = useState("Q1");
   const [year, setYear] = useState(String(currentYear));
   const [vehicleId, setVehicleId] = useState("");
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [report, setReport] = useState<IFTAReport | null>(null);
   const [loading, setLoading] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const token = localStorage.getItem("token");
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    axios.get("/api/vehicles", { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => setVehicles(res.data?.vehicles || res.data || []))
+      .catch(() => {});
+  }, []);
 
   const generate = async () => {
     setLoading(true);
     setError(null);
     setReport(null);
     try {
+      const token = localStorage.getItem("token");
       const params: Record<string, string> = { quarter, year };
       if (vehicleId.trim()) params.vehicleId = vehicleId.trim();
       const { data } = await axios.get(`${API_BASE_URL}/ifta/report`, {
@@ -56,6 +70,7 @@ export default function IFTA() {
     try {
       const params = new URLSearchParams({ quarter, year });
       if (vehicleId.trim()) params.append("vehicleId", vehicleId.trim());
+      const token = localStorage.getItem("token");
       const response = await axios.get(`${API_BASE_URL}/ifta/report/pdf?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
         responseType: "blob",
@@ -109,13 +124,13 @@ export default function IFTA() {
               </select>
             </div>
             <div style={{ flex: 1, minWidth: "180px" }}>
-              <label style={{ display: "block", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", marginBottom: "7px" }}>VEHICLE ID (OPTIONAL)</label>
-              <input
-                value={vehicleId}
-                onChange={e => setVehicleId(e.target.value)}
-                placeholder="Leave blank for all vehicles"
-                style={{ ...selectStyle, width: "100%" }}
-              />
+              <label style={{ display: "block", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", marginBottom: "7px" }}>VEHICLE (OPTIONAL)</label>
+              <select value={vehicleId} onChange={e => setVehicleId(e.target.value)} style={{ ...selectStyle, width: "100%" }}>
+                <option value="">All Vehicles</option>
+                {vehicles.map(v => (
+                  <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model}</option>
+                ))}
+              </select>
             </div>
             <button
               onClick={generate}
