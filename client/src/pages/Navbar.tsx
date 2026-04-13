@@ -52,11 +52,17 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
+        const storedUser = localStorage.getItem("user");
+        const role = storedUser ? JSON.parse(storedUser)?.role : null;
+        // Notifications are driver-only messages (timesheet approved/rejected).
+        // Admin roles must never see them.
+        if (!role || role !== "driver") return;
+
         const token = localStorage.getItem("token");
         const res = await fetch(`${API_BASE_URL}/notifications`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
-        if (!res.ok) return; // Silently skip if unauthorized or server error
+        if (!res.ok) return;
         const data = await res.json();
         setNotifications(data);
         setUnreadCount(data.filter((n: any) => !n.read).length);
@@ -65,8 +71,8 @@ const Navbar: React.FC = () => {
       }
     };
 
-    fetchNotifications(); // Always fetch on mount
-  }, []); // Only run on component mount
+    fetchNotifications();
+  }, []);
 
   useEffect(() => {
     const fetchSubscription = async () => {
@@ -531,7 +537,7 @@ const Navbar: React.FC = () => {
                     {renderNavItem("/expiry-dashboard",   <FaShieldAlt size={16} />,     "Doc Expiry",          false, !hasDriver)}
                     {renderNavItem("/driver-notes",       <FaClipboardList size={16} />, "Driver Notes",        false, !hasDriver)}
                     {renderNavItem("/invoice",             <FaFileInvoice size={16} />,   "Invoice",             false, !hasDriver)}
-                    {renderNavItem("/applications",        <FaClipboardList size={16} />, "All Timesheets",      false, !hasDriver)}
+                    {renderNavItem("/all-timesheets",      <FaClipboardList size={16} />, "All Timesheets",      false, !hasDriver)}
                     {renderNavItem("/inquiries",           <FaPhoneAlt size={16} />,      "Inquiries",           false, !hasDriver)}
 
 

@@ -1,8 +1,16 @@
 // notificationController.js
 
 const Notification = require("../model/notificationModel.js");
+const Driver = require("../model/driverModel.js");
 const asyncHandler = require("express-async-handler");
 const { getOrgFilter } = require("../middleware/authMiddleware.js");
+
+// Driver JWTs have no email field — look it up from the DB using the id.
+const resolveDriverEmail = async (req) => {
+  if (req.user.email) return req.user.email;
+  const doc = await Driver.findById(req.user.id, "email").lean();
+  return doc?.email || null;
+};
 
 // 1. Create a new notification
 const createNotification = asyncHandler(async (req, res) => {
@@ -73,9 +81,13 @@ const markNotificationAsRead = asyncHandler(async (req, res) => {
 
 const markAllNotificationsAsRead = asyncHandler(async (req, res) => {
   const orgFilter = getOrgFilter(req);
-  // Scope to the calling user's email so admins don't mark driver notifications and vice versa
-  const emailFilter = { email: req.user.email };
-  await Notification.updateMany({ read: false, ...orgFilter, ...emailFilter }, { $set: { read: true } });
+  // Scope to the calling user's email so admins don't mark driver notifications and vice versa.
+  // Driver JWTs have no email field so resolve it from the DB.
+  const email = req.user.role === "driver"
+    ? await resolveDriverEmail(req)
+    : req.user.email;
+  if (!email) return res.status(200).json({ message: "Nothing to mark" });
+  await Notification.updateMany({ read: false, ...orgFilter, email }, { $set: { read: true } });
   res.status(200).json({ message: "All notifications marked as read" });
 });
 
@@ -107,9 +119,12 @@ const getNotifications = asyncHandler(async (req, res) => {
   const email = req.query.email;
   const orgFilter = getOrgFilter(req);
   let filter = { ...orgFilter };
-  // Drivers always see only their own notifications regardless of query param
+  // Drivers always see only their own notifications.
+  // Driver JWTs have no email field so resolve it from the DB.
   if (req.user.role === "driver") {
-    filter.email = req.user.email;
+    const driverEmail = await resolveDriverEmail(req);
+    if (!driverEmail) return res.status(200).json([]);
+    filter.email = driverEmail;
   } else if (email) {
     filter.email = email;
   }

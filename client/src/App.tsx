@@ -133,8 +133,9 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/drivers" element={<Navigate to="/users" replace />} />
         <Route path="/expiry-dashboard" element={<ProtectedRoute requiredRole="admin"><ExpiryDashboard /></ProtectedRoute>} />
         <Route path="/driver-notes" element={<ProtectedRoute requiredRole="admin"><DriverNotesPage /></ProtectedRoute>} />
+        <Route path="/applications" element={<Navigate to="/all-timesheets" replace />} />
         <Route
-          path="/applications"
+          path="/all-timesheets"
           element={
             <ProtectedRoute requiredRole="admin">
               <Applications />

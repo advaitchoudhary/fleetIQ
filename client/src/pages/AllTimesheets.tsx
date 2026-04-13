@@ -108,10 +108,15 @@ const AllTimesheets: React.FC = () => {
   );
   const [limit] = useState(20);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Modal state for delete confirmation
   const [showModal, setShowModal] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkWarning, setBulkWarning] = useState("");
 
   // Track if this is the first load
   const isFirstLoad = useRef(true);
@@ -273,11 +278,16 @@ const AllTimesheets: React.FC = () => {
   };
 
   const handleBulkApprove = async () => {
-    const pending = data.filter((t) => t.status === "pending");
-    if (pending.length === 0) { alert("No pending timesheets to approve."); return; }
-    if (!window.confirm(`Approve all ${pending.length} pending timesheets?`)) return;
+    if (selectedIds.size === 0) {
+      setBulkWarning("Please select at least one timesheet to approve.");
+      setTimeout(() => setBulkWarning(""), 3000);
+      return;
+    }
+    if (!window.confirm(`Approve ${selectedIds.size} selected timesheet(s)?`)) return;
+    const selected = data.filter((t) => selectedIds.has(t._id));
     try {
-      await Promise.all(pending.map((ts) => axios.put(`${API_BASE_URL}/timesheets/${ts._id}`, { status: "approved" })));
+      await Promise.all(selected.map((ts) => axios.put(`${API_BASE_URL}/timesheets/${ts._id}`, { status: "approved" })));
+      setSelectedIds(new Set());
       fetchTimesheets();
     } catch (err) {
       console.error("Bulk approve error:", err);
@@ -491,6 +501,7 @@ const AllTimesheets: React.FC = () => {
       const timesheetData = response.data.data || response.data;
       setData(timesheetData);
       setTotalPages(response.data.totalPages || 1);
+      setTotalCount(response.data.total ?? timesheetData.length);
     } catch (error) {
       console.error("❌ Error fetching timesheets:", error);
       setError("Failed to load timesheets. Please try again.");
@@ -695,7 +706,7 @@ const AllTimesheets: React.FC = () => {
           <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
             <button onClick={handleExport}
               style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "10px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
-              ⬇ Export (CSV/PDF)
+              ⬇ Export (Excel)
             </button>
             <button onClick={handleBulkApprove}
               style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}>
@@ -703,6 +714,11 @@ const AllTimesheets: React.FC = () => {
             </button>
           </div>
         </div>
+        {bulkWarning && (
+          <div style={{ margin: "-8px 0 16px", padding: "10px 16px", background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.35)", borderRadius: "10px", color: "var(--t-warning)", fontSize: "13px", fontWeight: 600 }}>
+            ⚠ {bulkWarning}
+          </div>
+        )}
 
         {/* Main Table Card */}
         <div style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", overflow: "hidden", marginBottom: "24px" }}>
@@ -761,7 +777,19 @@ const AllTimesheets: React.FC = () => {
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--t-hover-bg)" }}>
                     <th style={{ padding: "13px 16px", width: "44px" }}>
-                      <input type="checkbox" style={{ accentColor: "var(--t-accent)", cursor: "pointer" }} />
+                      <input
+                        type="checkbox"
+                        style={{ accentColor: "var(--t-accent)", cursor: "pointer" }}
+                        checked={filteredData.length > 0 && filteredData.every(t => selectedIds.has(t._id))}
+                        onChange={() => {
+                          const allSelected = filteredData.length > 0 && filteredData.every(t => selectedIds.has(t._id));
+                          if (allSelected) {
+                            setSelectedIds(new Set());
+                          } else {
+                            setSelectedIds(new Set(filteredData.map(t => t._id)));
+                          }
+                        }}
+                      />
                     </th>
                     {["DRIVER", "LOAD & ROUTE", "DATE/TIME", "KM (S/E)", "TOTAL KM", "HRS", "CATEGORY", "STATUS"].map((h) => (
                       <th key={h} style={{ padding: "13px 16px", textAlign: "left" as const, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", whiteSpace: "nowrap" as const }}>{h}</th>
@@ -794,7 +822,16 @@ const AllTimesheets: React.FC = () => {
                         onClick={(e) => { if ((e.target as HTMLElement).closest("button, input")) return; navigate(`/timesheet/${ts._id}?${searchParams.toString()}`); }}
                         style={{ borderBottom: idx < filteredData.length - 1 ? "1px solid var(--t-stripe)" : "none", cursor: "pointer", transition: "background 0.15s" }}>
                         <td style={{ padding: "16px 16px" }} onClick={(e) => e.stopPropagation()}>
-                          <input type="checkbox" style={{ accentColor: "var(--t-accent)", cursor: "pointer" }} />
+                          <input
+                            type="checkbox"
+                            style={{ accentColor: "var(--t-accent)", cursor: "pointer" }}
+                            checked={selectedIds.has(ts._id)}
+                            onChange={() => {
+                              const next = new Set(selectedIds);
+                              if (next.has(ts._id)) { next.delete(ts._id); } else { next.add(ts._id); }
+                              setSelectedIds(next);
+                            }}
+                          />
                         </td>
                         {/* Driver */}
                         <td style={{ padding: "16px 16px" }}>
@@ -836,7 +873,7 @@ const AllTimesheets: React.FC = () => {
                         </td>
                         {/* Category */}
                         <td style={{ padding: "16px 16px" }}>
-                          <span style={{ display: "inline-block", padding: "4px 10px", borderRadius: "6px", fontSize: "10px", fontWeight: 700, background: "var(--t-border)", color: "var(--t-text-faint)", letterSpacing: "0.5px", textTransform: "uppercase" as const, whiteSpace: "nowrap" as const }}>
+                          <span style={{ display: "inline-block", padding: "4px 10px", borderRadius: "6px", fontSize: "10px", fontWeight: 700, background: "var(--t-border)", color: "var(--t-text-faint)", letterSpacing: "0.5px", textTransform: "uppercase" as const, wordBreak: "break-word" as const, maxWidth: "130px" }}>
                             {ts.category || "—"}
                           </span>
                         </td>
@@ -866,7 +903,7 @@ const AllTimesheets: React.FC = () => {
             <div style={{ padding: "14px 20px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" as const, gap: "12px" }}>
               <span style={{ fontSize: "13px", color: "var(--t-text-dim)" }}>
                 Showing <strong style={{ color: "var(--t-text-faint)" }}>{(page - 1) * limit + 1}–{Math.min(page * limit, (page - 1) * limit + filteredData.length)}</strong> of{" "}
-                <strong style={{ color: "var(--t-text-faint)" }}>{totalPages * limit}</strong> entries
+                <strong style={{ color: "var(--t-text-faint)" }}>{totalCount}</strong> entries
               </span>
               <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                 <button onClick={() => handlePageChange(Math.max(page - 1, 1))} disabled={page === 1}

@@ -232,7 +232,7 @@ const MyTimesheet: React.FC = () => {
 
       if (selectedFilter === "Today") {
         result = timesheets.filter(ts => {
-          const tsDate = normalizeDate(new Date(ts.date));
+          const tsDate = normalizeDate(new Date(ts.date + "T00:00:00"));
           return tsDate.getTime() === normalizeDate(now).getTime();
         });
       } else if (selectedFilter === "This Week") {
@@ -241,12 +241,12 @@ const MyTimesheet: React.FC = () => {
         const endOfWeek = new Date(startOfWeek);
         endOfWeek.setDate(startOfWeek.getDate() + 6);
         result = timesheets.filter(ts => {
-          const tsDate = normalizeDate(new Date(ts.date));
+          const tsDate = normalizeDate(new Date(ts.date + "T00:00:00"));
           return tsDate >= startOfWeek && tsDate <= endOfWeek;
         });
       } else if (selectedFilter === "This Month") {
         result = timesheets.filter(ts => {
-          const tsDate = new Date(ts.date);
+          const tsDate = new Date(ts.date + "T00:00:00");
           return (
             tsDate.getMonth() === now.getMonth() &&
             tsDate.getFullYear() === now.getFullYear()
@@ -290,7 +290,7 @@ const MyTimesheet: React.FC = () => {
 
     return timesheets
       .filter(ts => {
-        const d = new Date(ts.date);
+        const d = new Date(ts.date + "T00:00:00");
         return d >= startOfWeek && d <= endOfWeek;
       })
       .reduce((sum, ts) => {
@@ -414,7 +414,7 @@ const MyTimesheet: React.FC = () => {
                   {table.getHeaderGroups().map((hg) => (
                     <tr key={hg.id} style={{ borderBottom: "1px solid var(--t-border)" }}>
                       {hg.headers.map((h) => (
-                        <th key={h.id} style={{ padding: "13px 16px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", textAlign: "left" as const, textTransform: "uppercase" as const, letterSpacing: "0.8px", whiteSpace: "nowrap" as const, background: "var(--t-surface)" }}>
+                        <th key={h.id} style={{ padding: "13px 16px", fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", textAlign: "left" as const, textTransform: "uppercase" as const, letterSpacing: "0.8px", whiteSpace: "nowrap" as const, background: "var(--t-surface)", ...(h.column.getSize() !== 150 ? { width: `${h.column.getSize()}px` } : {}) }}>
                           {flexRender(h.column.columnDef.header, h.getContext())}
                         </th>
                       ))}
