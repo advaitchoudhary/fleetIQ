@@ -21,6 +21,15 @@ const createNotification = asyncHandler(async (req, res) => {
     return;
   }
 
+  // Drivers can only create notifications about themselves
+  if (req.user.role === "driver") {
+    const driverEmail = await resolveDriverEmail(req);
+    if (!driverEmail || email !== driverEmail) {
+      res.status(403).json({ message: "You can only create notifications for your own profile" });
+      return;
+    }
+  }
+
   const notification = new Notification({
     organizationId: req.user?.organizationId || null,
     message,
