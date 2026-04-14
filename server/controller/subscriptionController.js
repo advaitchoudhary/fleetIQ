@@ -33,6 +33,25 @@ const EXPECTED_PRICING = {
   },
 };
 
+const toDateFromUnix = (timestampSeconds) => {
+  if (typeof timestampSeconds !== "number" || Number.isNaN(timestampSeconds)) {
+    return null;
+  }
+
+  const date = new Date(timestampSeconds * 1000);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const getSubscriptionCurrentPeriodEnd = (sub) => {
+  // Stripe's newer API versions expose billing period dates on subscription items.
+  // Fall back to the legacy top-level field when present.
+  return (
+    toDateFromUnix(sub?.current_period_end) ||
+    toDateFromUnix(sub?.items?.data?.[0]?.current_period_end) ||
+    null
+  );
+};
+
 /**
  * POST /api/subscriptions/create-checkout
  * Authenticated: Create a Stripe Checkout session to start/change a subscription.
@@ -259,11 +278,12 @@ const handleWebhook = async (req, res) => {
           console.warn(`subscription event ${event.type} missing plan in metadata for org ${orgId}`);
         }
 
+        const currentPeriodEnd = getSubscriptionCurrentPeriodEnd(sub);
         const update = {
           "subscription.status": statusMap[sub.status] || sub.status,
           "subscription.stripeSubscriptionId": sub.id,
-          "subscription.currentPeriodEnd": new Date(sub.current_period_end * 1000),
         };
+        if (currentPeriodEnd) update["subscription.currentPeriodEnd"] = currentPeriodEnd;
         if (plan) update["subscription.plan"] = plan;
         if (sub.trial_end) {
           update["subscription.trialEndsAt"] = new Date(sub.trial_end * 1000);
@@ -307,10 +327,13 @@ const handleWebhook = async (req, res) => {
           const sub = await stripe.subscriptions.retrieve(invoice.subscription);
           const orgId = sub.metadata?.organizationId;
           if (orgId) {
-            await Organization.findByIdAndUpdate(orgId, {
+            const update = {
               "subscription.status": "active",
-              "subscription.currentPeriodEnd": new Date(sub.current_period_end * 1000),
-            });
+            };
+            const currentPeriodEnd = getSubscriptionCurrentPeriodEnd(sub);
+            if (currentPeriodEnd) update["subscription.currentPeriodEnd"] = currentPeriodEnd;
+
+            await Organization.findByIdAndUpdate(orgId, update);
           }
         }
         break;
@@ -346,12 +369,13 @@ const handleWebhook = async (req, res) => {
             console.warn(`checkout.session.completed: missing plan in subscription metadata for org ${orgId}`);
           }
 
+          const currentPeriodEnd = getSubscriptionCurrentPeriodEnd(sub);
           const update = {
             "subscription.status": statusMap[sub.status] || (sub.status === "trialing" ? "trialing" : "active"),
             "subscription.stripeCustomerId": session.customer,
             "subscription.stripeSubscriptionId": sub.id,
-            "subscription.currentPeriodEnd": new Date(sub.current_period_end * 1000),
           };
+          if (currentPeriodEnd) update["subscription.currentPeriodEnd"] = currentPeriodEnd;
           if (plan) update["subscription.plan"] = plan;
           if (sub.trial_end) {
             update["subscription.trialEndsAt"] = new Date(sub.trial_end * 1000);
