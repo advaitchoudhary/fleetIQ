@@ -78,9 +78,12 @@ const markNotificationAsRead = asyncHandler(async (req, res) => {
   }
 
   // Drivers can only mark their own notifications as read
-  if (req.user.role === "driver" && notification.email !== req.user.email) {
-    res.status(403).json({ message: "Forbidden" });
-    return;
+  if (req.user.role === "driver") {
+    const driverEmail = await resolveDriverEmail(req);
+    if (!driverEmail || notification.email !== driverEmail) {
+      res.status(403).json({ message: "You can only mark your own notifications as read" });
+      return;
+    }
   }
 
   notification.read = true;
@@ -115,9 +118,12 @@ const deleteNotification = asyncHandler(async (req, res) => {
   }
 
   // Drivers can only delete their own notifications
-  if (req.user.role === "driver" && notification.email !== req.user.email) {
-    res.status(403).json({ message: "Forbidden" });
-    return;
+  if (req.user.role === "driver") {
+    const driverEmail = await resolveDriverEmail(req);
+    if (!driverEmail || notification.email !== driverEmail) {
+      res.status(403).json({ message: "You can only delete your own notifications" });
+      return;
+    }
   }
 
   await notification.deleteOne();
