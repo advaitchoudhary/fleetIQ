@@ -193,7 +193,7 @@ const MyTimesheet: React.FC = () => {
                     height: "44px",
                     objectFit: "cover",
                     borderRadius: "8px",
-                    border: "1px solid rgba(255,255,255,0.1)",
+                    border: "1px solid var(--t-border)",
                   }}
                 />
               </a>
