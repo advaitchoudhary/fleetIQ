@@ -3,6 +3,21 @@ import Navbar from "./Navbar";
 import axios from "axios";
 import { API_BASE_URL } from "../utils/env";
 
+const WORK_AUTH_OPTIONS = [
+  { value: "Canadian Citizen",                       hasExpiry: false },
+  { value: "Permanent Resident",                     hasExpiry: false },
+  { value: "Work Permit",                            hasExpiry: true  },
+  { value: "Open Work Permit",                       hasExpiry: true  },
+  { value: "Post-Graduate Work Permit (PGWP)",       hasExpiry: true  },
+  { value: "Bridging Open Work Permit (BOWP)",       hasExpiry: true  },
+  { value: "Study Permit (Work Authorization)",      hasExpiry: true  },
+  { value: "International Mobility Program (IMP)",   hasExpiry: true  },
+  { value: "Seasonal Agricultural Worker Program",   hasExpiry: true  },
+];
+
+const workAuthNeedsExpiry = (val: string) =>
+  WORK_AUTH_OPTIONS.some((o) => o.value === val && o.hasExpiry);
+
 const MyInfo: React.FC = () => {
   const [driver, setDriver] = useState<any>(null);
   const [, setTimesheets] = useState<any>(null);
@@ -383,23 +398,51 @@ const MyInfo: React.FC = () => {
               </div>
             )}
             {isEditing ? (
-              <label style={styles.formField}>
-                <span style={styles.labelText}>Work Status:</span>
-                <input
-                  type="text"
-                  value={formData.workStatus}
-                  onChange={(e) =>
-                    setFormData({ ...formData, workStatus: e.target.value })
-                  }
-                  placeholder="Work Status"
-                  style={styles.inputField}
-                />
-              </label>
+              <>
+                <label style={styles.formField}>
+                  <span style={styles.labelText}>Work Authorization:</span>
+                  <select
+                    value={formData.workStatus || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, workStatus: e.target.value, workAuthExpiry: "" })
+                    }
+                    style={{ ...styles.inputField, cursor: "pointer" }}
+                  >
+                    <option value="">Select work authorization</option>
+                    {WORK_AUTH_OPTIONS.map((o) => (
+                      <option key={o.value} value={o.value}>{o.value}</option>
+                    ))}
+                  </select>
+                </label>
+                {workAuthNeedsExpiry(formData.workStatus) && (
+                  <label style={styles.formField}>
+                    <span style={styles.labelText}>Work Auth Expiry Date:</span>
+                    <input
+                      type="date"
+                      value={formData.workAuthExpiry?.substring(0, 10) || ""}
+                      onChange={(e) =>
+                        setFormData({ ...formData, workAuthExpiry: e.target.value })
+                      }
+                      style={styles.inputField}
+                    />
+                  </label>
+                )}
+              </>
             ) : (
-              <div style={styles.infoItem}>
-                <span style={styles.infoLabel}>Work Status</span>
-                <span style={styles.infoValue}>{driver.workStatus}</span>
-              </div>
+              <>
+                <div style={styles.infoItem}>
+                  <span style={styles.infoLabel}>Work Authorization</span>
+                  <span style={styles.infoValue}>{driver.workStatus || "—"}</span>
+                </div>
+                {driver.workAuthExpiry && (
+                  <div style={styles.infoItem}>
+                    <span style={styles.infoLabel}>Work Auth Expiry</span>
+                    <span style={styles.infoValue}>
+                      {new Date(driver.workAuthExpiry).toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" })}
+                    </span>
+                  </div>
+                )}
+              </>
             )}
           </div>
           {isEditing && (
