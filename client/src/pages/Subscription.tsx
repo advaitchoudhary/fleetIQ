@@ -8,8 +8,9 @@ const PLANS = [
   {
     key: "driver",
     name: "Driver Management",
-    monthlyPrice: "$49",
-    annualPrice: "$39",
+    monthlyPrice: 49,
+    annualMonthlyEquivalent: 39,
+    annualTotal: 468,
     description: "Everything you need to manage your driver workforce end-to-end.",
     features: [
       "Unlimited driver profiles & onboarding",
@@ -30,8 +31,9 @@ const PLANS = [
   {
     key: "vehicle",
     name: "Vehicle & Fleet Operations",
-    monthlyPrice: "$49",
-    annualPrice: "$39",
+    monthlyPrice: 49,
+    annualMonthlyEquivalent: 39,
+    annualTotal: 468,
     description: "Full vehicle management and fleet operations — from inspections to cost tracking.",
     features: [
       "Full vehicle registry (VIN, plates, insurance)",
@@ -52,8 +54,9 @@ const PLANS = [
   {
     key: "bundle",
     name: "Fleet Bundle",
-    monthlyPrice: "$79",
-    annualPrice: "$63",
+    monthlyPrice: 79,
+    annualMonthlyEquivalent: 63,
+    annualTotal: 756,
     description: "The complete platform — drivers, vehicles, and payments under one roof.",
     badge: "Best Value",
     features: [
@@ -68,6 +71,8 @@ const PLANS = [
     ],
   },
 ];
+
+const formatPrice = (amount: number) => `$${amount}`;
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   trialing: { bg: "var(--t-indigo-bg)", color: "var(--t-indigo)" },
@@ -253,7 +258,9 @@ const Subscription: React.FC = () => {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
           {PLANS.map((plan) => {
             const isCurrent = currentPlan === plan.key && isActive;
-            const price = billing === "monthly" ? plan.monthlyPrice : plan.annualPrice;
+            const displayPrice = billing === "monthly"
+              ? formatPrice(plan.monthlyPrice)
+              : formatPrice(plan.annualTotal);
             return (
               <div
                 key={plan.key}
@@ -279,8 +286,13 @@ const Subscription: React.FC = () => {
                 <h3 style={{ margin: "0 0 4px", fontSize: "16px", fontWeight: 700, color: "var(--t-text)" }}>{plan.name}</h3>
                 <p style={{ margin: "0 0 16px", fontSize: "13px", color: "var(--t-text-dim)" }}>{plan.description}</p>
                 <div style={{ marginBottom: "20px" }}>
-                  <span style={{ fontSize: "36px", fontWeight: 800, color: "var(--t-text)" }}>{price}</span>
-                  <span style={{ fontSize: "14px", color: "var(--t-text-dim)" }}>/month{billing === "annual" ? " (billed annually)" : ""}</span>
+                  <span style={{ fontSize: "36px", fontWeight: 800, color: "var(--t-text)" }}>{displayPrice}</span>
+                  <span style={{ fontSize: "14px", color: "var(--t-text-dim)" }}>{billing === "monthly" ? "/month" : "/year"}</span>
+                  {billing === "annual" && (
+                    <div style={{ marginTop: "6px", fontSize: "13px", color: "var(--t-text-dim)" }}>
+                      {formatPrice(plan.annualMonthlyEquivalent)}/month billed annually
+                    </div>
+                  )}
                 </div>
                 <ul style={{ margin: "0 0 24px", paddingLeft: "0", listStyle: "none", display: "flex", flexDirection: "column", gap: "8px" }}>
                   {plan.features.filter((f) => !(trialAlreadyUsed && f === "14-day free trial included")).map((f) => (
@@ -323,8 +335,8 @@ const Subscription: React.FC = () => {
 
         <p style={{ textAlign: "center", marginTop: "20px", fontSize: "13px", color: "var(--t-text-faint)" }}>
           {trialAlreadyUsed
-            ? "Cancel anytime. Billed monthly or annually."
-            : "All plans include a 14-day free trial. No credit card required to start. Cancel anytime."}
+            ? "Cancel anytime. Annual plans are charged once per year."
+            : "All plans include a 14-day free trial. No credit card required to start. Annual plans are charged once per year."}
         </p>
       </div>
     </div>

@@ -18,6 +18,21 @@ const PRICE_IDS = {
   },
 };
 
+const EXPECTED_PRICING = {
+  driver: {
+    monthly: { interval: "month", unitAmount: 4900 },
+    annual: { interval: "year", unitAmount: 46800 },
+  },
+  vehicle: {
+    monthly: { interval: "month", unitAmount: 4900 },
+    annual: { interval: "year", unitAmount: 46800 },
+  },
+  bundle: {
+    monthly: { interval: "month", unitAmount: 7900 },
+    annual: { interval: "year", unitAmount: 75600 },
+  },
+};
+
 /**
  * POST /api/subscriptions/create-checkout
  * Authenticated: Create a Stripe Checkout session to start/change a subscription.
@@ -35,6 +50,19 @@ const createCheckout = async (req, res) => {
     if (!priceId || priceId.startsWith("price_REPLACE")) {
       return res.status(400).json({
         message: `Stripe price ID for ${plan} (${billing}) is not configured. Set STRIPE_PRICE_${plan.toUpperCase()}_${billing.toUpperCase()} in your .env file.`,
+      });
+    }
+
+    const expected = EXPECTED_PRICING[plan]?.[billing];
+    const stripePrice = await stripe.prices.retrieve(priceId);
+    if (
+      !stripePrice.active ||
+      !stripePrice.recurring ||
+      stripePrice.recurring.interval !== expected.interval ||
+      stripePrice.unit_amount !== expected.unitAmount
+    ) {
+      return res.status(400).json({
+        message: `Stripe price ${priceId} for ${plan} (${billing}) is misconfigured. Expected ${expected.interval} billing at ${(expected.unitAmount / 100).toFixed(2)}.`,
       });
     }
 

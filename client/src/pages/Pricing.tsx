@@ -8,7 +8,8 @@ const PLANS = [
     name: "Driver Management",
     icon: <FaUsers size={24} />,
     monthlyPrice: 49,
-    annualPrice: 39,
+    annualMonthlyEquivalent: 39,
+    annualTotal: 468,
     description: "Perfect for fleet operators who want to streamline driver workflows.",
     features: [
       "Unlimited drivers",
@@ -26,7 +27,8 @@ const PLANS = [
     name: "Vehicle Management",
     icon: <FaTruck size={24} />,
     monthlyPrice: 49,
-    annualPrice: 39,
+    annualMonthlyEquivalent: 39,
+    annualTotal: 468,
     description: "Full vehicle fleet tracking, maintenance, and compliance.",
     features: [
       "Vehicle registry (unlimited vehicles)",
@@ -44,7 +46,8 @@ const PLANS = [
     name: "Fleet Bundle",
     icon: <FaStar size={24} />,
     monthlyPrice: 79,
-    annualPrice: 63,
+    annualMonthlyEquivalent: 63,
+    annualTotal: 756,
     badge: "Best Value",
     description: "The complete solution for serious fleet operators.",
     features: [
@@ -59,6 +62,8 @@ const PLANS = [
     ],
   },
 ];
+
+const formatPrice = (amount: number) => `$${amount}`;
 
 const Pricing: React.FC = () => {
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
@@ -113,7 +118,9 @@ const Pricing: React.FC = () => {
         {/* Plans */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px", marginBottom: "64px" }}>
           {PLANS.map((plan) => {
-            const price = billing === "monthly" ? plan.monthlyPrice : plan.annualPrice;
+            const displayPrice = billing === "monthly"
+              ? formatPrice(plan.monthlyPrice)
+              : formatPrice(plan.annualTotal);
             const isBundle = plan.key === "bundle";
             return (
               <div
@@ -139,8 +146,13 @@ const Pricing: React.FC = () => {
                 <h3 style={{ margin: "0 0 6px", fontSize: "18px", fontWeight: 700, color: isBundle ? "#fff" : "#111827" }}>{plan.name}</h3>
                 <p style={{ margin: "0 0 20px", fontSize: "13px", color: isBundle ? "rgba(255,255,255,0.7)" : "#6b7280", lineHeight: "1.5" }}>{plan.description}</p>
                 <div style={{ marginBottom: "24px" }}>
-                  <span style={{ fontSize: "44px", fontWeight: 800, color: isBundle ? "#fff" : "#111827" }}>${price}</span>
-                  <span style={{ fontSize: "14px", color: isBundle ? "rgba(255,255,255,0.6)" : "#9ca3af" }}>/month{billing === "annual" ? "*" : ""}</span>
+                  <span style={{ fontSize: "44px", fontWeight: 800, color: isBundle ? "#fff" : "#111827" }}>{displayPrice}</span>
+                  <span style={{ fontSize: "14px", color: isBundle ? "rgba(255,255,255,0.6)" : "#9ca3af" }}>{billing === "monthly" ? "/month" : "/year"}</span>
+                  {billing === "annual" && (
+                    <div style={{ marginTop: "6px", fontSize: "13px", color: isBundle ? "rgba(255,255,255,0.8)" : "#6b7280" }}>
+                      {formatPrice(plan.annualMonthlyEquivalent)}/month billed annually
+                    </div>
+                  )}
                 </div>
                 <ul style={{ margin: "0 0 28px", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "10px" }}>
                   {plan.features.map((f) => (
@@ -172,7 +184,7 @@ const Pricing: React.FC = () => {
         </div>
         {billing === "annual" && (
           <p style={{ textAlign: "center", fontSize: "13px", color: "#9ca3af", marginTop: "8px", marginBottom: "48px" }}>
-            *Annual pricing billed as one payment. Monthly rates shown for comparison.
+            Annual pricing is charged as one payment per year. Monthly-equivalent rates are shown for comparison.
           </p>
         )}
 
