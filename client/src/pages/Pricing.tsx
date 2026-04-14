@@ -146,11 +146,20 @@ const Pricing: React.FC = () => {
                 <h3 style={{ margin: "0 0 6px", fontSize: "18px", fontWeight: 700, color: isBundle ? "#fff" : "#111827" }}>{plan.name}</h3>
                 <p style={{ margin: "0 0 20px", fontSize: "13px", color: isBundle ? "rgba(255,255,255,0.7)" : "#6b7280", lineHeight: "1.5" }}>{plan.description}</p>
                 <div style={{ marginBottom: "24px" }}>
-                  <span style={{ fontSize: "44px", fontWeight: 800, color: isBundle ? "#fff" : "#111827" }}>{displayPrice}</span>
-                  <span style={{ fontSize: "14px", color: isBundle ? "rgba(255,255,255,0.6)" : "#9ca3af" }}>{billing === "monthly" ? "/month" : "/year"}</span>
+                  {billing === "annual" && (
+                    <div style={{ marginBottom: "4px" }}>
+                      <span style={{ fontSize: "16px", fontWeight: 600, color: isBundle ? "rgba(255,255,255,0.4)" : "#9ca3af", textDecoration: "line-through" }}>
+                        {formatPrice(plan.monthlyPrice)}/month
+                      </span>
+                    </div>
+                  )}
+                  <span style={{ fontSize: "44px", fontWeight: 800, color: isBundle ? "#fff" : "#111827" }}>
+                    {billing === "monthly" ? formatPrice(plan.monthlyPrice) : formatPrice(plan.annualMonthlyEquivalent)}
+                  </span>
+                  <span style={{ fontSize: "14px", color: isBundle ? "rgba(255,255,255,0.6)" : "#9ca3af" }}>/month</span>
                   {billing === "annual" && (
                     <div style={{ marginTop: "6px", fontSize: "13px", color: isBundle ? "rgba(255,255,255,0.8)" : "#6b7280" }}>
-                      {formatPrice(plan.annualMonthlyEquivalent)}/month billed annually
+                      {formatPrice(plan.annualTotal)} billed annually
                     </div>
                   )}
                 </div>

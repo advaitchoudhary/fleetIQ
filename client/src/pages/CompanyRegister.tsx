@@ -48,7 +48,7 @@ const CompanyRegister: React.FC = () => {
   };
 
   const validatePhone = (value: string) => {
-    if (!value.trim()) { setPhoneError(""); return true; }
+    if (!value.trim()) { setPhoneError("Phone number is required."); return false; }
     if (extractDigits(value).length < 10) {
       setPhoneError("Enter a valid 10-digit phone number.");
       return false;
@@ -400,10 +400,11 @@ const CompanyRegister: React.FC = () => {
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                   <div>
-                    <label style={labelStyle}>Phone</label>
+                    <label style={labelStyle}>Phone *</label>
                     <input
                       style={{ ...inputStyle("phone"), borderColor: phoneError ? "#F87171" : focusedField === "phone" ? "#7B6CF6" : "rgba(255,255,255,0.08)" }}
                       type="tel"
+                      required
                       value={form.phone}
                       onChange={(e) => { const formatted = formatPhone(e.target.value); setForm({ ...form, phone: formatted }); if (phoneError) validatePhone(formatted); }}
                       onFocus={() => setFocusedField("phone")}
@@ -415,14 +416,14 @@ const CompanyRegister: React.FC = () => {
                     )}
                   </div>
                   <div>
-                    <label style={labelStyle}>DOT Number</label>
+                    <label style={labelStyle}>Extension</label>
                     <input
                       style={inputStyle("dotNumber")}
                       value={form.dotNumber}
                       onChange={(e) => setForm({ ...form, dotNumber: e.target.value })}
                       onFocus={() => setFocusedField("dotNumber")}
                       onBlur={() => setFocusedField(null)}
-                      placeholder="Optional"
+                      placeholder="123"
                     />
                   </div>
                 </div>

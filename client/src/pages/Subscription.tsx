@@ -286,11 +286,20 @@ const Subscription: React.FC = () => {
                 <h3 style={{ margin: "0 0 4px", fontSize: "16px", fontWeight: 700, color: "var(--t-text)" }}>{plan.name}</h3>
                 <p style={{ margin: "0 0 16px", fontSize: "13px", color: "var(--t-text-dim)" }}>{plan.description}</p>
                 <div style={{ marginBottom: "20px" }}>
-                  <span style={{ fontSize: "36px", fontWeight: 800, color: "var(--t-text)" }}>{displayPrice}</span>
-                  <span style={{ fontSize: "14px", color: "var(--t-text-dim)" }}>{billing === "monthly" ? "/month" : "/year"}</span>
+                  {billing === "annual" && (
+                    <div style={{ marginBottom: "4px" }}>
+                      <span style={{ fontSize: "15px", fontWeight: 600, color: "var(--t-text-faint)", textDecoration: "line-through" }}>
+                        {formatPrice(plan.monthlyPrice)}/month
+                      </span>
+                    </div>
+                  )}
+                  <span style={{ fontSize: "36px", fontWeight: 800, color: "var(--t-text)" }}>
+                    {billing === "monthly" ? formatPrice(plan.monthlyPrice) : formatPrice(plan.annualMonthlyEquivalent)}
+                  </span>
+                  <span style={{ fontSize: "14px", color: "var(--t-text-dim)" }}>/month</span>
                   {billing === "annual" && (
                     <div style={{ marginTop: "6px", fontSize: "13px", color: "var(--t-text-dim)" }}>
-                      {formatPrice(plan.annualMonthlyEquivalent)}/month billed annually
+                      {formatPrice(plan.annualTotal)} billed annually
                     </div>
                   )}
                 </div>
