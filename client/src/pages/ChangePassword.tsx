@@ -40,7 +40,7 @@ const ChangePassword: React.FC = () => {
   const [drivers,        setDrivers]        = useState<any[]>([]);
 
   const strength = getPasswordStrength(newPassword);
-  const passwordsMatch = confirmPassword.length > 0 && newPassword === confirmPassword;
+  const passwordsMatch = confirmPassword.length > 0 && newPassword === confirmPassword && newPassword.length >= 8;
   const passwordsMismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
 
   useEffect(() => {
@@ -93,7 +93,7 @@ const ChangePassword: React.FC = () => {
 
       setSuccess("Password changed successfully!");
       setOldPassword(""); setNewPassword(""); setConfirmPassword("");
-      setTimeout(() => navigate(userRole === "driver" ? "/dashboard" : "/admin-home"), 2000);
+      setTimeout(() => navigate(userRole === "driver" ? "/dashboard" : "/admin-home"), 3000);
     } catch (err) {
       setError((err as any).response?.data?.error || "Failed to change password.");
     } finally {
@@ -118,7 +118,7 @@ const ChangePassword: React.FC = () => {
 
   const isAdminResettingDriver = selectedRole === "driver" && userRole !== "driver";
   const isDisabled = loading || (!isAdminResettingDriver && !oldPassword) || !newPassword || !confirmPassword ||
-    (isAdminResettingDriver && !selectedDriver);
+    (isAdminResettingDriver && !selectedDriver) || passwordsMismatch;
 
   return (
     <div style={{ fontFamily: "Inter, system-ui, sans-serif", backgroundColor: "var(--t-bg)", minHeight: "100vh" }}>

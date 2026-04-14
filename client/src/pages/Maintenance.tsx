@@ -265,11 +265,17 @@ const Maintenance: React.FC = () => {
             <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>Track work orders, service records, and upcoming maintenance tasks.</p>
           </div>
           <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
-            {dueAlerts.length > 0 && (
-              <button onClick={() => setShowAlerts(!showAlerts)} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-warning-bg)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: "10px", color: "var(--t-warning)", fontSize: "13px", fontWeight: 600, padding: "10px 18px" }}>
-                <FaBell size={14} /> {dueAlerts.length} Due Soon
-              </button>
-            )}
+            <button
+              onClick={() => dueAlerts.length > 0 && setShowAlerts(!showAlerts)}
+              style={{ display: "flex", alignItems: "center", gap: "8px", fontFamily: "Inter, system-ui, sans-serif", borderRadius: "10px", fontSize: "13px", fontWeight: 600, padding: "10px 18px",
+                background: dueAlerts.length > 0 ? "var(--t-warning-bg)" : "var(--t-hover-bg)",
+                border: dueAlerts.length > 0 ? "1px solid rgba(245,158,11,0.3)" : "1px solid var(--t-border)",
+                color: dueAlerts.length > 0 ? "var(--t-warning)" : "var(--t-text-faint)",
+                cursor: dueAlerts.length > 0 ? "pointer" : "default",
+              }}
+            >
+              <FaBell size={14} /> {dueAlerts.length > 0 ? `${dueAlerts.length} Due Soon` : "No Alerts"}
+            </button>
             <button onClick={handleExport} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "10px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, padding: "10px 18px" }}>
               Export
             </button>
@@ -287,7 +293,7 @@ const Maintenance: React.FC = () => {
               {dueAlerts.map((alert: any) => (
                 <div key={alert._id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "13px", color: "var(--t-text-muted)" }}>
                   <span><strong>{vehicleMap[alert.vehicleId?._id || alert.vehicleId] || "Vehicle"}</strong> — {alert.title}</span>
-                  <span style={{ color: "var(--t-warning)" }}>{alert.scheduledDate ? new Date(alert.scheduledDate).toLocaleDateString() : "TBD"}</span>
+                  <span style={{ color: "var(--t-warning)" }}>{alert.scheduledDate ? new Date(alert.scheduledDate.slice(0, 10) + "T00:00:00").toLocaleDateString() : "TBD"}</span>
                 </div>
               ))}
             </div>
@@ -340,7 +346,7 @@ const Maintenance: React.FC = () => {
                       <td style={{ ...styles.td, fontWeight: 600, color: "var(--t-text-secondary)" }}>{vehicleMap[vId] || "—"}</td>
                       <td style={styles.td}>{r.title}</td>
                       <td style={styles.td}>{TYPE_LABELS[r.type] || r.type}</td>
-                      <td style={styles.td}>{r.scheduledDate ? new Date(r.scheduledDate).toLocaleDateString() : "—"}</td>
+                      <td style={styles.td}>{r.scheduledDate ? new Date(r.scheduledDate.slice(0, 10) + "T00:00:00").toLocaleDateString() : "—"}</td>
                       <td style={styles.td}>{r.cost != null ? `$${r.cost.toFixed(2)}` : "—"}</td>
                       <td style={styles.td}>
                         <span style={{ ...styles.badge, background: sc.bg, color: sc.color }}>
@@ -406,7 +412,7 @@ const Maintenance: React.FC = () => {
                 <div style={{ gridColumn: "1 / -1" }}>
                   <label style={styles.label}>Title *</label>
                   <input
-                    style={{ ...styles.input, ...(form.title.trim().length > 100 ? { borderColor: "var(--t-error)" } : {}) }}
+                    style={{ ...styles.input, ...(form.title.trim().length > 100 ? { border: "1px solid var(--t-error)" } : {}) }}
                     value={form.title}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
                     placeholder="e.g. Oil change, Tire rotation"
@@ -452,7 +458,7 @@ const Maintenance: React.FC = () => {
                       <>
                         <label style={styles.label}>Scheduled Date *</label>
                         <input
-                          style={{ ...styles.input, ...(isOverdue ? { borderColor: "var(--t-warning)" } : {}) }}
+                          style={{ ...styles.input, ...(isOverdue ? { border: "1px solid var(--t-warning)" } : {}) }}
                           type="date"
                           value={form.scheduledDate}
                           onChange={(e) => setForm({ ...form, scheduledDate: e.target.value })}
@@ -475,7 +481,7 @@ const Maintenance: React.FC = () => {
                       <>
                         <label style={styles.label}>Completed Date{form.status === "completed" ? " *" : ""}</label>
                         <input
-                          style={{ ...styles.input, ...(hasError || isRequired ? { borderColor: "var(--t-error)" } : {}) }}
+                          style={{ ...styles.input, ...(hasError || isRequired ? { border: "1px solid var(--t-error)" } : {}) }}
                           type="date"
                           value={form.completedDate}
                           onChange={(e) => setForm({ ...form, completedDate: e.target.value })}
@@ -498,7 +504,7 @@ const Maintenance: React.FC = () => {
                       <>
                         <label style={styles.label}>Next Inspection Date</label>
                         <input
-                          style={{ ...styles.input, ...(isOverdue ? { borderColor: "var(--t-error)" } : isSoon ? { borderColor: "var(--t-warning)" } : {}) }}
+                          style={{ ...styles.input, ...(isOverdue ? { border: "1px solid var(--t-error)" } : isSoon ? { border: "1px solid var(--t-warning)" } : {}) }}
                           type="date"
                           value={form.nextInspectionDate}
                           onChange={(e) => setForm({ ...form, nextInspectionDate: e.target.value })}
@@ -517,7 +523,7 @@ const Maintenance: React.FC = () => {
                       <>
                         <label style={styles.label}>Odometer (km)</label>
                         <input
-                          style={{ ...styles.input, ...(isInvalid ? { borderColor: "var(--t-error)" } : {}) }}
+                          style={{ ...styles.input, ...(isInvalid ? { border: "1px solid var(--t-error)" } : {}) }}
                           type="number"
                           min={0}
                           max={10_000_000}
@@ -539,7 +545,7 @@ const Maintenance: React.FC = () => {
                       <>
                         <label style={styles.label}>Cost ($)</label>
                         <input
-                          style={{ ...styles.input, ...(isInvalid ? { borderColor: "var(--t-error)" } : {}) }}
+                          style={{ ...styles.input, ...(isInvalid ? { border: "1px solid var(--t-error)" } : {}) }}
                           type="number"
                           step="0.01"
                           min={0}
@@ -559,6 +565,10 @@ const Maintenance: React.FC = () => {
                 <div style={{ gridColumn: "1 / -1" }}>
                   <label style={styles.label}>Description</label>
                   <textarea style={{ ...styles.input, height: "72px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                </div>
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={styles.label}>Notes</label>
+                  <textarea style={{ ...styles.input, height: "72px", resize: "vertical" }} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Internal notes, parts used, technician comments..." />
                 </div>
               </div>
             </div>

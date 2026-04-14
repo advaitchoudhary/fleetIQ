@@ -91,6 +91,7 @@ const Vehicles: React.FC = () => {
   };
 
   const openEditModal = (vehicle: any) => {
+    setTelematicsModal(null);
     setEditingVehicle(vehicle);
     setForm({
       unitNumber: vehicle.unitNumber || "",
@@ -357,6 +358,7 @@ const Vehicles: React.FC = () => {
             placeholder="Search by unit, make, model, plate..."
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
+            autoComplete="off"
             style={{ ...styles.input, paddingLeft: "36px", width: "100%", boxSizing: "border-box" }}
           />
         </div>
@@ -422,6 +424,8 @@ const Vehicles: React.FC = () => {
                           </button>
                           <button
                             onClick={() => {
+                              setIsModalOpen(false);
+                              setEditingVehicle(null);
                               setTelematicsModal({ vehicleId: v._id, unitNumber: v.unitNumber });
                               setTelProvider("geotab");
                               setTelForm({ server: "my.geotab.com", database: "", username: "", password: "", apiToken: "", deviceSerial: "" });
@@ -737,64 +741,75 @@ const Vehicles: React.FC = () => {
 
       {/* Telematics Modal */}
       {telematicsModal && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ background: "#fff", borderRadius: 12, padding: 32, width: 440, maxWidth: "90vw" }}>
-            <h3 style={{ margin: "0 0 4px" }}>Connect Hardware GPS</h3>
-            <p style={{ margin: "0 0 20px", color: "#6b7280", fontSize: 14 }}>Vehicle: {telematicsModal.unitNumber}</p>
-
-            <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-              {(["geotab", "samsara"] as const).map(p => (
-                <button key={p} onClick={() => setTelProvider(p)} style={{ flex: 1, padding: "8px 0", borderRadius: 6, border: `2px solid ${telProvider === p ? "#7c3aed" : "#e5e7eb"}`, background: telProvider === p ? "#f5f3ff" : "#fff", color: telProvider === p ? "#7c3aed" : "#374151", cursor: "pointer", fontWeight: telProvider === p ? 600 : 400, textTransform: "capitalize" }}>
-                  {p === "geotab" ? "Geotab" : "Samsara"}
-                </button>
-              ))}
+        <div style={{ position: "fixed", inset: 0, background: "var(--t-modal-overlay)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "20px" }} onClick={() => setTelematicsModal(null)}>
+          <div style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", width: "100%", maxWidth: "460px", boxShadow: "var(--t-shadow-lg)", fontFamily: "Inter, system-ui, sans-serif" }} onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div style={{ padding: "24px 28px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                <div style={{ width: 42, height: 42, borderRadius: 12, background: "var(--t-indigo-bg)", border: "1px solid rgba(79,70,229,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🛰️</div>
+                <div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "var(--t-text)" }}>Connect Hardware GPS</div>
+                  <div style={{ fontSize: 12, color: "var(--t-text-ghost)", marginTop: 2 }}>Vehicle: {telematicsModal.unitNumber}</div>
+                </div>
+              </div>
+              <button onClick={() => setTelematicsModal(null)} style={{ width: 32, height: 32, borderRadius: 8, background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", color: "var(--t-text-faint)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>✕</button>
             </div>
 
-            {telProvider === "geotab" ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {[["Server URL", "server", "my.geotab.com"], ["Database", "database", ""], ["Username", "username", ""], ["Password", "password", ""]].map(([label, field, placeholder]) => (
-                  <div key={field}>
-                    <label style={{ fontSize: 13, color: "#374151", display: "block", marginBottom: 4 }}>{label}</label>
-                    <input type={field === "password" ? "password" : "text"} value={(telForm as any)[field]} onChange={e => setTelForm(f => ({ ...f, [field]: e.target.value }))} placeholder={placeholder} style={{ width: "100%", padding: "8px 10px", border: "1px solid #d1d5db", borderRadius: 6, fontSize: 14, boxSizing: "border-box" }} />
-                  </div>
+            {/* Body */}
+            <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Provider tabs */}
+              <div style={{ display: "flex", gap: 8 }}>
+                {(["geotab", "samsara"] as const).map(p => (
+                  <button key={p} onClick={() => { setTelProvider(p); setTelResult(null); }} style={{ flex: 1, padding: "8px 0", borderRadius: 8, border: `2px solid ${telProvider === p ? "var(--t-indigo)" : "var(--t-border-strong)"}`, background: telProvider === p ? "var(--t-indigo-bg)" : "var(--t-surface)", color: telProvider === p ? "var(--t-indigo)" : "var(--t-text-muted)", cursor: "pointer", fontWeight: telProvider === p ? 700 : 400, fontSize: 13, fontFamily: "Inter, system-ui, sans-serif", textTransform: "capitalize" }}>
+                    {p === "geotab" ? "Geotab" : "Samsara"}
+                  </button>
                 ))}
               </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {[["API Token", "apiToken", "samsara_api_..."], ["Samsara Vehicle ID", "deviceSerial", "281474978005248"]].map(([label, field, placeholder]) => (
-                  <div key={field}>
-                    <label style={{ fontSize: 13, color: "#374151", display: "block", marginBottom: 4 }}>{label}</label>
-                    <input type={field === "apiToken" ? "password" : "text"} value={(telForm as any)[field]} onChange={e => setTelForm(f => ({ ...f, [field]: e.target.value }))} placeholder={placeholder} style={{ width: "100%", padding: "8px 10px", border: "1px solid #d1d5db", borderRadius: 6, fontSize: 14, boxSizing: "border-box" }} />
+
+              {/* Fields */}
+              {telProvider === "geotab" ? (
+                <>
+                  {[["Server URL", "server", "my.geotab.com"], ["Database", "database", ""], ["Username", "username", ""], ["Password", "password", ""]].map(([label, field, placeholder]) => (
+                    <div key={field}>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: "var(--t-text-faint)", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>{label}</label>
+                      <input type={field === "password" ? "password" : "text"} autoComplete={field === "password" ? "new-password" : "off"} value={(telForm as any)[field]} onChange={e => setTelForm(f => ({ ...f, [field]: e.target.value }))} placeholder={placeholder} style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--t-border-strong)", borderRadius: 8, fontSize: 14, boxSizing: "border-box", background: "var(--t-hover-bg)", color: "var(--t-text)", fontFamily: "Inter, system-ui, sans-serif", outline: "none" }} />
+                    </div>
+                  ))}
+                  <div>
+                    <label style={{ fontSize: 12, fontWeight: 600, color: "var(--t-text-faint)", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>Device Serial</label>
+                    <input type="text" autoComplete="off" value={telForm.deviceSerial} onChange={e => setTelForm(f => ({ ...f, deviceSerial: e.target.value }))} placeholder="b9 (Geotab device ID)" style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--t-border-strong)", borderRadius: 8, fontSize: 14, boxSizing: "border-box", background: "var(--t-hover-bg)", color: "var(--t-text)", fontFamily: "Inter, system-ui, sans-serif", outline: "none" }} />
                   </div>
-                ))}
-              </div>
-            )}
+                </>
+              ) : (
+                <>
+                  {[["API Token", "apiToken", "samsara_api_..."], ["Samsara Vehicle ID", "deviceSerial", "281474978005248"]].map(([label, field, placeholder]) => (
+                    <div key={field}>
+                      <label style={{ fontSize: 12, fontWeight: 600, color: "var(--t-text-faint)", display: "block", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.5px" }}>{label}</label>
+                      <input type={field === "apiToken" ? "password" : "text"} autoComplete={field === "apiToken" ? "new-password" : "off"} value={(telForm as any)[field]} onChange={e => setTelForm(f => ({ ...f, [field]: e.target.value }))} placeholder={placeholder} style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--t-border-strong)", borderRadius: 8, fontSize: 14, boxSizing: "border-box", background: "var(--t-hover-bg)", color: "var(--t-text)", fontFamily: "Inter, system-ui, sans-serif", outline: "none" }} />
+                    </div>
+                  ))}
+                </>
+              )}
 
-            {telProvider === "geotab" && (
-              <div style={{ marginTop: 10 }}>
-                <label style={{ fontSize: 13, color: "#374151", display: "block", marginBottom: 4 }}>Device Serial</label>
-                <input type="text" value={telForm.deviceSerial} onChange={e => setTelForm(f => ({ ...f, deviceSerial: e.target.value }))} placeholder="b9 (Geotab device ID)" style={{ width: "100%", padding: "8px 10px", border: "1px solid #d1d5db", borderRadius: 6, fontSize: 14, boxSizing: "border-box" }} />
-              </div>
-            )}
+              {telResult && (
+                <div style={{ padding: "10px 14px", borderRadius: 8, background: telResult.ok ? "var(--t-success-bg)" : "var(--t-error-bg)", color: telResult.ok ? "var(--t-success)" : "var(--t-error)", fontSize: 13, fontWeight: 500 }}>
+                  {telResult.ok ? "✅ " : "❌ "}{telResult.msg}
+                </div>
+              )}
+            </div>
 
-            {telResult && (
-              <p style={{ marginTop: 12, padding: "8px 12px", borderRadius: 6, background: telResult.ok ? "#f0fdf4" : "#fef2f2", color: telResult.ok ? "#15803d" : "#dc2626", fontSize: 13 }}>
-                {telResult.ok ? "✅ " : "❌ "}{telResult.msg}
-              </p>
-            )}
-
-            <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
-              <button onClick={handleTestConnection} disabled={telLoading} style={{ flex: 1, padding: "9px 0", borderRadius: 6, border: "1px solid #d1d5db", background: "#fff", color: "#111827", cursor: "pointer", fontSize: 14 }}>
+            {/* Footer */}
+            <div style={{ padding: "16px 28px", borderTop: "1px solid var(--t-hover-bg)", display: "flex", gap: 8 }}>
+              <button onClick={() => setTelematicsModal(null)} style={{ padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: 8, color: "var(--t-text-secondary)", fontSize: 13, fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+                Cancel
+              </button>
+              <button onClick={handleTestConnection} disabled={telLoading} style={{ flex: 1, padding: "10px 0", borderRadius: 8, border: "1px solid var(--t-border-strong)", background: "var(--t-hover-bg)", color: "var(--t-text)", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif" }}>
                 {telLoading ? "Testing..." : "Test Connection"}
               </button>
-              <button onClick={handlePairDevice} disabled={telLoading} style={{ flex: 1, padding: "9px 0", borderRadius: 6, border: "none", background: "#7c3aed", color: "#fff", cursor: "pointer", fontSize: 14, fontWeight: 600 }}>
+              <button onClick={handlePairDevice} disabled={telLoading} style={{ flex: 1, padding: "10px 0", borderRadius: 8, border: "none", background: "var(--t-indigo)", color: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 700, fontFamily: "Inter, system-ui, sans-serif" }}>
                 {telLoading ? "Saving..." : "Save & Pair"}
               </button>
             </div>
-
-            <button onClick={() => setTelematicsModal(null)} style={{ marginTop: 12, width: "100%", padding: "8px 0", border: "none", background: "none", color: "#6b7280", cursor: "pointer", fontSize: 14 }}>
-              Cancel
-            </button>
           </div>
         </div>
       )}
