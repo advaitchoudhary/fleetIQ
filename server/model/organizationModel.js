@@ -45,7 +45,18 @@ const organizationSchema = new mongoose.Schema(
         type: Date,
         default: () => new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14-day trial
       },
+      // Set to true once the org has consumed their free trial (either started trialing
+      // via Stripe or the initial 14-day trial has expired). Prevents granting a second trial.
+      trialUsed: {
+        type: Boolean,
+        default: false,
+      },
       currentPeriodEnd: { type: Date },
+      // Reminder flags — prevent duplicate warning emails from the daily cron
+      trialReminder3dSent: { type: Boolean, default: false },
+      trialReminder1dSent: { type: Boolean, default: false },
+      // Set once the trial-expired email has been sent, so it fires only once
+      trialExpiredEmailSent: { type: Boolean, default: false },
     },
   },
   { timestamps: true }

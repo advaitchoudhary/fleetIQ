@@ -290,14 +290,14 @@ const DriverHome: React.FC = () => {
             {/* Trip Tracking card */}
             {vehicle && (
               <div style={{
-                background: trackingActive ? "#f0fdf4" : "var(--t-surface)",
-                border: `1px solid ${trackingActive ? "#86efac" : "var(--t-border)"}`,
+                background: trackingActive ? "var(--t-success-bg)" : "var(--t-surface)",
+                border: trackingActive ? "1px solid var(--t-success)" : "1px solid var(--t-border)",
                 borderRadius: "14px", padding: "16px 20px", marginBottom: "24px",
                 display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
                 boxShadow: "var(--t-shadow)",
               }}>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 15, color: "var(--t-text)" }}>
+                  <div style={{ fontWeight: 700, fontSize: 15, color: trackingActive ? "var(--t-success)" : "var(--t-text)" }}>
                     {trackingActive ? "🟢 Trip Active" : "🚛 Start Trip"} — {vehicle.unitNumber}
                   </div>
                   {trackingActive && tripStart && (
@@ -310,12 +310,12 @@ const DriverHome: React.FC = () => {
                     <div style={{ fontSize: 13, color: "var(--t-text-dim)", marginTop: 2 }}>Share your location with dispatch</div>
                   )}
                   {geoError && (
-                    <div style={{ fontSize: 12, color: "#b91c1c", background: "#fee2e2", borderRadius: 6, padding: "4px 8px", marginTop: 6 }}>
+                    <div style={{ fontSize: 12, color: "var(--t-error)", background: "var(--t-error-bg)", borderRadius: 6, padding: "4px 8px", marginTop: 6 }}>
                       {geoError}
                     </div>
                   )}
                   {!geoError && pingFailCount >= 3 && (
-                    <div style={{ fontSize: 12, color: "#92400e", background: "#fef3c7", borderRadius: 6, padding: "4px 8px", marginTop: 6 }}>
+                    <div style={{ fontSize: 12, color: "var(--t-warning)", background: "var(--t-warning-bg)", borderRadius: 6, padding: "4px 8px", marginTop: 6 }}>
                       Location sync failed. Check your connection.
                     </div>
                   )}
@@ -323,7 +323,7 @@ const DriverHome: React.FC = () => {
                 <button
                   onClick={trackingActive ? handleEndTrip : handleStartTrip}
                   style={{
-                    background: trackingActive ? "#ef4444" : "#2563eb",
+                    background: trackingActive ? "var(--t-error)" : "var(--t-accent)",
                     color: "#fff", border: "none", borderRadius: 8,
                     padding: "10px 20px", fontWeight: 600, fontSize: 14,
                     cursor: "pointer", whiteSpace: "nowrap",

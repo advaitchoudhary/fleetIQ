@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Location = require("../model/locationModel");
 const FuelLog = require("../model/fuelLogModel");
 const Vehicle = require("../model/vehicleModel");
@@ -119,6 +120,8 @@ const generateReport = async (req, res) => {
   try {
     const { quarter, year, vehicleId } = req.query;
     if (!quarter || !year) return res.status(400).json({ message: "quarter and year are required" });
+    if (vehicleId && !mongoose.Types.ObjectId.isValid(vehicleId))
+      return res.status(400).json({ message: "Invalid vehicleId format" });
     const orgFilter = getOrgFilter(req);
     const report = await buildReport(orgFilter, quarter, year, vehicleId);
     res.json(report);
@@ -132,6 +135,8 @@ const downloadPDF = async (req, res) => {
   try {
     const { quarter, year, vehicleId } = req.query;
     if (!quarter || !year) return res.status(400).json({ message: "quarter and year are required" });
+    if (vehicleId && !mongoose.Types.ObjectId.isValid(vehicleId))
+      return res.status(400).json({ message: "Invalid vehicleId format" });
     const orgFilter = getOrgFilter(req);
     const report = await buildReport(orgFilter, quarter, year, vehicleId);
 

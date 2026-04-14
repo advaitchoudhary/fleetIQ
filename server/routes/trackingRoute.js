@@ -15,8 +15,8 @@ const locationRateLimit = rateLimit({
   legacyHeaders: false,
 });
 
-router.get("/my-vehicle", protect, authorizeRoles("driver"), getMyVehicle);
-router.post("/trips/start", protect, authorizeRoles("driver"), startTrip);
+router.get("/my-vehicle", protect, authorizeRoles("driver"), requireTrackingModule, getMyVehicle);
+router.post("/trips/start", protect, authorizeRoles("driver"), requireTrackingModule, startTrip);
 router.post("/location", protect, authorizeRoles("driver"), locationRateLimit, updateLocation);
 router.post("/trips/:tripId/end", protect, authorizeRoles("driver"), endTrip);
 router.get("/live", protect, authorizeRoles("admin", "company_admin", "dispatcher"), requireTrackingModule, getLiveLocations);

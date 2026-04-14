@@ -47,6 +47,7 @@ const driverSchema = new mongoose.Schema(
         username: { type: String, unique: true, required: true },
         password: { type: String, required: true },
         workStatus: { type: String, required: true },
+        workAuthExpiry: { type: Date, default: null },
         sinNo: { type: String, required: true },
         plainPassword: { type: String },
         hoursThisWeek: { type: Number, default: 0 }, // New field to track hours this week
@@ -57,6 +58,11 @@ const driverSchema = new mongoose.Schema(
             storeSurvey1: { type: String, required: false },
             tobaccoAndLCPValidation: { type: String, required: false },
             driverSop: { type: String, required: false }
+        },
+        emergencyContact: {
+            name:         { type: String, default: "" },
+            phone:        { type: String, default: "" },
+            relationship: { type: String, default: "" },
         },
         // Stripe Connect fields for direct payouts
         stripeAccountId: { type: String, default: null },

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import ExcelJS from "exceljs";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -69,22 +69,30 @@ const Drivers: React.FC = () => {
     return "";
   };
 
+  const validateWorkAuthExpiry = (dateStr: string): string => {
+    if (!dateStr) return "Work authorization expiry date is required.";
+    const date = new Date(dateStr + "T00:00:00");
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (date <= today) return "Work authorization expiry date must be in the future.";
+    return "";
+  };
+
   const [data, setData] = useState<any[]>([]);
   const [usernameError, setUsernameError] = useState("");
-  const checkUsernameExists = async (username: string) => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/drivers/check?username=${username}`);
-      if (response.data.exists) {
-        setUsernameError("Username already exists.");
-      } else {
-        setUsernameError("");
+  const usernameDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const checkUsernameExists = (username: string) => {
+    if (usernameDebounceRef.current) clearTimeout(usernameDebounceRef.current);
+    usernameDebounceRef.current = setTimeout(async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/drivers/check?username=${username}`);
+        setUsernameError(response.data.exists ? "Username already exists." : "");
+      } catch (err) {
+        console.error("Failed to check username:", err);
       }
-    } catch (err) {
-      console.error("Failed to check username:", err);
-    }
+    }, 400);
   };
-  const [addFieldErrors, setAddFieldErrors] = useState({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" });
-  const [editFieldErrors, setEditFieldErrors] = useState({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" });
+  const [addFieldErrors, setAddFieldErrors] = useState({ name: "", email: "", contact: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "", password: "" });
+  const [editFieldErrors, setEditFieldErrors] = useState({ name: "", email: "", contact: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "" });
   const [showAddExpiryPicker, setShowAddExpiryPicker] = useState(false);
   const [showEditExpiryPicker, setShowEditExpiryPicker] = useState(false);
   const [showAddWorkAuthPicker, setShowAddWorkAuthPicker] = useState(false);
@@ -122,13 +130,13 @@ const Drivers: React.FC = () => {
     licence: "",
     licence_expiry_date: "",
     status: "Active",
-    trainings: "",
+    trainings: [],
     username: "",
     password: generatePassword(),
     sinNo: "",
     workStatus: "",
     workAuthExpiry: "",
-    trainings: [],
+    emergencyContact: { name: "", phone: "", relationship: "" },
   });
 
   const [editedDriver, setEditedDriver] = useState<any>(null);
@@ -137,11 +145,62 @@ const Drivers: React.FC = () => {
   const [, setError] = useState("");
   const [searchText, setSearchText] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"highest" | "lowest" | "none">("none");
-  const [pendingApplicationsCount, setPendingApplicationsCount] = useState<number>(0);
-  const [isApplicationsButtonHovered, setIsApplicationsButtonHovered] = useState(false);
   const [driverPayouts, setDriverPayouts] = useState<any[]>([]);
   const [payoutsLoading, setPayoutsLoading] = useState(false);
-  
+  const [driverNotes, setDriverNotes] = useState<any[]>([]);
+  const [notesLoading, setNotesLoading] = useState(false);
+  const [newNoteType, setNewNoteType] = useState("General");
+  const [newNoteBody, setNewNoteBody] = useState("");
+  const [noteSubmitting, setNoteSubmitting] = useState(false);
+  const [orgNotesSummary, setOrgNotesSummary] = useState<Record<string, { count: number; worstType: string }>>({});
+
+  const fetchDriverNotes = async (driverId: string) => {
+    setNotesLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API_BASE_URL}/drivers/${driverId}/notes`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDriverNotes(Array.isArray(res.data) ? res.data : []);
+    } catch {
+      setDriverNotes([]);
+    } finally {
+      setNotesLoading(false);
+    }
+  };
+
+  const handleAddNote = async (driverId: string) => {
+    if (!newNoteBody.trim()) return;
+    setNoteSubmitting(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        `${API_BASE_URL}/drivers/${driverId}/notes`,
+        { type: newNoteType, body: newNoteBody.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setDriverNotes((prev) => [res.data, ...prev]);
+      setNewNoteBody("");
+      setNewNoteType("General");
+    } catch {
+      // silent — note body validation is client-side
+    } finally {
+      setNoteSubmitting(false);
+    }
+  };
+
+  const handleDeleteNote = async (driverId: string, noteId: string) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_BASE_URL}/drivers/${driverId}/notes/${noteId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDriverNotes((prev) => prev.filter((n) => n._id !== noteId));
+    } catch {
+      // silent
+    }
+  };
+
   const fetchDriverPayouts = async (driverId: string) => {
     setPayoutsLoading(true);
     try {
@@ -160,8 +219,28 @@ const Drivers: React.FC = () => {
   // Fetch users on component mount
   useEffect(() => {
     fetchDrivers();
-    fetchPendingApplicationsCount();
+
     const token = localStorage.getItem("token");
+    // Fetch all org notes to build per-driver summary for table indicator
+    const TYPE_PRIORITY: Record<string, number> = { Incident: 4, Warning: 3, General: 2, Compliment: 1 };
+    axios.get(`${API_BASE_URL}/driver-notes`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((res) => {
+      const allNotes: any[] = Array.isArray(res.data) ? res.data : [];
+      const summary: Record<string, { count: number; worstType: string }> = {};
+      allNotes.forEach((n) => {
+        const dId = n.driverId?._id || n.driverId;
+        if (!dId) return;
+        const id = String(dId);
+        if (!summary[id]) summary[id] = { count: 0, worstType: "General" };
+        summary[id].count += 1;
+        if ((TYPE_PRIORITY[n.type] || 0) > (TYPE_PRIORITY[summary[id].worstType] || 0)) {
+          summary[id].worstType = n.type;
+        }
+      });
+      setOrgNotesSummary(summary);
+    }).catch(() => {});
+
     axios.get(`${API_BASE_URL}/organizations/timesheet-categories`, {
       headers: { Authorization: `Bearer ${token}` },
     }).then((res) => {
@@ -175,20 +254,6 @@ const Drivers: React.FC = () => {
     }).catch(() => {});
   }, []);
 
-  // Fetch pending applications count
-  const fetchPendingApplicationsCount = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`${API_BASE_URL}/driver-applications?status=Pending`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setPendingApplicationsCount(response.data.length);
-    } catch (err) {
-      console.error("Failed to fetch pending applications count:", err);
-    }
-  };
     const fetchDrivers = async () => {
       try {
         setLoading(true);
@@ -402,8 +467,11 @@ const Drivers: React.FC = () => {
     setIsUpdateDisabled(true);
     setUsernameError("");
     setEditModalError("");
-    setEditFieldErrors({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" });
+    setEditFieldErrors({ name: "", email: "", contact: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "" });
     fetchDriverPayouts(driver._id);
+    fetchDriverNotes(driver._id);
+    setNewNoteBody("");
+    setNewNoteType("General");
   };
 
   const handleCopyPassword = (password: string): void => {
@@ -494,15 +562,7 @@ const Drivers: React.FC = () => {
             <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>Manage driver profiles, rates & credentials for the entire logistical network.</p>
           </div>
           <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
-            <button
-              onClick={() => navigate("/driver-applications")}
-              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "10px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", position: "relative" as const }}
-            >
-              <FaClipboard size={13} /> Driver Applications
-              {pendingApplicationsCount > 0 && (
-                <span style={{ position: "absolute" as const, top: "-6px", right: "-6px", background: "#ef4444", color: "#fff", borderRadius: "50%", width: "18px", height: "18px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700 }}>{pendingApplicationsCount}</span>
-              )}
-            </button>
+
             <button
               onClick={handleExport}
               style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "10px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
@@ -510,7 +570,7 @@ const Drivers: React.FC = () => {
               Export
             </button>
             <button
-              onClick={() => { setIsAddModalOpen(true); setAddModalError(""); setAddFieldErrors({ contact: "", sinNo: "", licence: "", licence_expiry_date: "" }); }}
+              onClick={() => { setIsAddModalOpen(true); setAddModalError(""); setUsernameError(""); setAddFieldErrors({ name: "", email: "", contact: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "", password: "" }); }}
               style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}
             >
               + Add Driver
@@ -546,7 +606,7 @@ const Drivers: React.FC = () => {
           <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
             <thead>
               <tr style={{ borderBottom: "1px solid var(--t-hover-bg)" }}>
-                {["S.NO", "DRIVER", "CONTACT INFORMATION", "STATUS", "HOURS (WK)", "WORK AUTHORIZATION", "ACTIONS"].map((h) => (
+                {["S.NO", "DRIVER", "CONTACT INFORMATION", "STATUS", "HOURS (WK)", "WORK AUTHORIZATION", "NOTES", "ACTIONS"].map((h) => (
                   <th key={h} style={{ padding: "14px 16px", textAlign: "left" as const, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", whiteSpace: "nowrap" as const }}>
                     {h}
                   </th>
@@ -556,7 +616,7 @@ const Drivers: React.FC = () => {
             <tbody>
               {filteredData.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ padding: "48px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "14px" }}>No matching drivers found.</td>
+                  <td colSpan={8} style={{ padding: "48px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "14px" }}>No matching drivers found.</td>
                 </tr>
               ) : (
                 filteredData.map((driver: any, idx: number) => {
@@ -628,6 +688,31 @@ const Drivers: React.FC = () => {
                       {/* WORK AUTH */}
                       <td style={{ padding: "18px 16px", fontSize: "13px", color: "var(--t-text-faint)" }}>
                         {driver.workStatus || "—"}
+                      </td>
+
+                      {/* NOTES indicator */}
+                      <td style={{ padding: "18px 16px" }}>
+                        {(() => {
+                          const ns = orgNotesSummary[String(driver._id)];
+                          if (!ns) return <span style={{ color: "var(--t-text-faint)", fontSize: "12px" }}>—</span>;
+                          const noteColors: Record<string, { color: string; bg: string; border: string }> = {
+                            Incident:   { color: "#ef4444", bg: "rgba(239,68,68,0.1)",   border: "rgba(239,68,68,0.25)"   },
+                            Warning:    { color: "#f97316", bg: "rgba(249,115,22,0.1)",  border: "rgba(249,115,22,0.25)"  },
+                            General:    { color: "#4f46e5", bg: "rgba(79,70,229,0.1)",   border: "rgba(79,70,229,0.25)"   },
+                            Compliment: { color: "#10b981", bg: "rgba(16,185,129,0.1)",  border: "rgba(16,185,129,0.25)"  },
+                          };
+                          const c = noteColors[ns.worstType] || noteColors.General;
+                          return (
+                            <span style={{
+                              display: "inline-flex", alignItems: "center", gap: "4px",
+                              padding: "3px 9px", borderRadius: "20px", fontSize: "11px", fontWeight: 700,
+                              background: c.bg, color: c.color, border: `1px solid ${c.border}`,
+                              whiteSpace: "nowrap" as const,
+                            }}>
+                              {ns.count} {ns.worstType}
+                            </span>
+                          );
+                        })()}
                       </td>
 
                       {/* ACTIONS */}
@@ -745,18 +830,20 @@ const Drivers: React.FC = () => {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px", marginBottom: "14px" }}>
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>FULL NAME</label>
-                  <input type="text" placeholder="Enter name" style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
-                    onChange={(e) => setSelectedDriver({ ...selectedDriver, name: e.target.value })} />
+                  <input type="text" placeholder="Enter name" style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${addFieldErrors.name ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { setSelectedDriver({ ...selectedDriver, name: e.target.value }); setAddFieldErrors((prev) => ({ ...prev, name: e.target.value.trim() === "" ? "Name is required." : "" })); }} />
+                  {addFieldErrors.name && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{addFieldErrors.name}</p>}
                 </div>
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>EMAIL ADDRESS</label>
-                  <input type="email" placeholder="Enter email" style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
-                    onChange={(e) => setSelectedDriver({ ...selectedDriver, email: e.target.value })} />
+                  <input type="email" placeholder="Enter email" style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${addFieldErrors.email ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { const v = e.target.value; setSelectedDriver({ ...selectedDriver, email: v }); const emailErr = !v.trim() ? "Email is required." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? "Enter a valid email address." : ""; setAddFieldErrors((prev) => ({ ...prev, email: emailErr })); }} />
+                  {addFieldErrors.email && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{addFieldErrors.email}</p>}
                 </div>
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>USERNAME</label>
-                  <input type="text" placeholder="Enter username" value={selectedDriver.username} style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
-                    onChange={(e) => { const v = e.target.value.trim(); setSelectedDriver({ ...selectedDriver, username: v }); checkUsernameExists(v); }} />
+                  <input type="text" placeholder="Enter username" value={selectedDriver.username} style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${usernameError ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { const v = e.target.value.trim(); setSelectedDriver({ ...selectedDriver, username: v }); if (v) { checkUsernameExists(v); } else { setUsernameError(""); } }} />
                   {usernameError && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{usernameError}</p>}
                 </div>
               </div>
@@ -870,10 +957,10 @@ const Drivers: React.FC = () => {
                   </div>
                   {showAddExpiryPicker && (<>
                     <div onClick={() => setShowAddExpiryPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
-                    <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
+                    <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "var(--t-select-bg)", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", border: "1px solid var(--t-border-strong)" }}>
                       <DayPicker mode="single" selected={selectedDriver.licence_expiry_date ? parseISO(selectedDriver.licence_expiry_date) : undefined}
                         onSelect={(d) => { if (d) { const dateStr = format(d, "yyyy-MM-dd"); setSelectedDriver({ ...selectedDriver, licence_expiry_date: dateStr }); setAddFieldErrors((prev) => ({ ...prev, licence_expiry_date: validateExpiryDate(dateStr) })); setShowAddExpiryPicker(false); } }}
-                        styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }} />
+                        styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0", color: "var(--t-text)" } as React.CSSProperties }} />
                     </div>
                   </>)}
                   {addFieldErrors.licence_expiry_date && <p style={{ margin: "4px 0 0", fontSize: "11px", color: addFieldErrors.licence_expiry_date.startsWith("Warning") ? "var(--t-warning)" : "var(--t-error)" }}>{addFieldErrors.licence_expiry_date}</p>}
@@ -882,18 +969,19 @@ const Drivers: React.FC = () => {
                   <div style={{ position: "relative" as const }}>
                     <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTH EXPIRY</label>
                     <div onClick={() => setShowAddWorkAuthPicker(v => !v)}
-                      style={{ padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+                      style={{ padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${addFieldErrors.workAuthExpiry ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
                       <span style={{ color: selectedDriver.workAuthExpiry ? "var(--t-text)" : "var(--t-text-ghost)" }}>{selectedDriver.workAuthExpiry ? format(parseISO(selectedDriver.workAuthExpiry), "MMM d, yyyy") : "Select expiry date"}</span>
                       <FaCalendarAlt size={13} style={{ color: "var(--t-text-ghost)" }} />
                     </div>
                     {showAddWorkAuthPicker && (<>
                       <div onClick={() => setShowAddWorkAuthPicker(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />
-                      <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "#fff", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", border: "1px solid #e5e7eb" }}>
+                      <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "var(--t-select-bg)", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", border: "1px solid var(--t-border-strong)" }}>
                         <DayPicker mode="single" selected={selectedDriver.workAuthExpiry ? parseISO(selectedDriver.workAuthExpiry) : undefined}
-                          onSelect={(d) => { if (d) { setSelectedDriver({ ...selectedDriver, workAuthExpiry: format(d, "yyyy-MM-dd") }); setShowAddWorkAuthPicker(false); } }}
-                          styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0" } as React.CSSProperties }} />
+                          onSelect={(d) => { if (d) { const dateStr = format(d, "yyyy-MM-dd"); setSelectedDriver({ ...selectedDriver, workAuthExpiry: dateStr }); setAddFieldErrors((prev) => ({ ...prev, workAuthExpiry: validateWorkAuthExpiry(dateStr) })); setShowAddWorkAuthPicker(false); } }}
+                          styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0", color: "var(--t-text)" } as React.CSSProperties }} />
                       </div>
                     </>)}
+                    {addFieldErrors.workAuthExpiry && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{addFieldErrors.workAuthExpiry}</p>}
                   </div>
                 )}
               </div>
@@ -903,19 +991,49 @@ const Drivers: React.FC = () => {
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>PASSWORD</label>
                   <div style={{ display: "flex", gap: "8px" }}>
                     <input type="text" value={selectedDriver.password} placeholder="Enter password"
-                      style={{ flex: 1, padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" }}
-                      onChange={(e) => setSelectedDriver({ ...selectedDriver, password: e.target.value })} />
+                      style={{ flex: 1, padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${addFieldErrors.password ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif" }}
+                      onChange={(e) => { setSelectedDriver({ ...selectedDriver, password: e.target.value }); setAddFieldErrors((prev) => ({ ...prev, password: e.target.value.trim().length < 6 ? "Password must be at least 6 characters." : "" })); }} />
                     <button onClick={() => handleCopyPassword(selectedDriver.password)}
                       style={{ padding: "11px 14px", background: copySuccess ? "var(--t-success-bg)" : "var(--t-indigo-bg)", border: `1px solid ${copySuccess ? "rgba(5,150,105,0.3)" : "rgba(79,70,229,0.25)"}`, borderRadius: "8px", color: copySuccess ? "var(--t-success)" : "var(--t-indigo)", cursor: "pointer", display: "flex", alignItems: "center", gap: "5px", transition: "all 0.2s", fontSize: "11px", fontWeight: 600, whiteSpace: "nowrap" as const }}>
                       <FaClipboard size={13} />{copySuccess ? "Copied!" : ""}
                     </button>
                   </div>
+                  {addFieldErrors.password && <p style={{ margin: "4px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{addFieldErrors.password}</p>}
                 </div>
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>ADDRESS</label>
                   <input type="text" placeholder="Enter address"
                     style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
                     onChange={(e) => setSelectedDriver({ ...selectedDriver, address: e.target.value })} />
+                </div>
+              </div>
+
+              {/* Section: Emergency Contact */}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>EMERGENCY CONTACT</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "14px" }}>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>FULL NAME</label>
+                  <input type="text" placeholder="e.g. Jane Doe"
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    value={selectedDriver.emergencyContact?.name || ""}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, emergencyContact: { ...selectedDriver.emergencyContact, name: e.target.value } })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>PHONE NUMBER</label>
+                  <input type="text" placeholder="e.g. +1 (416) 555-0100"
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    value={selectedDriver.emergencyContact?.phone || ""}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, emergencyContact: { ...selectedDriver.emergencyContact, phone: formatContact(e.target.value) } })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>RELATIONSHIP</label>
+                  <input type="text" placeholder="e.g. Spouse, Parent"
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    value={selectedDriver.emergencyContact?.relationship || ""}
+                    onChange={(e) => setSelectedDriver({ ...selectedDriver, emergencyContact: { ...selectedDriver.emergencyContact, relationship: e.target.value } })} />
                 </div>
               </div>
 
@@ -934,16 +1052,27 @@ const Drivers: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  if (usernameError) { setAddModalError("Please resolve the username error before submitting."); return; }
-                  if (!(selectedDriver.name || "").trim()) { setAddModalError("Name is required."); return; }
-                  if (!(selectedDriver.email || "").trim()) { setAddModalError("Email is required."); return; }
-                  if (!(selectedDriver.username || "").trim()) { setAddModalError("Username is required."); return; }
-                  setAddModalError("");
+                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                   const sinDigits = (selectedDriver.sinNo || "").replace(/\D/g, "");
                   const contactDigits = (selectedDriver.contact || "").replace(/^\+1[\s\-\(]*/, "").replace(/\D/g, "");
-                  const errors = { sinNo: sinDigits.length !== 9 ? "SIN must be 9 digits." : "", contact: contactDigits.length > 0 && contactDigits.length !== 10 ? "Enter a valid 10-digit phone number." : "", licence: !(selectedDriver.licence || "").trim() ? "Licence class is required." : "", licence_expiry_date: validateExpiryDate(selectedDriver.licence_expiry_date || "") };
+                  const needsWorkAuthExpiry = workAuthNeedsExpiry(selectedDriver.workStatus);
+                  const emailVal = (selectedDriver.email || "").trim();
+                  const errors = {
+                    name: !(selectedDriver.name || "").trim() ? "Name is required." : "",
+                    email: !emailVal ? "Email is required." : !emailRegex.test(emailVal) ? "Enter a valid email address." : "",
+                    contact: contactDigits.length > 0 && contactDigits.length !== 10 ? "Enter a valid 10-digit phone number." : "",
+                    sinNo: sinDigits.length !== 9 ? "SIN must be 9 digits." : "",
+                    licence: !(selectedDriver.licence || "").trim() ? "Licence class is required." : "",
+                    licence_expiry_date: validateExpiryDate(selectedDriver.licence_expiry_date || ""),
+                    workAuthExpiry: needsWorkAuthExpiry ? validateWorkAuthExpiry(selectedDriver.workAuthExpiry || "") : "",
+                    password: (selectedDriver.password || "").trim().length < 6 ? "Password must be at least 6 characters." : "",
+                  };
                   setAddFieldErrors(errors);
-                  if (errors.sinNo || errors.contact || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning"))) return;
+                  if (usernameError) { setAddModalError("Please resolve the username error before submitting."); return; }
+                  if (!(selectedDriver.username || "").trim()) { setAddModalError("Username is required."); return; }
+                  const hasError = errors.name || errors.email || errors.contact || errors.sinNo || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning")) || errors.workAuthExpiry || errors.password;
+                  if (hasError) { setAddModalError(""); return; }
+                  setAddModalError("");
                   createDriver({ ...selectedDriver, username: (selectedDriver.username || "").trim() });
                 }}
                 style={{ display: "flex", alignItems: "center", gap: "8px", padding: "11px 22px", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}
@@ -988,14 +1117,16 @@ const Drivers: React.FC = () => {
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>FULL NAME</label>
                   <input type="text" defaultValue={selectedDriver?.name}
-                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
-                    onChange={(e) => handleInputChange("name", e.target.value)} />
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${editFieldErrors.name ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { handleInputChange("name", e.target.value); setEditFieldErrors((prev) => ({ ...prev, name: e.target.value.trim() === "" ? "Name is required." : "" })); }} />
+                  {editFieldErrors.name && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{editFieldErrors.name}</p>}
                 </div>
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>EMAIL ADDRESS</label>
                   <input type="email" defaultValue={selectedDriver?.email}
-                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
-                    onChange={(e) => handleInputChange("email", e.target.value)} />
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${editFieldErrors.email ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { const v = e.target.value; handleInputChange("email", v); const emailErr = !v.trim() ? "Email is required." : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? "Enter a valid email address." : ""; setEditFieldErrors((prev) => ({ ...prev, email: emailErr })); }} />
+                  {editFieldErrors.email && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{editFieldErrors.email}</p>}
                 </div>
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>USERNAME</label>
@@ -1159,7 +1290,7 @@ const Drivers: React.FC = () => {
                   <div style={{ position: "relative" as const }}>
                     <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>WORK AUTH EXPIRY DATE</label>
                     <div onClick={() => setShowEditWorkAuthPicker(v => !v)}
-                      style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" as const }}>
+                      style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${editFieldErrors.workAuthExpiry ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", userSelect: "none" as const }}>
                       <span style={{ color: selectedDriver?.workAuthExpiry ? "var(--t-text)" : "var(--t-text-ghost)" }}>
                         {selectedDriver?.workAuthExpiry ? format(parseISO(selectedDriver.workAuthExpiry), "MMM d, yyyy") : "Select expiry date"}
                       </span>
@@ -1171,14 +1302,127 @@ const Drivers: React.FC = () => {
                         <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 100, background: "var(--t-select-bg)", borderRadius: "10px", boxShadow: "0 8px 24px rgba(0,0,0,0.4)", border: "1px solid var(--t-border-strong)" }}>
                           <DayPicker mode="single"
                             selected={selectedDriver?.workAuthExpiry ? parseISO(selectedDriver.workAuthExpiry) : undefined}
-                            onSelect={(d) => { if (d) { handleInputChange("workAuthExpiry", format(d, "yyyy-MM-dd")); setShowEditWorkAuthPicker(false); } }}
+                            onSelect={(d) => { if (d) { const dateStr = format(d, "yyyy-MM-dd"); handleInputChange("workAuthExpiry", dateStr); setEditFieldErrors((prev) => ({ ...prev, workAuthExpiry: validateWorkAuthExpiry(dateStr) })); setShowEditWorkAuthPicker(false); } }}
                             styles={{ root: { "--rdp-accent-color": "#4F46E5", "--rdp-accent-background-color": "#ede9fe", fontFamily: "Inter, system-ui, sans-serif", fontSize: "13px", margin: "0", color: "var(--t-text)" } as React.CSSProperties }} />
                         </div>
                       </>
                     )}
+                    {editFieldErrors.workAuthExpiry && <p style={{ margin: "5px 0 0", fontSize: "11px", color: "var(--t-error)" }}>{editFieldErrors.workAuthExpiry}</p>}
                   </div>
                 )}
               </div>
+
+              {/* Section: Emergency Contact */}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>EMERGENCY CONTACT</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>FULL NAME</label>
+                  <input type="text" placeholder="e.g. Jane Doe"
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    value={selectedDriver?.emergencyContact?.name || ""}
+                    onChange={(e) => handleInputChange("emergencyContact", { ...selectedDriver?.emergencyContact, name: e.target.value })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>PHONE NUMBER</label>
+                  <input type="text" placeholder="e.g. +1 (416) 555-0100"
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    value={selectedDriver?.emergencyContact?.phone || ""}
+                    onChange={(e) => handleInputChange("emergencyContact", { ...selectedDriver?.emergencyContact, phone: formatContact(e.target.value) })} />
+                </div>
+                <div>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>RELATIONSHIP</label>
+                  <input type="text" placeholder="e.g. Spouse, Parent"
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    value={selectedDriver?.emergencyContact?.relationship || ""}
+                    onChange={(e) => handleInputChange("emergencyContact", { ...selectedDriver?.emergencyContact, relationship: e.target.value })} />
+                </div>
+              </div>
+
+              {/* Section: Notes & Incidents */}
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
+                <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>NOTES & INCIDENTS</span>
+                <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
+              </div>
+
+              {/* Add note form */}
+              <div style={{ display: "flex", gap: "10px", marginBottom: "16px", alignItems: "flex-start" }}>
+                <select
+                  value={newNoteType}
+                  onChange={(e) => setNewNoteType(e.target.value)}
+                  style={{ padding: "10px 12px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", cursor: "pointer", flexShrink: 0 }}
+                >
+                  {["General", "Warning", "Incident", "Compliment"].map((t) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+                <textarea
+                  placeholder="Write a note…"
+                  value={newNoteBody}
+                  onChange={(e) => setNewNoteBody(e.target.value)}
+                  rows={2}
+                  style={{ flex: 1, padding: "10px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", resize: "vertical" as const, minHeight: "60px" }}
+                />
+                <button
+                  onClick={() => handleAddNote(selectedDriver._id)}
+                  disabled={noteSubmitting || !newNoteBody.trim()}
+                  style={{ padding: "10px 18px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 600, cursor: newNoteBody.trim() ? "pointer" : "not-allowed", fontFamily: "Inter, system-ui, sans-serif", opacity: newNoteBody.trim() ? 1 : 0.5, flexShrink: 0 }}
+                >
+                  {noteSubmitting ? "Adding…" : "Add Note"}
+                </button>
+              </div>
+
+              {/* Notes list */}
+              {notesLoading ? (
+                <div style={{ padding: "20px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "13px" }}>Loading notes…</div>
+              ) : driverNotes.length === 0 ? (
+                <div style={{ background: "var(--t-surface-alt)", border: "1px dashed var(--t-border)", borderRadius: "10px", padding: "24px", textAlign: "center" as const }}>
+                  <p style={{ margin: 0, color: "var(--t-text-ghost)", fontSize: "13px" }}>No notes yet. Add the first one above.</p>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: "10px" }}>
+                  {driverNotes.map((note: any) => {
+                    const typeCfg: Record<string, { color: string; bg: string }> = {
+                      General:    { color: "#4F46E5", bg: "rgba(79,70,229,0.1)"   },
+                      Warning:    { color: "#f97316", bg: "rgba(249,115,22,0.1)"  },
+                      Incident:   { color: "#ef4444", bg: "rgba(239,68,68,0.1)"   },
+                      Compliment: { color: "#10b981", bg: "rgba(16,185,129,0.1)"  },
+                    };
+                    const cfg = typeCfg[note.type] || typeCfg.General;
+                    const dateStr = note.createdAt
+                      ? new Date(note.createdAt).toLocaleString("en-CA", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })
+                      : "";
+                    return (
+                      <div key={note._id} style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", padding: "14px 16px" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.5px", padding: "3px 10px", borderRadius: "20px", background: cfg.bg, color: cfg.color }}>
+                              {note.type.toUpperCase()}
+                            </span>
+                            <span style={{ fontSize: "12px", color: "var(--t-text-ghost)" }}>
+                              {note.authorName} · {dateStr}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteNote(selectedDriver._id, note._id)}
+                            title="Delete note"
+                            style={{ background: "none", border: "none", color: "var(--t-text-ghost)", cursor: "pointer", padding: "2px 6px", fontSize: "13px", lineHeight: 1, borderRadius: "4px" }}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = "#ef4444")}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--t-text-ghost)")}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <p style={{ margin: 0, fontSize: "13px", color: "var(--t-text-secondary)", lineHeight: 1.6, whiteSpace: "pre-wrap" as const }}>
+                          {note.body}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Section: Payout History */}
               <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
@@ -1249,17 +1493,26 @@ const Drivers: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  if (usernameError) { alert("Please resolve username error before submitting."); return; }
+                  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                   const sinDigits = (selectedDriver.sinNo || "").replace(/\D/g, "");
                   const contactDigits = (selectedDriver.contact || "").replace(/^\+1[\s\-\(]*/, "").replace(/\D/g, "");
+                  const needsWorkAuthExpiry = workAuthNeedsExpiry(selectedDriver?.workStatus);
+                  const emailVal = (selectedDriver.email || "").trim();
                   const errors = {
-                    sinNo: sinDigits.length !== 9 ? "SIN must be 9 digits." : "",
+                    name: !(selectedDriver.name || "").trim() ? "Name is required." : "",
+                    email: !emailVal ? "Email is required." : !emailRegex.test(emailVal) ? "Enter a valid email address." : "",
                     contact: contactDigits.length > 0 && contactDigits.length !== 10 ? "Enter a valid 10-digit phone number." : "",
+                    sinNo: sinDigits.length !== 9 ? "SIN must be 9 digits." : "",
                     licence: !(selectedDriver.licence || "").trim() ? "Licence class is required." : "",
                     licence_expiry_date: validateExpiryDate(selectedDriver.licence_expiry_date || ""),
+                    workAuthExpiry: needsWorkAuthExpiry ? validateWorkAuthExpiry(selectedDriver.workAuthExpiry || "") : "",
                   };
                   setEditFieldErrors(errors);
-                  if (errors.sinNo || errors.contact || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning"))) return;
+                  if (usernameError) { setEditModalError("Please resolve the username error before submitting."); return; }
+                  if (!(selectedDriver.username || "").trim()) { setEditModalError("Username is required."); return; }
+                  const hasError = errors.name || errors.email || errors.contact || errors.sinNo || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning")) || errors.workAuthExpiry;
+                  if (hasError) { setEditModalError(""); return; }
+                  setEditModalError("");
                   updateDriver(selectedDriver);
                 }}
                 style={{ display: "flex", alignItems: "center", gap: "8px", padding: "11px 22px", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}>

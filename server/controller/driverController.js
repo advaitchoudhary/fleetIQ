@@ -282,21 +282,17 @@ const driverLogin = async (req, res) => {
 // Change Password for Driver
 const changePassword = async (req, res) => {
   try {
-    const token = req.header("Authorization")?.split(" ")[1];
-    if (!token) return res.status(401).json({ error: "Unauthorized - No token provided" });
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const { oldPassword, newPassword, driverId } = req.body;
 
     // Determine which driver to update
     let driverToUpdate;
-    if (decoded.role === "admin" || decoded.role === "company_admin") {
+    if (req.user.role === "admin" || req.user.role === "company_admin") {
       // Admin / company_admin: must provide driverId to change a driver's password
       if (!driverId) return res.status(400).json({ error: "driverId is required when changing a driver's password" });
       driverToUpdate = await Driver.findById(driverId);
-    } else if (decoded.role === "driver") {
+    } else if (req.user.role === "driver") {
       // Driver: change own password
-      driverToUpdate = await Driver.findById(decoded.id);
+      driverToUpdate = await Driver.findById(req.user.id);
     } else {
       return res.status(403).json({ error: "Access denied" });
     }
@@ -307,25 +303,20 @@ const changePassword = async (req, res) => {
       return res.status(400).json({ error: "New password must be at least 8 characters" });
     }
 
-    // If Driver is changing own password → verify old password
-    if (decoded.role === "driver") {
+    // If driver is changing own password → verify current password
+    if (req.user.role === "driver") {
       const isMatch = await bcrypt.compare(oldPassword, driverToUpdate.password);
-      if (!isMatch) return res.status(400).json({ error: "Old password is incorrect" });
+      if (!isMatch) return res.status(400).json({ error: "Current password is incorrect" });
     }
 
     // Set new password
     driverToUpdate.password = await bcrypt.hash(newPassword, 10);
-    driverToUpdate.plainPassword = newPassword;
     await driverToUpdate.save();
 
     res.json({ message: "Password changed successfully" });
   } catch (error) {
     console.error("Driver changePassword Error:", error);
-    if (error.name === "JsonWebTokenError" || error.name === "TokenExpiredError") {
-      res.status(401).json({ message: "Invalid token" });
-    } else {
-      res.status(500).json({ error: "Server error" });
-    }
+    res.status(500).json({ error: "Server error" });
   }
 };
 

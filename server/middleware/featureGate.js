@@ -62,6 +62,6 @@ const checkFeature = (requiredPlan) => async (req, res, next) => {
 
 const requireDriverModule = checkFeature("driver");
 const requireVehicleModule = checkFeature("vehicle");
-const requireTrackingModule = checkFeature("vehicle");
+const requireTrackingModule = checkFeature("bundle");
 
 module.exports = { requireDriverModule, requireVehicleModule, requireTrackingModule };

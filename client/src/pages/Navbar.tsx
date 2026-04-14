@@ -28,6 +28,7 @@ import {
   FaMapMarkerAlt,
   FaLock,
   FaFileAlt,
+  FaPlug,
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md"; // Material Dashboard Icon
 import { useAuth } from "../contexts/AuthContext";
@@ -42,6 +43,8 @@ const Navbar: React.FC = () => {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [subscriptionPlan, setSubscriptionPlan] = useState<string | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
+  const [subscriptionTrialEndsAt, setSubscriptionTrialEndsAt] = useState<string | null>(null);
   const [headerOrgName, setHeaderOrgName] = useState<string>("");
   const [driverUnreadCount, setDriverUnreadCount] = useState(0);
   const sidebarRef = useRef<HTMLElement>(null);
@@ -50,11 +53,17 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
+        const storedUser = localStorage.getItem("user");
+        const role = storedUser ? JSON.parse(storedUser)?.role : null;
+        // Notifications are driver-only messages (timesheet approved/rejected).
+        // Admin roles must never see them.
+        if (!role || role !== "driver") return;
+
         const token = localStorage.getItem("token");
         const res = await fetch(`${API_BASE_URL}/notifications`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
-        if (!res.ok) return; // Silently skip if unauthorized or server error
+        if (!res.ok) return;
         const data = await res.json();
         setNotifications(data);
         setUnreadCount(data.filter((n: any) => !n.read).length);
@@ -63,8 +72,8 @@ const Navbar: React.FC = () => {
       }
     };
 
-    fetchNotifications(); // Always fetch on mount
-  }, []); // Only run on component mount
+    fetchNotifications();
+  }, []);
 
   useEffect(() => {
     const fetchSubscription = async () => {
@@ -76,6 +85,8 @@ const Navbar: React.FC = () => {
         if (!res.ok) return;
         const data = await res.json();
         setSubscriptionPlan(data.plan || null);
+        setSubscriptionStatus(data.status || null);
+        setSubscriptionTrialEndsAt(data.trialEndsAt || null);
       } catch {
         // silently ignore — gate defaults to open if fetch fails
       }
@@ -510,8 +521,11 @@ const Navbar: React.FC = () => {
             <>
               {(() => {
                 const isSuperAdmin = user?.role === "admin";
-                const hasDriver = isSuperAdmin || subscriptionPlan === "driver" || subscriptionPlan === "bundle";
-                const hasVehicle = isSuperAdmin || subscriptionPlan === "vehicle" || subscriptionPlan === "bundle";
+                const trialExpired = subscriptionStatus === "trialing" && subscriptionTrialEndsAt && new Date(subscriptionTrialEndsAt) < new Date();
+                const isSubActive = (subscriptionStatus === "active" || subscriptionStatus === "trialing") && !trialExpired;
+                const hasDriver = isSuperAdmin || (isSubActive && (subscriptionPlan === "driver" || subscriptionPlan === "bundle"));
+                const hasVehicle = isSuperAdmin || (isSubActive && (subscriptionPlan === "vehicle" || subscriptionPlan === "bundle"));
+                const hasTracking = isSuperAdmin || (isSubActive && subscriptionPlan === "bundle");
 
                 return (
                   <>
@@ -521,17 +535,20 @@ const Navbar: React.FC = () => {
                       {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Driver Management</span> : <div style={styles.sectionDivider} />}
                     </li>
                     {renderNavItem("/users",               <FaUsers size={16} />,         "Drivers",             false, !hasDriver)}
+                    {renderNavItem("/expiry-dashboard",   <FaShieldAlt size={16} />,     "Doc Expiry",          false, !hasDriver)}
+                    {renderNavItem("/driver-notes",       <FaClipboardList size={16} />, "Driver Notes",        false, !hasDriver)}
                     {renderNavItem("/invoice",             <FaFileInvoice size={16} />,   "Invoice",             false, !hasDriver)}
-                    {renderNavItem("/applications",        <FaClipboardList size={16} />, "All Timesheets",      false, !hasDriver)}
+                    {renderNavItem("/all-timesheets",      <FaClipboardList size={16} />, "All Timesheets",      false, !hasDriver)}
                     {renderNavItem("/inquiries",           <FaPhoneAlt size={16} />,      "Inquiries",           false, !hasDriver)}
-                    {renderNavItem("/driver-applications", <FaClipboardList size={16} />, "Driver Applications", false, !hasDriver)}
+
 
                     <li style={{ ...styles.navItem, marginTop: "14px" }}>
                       {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Vehicle Management</span> : <div style={styles.sectionDivider} />}
                     </li>
                     {renderNavItem("/vehicles",               <FaTruck size={16} />,            "Vehicles",           false, !hasVehicle)}
-                    {renderNavItem("/tracking",               <FaMapMarkerAlt size={16} />,     "Live Tracking",      false, !hasVehicle)}
+                    {renderNavItem("/tracking",               <FaMapMarkerAlt size={16} />,     "Live Tracking",      false, !hasTracking)}
                     {renderNavItem("/ifta",                   <FaFileAlt size={16} />,          "IFTA Reports",       false, !hasVehicle)}
+                    {renderNavItem("/integrations",           <FaPlug size={16} />,             "Integrations",       false, !hasVehicle)}
                     {renderNavItem("/maintenance",            <FaWrench size={16} />,           "Maintenance",        false, !hasVehicle)}
                     {renderNavItem("/inspections",            <FaCheckSquare size={16} />,      "Inspections",        false, !hasVehicle)}
                     {renderNavItem("/fuel-logs",              <FaGasPump size={16} />,          "Fuel Logs",          false, !hasVehicle)}

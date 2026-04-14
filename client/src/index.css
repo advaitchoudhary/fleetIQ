@@ -102,3 +102,12 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+@keyframes pageEnter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.page-enter {
+  animation: pageEnter 0.22s ease-out;
+}

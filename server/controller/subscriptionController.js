@@ -1,5 +1,6 @@
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const Organization = require("../model/organizationModel.js");
+const { sendTrialExpiredEmail, sendSubscriptionCancelledEmail } = require("../utils/emailService.js");
 
 // Map plan+billing to Stripe Price IDs (set in .env)
 const PRICE_IDS = {
@@ -15,6 +16,40 @@ const PRICE_IDS = {
     monthly: process.env.STRIPE_PRICE_BUNDLE_MONTHLY,
     annual: process.env.STRIPE_PRICE_BUNDLE_ANNUAL,
   },
+};
+
+const EXPECTED_PRICING = {
+  driver: {
+    monthly: { interval: "month", unitAmount: 4900 },
+    annual: { interval: "year", unitAmount: 46800 },
+  },
+  vehicle: {
+    monthly: { interval: "month", unitAmount: 4900 },
+    annual: { interval: "year", unitAmount: 46800 },
+  },
+  bundle: {
+    monthly: { interval: "month", unitAmount: 7900 },
+    annual: { interval: "year", unitAmount: 75600 },
+  },
+};
+
+const toDateFromUnix = (timestampSeconds) => {
+  if (typeof timestampSeconds !== "number" || Number.isNaN(timestampSeconds)) {
+    return null;
+  }
+
+  const date = new Date(timestampSeconds * 1000);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const getSubscriptionCurrentPeriodEnd = (sub) => {
+  // Stripe's newer API versions expose billing period dates on subscription items.
+  // Fall back to the legacy top-level field when present.
+  return (
+    toDateFromUnix(sub?.current_period_end) ||
+    toDateFromUnix(sub?.items?.data?.[0]?.current_period_end) ||
+    null
+  );
 };
 
 /**
@@ -34,6 +69,19 @@ const createCheckout = async (req, res) => {
     if (!priceId || priceId.startsWith("price_REPLACE")) {
       return res.status(400).json({
         message: `Stripe price ID for ${plan} (${billing}) is not configured. Set STRIPE_PRICE_${plan.toUpperCase()}_${billing.toUpperCase()} in your .env file.`,
+      });
+    }
+
+    const expected = EXPECTED_PRICING[plan]?.[billing];
+    const stripePrice = await stripe.prices.retrieve(priceId);
+    if (
+      !stripePrice.active ||
+      !stripePrice.recurring ||
+      stripePrice.recurring.interval !== expected.interval ||
+      stripePrice.unit_amount !== expected.unitAmount
+    ) {
+      return res.status(400).json({
+        message: `Stripe price ${priceId} for ${plan} (${billing}) is misconfigured. Expected ${expected.interval} billing at ${(expected.unitAmount / 100).toFixed(2)}.`,
       });
     }
 
@@ -61,19 +109,28 @@ const createCheckout = async (req, res) => {
       });
     }
 
+    // Only grant a trial if the org has never used one before.
+    // trialUsed is true when: (a) they previously trialed via Stripe, or
+    // (b) their initial 14-day server-side trial has been set (trialEndsAt exists).
+    const trialUsed = org.subscription?.trialUsed || !!org.subscription?.trialEndsAt;
+
+    const subscriptionData = {
+      metadata: {
+        organizationId: org._id.toString(),
+        plan,
+        billing,
+      },
+    };
+    if (!trialUsed) {
+      subscriptionData.trial_period_days = 14;
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ["card"],
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
-      subscription_data: {
-        trial_period_days: 14,
-        metadata: {
-          organizationId: org._id.toString(),
-          plan,
-          billing,
-        },
-      },
+      subscription_data: subscriptionData,
       success_url: `${clientUrl}/subscription?checkout=success`,
       cancel_url: `${clientUrl}/subscription?checkout=cancel`,
     });
@@ -103,14 +160,35 @@ const getCurrentSubscription = async (req, res) => {
     // Derive effective status: if org has no Stripe subscription and the trial
     // period has passed, report as inactive rather than the stale "trialing".
     let status = sub.status || "inactive";
-    if (status === "trialing" && sub.trialEndsAt && new Date(sub.trialEndsAt) < new Date()) {
+    const trialExpired = status === "trialing" && sub.trialEndsAt && new Date(sub.trialEndsAt) < new Date();
+    if (trialExpired) {
       status = "inactive";
+      // Persist trialUsed and send the one-time expiry email.
+      // Fire-and-forget — don't block the response on these updates.
+      Organization.findByIdAndUpdate(org._id, {
+        "subscription.trialUsed": true,
+      }).catch((e) => console.error("Failed to mark trialUsed:", e));
+
+      if (!sub.trialExpiredEmailSent) {
+        Organization.findByIdAndUpdate(org._id, {
+          "subscription.trialExpiredEmailSent": true,
+        }).catch((e) => console.error("Failed to mark trialExpiredEmailSent:", e));
+
+        sendTrialExpiredEmail(org.email, org.name).catch((e) =>
+          console.error("Failed to send trial expired email:", e)
+        );
+      }
     }
+
+    // An org whose initial 14-day trial has been set (trialEndsAt exists) has already
+    // consumed their trial entitlement regardless of whether it is still running.
+    const trialUsed = sub.trialUsed || !!sub.trialEndsAt;
 
     res.json({
       plan: sub.plan || null,
       status,
       trialEndsAt: sub.trialEndsAt || null,
+      trialUsed,
       currentPeriodEnd: sub.currentPeriodEnd || null,
       stripeCustomerId: sub.stripeCustomerId || null,
       stripeSubscriptionId: sub.stripeSubscriptionId || null,
@@ -200,13 +278,18 @@ const handleWebhook = async (req, res) => {
           console.warn(`subscription event ${event.type} missing plan in metadata for org ${orgId}`);
         }
 
+        const currentPeriodEnd = getSubscriptionCurrentPeriodEnd(sub);
         const update = {
           "subscription.status": statusMap[sub.status] || sub.status,
           "subscription.stripeSubscriptionId": sub.id,
-          "subscription.currentPeriodEnd": new Date(sub.current_period_end * 1000),
         };
+        if (currentPeriodEnd) update["subscription.currentPeriodEnd"] = currentPeriodEnd;
         if (plan) update["subscription.plan"] = plan;
-        if (sub.trial_end) update["subscription.trialEndsAt"] = new Date(sub.trial_end * 1000);
+        if (sub.trial_end) {
+          update["subscription.trialEndsAt"] = new Date(sub.trial_end * 1000);
+          // Once a trial is set via Stripe, mark it as used so no second trial is granted.
+          update["subscription.trialUsed"] = true;
+        }
 
         await Organization.findByIdAndUpdate(orgId, update);
         break;
@@ -217,9 +300,23 @@ const handleWebhook = async (req, res) => {
         const orgId = sub.metadata?.organizationId;
         if (!orgId) break;
 
-        await Organization.findByIdAndUpdate(orgId, {
-          "subscription.status": "cancelled",
-        });
+        const cancelledOrg = await Organization.findByIdAndUpdate(
+          orgId,
+          {
+            "subscription.status": "cancelled",
+            "subscription.stripeSubscriptionId": null,
+            "subscription.currentPeriodEnd": null,
+            // Mark trial as used so the org cannot obtain a new free trial after cancelling.
+            "subscription.trialUsed": true,
+          },
+          { new: false } // return original doc so we have email + name
+        ).select("name email").lean();
+
+        if (cancelledOrg) {
+          sendSubscriptionCancelledEmail(cancelledOrg.email, cancelledOrg.name).catch((e) =>
+            console.error("Failed to send subscription cancelled email:", e)
+          );
+        }
         break;
       }
 
@@ -230,10 +327,13 @@ const handleWebhook = async (req, res) => {
           const sub = await stripe.subscriptions.retrieve(invoice.subscription);
           const orgId = sub.metadata?.organizationId;
           if (orgId) {
-            await Organization.findByIdAndUpdate(orgId, {
+            const update = {
               "subscription.status": "active",
-              "subscription.currentPeriodEnd": new Date(sub.current_period_end * 1000),
-            });
+            };
+            const currentPeriodEnd = getSubscriptionCurrentPeriodEnd(sub);
+            if (currentPeriodEnd) update["subscription.currentPeriodEnd"] = currentPeriodEnd;
+
+            await Organization.findByIdAndUpdate(orgId, update);
           }
         }
         break;
@@ -269,14 +369,19 @@ const handleWebhook = async (req, res) => {
             console.warn(`checkout.session.completed: missing plan in subscription metadata for org ${orgId}`);
           }
 
+          const currentPeriodEnd = getSubscriptionCurrentPeriodEnd(sub);
           const update = {
             "subscription.status": statusMap[sub.status] || (sub.status === "trialing" ? "trialing" : "active"),
             "subscription.stripeCustomerId": session.customer,
             "subscription.stripeSubscriptionId": sub.id,
-            "subscription.currentPeriodEnd": new Date(sub.current_period_end * 1000),
           };
+          if (currentPeriodEnd) update["subscription.currentPeriodEnd"] = currentPeriodEnd;
           if (plan) update["subscription.plan"] = plan;
-          if (sub.trial_end) update["subscription.trialEndsAt"] = new Date(sub.trial_end * 1000);
+          if (sub.trial_end) {
+            update["subscription.trialEndsAt"] = new Date(sub.trial_end * 1000);
+            // Mark trial as used once a Stripe subscription with a trial is confirmed.
+            update["subscription.trialUsed"] = true;
+          }
 
           await Organization.findByIdAndUpdate(orgId, update);
         }

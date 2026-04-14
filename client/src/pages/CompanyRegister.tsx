@@ -5,10 +5,18 @@ import { FaTruck, FaCheckCircle, FaArrowRight } from "react-icons/fa";
 import { API_BASE_URL } from "../utils/env";
 import { useAuth } from "../contexts/AuthContext";
 
-const PLAN_NAMES: Record<string, string> = {
-  driver: "Driver Management — $49/month",
-  vehicle: "Vehicle & Fleet Operations — $49/month",
-  bundle: "Fleet Bundle — $79/month",
+const PLAN_PRICES: Record<string, { monthly: number; annual: number; bundleMonthly: number; bundleAnnual: number }> = {
+  driver:  { monthly: 49, annual: 39, bundleMonthly: 0, bundleAnnual: 0 },
+  vehicle: { monthly: 49, annual: 39, bundleMonthly: 0, bundleAnnual: 0 },
+  bundle:  { monthly: 79, annual: 63, bundleMonthly: 0, bundleAnnual: 0 },
+};
+
+const getPlanLabel = (plan: string, billing: string): string => {
+  const isAnnual = billing === "annual";
+  if (plan === "driver")  return isAnnual ? "Driver Management — $39/month" : "Driver Management — $49/month";
+  if (plan === "vehicle") return isAnnual ? "Vehicle & Fleet Operations — $39/month" : "Vehicle & Fleet Operations — $49/month";
+  if (plan === "bundle")  return isAnnual ? "Fleet Bundle — $63/month" : "Fleet Bundle — $79/month";
+  return plan;
 };
 
 const CompanyRegister: React.FC = () => {
@@ -48,7 +56,7 @@ const CompanyRegister: React.FC = () => {
   };
 
   const validatePhone = (value: string) => {
-    if (!value.trim()) { setPhoneError(""); return true; }
+    if (!value.trim()) { setPhoneError("Phone number is required."); return false; }
     if (extractDigits(value).length < 10) {
       setPhoneError("Enter a valid 10-digit phone number.");
       return false;
@@ -325,11 +333,11 @@ const CompanyRegister: React.FC = () => {
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.35)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>Selected Plan</div>
               <div style={{ fontSize: "13px", fontWeight: 700, color: "#a78bfa", marginTop: "1px" }}>
-                {PLAN_NAMES[form.plan] || form.plan}
+                {getPlanLabel(form.plan, form.billing)}
               </div>
             </div>
             <button
-              onClick={() => navigate("/#pricing")}
+              onClick={() => navigate(`/pricing?plan=${form.plan}&billing=${form.billing}`)}
               style={{ background: "none", border: "1px solid rgba(123,108,246,0.3)", borderRadius: "6px", color: "#a78bfa", fontSize: "11px", cursor: "pointer", fontWeight: 600, padding: "4px 10px", fontFamily: "Inter, system-ui, sans-serif" }}
             >
               Change
@@ -400,10 +408,11 @@ const CompanyRegister: React.FC = () => {
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                   <div>
-                    <label style={labelStyle}>Phone</label>
+                    <label style={labelStyle}>Phone *</label>
                     <input
                       style={{ ...inputStyle("phone"), borderColor: phoneError ? "#F87171" : focusedField === "phone" ? "#7B6CF6" : "rgba(255,255,255,0.08)" }}
                       type="tel"
+                      required
                       value={form.phone}
                       onChange={(e) => { const formatted = formatPhone(e.target.value); setForm({ ...form, phone: formatted }); if (phoneError) validatePhone(formatted); }}
                       onFocus={() => setFocusedField("phone")}
@@ -415,14 +424,14 @@ const CompanyRegister: React.FC = () => {
                     )}
                   </div>
                   <div>
-                    <label style={labelStyle}>DOT Number</label>
+                    <label style={labelStyle}>Extension</label>
                     <input
                       style={inputStyle("dotNumber")}
                       value={form.dotNumber}
                       onChange={(e) => setForm({ ...form, dotNumber: e.target.value })}
                       onFocus={() => setFocusedField("dotNumber")}
                       onBlur={() => setFocusedField(null)}
-                      placeholder="Optional"
+                      placeholder="123"
                     />
                   </div>
                 </div>
@@ -453,9 +462,9 @@ const CompanyRegister: React.FC = () => {
                       onFocus={() => setFocusedField("plan")}
                       onBlur={() => setFocusedField(null)}
                     >
-                      <option value="driver">Driver Mgmt — $49/mo</option>
-                      <option value="vehicle">Fleet Ops — $49/mo</option>
-                      <option value="bundle">Fleet Bundle — $79/mo ✦</option>
+                      <option value="driver">Driver Mgmt — {form.billing === "annual" ? "$39" : "$49"}/mo</option>
+                      <option value="vehicle">Fleet Ops — {form.billing === "annual" ? "$39" : "$49"}/mo</option>
+                      <option value="bundle">Fleet Bundle — {form.billing === "annual" ? "$63" : "$79"}/mo ✦</option>
                     </select>
                   </div>
                   <div>

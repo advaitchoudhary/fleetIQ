@@ -366,10 +366,128 @@ const sendDailyDigestEmail = async (email, name, orgName, sections) => {
   console.log(`✅ Daily digest sent to ${email}`);
 };
 
+// Warns a company admin that their free trial is about to expire
+const sendTrialExpiringEmail = async (email, orgName, daysLeft, trialEndsAt) => {
+  const resend = getClient();
+  if (!resend) {
+    console.warn("⚠️  RESEND_API_KEY not set. Skipping trial expiring email.");
+    return;
+  }
+
+  const expiryDate = new Date(trialEndsAt).toLocaleDateString("en-US", {
+    weekday: "long", month: "long", day: "numeric", year: "numeric",
+  });
+
+  const urgencyColor = daysLeft <= 1 ? "#ef4444" : "#f59e0b";
+  const urgencyBg   = daysLeft <= 1 ? "#fef2f2" : "#fffbeb";
+
+  const html = emailShell(
+    `FleetIQ — Your Trial Ends in ${daysLeft} Day${daysLeft === 1 ? "" : "s"}`,
+    `<p>Dear <strong>${orgName}</strong> team,</p>
+    <p>Your FleetIQ free trial expires in <strong>${daysLeft} day${daysLeft === 1 ? "" : "s"}</strong>.</p>
+    <div style="background:${urgencyBg};border-left:4px solid ${urgencyColor};padding:14px 18px;border-radius:4px;margin:20px 0;">
+      <strong style="color:${urgencyColor};">Trial expires on ${expiryDate}</strong><br>
+      <span style="font-size:13px;color:#374151;">After this date your team will lose access to all FleetIQ features until you subscribe.</span>
+    </div>
+    <p>To keep uninterrupted access, add a payment method and choose a plan now.</p>
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${process.env.CLIENT_URL || "https://fleetiqlogistics.com"}/subscription"
+         style="display:inline-block;background:#4F46E5;color:#fff;padding:13px 32px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:15px;">
+        View Plans &amp; Subscribe →
+      </a>
+    </div>
+    <p>Questions? Reply to this email or contact our support team anytime.</p>
+    <p>Best regards,<br><strong>FleetIQ Team</strong></p>`
+  );
+
+  await resend.emails.send({
+    from: FROM(),
+    to: email,
+    subject: `Action Required: Your FleetIQ Trial Ends in ${daysLeft} Day${daysLeft === 1 ? "" : "s"}`,
+    html,
+  });
+
+  console.log(`✅ Trial expiring (${daysLeft}d) email sent to ${email}`);
+};
+
+// Notifies a company admin that their free trial has expired and access is suspended
+const sendTrialExpiredEmail = async (email, orgName) => {
+  const resend = getClient();
+  if (!resend) {
+    console.warn("⚠️  RESEND_API_KEY not set. Skipping trial expired email.");
+    return;
+  }
+
+  const html = emailShell(
+    "FleetIQ — Your Free Trial Has Ended",
+    `<p>Dear <strong>${orgName}</strong> team,</p>
+    <div class="warning">
+      <strong>Your 14-day free trial has expired.</strong> Your team's access to FleetIQ features has been suspended.
+    </div>
+    <p>Your data is safe — subscribe to any plan to restore full access immediately. No data is deleted during suspension.</p>
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${process.env.CLIENT_URL || "https://fleetiqlogistics.com"}/subscription"
+         style="display:inline-block;background:#4F46E5;color:#fff;padding:13px 32px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:15px;">
+        Reactivate My Account →
+      </a>
+    </div>
+    <p>Questions? Reply to this email and we'll help you get back up and running.</p>
+    <p>Best regards,<br><strong>FleetIQ Team</strong></p>`
+  );
+
+  await resend.emails.send({
+    from: FROM(),
+    to: email,
+    subject: "Your FleetIQ Trial Has Expired — Reactivate to Restore Access",
+    html,
+  });
+
+  console.log(`✅ Trial expired email sent to ${email}`);
+};
+
+// Notifies a company admin that their subscription has been cancelled
+const sendSubscriptionCancelledEmail = async (email, orgName) => {
+  const resend = getClient();
+  if (!resend) {
+    console.warn("⚠️  RESEND_API_KEY not set. Skipping subscription cancelled email.");
+    return;
+  }
+
+  const html = emailShell(
+    "FleetIQ — Subscription Cancelled",
+    `<p>Dear <strong>${orgName}</strong> team,</p>
+    <p>We've confirmed that your FleetIQ subscription has been <strong>cancelled</strong>.</p>
+    <div class="warning">
+      Your team's access to FleetIQ features has been suspended. Your data remains safe and will be retained.
+    </div>
+    <p>If you cancelled by mistake or would like to resubscribe, you can restore access at any time from your subscription page.</p>
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${process.env.CLIENT_URL || "https://fleetiqlogistics.com"}/subscription"
+         style="display:inline-block;background:#4F46E5;color:#fff;padding:13px 32px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:15px;">
+        Resubscribe →
+      </a>
+    </div>
+    <p>Thank you for using FleetIQ. We hope to see you back soon.</p>
+    <p>Best regards,<br><strong>FleetIQ Team</strong></p>`
+  );
+
+  await resend.emails.send({
+    from: FROM(),
+    to: email,
+    subject: "Your FleetIQ Subscription Has Been Cancelled",
+    html,
+  });
+
+  console.log(`✅ Subscription cancelled email sent to ${email}`);
+};
+
 module.exports = {
   sendDriverCredentialsEmail,
   sendDriverApplicationApprovedEmail,
   sendTimesheetApprovedEmail,
   sendInvoiceEmail,
   sendDailyDigestEmail,
+  sendTrialExpiringEmail,
+  sendTrialExpiredEmail,
+  sendSubscriptionCancelledEmail,
 };

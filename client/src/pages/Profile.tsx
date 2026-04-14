@@ -197,9 +197,11 @@ const Profile: React.FC = () => {
                 {getInitials(driver.name)}
               </div>
             )}
-            <div style={{ position: "absolute" as const, bottom: "-8px", right: "-8px", background: "var(--t-surface)", borderRadius: "50%", padding: "2px", border: "1px solid var(--t-border)" }}>
-              <FaCheckCircle size={14} color="var(--t-success)" />
-            </div>
+            {(driver.status || "").toLowerCase() === "active" && (
+              <div style={{ position: "absolute" as const, bottom: "-8px", right: "-8px", background: "var(--t-surface)", borderRadius: "50%", padding: "2px", border: "1px solid var(--t-border)" }}>
+                <FaCheckCircle size={14} color="var(--t-success)" />
+              </div>
+            )}
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px" }}>

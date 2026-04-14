@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL, FILE_BASE_URL } from "../utils/env";
 import Navbar from "./Navbar";
-import { FaArrowLeft } from "react-icons/fa";
+import { FaArrowLeft, FaCheck } from "react-icons/fa";
 
 const DetailedTimesheet: React.FC = () => {
   const { id } = useParams();
@@ -67,7 +67,7 @@ const DetailedTimesheet: React.FC = () => {
     const searchParams = new URLSearchParams(location.search);
 
     // Build the back URL with preserved filters
-    let backUrl = "/applications";
+    let backUrl = "/all-timesheets";
     const params: string[] = [];
 
     if (searchParams.get("filter")) params.push(`filter=${searchParams.get("filter")}`);
@@ -113,15 +113,19 @@ const DetailedTimesheet: React.FC = () => {
     useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
         if (event.key === 'Escape') {
-          handleBackClick();
+          if (selectedImageIndex !== null) {
+            setSelectedImageIndex(null);
+          } else {
+            handleBackClick();
+          }
         }
       };
-  
+
       window.addEventListener('keydown', handleKeyDown);
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
       };
-    }, []);
+    }, [selectedImageIndex]);
 
   useEffect(() => {
     fetchAllDrivers();
@@ -509,7 +513,7 @@ const DetailedTimesheet: React.FC = () => {
           <p style={{ margin: "0 0 14px", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>SHIFT METRICS</p>
           {([
             ["🕐", "Start / End Time", `${timesheet.startTime || "—"} — ${timesheet.endTime || "—"}`],
-            ["⏱", "Total Duration", timesheet.totalHours ? `${timesheet.totalHours} hrs` : "—"],
+            ["⏱", "Total Duration", timesheet.totalHours ? `${timesheet.totalHours}` : "—"],
             ["🏢", "Customer", timesheet.customer || "—"],
             ["📦", "Job Category", timesheet.category || "—"],
           ] as [string, string, string][]).map(([icon, label, value]) => (
@@ -636,7 +640,7 @@ const DetailedTimesheet: React.FC = () => {
                               style={styles.correctButton}
                               title="Mark as Correct"
                             >
-                              ✅
+                              <FaCheck size={11} />
                             </button>
                           )}
                         </div>
@@ -672,7 +676,7 @@ const DetailedTimesheet: React.FC = () => {
                                   style={styles.correctButton}
                                   title="Mark as Correct"
                                 >
-                                  ✅
+                                  <FaCheck size={11} />
                                 </button>
                               )}
                             </div>
@@ -693,7 +697,7 @@ const DetailedTimesheet: React.FC = () => {
                                   style={styles.correctButton}
                                   title="Mark as Correct"
                                 >
-                                  ✅
+                                  <FaCheck size={11} />
                                 </button>
                               )}
                             </div>
@@ -714,7 +718,7 @@ const DetailedTimesheet: React.FC = () => {
                                   style={styles.correctButton}
                                   title="Mark as Correct"
                                 >
-                                  ✅
+                                  <FaCheck size={11} />
                                 </button>
                               )}
                             </div>
@@ -744,7 +748,7 @@ const DetailedTimesheet: React.FC = () => {
                             style={styles.correctButton}
                             title="Mark as Correct"
                           >
-                            ✅
+                            <FaCheck size={11} />
                           </button>
                         )}
                       </div>
@@ -767,7 +771,7 @@ const DetailedTimesheet: React.FC = () => {
                             style={styles.correctButton}
                             title="Mark as Correct"
                           >
-                            ✅
+                            <FaCheck size={11} />
                           </button>
                         )}
                       </div>
@@ -795,7 +799,7 @@ const DetailedTimesheet: React.FC = () => {
                             style={styles.correctButton}
                             title="Mark as Correct"
                           >
-                            ✅
+                            <FaCheck size={11} />
                           </button>
                         )}
                       </div>
@@ -826,7 +830,7 @@ const DetailedTimesheet: React.FC = () => {
                       style={styles.correctButton}
                       title="Mark as Correct"
                     >
-                      ✅
+                      <FaCheck size={11} />
                     </button>
                   )}
                 </div>
@@ -875,7 +879,7 @@ const DetailedTimesheet: React.FC = () => {
                           style={styles.correctButton}
                           title="Mark as Correct"
                         >
-                          ✅
+                          <FaCheck size={11} />
                         </button>
                       )}
                     </div>
@@ -894,7 +898,7 @@ const DetailedTimesheet: React.FC = () => {
                           style={styles.correctButton}
                           title="Mark as Correct"
                         >
-                          ✅
+                          <FaCheck size={11} />
                         </button>
                       )}
                     </div>
@@ -927,7 +931,7 @@ const DetailedTimesheet: React.FC = () => {
                           style={styles.correctButton}
                           title="Mark as Correct"
                         >
-                          ✅
+                          <FaCheck size={11} />
                         </button>
                       )}
                     </div>
@@ -951,7 +955,7 @@ const DetailedTimesheet: React.FC = () => {
                           style={styles.correctButton}
                           title="Mark as Correct"
                         >
-                          ✅
+                          <FaCheck size={11} />
                         </button>
                       )}
                     </div>
@@ -970,7 +974,7 @@ const DetailedTimesheet: React.FC = () => {
                           style={styles.correctButton}
                           title="Mark as Correct"
                         >
-                          ✅
+                          <FaCheck size={11} />
                         </button>
                       )}
                     </div>
@@ -1003,7 +1007,7 @@ const DetailedTimesheet: React.FC = () => {
                           style={styles.correctButton}
                           title="Mark as Correct"
                         >
-                          ✅
+                          <FaCheck size={11} />
                         </button>
                       )}
                     </div>
@@ -1028,7 +1032,7 @@ const DetailedTimesheet: React.FC = () => {
                             style={styles.correctButton}
                             title="Mark as Correct"
                           >
-                            ✅
+                            <FaCheck size={11} />
                           </button>
                         )}
                       </div>
@@ -1047,7 +1051,7 @@ const DetailedTimesheet: React.FC = () => {
                             style={styles.correctButton}
                             title="Mark as Correct"
                           >
-                            ✅
+                            <FaCheck size={11} />
                           </button>
                         )}
                       </div>
@@ -1076,7 +1080,7 @@ const DetailedTimesheet: React.FC = () => {
                             style={styles.correctButton}
                             title="Mark as Correct"
                           >
-                            ✅
+                            <FaCheck size={11} />
                           </button>
                         )}
                       </div>
@@ -1144,8 +1148,7 @@ const DetailedTimesheet: React.FC = () => {
                   try {
                     await axios.put(`${API_BASE_URL}/timesheet/${id}`, formData);
                     await axios.put(`${API_BASE_URL}/timesheet/${id}/status`, { status: "approved" });
-                    alert("Timesheet updated and approved successfully.");
-                    window.location.reload();
+                    navigate("/all-timesheets");
                   } catch (err) {
                     alert("Failed to update or approve timesheet.");
                   }
@@ -1172,6 +1175,7 @@ const DetailedTimesheet: React.FC = () => {
                   try {
                     await axios.put(`${API_BASE_URL}/timesheet/${id}/status`, { status: "rejected" });
                     alert("Timesheet rejected.");
+                    window.location.reload();
                   } catch (err) {
                     alert("Failed to reject timesheet.");
                   }
@@ -1294,11 +1298,17 @@ const styles: Record<string, React.CSSProperties> = {
     gap: "10px",
   },
   correctButton: {
-    background: "transparent",
-    border: "none",
+    width: "28px",
+    height: "28px",
+    borderRadius: "50%",
+    background: "rgba(16,185,129,0.1)",
+    border: "1px solid rgba(16,185,129,0.3)",
     cursor: "pointer",
-    fontSize: "18px",
     color: "var(--t-success)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
   readOnlyInput: {
     width: "100%",

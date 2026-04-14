@@ -4,11 +4,11 @@ import axios from "axios";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 import {
-  FaUsers, FaClipboardList, FaFileAlt, FaCreditCard, FaHistory,
+  FaUsers, FaFileAlt, FaCreditCard, FaHistory,
   FaEnvelope, FaTruck, FaWrench, FaCheckSquare, FaGasPump,
   FaBox, FaShieldAlt, FaChartBar, FaCalendarAlt, FaTools,
   FaLock, FaCheckCircle, FaExternalLinkAlt,
-  FaExclamationCircle,
+  FaExclamationCircle, FaClipboardList,
 } from "react-icons/fa";
 
 const STATUS_CFG: Record<string, { bg: string; border: string; color: string; label: string }> = {
@@ -21,7 +21,9 @@ const STATUS_CFG: Record<string, { bg: string; border: string; color: string; la
 
 const DRIVER_FEATURES = [
   { icon: FaUsers,         title: "Drivers",          desc: "View all drivers, filter by status and manage compliance.",             path: "/users",               accent: "var(--t-indigo)", badge: null         },
-  { icon: FaClipboardList, title: "Applications",      desc: "Onboard new fleet operators and manage driver background checks.",      path: "/driver-applications", accent: "var(--t-indigo)", badge: null         },
+  { icon: FaExclamationCircle, title: "Doc Expiry",   desc: "Licence and work authorization expiry across all drivers.",             path: "/expiry-dashboard",    accent: "var(--t-error)",   badge: null         },
+  { icon: FaClipboardList,    title: "Driver Notes",  desc: "Fleet-wide log of notes, warnings, incidents and compliments.",          path: "/driver-notes",        accent: "var(--t-indigo)", badge: null         },
+
   { icon: FaFileAlt,       title: "Timesheets",        desc: "Approve hours worked and manage shift rotations for the fleet.",        path: "/applications",        accent: "var(--t-warning)", badge: "pending"    },
   { icon: FaCreditCard,    title: "Payments",          desc: "Execute payroll, review expenses and track operator bonuses.",          path: "/payments",            accent: "var(--t-indigo)", badge: null         },
   { icon: FaHistory,       title: "Payment History",   desc: "Full audit trail of all driver payouts and transactions.",             path: "/payment-history",     accent: "var(--t-indigo)", badge: null         },
@@ -80,8 +82,12 @@ const AdminHome: React.FC = () => {
   const plan   = subscription?.plan   || "inactive";
   const status = subscription?.status || "inactive";
   const sc     = STATUS_CFG[status]   || STATUS_CFG.inactive;
-  const showDriver  = ["bundle", "driver"].includes(plan)  || status === "trialing";
-  const showVehicle = ["bundle", "vehicle"].includes(plan) || status === "trialing";
+  // Features are only accessible when the subscription is genuinely active or trialing.
+  // An expired trial returns status="inactive" from the server, so both checks are needed:
+  // the plan must include the module AND the subscription must be in an active/trialing state.
+  const isSubscriptionActive = status === "active" || status === "trialing";
+  const showDriver  = isSubscriptionActive && ["bundle", "driver"].includes(plan);
+  const showVehicle = isSubscriptionActive && ["bundle", "vehicle"].includes(plan);
   const trialDaysLeft = subscription?.trialEndsAt
     ? Math.max(0, Math.ceil((new Date(subscription.trialEndsAt).getTime() - Date.now()) / 86400000))
     : null;
@@ -171,6 +177,47 @@ const AdminHome: React.FC = () => {
             fontSize: "13px", color: "var(--t-warning)", display: "flex", alignItems: "center", gap: "10px",
           }}>
             <FaExclamationCircle size={14} /> Your last payment failed. Please update your payment method to restore full access.
+          </div>
+        )}
+
+        {/* Expired trial / inactive subscription warning */}
+        {!loading && status === "inactive" && (
+          <div style={{
+            background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.2)",
+            borderRadius: "10px", padding: "14px 18px", marginBottom: "32px",
+            fontSize: "13px", color: "var(--t-error)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", flexWrap: "wrap",
+          }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <FaExclamationCircle size={14} />
+              {subscription?.trialEndsAt
+                ? "Your free trial has expired. Subscribe to restore access to all features."
+                : "No active subscription. Choose a plan to unlock all features."}
+            </span>
+            <button
+              onClick={() => navigate("/subscription")}
+              style={{ padding: "6px 14px", background: "var(--t-error)", color: "#fff", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
+            >
+              View Plans
+            </button>
+          </div>
+        )}
+
+        {/* Cancelled subscription warning */}
+        {!loading && status === "cancelled" && (
+          <div style={{
+            background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.2)",
+            borderRadius: "10px", padding: "14px 18px", marginBottom: "32px",
+            fontSize: "13px", color: "var(--t-error)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", flexWrap: "wrap",
+          }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <FaExclamationCircle size={14} /> Your subscription has been cancelled. Resubscribe to restore access.
+            </span>
+            <button
+              onClick={() => navigate("/subscription")}
+              style={{ padding: "6px 14px", background: "var(--t-error)", color: "#fff", border: "none", borderRadius: "6px", fontSize: "12px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
+            >
+              Resubscribe
+            </button>
           </div>
         )}
 

@@ -27,4 +27,18 @@ async function testConnection(apiToken) {
   return response.status === 200;
 }
 
-module.exports = { getPositions, testConnection };
+async function listVehicles(apiToken) {
+  const response = await axios.get("https://api.samsara.com/fleet/vehicles", {
+    headers: { Authorization: `Bearer ${apiToken}` },
+    params: { limit: 512 },
+    timeout: 15000,
+  });
+  const data = response.data?.data || [];
+  return data.map(v => ({
+    id: v.id,
+    name: v.name || v.id,
+    serial: v.id, // Samsara uses vehicle ID as the pairing key
+  }));
+}
+
+module.exports = { getPositions, testConnection, listVehicles };

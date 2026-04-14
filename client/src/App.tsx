@@ -1,8 +1,8 @@
 import React, { Suspense } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
-import FileDriverApplication from "./pages/FileDriverApplication";
+
 import SubmitTimesheet from "./pages/SubmitTimesheet";
 import DriverHome from "./pages/DriverHome";
 import DriverNotifications from "./pages/DriverNotifications";
@@ -19,7 +19,8 @@ import MyTimesheet from "./pages/MyTimesheet";
 import DetailedTimesheet from "./pages/DetailedTimesheet";
 import Logout from "./pages/Logout";
 import ChangePassword from "./pages/ChangePassword";
-import DriverApplications from "./pages/DriverApplications";
+import ExpiryDashboard from "./pages/ExpiryDashboard";
+import DriverNotesPage from "./pages/DriverNotesPage";
 import Vehicles from "./pages/Vehicles";
 import Maintenance from "./pages/Maintenance";
 import Inspections from "./pages/Inspections";
@@ -38,12 +39,14 @@ import CompanyRegister from "./pages/CompanyRegister";
 import OrgSelector from "./pages/OrgSelector";
 const Tracking = React.lazy(() => import("./pages/Tracking"));
 import IFTA from "./pages/IFTA";
+import Integrations from "./pages/Integrations";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ChatWidget from "./components/ChatWidget";
+import CookieBanner from "./components/CookieBanner";
 import { useAuth } from "./contexts/AuthContext";
 
 const AuthenticatedChat: React.FC = () => {
@@ -51,16 +54,15 @@ const AuthenticatedChat: React.FC = () => {
   return user ? <ChatWidget /> : null;
 };
 
-const App: React.FC = () => {
+const AnimatedRoutes: React.FC = () => {
+  const location = useLocation();
   return (
-    <ThemeProvider>
-    <AuthProvider>
-      <AuthenticatedChat />
+    <div key={location.pathname} className="page-enter">
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/file-application" element={<FileDriverApplication />} />
+
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
 
@@ -130,8 +132,11 @@ const App: React.FC = () => {
           }
         />
         <Route path="/drivers" element={<Navigate to="/users" replace />} />
+        <Route path="/expiry-dashboard" element={<ProtectedRoute requiredRole="admin"><ExpiryDashboard /></ProtectedRoute>} />
+        <Route path="/driver-notes" element={<ProtectedRoute requiredRole="admin"><DriverNotesPage /></ProtectedRoute>} />
+        <Route path="/applications" element={<Navigate to="/all-timesheets" replace />} />
         <Route
-          path="/applications"
+          path="/all-timesheets"
           element={
             <ProtectedRoute requiredRole="admin">
               <Applications />
@@ -165,14 +170,6 @@ const App: React.FC = () => {
           }
         />
 
-        <Route
-          path="/driver-applications"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <DriverApplications />
-            </ProtectedRoute>
-          }
-        />
 
         <Route
           path="/my-info"
@@ -236,6 +233,7 @@ const App: React.FC = () => {
         <Route path="/scheduling" element={<ProtectedRoute requiredRole="admin"><Scheduling /></ProtectedRoute>} />
         <Route path="/tracking" element={<ProtectedRoute requiredRole="admin"><Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "#6b7280" }}>Loading map...</div>}><Tracking /></Suspense></ProtectedRoute>} />
         <Route path="/ifta" element={<ProtectedRoute><IFTA /></ProtectedRoute>} />
+        <Route path="/integrations" element={<ProtectedRoute requiredRole="admin"><Integrations /></ProtectedRoute>} />
 
         {/* Phase 3 — Driver Payments */}
         <Route
@@ -299,7 +297,18 @@ const App: React.FC = () => {
           }
         />
       </Routes>
-    </AuthProvider>
+    </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <ThemeProvider>
+      <AuthProvider>
+        <AuthenticatedChat />
+        <CookieBanner />
+        <AnimatedRoutes />
+      </AuthProvider>
     </ThemeProvider>
   );
 };

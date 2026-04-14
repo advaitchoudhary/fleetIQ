@@ -5,6 +5,32 @@ import { FaGasPump, FaPlus, FaEdit, FaTrashAlt, FaSearch } from "react-icons/fa"
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
+const IFTA_JURISDICTIONS = [
+  // US States
+  { code: "AL", name: "Alabama" }, { code: "AZ", name: "Arizona" }, { code: "AR", name: "Arkansas" },
+  { code: "CA", name: "California" }, { code: "CO", name: "Colorado" }, { code: "CT", name: "Connecticut" },
+  { code: "DE", name: "Delaware" }, { code: "DC", name: "District of Columbia" }, { code: "FL", name: "Florida" },
+  { code: "GA", name: "Georgia" }, { code: "ID", name: "Idaho" }, { code: "IL", name: "Illinois" },
+  { code: "IN", name: "Indiana" }, { code: "IA", name: "Iowa" }, { code: "KS", name: "Kansas" },
+  { code: "KY", name: "Kentucky" }, { code: "LA", name: "Louisiana" }, { code: "ME", name: "Maine" },
+  { code: "MD", name: "Maryland" }, { code: "MA", name: "Massachusetts" }, { code: "MI", name: "Michigan" },
+  { code: "MN", name: "Minnesota" }, { code: "MS", name: "Mississippi" }, { code: "MO", name: "Missouri" },
+  { code: "MT", name: "Montana" }, { code: "NE", name: "Nebraska" }, { code: "NV", name: "Nevada" },
+  { code: "NH", name: "New Hampshire" }, { code: "NJ", name: "New Jersey" }, { code: "NM", name: "New Mexico" },
+  { code: "NY", name: "New York" }, { code: "NC", name: "North Carolina" }, { code: "ND", name: "North Dakota" },
+  { code: "OH", name: "Ohio" }, { code: "OK", name: "Oklahoma" }, { code: "OR", name: "Oregon" },
+  { code: "PA", name: "Pennsylvania" }, { code: "RI", name: "Rhode Island" }, { code: "SC", name: "South Carolina" },
+  { code: "SD", name: "South Dakota" }, { code: "TN", name: "Tennessee" }, { code: "TX", name: "Texas" },
+  { code: "UT", name: "Utah" }, { code: "VT", name: "Vermont" }, { code: "VA", name: "Virginia" },
+  { code: "WA", name: "Washington" }, { code: "WV", name: "West Virginia" }, { code: "WI", name: "Wisconsin" },
+  { code: "WY", name: "Wyoming" },
+  // Canadian Provinces
+  { code: "AB", name: "Alberta" }, { code: "BC", name: "British Columbia" }, { code: "MB", name: "Manitoba" },
+  { code: "NB", name: "New Brunswick" }, { code: "NL", name: "Newfoundland & Labrador" },
+  { code: "NS", name: "Nova Scotia" }, { code: "ON", name: "Ontario" }, { code: "PE", name: "Prince Edward Island" },
+  { code: "QC", name: "Quebec" }, { code: "SK", name: "Saskatchewan" },
+];
+
 const emptyForm = {
   vehicleId: "",
   date: new Date().toISOString().slice(0, 10),
@@ -14,6 +40,7 @@ const emptyForm = {
   fuelType: "diesel",
   fuelStation: "",
   city: "",
+  state: "",
   notes: "",
 };
 
@@ -80,6 +107,7 @@ const FuelLogs: React.FC = () => {
       fuelType: log.fuelType || "diesel",
       fuelStation: log.fuelStation || "",
       city: log.city || "",
+      state: log.state || "",
       notes: log.notes || "",
     });
     setIsModalOpen(true);
@@ -97,6 +125,7 @@ const FuelLogs: React.FC = () => {
         odometer: form.odometer ? Number(form.odometer) : undefined,
         litres: Number(form.litres),
         pricePerLitre: Number(form.pricePerLitre),
+        state: form.state.trim() || null,
       };
       if (editingLog) {
         await axios.put(`${API_BASE_URL}/fuel-logs/${editingLog._id}`, payload, { headers });
@@ -281,7 +310,7 @@ const FuelLogs: React.FC = () => {
                       <td style={styles.td}>{l.litres?.toFixed(1)} L</td>
                       <td style={styles.td}>${l.pricePerLitre?.toFixed(3)}</td>
                       <td style={{ ...styles.td, fontWeight: 600, color: "var(--t-error)" }}>${l.totalCost?.toFixed(2)}</td>
-                      <td style={styles.td}>{[l.fuelStation, l.city].filter(Boolean).join(", ") || "—"}</td>
+                      <td style={styles.td}>{[l.fuelStation, l.city, l.state].filter(Boolean).join(", ") || "—"}</td>
                       <td style={styles.td}>
                         <div style={{ display: "flex", gap: "8px" }}>
                           <button onClick={() => openEditModal(l)} style={styles.iconBtn} title="Edit"><FaEdit size={14} /></button>
@@ -361,13 +390,29 @@ const FuelLogs: React.FC = () => {
                     {form.litres && form.pricePerLitre ? `$${(Number(form.litres) * Number(form.pricePerLitre)).toFixed(2)}` : "—"}
                   </div>
                 </div>
-                <div>
+                <div style={{ gridColumn: "1 / -1" }}>
                   <label style={styles.label}>Fuel Station</label>
                   <input style={styles.input} value={form.fuelStation} onChange={(e) => setForm({ ...form, fuelStation: e.target.value })} placeholder="e.g. Petro-Canada" />
                 </div>
                 <div>
                   <label style={styles.label}>City</label>
                   <input style={styles.input} value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+                </div>
+                <div>
+                  <label style={styles.label}>State / Province <span style={{ color: "var(--t-indigo)", fontSize: "9px", fontWeight: 700, marginLeft: "4px", letterSpacing: "0.5px" }}>IFTA</span></label>
+                  <select style={styles.input} value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })}>
+                    <option value="">— Select jurisdiction —</option>
+                    <optgroup label="🍁 Canadian Provinces">
+                      {IFTA_JURISDICTIONS.filter(j => ["AB","BC","MB","NB","NL","NS","ON","PE","QC","SK"].includes(j.code)).map(j => (
+                        <option key={j.code} value={j.code}>{j.code} — {j.name}</option>
+                      ))}
+                    </optgroup>
+                    <optgroup label="🇺🇸 US States">
+                      {IFTA_JURISDICTIONS.filter(j => !["AB","BC","MB","NB","NL","NS","ON","PE","QC","SK"].includes(j.code)).map(j => (
+                        <option key={j.code} value={j.code}>{j.code} — {j.name}</option>
+                      ))}
+                    </optgroup>
+                  </select>
                 </div>
                 <div style={{ gridColumn: "1 / -1" }}>
                   <label style={styles.label}>Notes</label>

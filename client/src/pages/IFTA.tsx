@@ -1,5 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import Navbar from "./Navbar";
+import { API_BASE_URL } from "../utils/env";
+
+interface Vehicle {
+  _id: string;
+  unitNumber: string;
+  make: string;
+  model: string;
+}
 
 interface JurisdictionRow {
   code: string;
@@ -23,18 +32,31 @@ export default function IFTA() {
   const [quarter, setQuarter] = useState("Q1");
   const [year, setYear] = useState(String(currentYear));
   const [vehicleId, setVehicleId] = useState("");
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [report, setReport] = useState<IFTAReport | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    axios.get("/api/vehicles", { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => setVehicles(res.data?.vehicles || res.data || []))
+      .catch(() => {});
+  }, []);
 
   const generate = async () => {
     setLoading(true);
     setError(null);
     setReport(null);
     try {
+      const token = localStorage.getItem("token");
       const params: Record<string, string> = { quarter, year };
-      if (vehicleId) params.vehicleId = vehicleId;
-      const { data } = await axios.get("/api/ifta/report", { params });
+      if (vehicleId.trim()) params.vehicleId = vehicleId.trim();
+      const { data } = await axios.get(`${API_BASE_URL}/ifta/report`, {
+        params,
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setReport(data);
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to generate report");
@@ -43,102 +65,179 @@ export default function IFTA() {
     }
   };
 
-  const downloadPDF = () => {
-    const params = new URLSearchParams({ quarter, year });
-    if (vehicleId) params.append("vehicleId", vehicleId);
-    window.open(`/api/ifta/report/pdf?${params}`, "_blank");
+  const downloadPDF = async () => {
+    setPdfLoading(true);
+    try {
+      const params = new URLSearchParams({ quarter, year });
+      if (vehicleId.trim()) params.append("vehicleId", vehicleId.trim());
+      const token = localStorage.getItem("token");
+      const response = await axios.get(`${API_BASE_URL}/ifta/report/pdf?${params}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: "blob",
+      });
+      const url = URL.createObjectURL(new Blob([response.data], { type: "application/pdf" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `IFTA_${quarter}_${year}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setError("Failed to download PDF. Please try again.");
+    } finally {
+      setPdfLoading(false);
+    }
   };
 
   return (
-    <div style={{ padding: "32px 24px", maxWidth: 900, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>IFTA Quarterly Report</h1>
-      <p style={{ color: "#6b7280", marginBottom: 28, fontSize: 14 }}>
-        Fuel tax mileage report across US states and Canadian provinces.
-      </p>
+    <>
+      <Navbar />
+      <div style={{ padding: "32px 36px", fontFamily: "Inter, system-ui, sans-serif" }}>
 
-      {/* Filters */}
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 24, alignItems: "flex-end" }}>
-        <div>
-          <label style={{ display: "block", fontSize: 13, color: "#374151", marginBottom: 4 }}>Quarter</label>
-          <select value={quarter} onChange={e => setQuarter(e.target.value)} style={selectStyle}>
-            {["Q1", "Q2", "Q3", "Q4"].map(q => <option key={q}>{q}</option>)}
-          </select>
+        {/* Breadcrumb */}
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-faint)", letterSpacing: "1px", marginBottom: "14px" }}>
+          FLEET OPERATIONS
         </div>
-        <div>
-          <label style={{ display: "block", fontSize: 13, color: "#374151", marginBottom: 4 }}>Year</label>
-          <select value={year} onChange={e => setYear(e.target.value)} style={selectStyle}>
-            {years.map(y => <option key={y}>{y}</option>)}
-          </select>
+
+        {/* Page header */}
+        <div style={{ marginBottom: "28px" }}>
+          <h1 style={{ margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>
+            IFTA Quarterly Report
+          </h1>
+          <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>
+            Fuel tax mileage report across US states and Canadian provinces.
+          </p>
         </div>
-        <div style={{ flex: 1, minWidth: 160 }}>
-          <label style={{ display: "block", fontSize: 13, color: "#374151", marginBottom: 4 }}>Vehicle ID (optional)</label>
-          <input value={vehicleId} onChange={e => setVehicleId(e.target.value)} placeholder="Leave blank for all vehicles" style={{ ...selectStyle, width: "100%" }} />
-        </div>
-        <button onClick={generate} disabled={loading} style={{ padding: "9px 20px", background: "#2563eb", color: "#fff", border: "none", borderRadius: 8, cursor: "pointer", fontWeight: 600, fontSize: 14, height: 38 }}>
-          {loading ? "Generating..." : "Generate Report"}
-        </button>
-      </div>
 
-      {error && <div style={{ padding: "12px 16px", background: "#fef2f2", color: "#dc2626", borderRadius: 8, marginBottom: 20, fontSize: 14 }}>❌ {error}</div>}
-
-      {loading && <div style={{ padding: "40px 0", textAlign: "center", color: "#6b7280" }}>⏳ Geocoding coordinates and calculating miles per jurisdiction…</div>}
-
-      {report && !loading && (
-        <>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+        {/* Filters */}
+        <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "14px", padding: "20px 24px", marginBottom: "24px" }}>
+          <div style={{ display: "flex", gap: "14px", flexWrap: "wrap", alignItems: "flex-end" }}>
             <div>
-              <span style={{ fontWeight: 600, fontSize: 16 }}>{report.period}</span>
-              <span style={{ color: "#6b7280", fontSize: 13, marginLeft: 12 }}>{report.jurisdictions.length} jurisdictions</span>
+              <label style={{ display: "block", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", marginBottom: "7px" }}>QUARTER</label>
+              <select value={quarter} onChange={e => setQuarter(e.target.value)} style={selectStyle}>
+                {["Q1", "Q2", "Q3", "Q4"].map(q => <option key={q}>{q}</option>)}
+              </select>
             </div>
-            <button onClick={downloadPDF} style={{ padding: "8px 16px", background: "#fff", color: "#374151", border: "1px solid #d1d5db", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 500 }}>
-              ⬇ Download PDF
+            <div>
+              <label style={{ display: "block", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", marginBottom: "7px" }}>YEAR</label>
+              <select value={year} onChange={e => setYear(e.target.value)} style={selectStyle}>
+                {years.map(y => <option key={y}>{y}</option>)}
+              </select>
+            </div>
+            <div style={{ flex: 1, minWidth: "180px" }}>
+              <label style={{ display: "block", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", marginBottom: "7px" }}>VEHICLE (OPTIONAL)</label>
+              <select value={vehicleId} onChange={e => setVehicleId(e.target.value)} style={{ ...selectStyle, width: "100%" }}>
+                <option value="">All Vehicles</option>
+                {vehicles.map(v => (
+                  <option key={v._id} value={v._id}>{v.unitNumber} — {v.make} {v.model}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={generate}
+              disabled={loading}
+              style={{ padding: "10px 22px", background: loading ? "var(--t-text-ghost)" : "var(--t-accent)", color: "#fff", border: "none", borderRadius: "10px", cursor: loading ? "not-allowed" : "pointer", fontWeight: 700, fontSize: "13px", height: "40px", fontFamily: "Inter, system-ui, sans-serif", boxShadow: loading ? "none" : "0 4px 14px rgba(79,70,229,0.35)", transition: "all 0.15s" }}
+            >
+              {loading ? "Generating…" : "Generate Report"}
             </button>
           </div>
+        </div>
 
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-              <thead>
-                <tr style={{ background: "#f9fafb", borderBottom: "2px solid #e5e7eb" }}>
-                  {["Jurisdiction", "Miles Driven", "Fuel Purchased (L)", "Tax Rate ($/L)", "Net Tax Due"].map(h => (
-                    <th key={h} style={{ padding: "10px 16px", textAlign: h === "Jurisdiction" ? "left" : "right", fontWeight: 600, color: "#374151", whiteSpace: "nowrap" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {report.jurisdictions.map((row, i) => (
-                  <tr key={row.code} style={{ borderBottom: "1px solid #f3f4f6", background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
-                    <td style={{ padding: "10px 16px", fontWeight: 600 }}>{row.code}</td>
-                    <td style={{ padding: "10px 16px", textAlign: "right" }}>{row.milesDriven.toLocaleString()}</td>
-                    <td style={{ padding: "10px 16px", textAlign: "right" }}>{row.fuelPurchasedLitres.toLocaleString()}</td>
-                    <td style={{ padding: "10px 16px", textAlign: "right" }}>${row.taxRatePerLitre.toFixed(4)}</td>
-                    <td style={{ padding: "10px 16px", textAlign: "right", fontWeight: 500 }}>${row.netTaxDue.toFixed(2)}</td>
-                  </tr>
-                ))}
-                <tr style={{ background: "#f0f9ff", borderTop: "2px solid #bae6fd", fontWeight: 700 }}>
-                  <td style={{ padding: "12px 16px" }}>TOTAL</td>
-                  <td style={{ padding: "12px 16px", textAlign: "right" }}>{report.totals.milesDriven.toFixed(2)}</td>
-                  <td style={{ padding: "12px 16px", textAlign: "right" }}>{report.totals.fuelPurchasedLitres.toFixed(2)}</td>
-                  <td style={{ padding: "12px 16px", textAlign: "right" }}>—</td>
-                  <td style={{ padding: "12px 16px", textAlign: "right" }}>${report.totals.netTaxDue.toFixed(2)}</td>
-                </tr>
-              </tbody>
-            </table>
+        {/* Error */}
+        {error && (
+          <div style={{ padding: "12px 16px", background: "var(--t-error-bg)", color: "var(--t-error)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "10px", marginBottom: "20px", fontSize: "13px", fontWeight: 500 }}>
+            ❌ {error}
           </div>
+        )}
 
-          {report.jurisdictions.length === 0 && (
-            <p style={{ textAlign: "center", color: "#6b7280", padding: "40px 0" }}>No trip data found for {report.period}. Ensure vehicles have completed trips and fuel logs have State/Province filled in.</p>
-          )}
-        </>
-      )}
-    </div>
+        {/* Loading */}
+        {loading && (
+          <div style={{ padding: "48px 0", textAlign: "center", color: "var(--t-text-ghost)", fontSize: "14px" }}>
+            ⏳ Geocoding coordinates and calculating miles per jurisdiction…
+          </div>
+        )}
+
+        {/* Report */}
+        {report && !loading && (
+          <>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <div>
+                <span style={{ fontWeight: 700, fontSize: "16px", color: "var(--t-text)" }}>{report.period}</span>
+                <span style={{ color: "var(--t-text-ghost)", fontSize: "13px", marginLeft: "12px" }}>
+                  {report.jurisdictions.length} jurisdiction{report.jurisdictions.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+              <button
+                onClick={downloadPDF}
+                disabled={pdfLoading}
+                style={{ padding: "9px 18px", background: "var(--t-surface)", color: pdfLoading ? "var(--t-text-ghost)" : "var(--t-text-faint)", border: "1px solid var(--t-border-strong)", borderRadius: "10px", cursor: pdfLoading ? "not-allowed" : "pointer", fontSize: "13px", fontWeight: 600, fontFamily: "Inter, system-ui, sans-serif", transition: "all 0.15s" }}
+              >
+                {pdfLoading ? "Downloading…" : "⬇ Download PDF"}
+              </button>
+            </div>
+
+            <div style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "14px", overflow: "hidden" }}>
+              {report.jurisdictions.length === 0 ? (
+                <div style={{ padding: "60px", textAlign: "center" }}>
+                  <p style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 600, color: "var(--t-text)" }}>No trip data found for {report.period}</p>
+                  <p style={{ margin: 0, fontSize: "13px", color: "var(--t-text-ghost)" }}>
+                    Ensure vehicles have completed trips and fuel logs have State/Province filled in.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                    <thead>
+                      <tr style={{ borderBottom: "1px solid var(--t-border)" }}>
+                        {["Jurisdiction", "Miles Driven", "Fuel Purchased (L)", "Tax Rate ($/L)", "Net Tax Due"].map(h => (
+                          <th key={h} style={{ padding: "13px 18px", textAlign: h === "Jurisdiction" ? "left" : "right", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", whiteSpace: "nowrap" }}>
+                            {h}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {report.jurisdictions.map((row, i) => (
+                        <tr key={row.code} style={{ borderBottom: "1px solid var(--t-border)", background: i % 2 === 1 ? "var(--t-stripe)" : "transparent" }}>
+                          <td style={{ padding: "12px 18px", fontWeight: 600, color: "var(--t-text)" }}>{row.code}</td>
+                          <td style={{ padding: "12px 18px", textAlign: "right", color: "var(--t-text-secondary)" }}>{row.milesDriven.toLocaleString()}</td>
+                          <td style={{ padding: "12px 18px", textAlign: "right", color: "var(--t-text-secondary)" }}>{row.fuelPurchasedLitres.toLocaleString()}</td>
+                          <td style={{ padding: "12px 18px", textAlign: "right", color: "var(--t-text-secondary)" }}>${row.taxRatePerLitre.toFixed(4)}</td>
+                          <td style={{ padding: "12px 18px", textAlign: "right", fontWeight: 600, color: "var(--t-text)" }}>${row.netTaxDue.toFixed(2)}</td>
+                        </tr>
+                      ))}
+                      <tr style={{ background: "var(--t-indigo-bg)", borderTop: "2px solid rgba(79,70,229,0.25)", fontWeight: 700 }}>
+                        <td style={{ padding: "13px 18px", color: "var(--t-text)" }}>TOTAL</td>
+                        <td style={{ padding: "13px 18px", textAlign: "right", color: "var(--t-text)" }}>{report.totals.milesDriven.toFixed(2)}</td>
+                        <td style={{ padding: "13px 18px", textAlign: "right", color: "var(--t-text)" }}>{report.totals.fuelPurchasedLitres.toFixed(2)}</td>
+                        <td style={{ padding: "13px 18px", textAlign: "right", color: "var(--t-text)" }}>—</td>
+                        <td style={{ padding: "13px 18px", textAlign: "right", color: "var(--t-text)" }}>${report.totals.netTaxDue.toFixed(2)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Footer count */}
+            {report.jurisdictions.length > 0 && (
+              <p style={{ margin: "12px 0 0", fontSize: "12px", color: "var(--t-text-ghost)", textAlign: "right" }}>
+                {report.jurisdictions.length} jurisdiction{report.jurisdictions.length !== 1 ? "s" : ""} · Generated {new Date(report.generatedAt).toLocaleString()}
+              </p>
+            )}
+          </>
+        )}
+      </div>
+    </>
   );
 }
 
 const selectStyle: React.CSSProperties = {
-  padding: "8px 12px",
-  border: "1px solid #d1d5db",
-  borderRadius: 8,
-  fontSize: 14,
-  background: "#fff",
-  height: 38,
+  padding: "10px 14px",
+  border: "1px solid var(--t-border-strong)",
+  borderRadius: "8px",
+  fontSize: "14px",
+  background: "var(--t-input-bg)",
+  color: "var(--t-text)",
+  height: "40px",
+  fontFamily: "Inter, system-ui, sans-serif",
 };
