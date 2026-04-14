@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { FaCheckCircle, FaTruck, FaUsers, FaStar } from "react-icons/fa";
 
 const PLANS = [
@@ -66,7 +66,9 @@ const PLANS = [
 const formatPrice = (amount: number) => `$${amount}`;
 
 const Pricing: React.FC = () => {
-  const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
+  const [searchParams] = useSearchParams();
+  const billingFromUrl = searchParams.get("billing") === "annual" ? "annual" : "monthly";
+  const [billing, setBilling] = useState<"monthly" | "annual">(billingFromUrl);
   const navigate = useNavigate();
 
   return (
