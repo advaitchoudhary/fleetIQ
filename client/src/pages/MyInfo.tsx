@@ -203,7 +203,7 @@ const MyInfo: React.FC = () => {
           </div>
         )}
         <div style={styles.profileCard} data-mi-card>
-          <h3 style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-faint)", margin: "0 0 20px", paddingBottom: "14px", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", gap: "8px", textTransform: "uppercase", letterSpacing: "1px" }}>
+          <h3 style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-faint)", margin: "0 0 20px", paddingBottom: "14px", borderBottom: "1px solid var(--t-border)", display: "flex", alignItems: "center", gap: "8px", textTransform: "uppercase", letterSpacing: "1px" }}>
             Driver Information
           </h3>
           <div style={styles.profileInfo} data-mi-info-grid>
@@ -818,8 +818,8 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   heroEditBtn: {
     flexShrink: 0,
-    background: "var(--t-border)",
-    border: "1px solid rgba(255,255,255,0.12)",
+    background: "var(--t-hover-bg)",
+    border: "1px solid var(--t-border-strong)",
     color: "var(--t-text-secondary)",
     borderRadius: "10px",
     padding: "10px 20px",
@@ -861,8 +861,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     backgroundColor: "var(--t-surface)",
     padding: "28px 32px",
     borderRadius: "16px",
-    border: "1px solid rgba(255,255,255,0.07)",
-    boxShadow: "0 4px 24px rgba(0,0,0,0.3)",
+    border: "1px solid var(--t-border)",
+    boxShadow: "var(--t-shadow)",
     marginBottom: "20px",
   },
   profileTitle: {
@@ -885,7 +885,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     flexDirection: "column" as const,
     gap: "4px",
     padding: "12px 0",
-    borderBottom: "1px solid rgba(255,255,255,0.05)",
+    borderBottom: "1px solid var(--t-border)",
   },
   infoLabel: {
     fontSize: "9px",
@@ -907,7 +907,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
   inputField: {
     padding: "10px 14px",
-    border: "1px solid rgba(255,255,255,0.1)",
+    border: "1px solid var(--t-border-strong)",
     borderRadius: "8px",
     fontSize: "14px",
     backgroundColor: "var(--t-input-bg)",

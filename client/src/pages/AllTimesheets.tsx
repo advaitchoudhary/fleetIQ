@@ -705,7 +705,7 @@ const AllTimesheets: React.FC = () => {
           </div>
           <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
             <button onClick={handleExport}
-              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "10px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
+              style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "10px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
               ⬇ Export (Excel)
             </button>
             <button onClick={handleBulkApprove}
