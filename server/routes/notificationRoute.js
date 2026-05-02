@@ -12,7 +12,7 @@ const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
 
 const route = express.Router();
 
-route.post("/", protect, authorizeRoles("admin", "company_admin", "dispatcher"), createNotification);
+route.post("/", protect, authorizeRoles("admin", "company_admin", "dispatcher", "driver"), createNotification);
 route.get("/", protect, getNotifications);
 route.post("/markAllRead", protect, markAllNotificationsAsRead);
 route.post("/:id/markRead", protect, markNotificationAsRead);

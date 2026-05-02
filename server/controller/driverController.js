@@ -322,12 +322,28 @@ const changePassword = async (req, res) => {
 
 const updateDriverById = asyncHandler(async (req, res) => {
   const orgFilter = getOrgFilter(req);
+
+  // Drivers can only update their own record
+  if (req.user.role === "driver" && req.user.id !== req.params.id) {
+    return res.status(403).json({ message: "You can only update your own profile" });
+  }
+
   // Strip password fields — password changes must go through /change-password
   const { password, plainPassword, ...safeBody } = req.body;
+
+  // If caller is a driver, restrict to self-editable fields only
+  let updatePayload = safeBody;
+  if (req.user.role === "driver") {
+    const DRIVER_EDITABLE_FIELDS = ["contact", "address", "hst_gst", "business_name", "licence", "licence_expiry_date", "sinNo", "workStatus", "workAuthExpiry"];
+    updatePayload = Object.fromEntries(
+      Object.entries(safeBody).filter(([key]) => DRIVER_EDITABLE_FIELDS.includes(key))
+    );
+  }
+
   try {
     const updatedDriver = await Driver.findOneAndUpdate(
       { _id: req.params.id, ...orgFilter },
-      safeBody,
+      updatePayload,
       { new: true, runValidators: true }
     ).lean();
 

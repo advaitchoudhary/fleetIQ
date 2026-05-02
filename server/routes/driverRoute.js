@@ -25,7 +25,7 @@ const route = express.Router();
 
 route.post("/", protect, authorizeRoles("admin", "company_admin", "dispatcher"), requireDriverModule, create);
 route.get("/", protect, requireDriverModule, getAllDrivers);
-route.put("/:id", protect, authorizeRoles("admin", "company_admin", "dispatcher"), requireDriverModule, updateDriverById);
+route.put("/:id", protect, authorizeRoles("admin", "company_admin", "dispatcher", "driver"), requireDriverModule, updateDriverById);
 route.delete("/:id", protect, authorizeRoles("admin", "company_admin"), requireDriverModule, deleteDriverById);
 route.get("/check", checkUsername);
 route.get("/:id", protect, requireDriverModule, getDriverById);
