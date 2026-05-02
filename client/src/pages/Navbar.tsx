@@ -1093,6 +1093,12 @@ nav ul li a[data-driver="true"]:hover {
   background-color: rgba(99,102,241,0.12) !important;
   color: var(--t-accent) !important;
 }
+
+/* Active driver links — higher specificity wins over data-driver rule above */
+nav ul li a[style*="linear-gradient"][data-driver="true"]:hover {
+  background: linear-gradient(135deg, #4F46E5 0%, #6366f1 100%) !important;
+  color: #fff !important;
+}
 `;
 if (typeof document !== "undefined" && !document.getElementById("hide-on-mobile-style")) {
   style.id = "hide-on-mobile-style";
