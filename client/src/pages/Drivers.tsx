@@ -59,6 +59,13 @@ const Drivers: React.FC = () => {
     return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`;
   };
 
+  const validateHstGst = (value: string): string => {
+    if (!value.trim()) return ""; // optional field
+    const normalized = value.trim().replace(/\s+/g, "").toUpperCase();
+    if (!/^\d{9}RT\d{4}$/.test(normalized)) return "Invalid format. Expected 9 digits + RT + 4 digits (e.g. 123456789RT0001).";
+    return "";
+  };
+
   const validateExpiryDate = (dateStr: string): string => {
     if (!dateStr) return "";
     const date = new Date(dateStr + "T00:00:00");
@@ -91,8 +98,8 @@ const Drivers: React.FC = () => {
       }
     }, 400);
   };
-  const [addFieldErrors, setAddFieldErrors] = useState({ name: "", email: "", contact: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "", password: "" });
-  const [editFieldErrors, setEditFieldErrors] = useState({ name: "", email: "", contact: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "" });
+  const [addFieldErrors, setAddFieldErrors] = useState({ name: "", email: "", contact: "", hst_gst: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "", password: "" });
+  const [editFieldErrors, setEditFieldErrors] = useState({ name: "", email: "", contact: "", hst_gst: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "" });
   const [showAddExpiryPicker, setShowAddExpiryPicker] = useState(false);
   const [showEditExpiryPicker, setShowEditExpiryPicker] = useState(false);
   const [showAddWorkAuthPicker, setShowAddWorkAuthPicker] = useState(false);
@@ -863,8 +870,9 @@ const Drivers: React.FC = () => {
                 </div>
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>HST/GST NUMBER</label>
-                  <input type="text" placeholder="Enter HST/GST number" style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
-                    onChange={(e) => setSelectedDriver({ ...selectedDriver, hst_gst: e.target.value })} />
+                  <input type="text" placeholder="e.g. 123456789RT0001" style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${addFieldErrors.hst_gst ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { setSelectedDriver({ ...selectedDriver, hst_gst: e.target.value }); setAddFieldErrors((prev: any) => ({ ...prev, hst_gst: validateHstGst(e.target.value) })); }} />
+                  {addFieldErrors.hst_gst && <div style={{ fontSize: "11px", color: "var(--t-error)", marginTop: "4px" }}>{addFieldErrors.hst_gst}</div>}
                 </div>
               </div>
 
@@ -1061,6 +1069,7 @@ const Drivers: React.FC = () => {
                     name: !(selectedDriver.name || "").trim() ? "Name is required." : "",
                     email: !emailVal ? "Email is required." : !emailRegex.test(emailVal) ? "Enter a valid email address." : "",
                     contact: contactDigits.length > 0 && contactDigits.length !== 10 ? "Enter a valid 10-digit phone number." : "",
+                    hst_gst: validateHstGst(selectedDriver.hst_gst || ""),
                     sinNo: sinDigits.length !== 9 ? "SIN must be 9 digits." : "",
                     licence: !(selectedDriver.licence || "").trim() ? "Licence class is required." : "",
                     licence_expiry_date: validateExpiryDate(selectedDriver.licence_expiry_date || ""),
@@ -1070,7 +1079,7 @@ const Drivers: React.FC = () => {
                   setAddFieldErrors(errors);
                   if (usernameError) { setAddModalError("Please resolve the username error before submitting."); return; }
                   if (!(selectedDriver.username || "").trim()) { setAddModalError("Username is required."); return; }
-                  const hasError = errors.name || errors.email || errors.contact || errors.sinNo || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning")) || errors.workAuthExpiry || errors.password;
+                  const hasError = errors.name || errors.email || errors.contact || errors.hst_gst || errors.sinNo || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning")) || errors.workAuthExpiry || errors.password;
                   if (hasError) { setAddModalError(""); return; }
                   setAddModalError("");
                   createDriver({ ...selectedDriver, username: (selectedDriver.username || "").trim() });
@@ -1178,8 +1187,9 @@ const Drivers: React.FC = () => {
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>HST / GST NUMBER</label>
                   <input type="text" placeholder="e.g. 123456789RT0001" defaultValue={selectedDriver?.hst_gst}
-                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
-                    onChange={(e) => handleInputChange("hst_gst", e.target.value)} />
+                    style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: `1px solid ${editFieldErrors.hst_gst ? "var(--t-error)" : "var(--t-border-strong)"}`, borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const }}
+                    onChange={(e) => { handleInputChange("hst_gst", e.target.value); setEditFieldErrors((prev: any) => ({ ...prev, hst_gst: validateHstGst(e.target.value) })); }} />
+                  {editFieldErrors.hst_gst && <div style={{ fontSize: "11px", color: "var(--t-error)", marginTop: "4px" }}>{editFieldErrors.hst_gst}</div>}
                 </div>
                 <div>
                   <label style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px", display: "block", marginBottom: "7px" }}>BUSINESS NAME</label>
@@ -1502,6 +1512,7 @@ const Drivers: React.FC = () => {
                     name: !(selectedDriver.name || "").trim() ? "Name is required." : "",
                     email: !emailVal ? "Email is required." : !emailRegex.test(emailVal) ? "Enter a valid email address." : "",
                     contact: contactDigits.length > 0 && contactDigits.length !== 10 ? "Enter a valid 10-digit phone number." : "",
+                    hst_gst: validateHstGst(selectedDriver.hst_gst || ""),
                     sinNo: sinDigits.length !== 9 ? "SIN must be 9 digits." : "",
                     licence: !(selectedDriver.licence || "").trim() ? "Licence class is required." : "",
                     licence_expiry_date: validateExpiryDate(selectedDriver.licence_expiry_date || ""),
@@ -1510,7 +1521,7 @@ const Drivers: React.FC = () => {
                   setEditFieldErrors(errors);
                   if (usernameError) { setEditModalError("Please resolve the username error before submitting."); return; }
                   if (!(selectedDriver.username || "").trim()) { setEditModalError("Username is required."); return; }
-                  const hasError = errors.name || errors.email || errors.contact || errors.sinNo || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning")) || errors.workAuthExpiry;
+                  const hasError = errors.name || errors.email || errors.contact || errors.hst_gst || errors.sinNo || errors.licence || (errors.licence_expiry_date && !errors.licence_expiry_date.startsWith("Warning")) || errors.workAuthExpiry;
                   if (hasError) { setEditModalError(""); return; }
                   setEditModalError("");
                   updateDriver(selectedDriver);
