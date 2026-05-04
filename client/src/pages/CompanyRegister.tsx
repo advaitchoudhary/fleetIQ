@@ -65,8 +65,17 @@ const CompanyRegister: React.FC = () => {
     return true;
   };
 
+  const validateEmail = (value: string) => {
+    // Requires local@domain.tld — rejects ab@def (no TLD)
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value.trim());
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateEmail(form.email)) {
+      alert("Please enter a valid email address (e.g. admin@yourcompany.com).");
+      return;
+    }
     if (form.password !== form.confirmPassword) {
       alert("Passwords do not match.");
       return;
