@@ -279,8 +279,15 @@ const Login: React.FC = () => {
         {/* Footer */}
         <div style={{ paddingTop: "32px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
           <div className="fl-footer-links">
-            {["Privacy Policy", "Terms of Service", "Support"].map((link) => (
-              <span key={link} style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", cursor: "pointer" }}>{link}</span>
+            {[
+              { label: "Privacy Policy", href: "/privacy" },
+              { label: "Terms of Service", href: "/terms" },
+              { label: "Support", href: "/contact-us" },
+            ].map(({ label, href }) => (
+              <a key={label} href={href} style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", cursor: "pointer", textDecoration: "none" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.5)")}
+                onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.25)")}
+              >{label}</a>
             ))}
           </div>
           <div style={{ marginTop: "8px", fontSize: "11px", color: "rgba(255,255,255,0.15)" }}>© 2024 FleetIQ Systems. All rights reserved.</div>
