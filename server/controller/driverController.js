@@ -122,7 +122,8 @@ const updateAllDriversHours = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { email, username, password } = req.body;
+    // Strip fields that must never be set by the client on create
+    const { _id: _sid, __v: _sv, createdAt: _ca, updatedAt: _ua, password, email, username, ...safeBody } = req.body;
 
     const orgFilter = getOrgFilter(req);
     const driverExist = await Driver.findOne({ email, ...orgFilter });
@@ -158,7 +159,9 @@ const create = async (req, res) => {
     }
 
     const newDriver = new Driver({
-      ...req.body,
+      ...safeBody,
+      email,
+      username,
       organizationId: req.organizationId || null,
       driverId,
       password: hashedPassword,

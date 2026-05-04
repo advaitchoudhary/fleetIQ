@@ -31,6 +31,35 @@ const WORK_AUTH_OPTIONS = [
 const workAuthNeedsExpiry = (val: string) =>
   WORK_AUTH_OPTIONS.find((o) => o.value === val)?.hasExpiry ?? false;
 
+const INITIAL_DRIVER_STATE = {
+  name: "",
+  email: "",
+  contact: "",
+  address: "",
+  hst_gst: "",
+  business_name: "",
+  backhaulRate: "",
+  comboRate: "",
+  extraSheetEWRate: "",
+  regularBannerRate: "",
+  wholesaleRate: "",
+  voilaRate: "",
+  tcsLinehaulTrentonRate: "",
+  categoryRates: {} as Record<string, string>,
+  licence: "",
+  licence_expiry_date: "",
+  status: "Active",
+  trainings: [],
+  username: "",
+  password: "",
+  sinNo: "",
+  workStatus: "",
+  workAuthExpiry: "",
+  emergencyContact: { name: "", phone: "", relationship: "" },
+};
+
+const INITIAL_ADD_ERRORS = { name: "", email: "", contact: "", hst_gst: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "", password: "" };
+
 const Drivers: React.FC = () => {
   const navigate = useNavigate();
 
@@ -98,7 +127,7 @@ const Drivers: React.FC = () => {
       }
     }, 400);
   };
-  const [addFieldErrors, setAddFieldErrors] = useState({ name: "", email: "", contact: "", hst_gst: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "", password: "" });
+  const [addFieldErrors, setAddFieldErrors] = useState(INITIAL_ADD_ERRORS);
   const [editFieldErrors, setEditFieldErrors] = useState({ name: "", email: "", contact: "", hst_gst: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "" });
   const [showAddExpiryPicker, setShowAddExpiryPicker] = useState(false);
   const [showEditExpiryPicker, setShowEditExpiryPicker] = useState(false);
@@ -119,32 +148,7 @@ const Drivers: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedDriver, setSelectedDriver] = useState<any>({
-    name: "",
-    email: "",
-    contact: "",
-    address: "",
-    hst_gst: "",
-    business_name: "",
-    backhaulRate: "",
-    comboRate: "",
-    extraSheetEWRate: "",
-    regularBannerRate: "",
-    wholesaleRate: "",
-    voilaRate: "",
-    tcsLinehaulTrentonRate: "",
-    categoryRates: {} as Record<string, string>,
-    licence: "",
-    licence_expiry_date: "",
-    status: "Active",
-    trainings: [],
-    username: "",
-    password: generatePassword(),
-    sinNo: "",
-    workStatus: "",
-    workAuthExpiry: "",
-    emergencyContact: { name: "", phone: "", relationship: "" },
-  });
+  const [selectedDriver, setSelectedDriver] = useState<any>({ ...INITIAL_DRIVER_STATE, password: generatePassword() });
 
   const [editedDriver, setEditedDriver] = useState<any>(null);
   const [, setIsUpdateDisabled] = useState(true);
@@ -577,7 +581,7 @@ const Drivers: React.FC = () => {
               Export
             </button>
             <button
-              onClick={() => { setIsAddModalOpen(true); setAddModalError(""); setUsernameError(""); setAddFieldErrors({ name: "", email: "", contact: "", sinNo: "", licence: "", licence_expiry_date: "", workAuthExpiry: "", password: "" }); }}
+              onClick={() => { setSelectedDriver({ ...INITIAL_DRIVER_STATE, password: generatePassword() }); setAddFieldErrors(INITIAL_ADD_ERRORS); setAddModalError(""); setUsernameError(""); setIsAddModalOpen(true); }}
               style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 20px", background: "var(--t-accent)", border: "none", borderRadius: "10px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: "0 4px 14px rgba(79,70,229,0.35)" }}
             >
               + Add Driver
