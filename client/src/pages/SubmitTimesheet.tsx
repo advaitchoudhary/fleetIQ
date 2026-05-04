@@ -321,26 +321,23 @@ const SubmitTimesheet: React.FC = () => {
     console.log("🔵 Submitting timesheet:", timesheet);
     e.preventDefault();
     if (isSubmittingRef.current) return;
-    isSubmittingRef.current = true;
-    setLoading(true);
+
+    // ── All validation runs BEFORE locking submission ──────────────────────
 
     // Delay From/To required when toggle is enabled
     if (hasDelay.includes("store") && (!storeDelay.from || !storeDelay.to)) {
       setErrorMessagesList(["Store Delay is enabled — From and To times are required."]);
       setShowErrorModal(true);
-      setLoading(false);
       return;
     }
     if (hasDelay.includes("road") && (!roadDelay.from || !roadDelay.to)) {
       setErrorMessagesList(["Road Delay is enabled — From and To times are required."]);
       setShowErrorModal(true);
-      setLoading(false);
       return;
     }
     if (hasDelay.includes("other") && (!otherDelay.from || !otherDelay.to)) {
       setErrorMessagesList(["Other Delay is enabled — From and To times are required."]);
       setShowErrorModal(true);
-      setLoading(false);
       return;
     }
 
@@ -348,19 +345,16 @@ const SubmitTimesheet: React.FC = () => {
     if (hasDelay.includes("store") && storeDelay.duration && !durationRegex.test(storeDelay.duration.trim())) {
       setErrorMessagesList(["Store Delay duration format is invalid (e.g., '2 hr 30 min', '45 min')."]);
       setShowErrorModal(true);
-      setLoading(false);
       return;
     }
     if (hasDelay.includes("road") && roadDelay.duration && !durationRegex.test(roadDelay.duration.trim())) {
       setErrorMessagesList(["Road Delay duration format is invalid (e.g., '2 hr', '45 min')."]);
       setShowErrorModal(true);
-      setLoading(false);
       return;
     }
     if (hasDelay.includes("other") && otherDelay.duration && !durationRegex.test(otherDelay.duration.trim())) {
       setErrorMessagesList(["Other Delay duration format is invalid (e.g., '1 hr', '30 min')."]);
       setShowErrorModal(true);
-      setLoading(false);
       return;
     }
 
@@ -411,16 +405,17 @@ const SubmitTimesheet: React.FC = () => {
       validationErrors["endKM"] = "End KM must be greater than Start KM.";
     }
 
-    // Removed validation for Start Date < End Date
-
     if (Object.keys(validationErrors).length > 0) {
       console.warn("🟠 Validation errors found:", validationErrors);
       setErrors(validationErrors);
       setErrorMessagesList(Object.values(validationErrors));
       setShowErrorModal(true);
-      setLoading(false);
       return;
     }
+
+    // ── Validation passed — lock submission now ─────────────────────────────
+    isSubmittingRef.current = true;
+    setLoading(true);
 
     console.log("✅ Validation passed. Preparing to submit...");
 

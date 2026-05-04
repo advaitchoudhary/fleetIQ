@@ -18,6 +18,7 @@ interface Driver {
   backhaulRate?: number; comboRate?: number; extraSheetEWRate?: number;
   regularBannerRate?: number; wholesaleRate?: number; voilaRate?: number;
   tcsLinehaulTrentonRate?: number;
+  categoryRates?: Record<string, number>;
 }
 
 const Invoice: React.FC = () => {
@@ -119,6 +120,7 @@ const Invoice: React.FC = () => {
       if (sel.wholesaleRate)             rates["Wholesale"]              = sel.wholesaleRate;
       if (sel.voilaRate)                 rates["voila"]                  = sel.voilaRate;
       if (sel.tcsLinehaulTrentonRate)    rates["TCS linehaul trenton"]   = sel.tcsLinehaulTrentonRate;
+      if (sel.categoryRates)             Object.assign(rates, sel.categoryRates);
       setCategoryRates(rates);
     } catch (err) { console.error("Failed to fetch category rates:", err); }
   };
@@ -765,7 +767,7 @@ const Invoice: React.FC = () => {
                   <input
                     type="date"
                     value={customRange?.to ? format(customRange.to, "yyyy-MM-dd") : ""}
-                    onChange={(e) => setCustomRange((r) => ({ ...r, to: e.target.value ? new Date(e.target.value + "T12:00:00") : undefined }))}
+                    onChange={(e) => setCustomRange((r) => ({ from: r?.from, to: e.target.value ? new Date(e.target.value + "T12:00:00") : undefined }))}
                     style={styles.input}
                   />
                 </div>
