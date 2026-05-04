@@ -306,7 +306,9 @@ const Drivers: React.FC = () => {
     const updateDriver = async (updatedDriver: any) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put(`${API_BASE_URL}/drivers/${updatedDriver._id}`, updatedDriver, {
+      // trainings and complianceDocuments are managed via their own upload endpoints — exclude from general update
+      const { trainings, complianceDocuments, ...payload } = updatedDriver;
+      await axios.put(`${API_BASE_URL}/drivers/${updatedDriver._id}`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

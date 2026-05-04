@@ -340,6 +340,10 @@ const updateDriverById = asyncHandler(async (req, res) => {
     );
   }
 
+  // trainings and complianceDocuments are managed via their own upload endpoints — strip them here
+  delete updatePayload.trainings;
+  delete updatePayload.complianceDocuments;
+
   try {
     const updatedDriver = await Driver.findOneAndUpdate(
       { _id: req.params.id, ...orgFilter },
