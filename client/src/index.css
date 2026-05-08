@@ -111,3 +111,75 @@ a {
 .page-enter {
   animation: pageEnter 0.22s ease-out;
 }
+
+/* ── DayPicker: theme-aware calendar ───────────────────────────────── */
+.rdp {
+  --rdp-accent-color:            var(--t-indigo);
+  --rdp-accent-background-color: var(--t-indigo-bg);
+  --rdp-today-color:             var(--t-indigo);
+  --rdp-day_button-border-radius: 8px;
+  font-family: Inter, system-ui, sans-serif !important;
+  font-size: 13px !important;
+  margin: 0 !important;
+  padding: 12px !important;
+  background: transparent !important;
+  color: var(--t-text) !important;
+}
+
+.rdp-month_caption,
+.rdp-caption_label {
+  color: var(--t-text);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.rdp-weekday {
+  color: var(--t-text-faint);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  opacity: 1 !important;
+}
+
+.rdp-day_button {
+  color: var(--t-text) !important;
+  border-radius: 8px !important;
+}
+
+.rdp-day_button:hover:not(:disabled) {
+  background: var(--t-hover-bg) !important;
+  color: var(--t-text) !important;
+}
+
+.rdp-outside .rdp-day_button {
+  color: var(--t-text-dim) !important;
+  opacity: 0.55;
+}
+
+.rdp-selected .rdp-day_button {
+  background: var(--t-indigo) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+
+.rdp-today:not(.rdp-selected) .rdp-day_button {
+  color: var(--t-indigo) !important;
+  font-weight: 700;
+}
+
+.rdp-button_previous,
+.rdp-button_next {
+  color: var(--t-text-faint) !important;
+  border-radius: 8px !important;
+}
+
+.rdp-button_previous:hover,
+.rdp-button_next:hover {
+  background: var(--t-hover-bg) !important;
+  color: var(--t-text) !important;
+}
+
+.rdp-chevron {
+  fill: var(--t-text-faint) !important;
+}

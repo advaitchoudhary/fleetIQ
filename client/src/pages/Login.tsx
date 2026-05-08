@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { API_BASE_URL } from "../utils/env";
 import axios from "axios";
-import { FaTruck, FaCheckCircle, FaUsers, FaCar, FaCreditCard, FaArrowRight, FaShieldAlt, FaMapMarkerAlt, FaFileInvoiceDollar, FaWrench } from "react-icons/fa";
+import { FaTruck, FaCheckCircle, FaUsers, FaCar, FaCreditCard, FaArrowRight, FaShieldAlt, FaMapMarkerAlt, FaFileInvoiceDollar, FaWrench, FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -12,6 +12,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const { login, loginDirect } = useAuth();
 
   useEffect(() => {
@@ -188,11 +189,11 @@ const Login: React.FC = () => {
 
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "44px" }}>
-          <div style={{ width: "34px", height: "34px", borderRadius: "8px", background: "linear-gradient(135deg, #7B6CF6, #4F46E5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: "34px", height: "34px", borderRadius: "8px", background: "linear-gradient(135deg, #4F46E5, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <FaTruck size={16} color="#fff" />
           </div>
           <span style={{ fontSize: "18px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
-            Fleet<span style={{ color: "#7B6CF6" }}>IQ</span>
+            Fleet<span style={{ color: "#818CF8" }}>IQ</span>
           </span>
         </div>
 
@@ -227,7 +228,7 @@ const Login: React.FC = () => {
             {[
               { label: "Privacy Policy", href: "/privacy" },
               { label: "Terms of Service", href: "/terms" },
-              { label: "Support", href: "/contact-us" },
+              { label: "Support", href: "/support" },
             ].map(({ label, href }) => (
               <a key={label} href={href} style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", cursor: "pointer", textDecoration: "none" }}
                 onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.5)")}
@@ -235,7 +236,7 @@ const Login: React.FC = () => {
               >{label}</a>
             ))}
           </div>
-          <div style={{ marginTop: "8px", fontSize: "11px", color: "rgba(255,255,255,0.15)" }}>© 2024 FleetIQ Systems. All rights reserved.</div>
+          <div style={{ marginTop: "8px", fontSize: "11px", color: "rgba(255,255,255,0.15)" }}>© {new Date().getFullYear()} FleetIQ Logistics. All rights reserved.</div>
         </div>
       </div>
 
@@ -325,21 +326,51 @@ const Login: React.FC = () => {
 
               {/* Password */}
               <div>
-                <label style={{ display: "block", fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.35)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.8px" }}>
-                  Password
-                </label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                    Password
+                  </label>
+                  {role !== "driver" && (
+                    <button
+                      type="button"
+                      onClick={() => navigate("/forgot-password")}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "rgba(123,108,246,0.7)",
+                        cursor: "pointer",
+                        fontSize: "11px",
+                        fontFamily: "Inter, system-ui, sans-serif",
+                        fontWeight: 500,
+                        padding: 0,
+                        transition: "color 0.2s",
+                      }}
+                      onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#7B6CF6")}
+                      onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "rgba(123,108,246,0.7)")}
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
                 <div className="fl-input-wrap">
                   <span className="fl-input-icon">🔑</span>
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     onFocus={() => setFocusedField("password")}
                     onBlur={() => setFocusedField(null)}
                     required
-                    style={inputStyle("password")}
+                    style={{ ...inputStyle("password"), paddingRight: "40px" }}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", padding: 0, display: "flex", alignItems: "center" }}
+                  >
+                    {showPassword ? <FaEyeSlash size={15} /> : <FaEye size={15} />}
+                  </button>
                 </div>
               </div>
 
@@ -374,9 +405,9 @@ const Login: React.FC = () => {
           <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.35)" }}>Don't have an account? </span>
           <button
             onClick={() => navigate("/register")}
-            style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontWeight: 700, fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", textDecoration: "underline" }}
+            style={{ background: "none", border: "none", color: "#7B6CF6", cursor: "pointer", fontWeight: 700, fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}
           >
-            Create Account
+            Sign up →
           </button>
         </div>
 

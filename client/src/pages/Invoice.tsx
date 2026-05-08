@@ -6,7 +6,7 @@ import Navbar from "./Navbar";
 import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { API_BASE_URL } from "../utils/env";
-import { FaFilePdf, FaArrowRight, FaInfoCircle } from "react-icons/fa";
+import { FaFilePdf, FaArrowRight, FaInfoCircle, FaTruck } from "react-icons/fa";
 
 interface InvoiceItem {
   id: number; name: string; quantity: number; rate: number; tax: string; amount: number;
@@ -34,6 +34,8 @@ const Invoice: React.FC = () => {
   const [timesheetsRaw, setTimesheetsRaw]       = useState<any[]>([]);
   const [timesheets, setTimesheets]             = useState<any[]>([]);
   const [categoryRates, setCategoryRates]       = useState<Record<string, number>>({});
+  const [timesheetsLoading, setTimesheetsLoading] = useState(false);
+  const [emailStatus, setEmailStatus]           = useState<null | "sending" | "success" | "error">(null);
 
   const [fromDetails, setFromDetails] = useState({ name: "", address: "", phone: "", email: "" });
   const [toDetails,   setToDetails]   = useState({ name: "", businessName: "", contact: "", address: "", gst: "" });
@@ -44,8 +46,11 @@ const Invoice: React.FC = () => {
 
   const isDateInRange = (dateStr: string): boolean => {
     if (!customRange?.from || !customRange?.to) return true;
-    const date = new Date(dateStr);
-    return date >= customRange.from && date <= customRange.to;
+    // Parse as local midnight to avoid UTC-offset shifting (e.g. "2026-05-07" → local 00:00)
+    const date = new Date(dateStr + "T00:00:00");
+    const from = new Date(customRange.from); from.setHours(0, 0, 0, 0);
+    const to   = new Date(customRange.to);   to.setHours(23, 59, 59, 999);
+    return date >= from && date <= to;
   };
 
   const invoicePeriod = customRange?.from && customRange?.to
@@ -61,11 +66,17 @@ const Invoice: React.FC = () => {
     }
     const fetchDriverTimesheets = async () => {
       if (!driver?.email) return;
+      setTimesheetsLoading(true);
+      setEmailStatus(null);
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(`${API_BASE_URL}/timesheets?noPagination=true`, { headers: { Authorization: `Bearer ${token}` } });
         setTimesheetsRaw(res.data.data.filter((t: any) => t.driver === driver.email));
-      } catch (err) { console.error("Error fetching driver timesheets:", err); }
+      } catch (err) {
+        console.error("Error fetching driver timesheets:", err);
+      } finally {
+        setTimesheetsLoading(false);
+      }
     };
     fetchDriverTimesheets();
   };
@@ -82,8 +93,8 @@ const Invoice: React.FC = () => {
   useEffect(() => {
     if (timesheetsRaw.length === 0) { setTimesheets([]); return; }
     setTimesheets(timesheetsRaw.filter((t: any) => isDateInRange(t.date)));
-    fetchCategoryRates();
-  }, [timesheetsRaw, customRange]);
+    fetchCategoryRates(data, selectedDriver);
+  }, [timesheetsRaw, customRange, data, selectedDriver]);
 
   useEffect(() => {
     const newTotal = timesheets.reduce((acc, t) => {
@@ -105,24 +116,23 @@ const Invoice: React.FC = () => {
     } catch { return []; }
   };
 
-  const fetchCategoryRates = async () => {
-    try {
-      const res = await axios.get(`${API_BASE_URL}/drivers`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
-      const all = res.data;
-      setData(all);
-      const sel = all.find((d: any) => d._id === selectedDriver);
-      if (!sel) return;
-      const rates: Record<string, number> = {};
-      if (sel.backhaulRate)              rates["Backhaul"]               = sel.backhaulRate;
-      if (sel.comboRate)                 rates["Combo"]                  = sel.comboRate;
-      if (sel.extraSheetEWRate)          rates["Extra Sheet/E.W"]        = sel.extraSheetEWRate;
-      if (sel.regularBannerRate)         rates["Regular/Banner"]         = sel.regularBannerRate;
-      if (sel.wholesaleRate)             rates["Wholesale"]              = sel.wholesaleRate;
-      if (sel.voilaRate)                 rates["voila"]                  = sel.voilaRate;
-      if (sel.tcsLinehaulTrentonRate)    rates["TCS linehaul trenton"]   = sel.tcsLinehaulTrentonRate;
-      if (sel.categoryRates)             Object.assign(rates, sel.categoryRates);
-      setCategoryRates(rates);
-    } catch (err) { console.error("Failed to fetch category rates:", err); }
+  const fetchCategoryRates = (driverList: Driver[], driverId: string) => {
+    const sel = driverList.find((d) => d._id === driverId);
+    if (!sel) return;
+    // Legacy named fields — fallback for drivers whose rates predate the categoryRates field.
+    // categoryRates (spread last) is the canonical dynamic store and takes priority.
+    const LEGACY: [string, keyof Driver][] = [
+      ["Backhaul", "backhaulRate"], ["Combo", "comboRate"],
+      ["Extra Sheet/E.W", "extraSheetEWRate"], ["Regular/Banner", "regularBannerRate"],
+      ["Wholesale", "wholesaleRate"], ["voila", "voilaRate"],
+      ["TCS linehaul trenton", "tcsLinehaulTrentonRate"],
+    ];
+    const legacy: Record<string, number> = {};
+    for (const [cat, field] of LEGACY) {
+      const v = sel[field] as number | undefined;
+      if (v) legacy[cat] = v;
+    }
+    setCategoryRates({ ...legacy, ...(sel.categoryRates || {}) });
   };
 
   const getApprovedRows = () =>
@@ -186,8 +196,9 @@ const Invoice: React.FC = () => {
     const invoiceDateLabel = invoiceDate.toLocaleDateString("en-CA", { month: "long", day: "numeric", year: "numeric" });
     const invoiceDueLabel = invoiceDateLabel;
     const invNum = `#INV-${invoiceDate.getFullYear()}-${String(invoiceDate.getMonth() + 1).padStart(2, "0")}${String(invoiceDate.getDate()).padStart(2, "0")}`;
-    const fromLines = [fromDetails.address, fromDetails.email, fromDetails.phone].filter(Boolean) as string[];
-    const toLines = [toDetails.businessName, toDetails.contact, toDetails.address, toDetails.gst ? `GST/HST: ${toDetails.gst}` : ""].filter(Boolean) as string[];
+    // FROM = driver (contractor invoicing the company), BILL TO = company (owing payment)
+    const fromLines = [toDetails.businessName, toDetails.contact, toDetails.address, toDetails.gst ? `GST/HST: ${toDetails.gst}` : ""].filter(Boolean) as string[];
+    const toLines   = [fromDetails.address, fromDetails.email, fromDetails.phone].filter(Boolean) as string[];
 
     doc.setFillColor(...palette.page);
     doc.rect(0, 0, pw, ph, "F");
@@ -199,20 +210,20 @@ const Invoice: React.FC = () => {
     doc.roundedRect(cardX, cardY, cardW, cardH, 5, 5, "S");
 
     // Header
-    doc.setFillColor(...palette.navy);
+    doc.setFillColor(...palette.accent);
     doc.roundedRect(contentX, 13, 11, 11, 2.5, 2.5, "F");
     doc.setFont("helvetica", "bold").setFontSize(12).setTextColor(255, 255, 255);
     doc.text("F", contentX + 5.5, 20.6, { align: "center" });
 
     doc.setFont("helvetica", "bold").setFontSize(10).setTextColor(...palette.navy);
-    doc.text("FLEETIQ", contentX + 15, 17.2);
+    doc.text("FLEETIQ LOGISTICS", contentX + 15, 17.2);
     doc.setFont("helvetica", "normal").setFontSize(8.5).setTextColor(...palette.textMuted);
     doc.text("Professional fleet billing", contentX + 15, 22.6);
 
     doc.setFont("helvetica", "bold").setFontSize(28).setTextColor(...palette.text);
     doc.text("INVOICE", pw - 14, 23, { align: "right" });
     doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(...palette.textMuted);
-    doc.text("FleetIQ billing statement", pw - 14, 28.8, { align: "right" });
+    doc.text("FleetIQ Logistics billing statement", pw - 14, 28.8, { align: "right" });
 
     const metaX = 128;
     const metaY = 35;
@@ -246,7 +257,7 @@ const Invoice: React.FC = () => {
     const blocksY = 84;
     const gutter = 8;
     const blockW = (contentW - gutter) / 2;
-    const blockH = 42;
+    const blockH = 54;
     drawPanel(contentX, blocksY, blockW, blockH, palette.panel);
     drawPanel(contentX + blockW + gutter, blocksY, blockW, blockH, palette.panel);
 
@@ -255,8 +266,8 @@ const Invoice: React.FC = () => {
     doc.text("BILL TO", contentX + blockW + gutter + 8, blocksY + 8);
 
     doc.setFont("helvetica", "bold").setFontSize(12).setTextColor(...palette.text);
-    doc.text(fromDetails.name || "—", contentX + 8, blocksY + 16);
-    doc.text(toDetails.name || "—", contentX + blockW + gutter + 8, blocksY + 16);
+    doc.text(toDetails.name || "—", contentX + 8, blocksY + 16);
+    doc.text(fromDetails.name || "—", contentX + blockW + gutter + 8, blocksY + 16);
 
     doc.setFont("helvetica", "normal").setFontSize(8.8).setTextColor(...palette.textSoft);
     writeLines(fromLines.length ? fromLines : ["—"], contentX + 8, blocksY + 22, blockW - 16);
@@ -301,7 +312,7 @@ const Invoice: React.FC = () => {
         3: { cellWidth: 26, halign: "right" as const },
         4: { cellWidth: 28, halign: "right" as const, fontStyle: "bold", textColor: palette.text },
       },
-      margin: { left: marginX, right: marginX },
+      margin: { left: marginX, right: marginX, bottom: 34 },
       tableLineColor: palette.border,
       tableLineWidth: 0.2,
     });
@@ -312,7 +323,7 @@ const Invoice: React.FC = () => {
     const footerReserveY = ph - 26;
     const notesW = 106;
     const totalsW = 64;
-    const notesH = notes.trim() ? 28 : 22;
+    const notesH = notes.trim() ? 38 : 30;
     const totalsH = 38;
     drawPanel(contentX, notesY, notesW, notesH, palette.panel);
     drawPanel(pw - 14 - totalsW, notesY, totalsW, totalsH, palette.panelAlt);
@@ -341,17 +352,21 @@ const Invoice: React.FC = () => {
     sy += 13;
     doc.setFont("helvetica", "bold").setFontSize(8).setTextColor(...palette.textMuted);
     doc.text("BALANCE DUE", totalsX, sy);
-    doc.setFont("helvetica", "bold").setFontSize(18).setTextColor(...palette.navy);
+    doc.setFont("helvetica", "bold").setFontSize(18).setTextColor(...palette.accent);
     doc.text(`$${total.toFixed(2)}`, totalsRight, sy, { align: "right" });
 
-    // Footer
-    doc.setDrawColor(...palette.border);
-    doc.setLineWidth(0.35);
-    doc.line(contentX, footerReserveY - 6, pw - contentX, footerReserveY - 6);
-    doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...palette.textMuted);
-    doc.text("www.fleetiqlogistics.com", contentX, footerReserveY + 1);
-    doc.text("support@fleetiqlogistics.com", pw / 2, footerReserveY + 1, { align: "center" });
-    doc.text("© 2026 FleetIQ Inc. All rights reserved.", pw - contentX, footerReserveY + 1, { align: "right" });
+    // Footer on every page (table may have created page 2+)
+    const totalPages = (doc as any).getNumberOfPages();
+    for (let pg = 1; pg <= totalPages; pg++) {
+      doc.setPage(pg);
+      doc.setDrawColor(...palette.border);
+      doc.setLineWidth(0.35);
+      doc.line(contentX, footerReserveY - 6, pw - contentX, footerReserveY - 6);
+      doc.setFont("helvetica", "normal").setFontSize(8).setTextColor(...palette.textMuted);
+      doc.text("www.fleetiqlogistics.com", contentX, footerReserveY + 1);
+      doc.text("support@fleetiqlogistics.com", pw / 2, footerReserveY + 1, { align: "center" });
+      doc.text("© 2026 FleetIQ Logistics Inc. All rights reserved.", pw - contentX, footerReserveY + 1, { align: "right" });
+    }
 
     return doc;
   };
@@ -361,12 +376,15 @@ const Invoice: React.FC = () => {
   };
 
   const generateAndSendPDF = async () => {
+    setEmailStatus("sending");
     const doc = buildPDFDoc();
     const base64 = doc.output("datauristring").split(";base64,")[1];
     try {
       await axios.post(`${API_BASE_URL}/timesheets/send-invoice-email`, { driverId: selectedDriver, invoicePdf: base64, amount: total.toFixed(2) });
-      alert("Invoice sent successfully!");
-    } catch { alert("Failed to send invoice"); }
+      setEmailStatus("success");
+    } catch {
+      setEmailStatus("error");
+    }
   };
 
   const isDisabled = !selectedDriver || selectedDriver === "__placeholder__";
@@ -428,7 +446,7 @@ const Invoice: React.FC = () => {
           width: 52px;
           height: 52px;
           border-radius: 16px;
-          background: linear-gradient(135deg, #173a63 0%, #24548f 100%);
+          background: linear-gradient(135deg, #4F46E5, #7c3aed);
           color: #fff;
           display: flex;
           align-items: center;
@@ -709,13 +727,27 @@ const Invoice: React.FC = () => {
             </button>
             <button
               onClick={generateAndSendPDF}
-              disabled={isDisabled}
-              style={{ display: "inline-flex", alignItems: "center", gap: "7px", padding: "10px 20px", background: isDisabled ? "var(--t-hover-bg)" : "var(--t-accent)", border: "none", borderRadius: "10px", color: isDisabled ? "var(--t-text-ghost)" : "#fff", fontSize: "13px", fontWeight: 600, cursor: isDisabled ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: isDisabled ? "none" : "0 4px 14px rgba(79,70,229,0.35)" }}
+              disabled={isDisabled || emailStatus === "sending"}
+              style={{ display: "inline-flex", alignItems: "center", gap: "7px", padding: "10px 20px", background: (isDisabled || emailStatus === "sending") ? "var(--t-hover-bg)" : "var(--t-accent)", border: "none", borderRadius: "10px", color: (isDisabled || emailStatus === "sending") ? "var(--t-text-ghost)" : "#fff", fontSize: "13px", fontWeight: 600, cursor: (isDisabled || emailStatus === "sending") ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: (isDisabled || emailStatus === "sending") ? "none" : "0 4px 14px rgba(79,70,229,0.35)", opacity: emailStatus === "sending" ? 0.75 : 1 }}
             >
-              <FaArrowRight size={12} /> Send Email
+              <FaArrowRight size={12} /> {emailStatus === "sending" ? "Sending…" : "Send Email"}
             </button>
           </div>
         </div>
+
+        {/* Email send status banner */}
+        {emailStatus === "success" && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", background: "var(--t-success-bg)", border: "1px solid rgba(16,185,129,0.3)", borderRadius: "10px", padding: "12px 16px", marginBottom: "20px", fontSize: "13px", fontWeight: 600, color: "var(--t-success)" }}>
+            <span>✓ Invoice emailed successfully to the driver.</span>
+            <button onClick={() => setEmailStatus(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--t-success)", fontSize: "16px", lineHeight: 1, fontFamily: "Inter, system-ui, sans-serif" }}>✕</button>
+          </div>
+        )}
+        {emailStatus === "error" && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "10px", padding: "12px 16px", marginBottom: "20px", fontSize: "13px", fontWeight: 600, color: "var(--t-error)" }}>
+            <span>✕ Failed to send invoice. Please try again.</span>
+            <button onClick={() => setEmailStatus(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--t-error)", fontSize: "16px", lineHeight: 1, fontFamily: "Inter, system-ui, sans-serif" }}>✕</button>
+          </div>
+        )}
 
         {/* ── Two-column layout ── */}
         <div className="fi-invoice-layout" style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: "20px", alignItems: "start" }}>
@@ -793,13 +825,13 @@ const Invoice: React.FC = () => {
               <header className="fi-premium-invoice__header">
                 <div className="fi-premium-invoice__brand">
                   <div className="fi-premium-invoice__logo" aria-hidden="true">
-                    <span>F</span>
+                    <FaTruck size={22} />
                   </div>
                   <div>
-                    <div className="fi-premium-invoice__eyebrow">FleetIQ</div>
+                    <div className="fi-premium-invoice__eyebrow">FleetIQ Logistics</div>
                     <h2 className="fi-premium-invoice__brand-name">Invoice</h2>
                     <div className="fi-premium-invoice__company-meta">
-                      <p>{fromDetails.name || "FleetIQ Inc."}</p>
+                      <p>{fromDetails.name || "FleetIQ Logistics Inc."}</p>
                       {fromDetails.address && <p>{fromDetails.address}</p>}
                       {fromDetails.email && <p>{fromDetails.email}</p>}
                       {fromDetails.phone && <p>{fromDetails.phone}</p>}
@@ -832,16 +864,9 @@ const Invoice: React.FC = () => {
               </header>
 
               <section className="fi-premium-invoice__party-grid">
+                {/* FROM = driver (contractor submitting invoice for services) */}
                 <article className="fi-premium-invoice__party-card">
                   <span className="fi-premium-invoice__section-label">From</span>
-                  <div className="fi-premium-invoice__party-name">{fromDetails.name || "—"}</div>
-                  {fromDetails.address && <p>{fromDetails.address}</p>}
-                  {fromDetails.email && <p>{fromDetails.email}</p>}
-                  {fromDetails.phone && <p>{fromDetails.phone}</p>}
-                </article>
-
-                <article className="fi-premium-invoice__party-card">
-                  <span className="fi-premium-invoice__section-label">Bill To</span>
                   {selectedDriver === "__placeholder__" ? (
                     <>
                       <div className="fi-premium-invoice__party-name">No Driver Selected</div>
@@ -856,6 +881,15 @@ const Invoice: React.FC = () => {
                       {toDetails.gst && <p>GST/HST: {toDetails.gst}</p>}
                     </>
                   )}
+                </article>
+
+                {/* BILL TO = company (owing payment to the contractor) */}
+                <article className="fi-premium-invoice__party-card">
+                  <span className="fi-premium-invoice__section-label">Bill To</span>
+                  <div className="fi-premium-invoice__party-name">{fromDetails.name || "—"}</div>
+                  {fromDetails.address && <p>{fromDetails.address}</p>}
+                  {fromDetails.email && <p>{fromDetails.email}</p>}
+                  {fromDetails.phone && <p>{fromDetails.phone}</p>}
                 </article>
               </section>
 
@@ -876,7 +910,13 @@ const Invoice: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {approvedTimesheets.length === 0 ? (
+                      {timesheetsLoading ? (
+                        <tr>
+                          <td colSpan={5} className="fi-premium-invoice__empty" style={{ color: "var(--fi-text-muted)", fontStyle: "italic" }}>
+                            Loading timesheets…
+                          </td>
+                        </tr>
+                      ) : approvedTimesheets.length === 0 ? (
                         <tr>
                           <td colSpan={5} className="fi-premium-invoice__empty">
                             {selectedDriver === "__placeholder__" ? "Select a driver to preview line items." : "No approved timesheets found for the selected period."}
@@ -916,7 +956,7 @@ const Invoice: React.FC = () => {
                   <span className="fi-premium-invoice__section-label">Notes</span>
                   <h3 className="fi-premium-invoice__section-title">Payment Terms & Memo</h3>
                   <p className="fi-premium-invoice__notes-text">
-                    {notes.trim() || "Thank you for your business. Please remit payment by the due date. For billing questions, contact FleetIQ support."}
+                    {notes.trim() || "Thank you for your business. Please remit payment by the due date. For billing questions, contact FleetIQ Logistics support."}
                   </p>
                   <textarea
                     value={notes}
@@ -945,7 +985,7 @@ const Invoice: React.FC = () => {
               <footer className="fi-premium-invoice__footer">
                 <span>www.fleetiqlogistics.com</span>
                 <span>support@fleetiqlogistics.com</span>
-                <span>© 2026 FleetIQ Inc. All rights reserved.</span>
+                <span>© 2026 FleetIQ Logistics Inc. All rights reserved.</span>
               </footer>
             </section>
 

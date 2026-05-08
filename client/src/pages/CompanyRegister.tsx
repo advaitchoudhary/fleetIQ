@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import axios from "axios";
-import { FaTruck, FaCheckCircle, FaArrowRight } from "react-icons/fa";
+import { FaTruck, FaCheckCircle, FaArrowRight, FaEye, FaEyeSlash } from "react-icons/fa";
 import { API_BASE_URL } from "../utils/env";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -39,7 +39,13 @@ const CompanyRegister: React.FC = () => {
   });
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [phoneError, setPhoneError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
   const extractDigits = (value: string) => {
     let digits = value.replace(/\D/g, "");
@@ -72,19 +78,27 @@ const CompanyRegister: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setEmailError("");
+    setPasswordError("");
+    setConfirmPasswordError("");
+    setSubmitError("");
+
+    let hasError = false;
+
     if (!validateEmail(form.email)) {
-      alert("Please enter a valid email address (e.g. admin@yourcompany.com).");
-      return;
-    }
-    if (form.password !== form.confirmPassword) {
-      alert("Passwords do not match.");
-      return;
+      setEmailError("Enter a valid email address (e.g. admin@yourcompany.com).");
+      hasError = true;
     }
     if (form.password.length < 8) {
-      alert("Password must be at least 8 characters.");
-      return;
+      setPasswordError("Password must be at least 8 characters.");
+      hasError = true;
     }
-    if (!validatePhone(form.phone)) return;
+    if (form.password !== form.confirmPassword) {
+      setConfirmPasswordError("Passwords do not match.");
+      hasError = true;
+    }
+    if (!validatePhone(form.phone)) hasError = true;
+    if (hasError) return;
 
     setLoading(true);
     try {
@@ -101,16 +115,21 @@ const CompanyRegister: React.FC = () => {
       await loginDirect(token, user);
       navigate("/admin-home");
     } catch (err: any) {
-      alert(err.response?.data?.message || "Registration failed. Please try again.");
+      const msg = err.response?.data?.message || err.response?.data?.error || "Registration failed. Please try again.";
+      if (msg.toLowerCase().includes("email already exists") || msg.toLowerCase().includes("email")) {
+        setEmailError(msg);
+      } else {
+        setSubmitError(msg);
+      }
       setLoading(false);
     }
   };
 
-  const inputStyle = (field: string): React.CSSProperties => ({
+  const inputStyle = (field: string, hasError?: boolean): React.CSSProperties => ({
     width: "100%",
     padding: "11px 14px",
     borderRadius: "9px",
-    border: `1.5px solid ${focusedField === field ? "#7B6CF6" : "rgba(255,255,255,0.08)"}`,
+    border: `1.5px solid ${hasError ? "#F87171" : focusedField === field ? "#7B6CF6" : "rgba(255,255,255,0.08)"}`,
     fontSize: "14px",
     color: "#fff",
     outline: "none",
@@ -219,11 +238,11 @@ const CompanyRegister: React.FC = () => {
 
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "44px" }}>
-          <div style={{ width: "34px", height: "34px", borderRadius: "8px", background: "linear-gradient(135deg, #7B6CF6, #4F46E5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: "34px", height: "34px", borderRadius: "8px", background: "linear-gradient(135deg, #4F46E5, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <FaTruck size={16} color="#fff" />
           </div>
           <span style={{ fontSize: "18px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
-            Fleet<span style={{ color: "#7B6CF6" }}>IQ</span>
+            Fleet<span style={{ color: "#818CF8" }}>IQ</span>
           </span>
         </div>
 
@@ -295,11 +314,18 @@ const CompanyRegister: React.FC = () => {
         {/* Footer */}
         <div style={{ paddingTop: "32px", borderTop: "1px solid rgba(255,255,255,0.05)", marginTop: "32px" }}>
           <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
-            {["Privacy Policy", "Terms of Service", "Support"].map((link) => (
-              <span key={link} style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", cursor: "pointer" }}>{link}</span>
+            {[
+              { label: "Privacy Policy", href: "/privacy" },
+              { label: "Terms of Service", href: "/terms" },
+              { label: "Support", href: "/support" },
+            ].map(({ label, href }) => (
+              <a key={label} href={href} style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", textDecoration: "none", cursor: "pointer" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.5)")}
+                onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.25)")}
+              >{label}</a>
             ))}
           </div>
-          <div style={{ marginTop: "8px", fontSize: "11px", color: "rgba(255,255,255,0.15)" }}>© 2024 FleetIQ Systems. All rights reserved.</div>
+          <div style={{ marginTop: "8px", fontSize: "11px", color: "rgba(255,255,255,0.15)" }}>© {new Date().getFullYear()} FleetIQ Logistics. All rights reserved.</div>
         </div>
       </div>
 
@@ -355,11 +381,14 @@ const CompanyRegister: React.FC = () => {
 
           {/* Form card */}
           <div className="reg-form-card">
+            <p style={{ margin: "0 0 16px", fontSize: "11px", color: "rgba(255,255,255,0.25)" }}>
+              Fields marked <span style={{ color: "#F87171", fontWeight: 700 }}>*</span> are required.
+            </p>
             <form onSubmit={handleSubmit}>
               <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
 
                 <div>
-                  <label style={labelStyle}>Company Name *</label>
+                  <label style={labelStyle}>Company Name <span style={{ color: "#F87171" }}>*</span></label>
                   <input
                     style={inputStyle("name")}
                     required
@@ -372,54 +401,88 @@ const CompanyRegister: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={labelStyle}>Company Email *</label>
+                  <label style={labelStyle}>Company Email <span style={{ color: "#F87171" }}>*</span></label>
                   <input
-                    style={inputStyle("email")}
+                    style={inputStyle("email", !!emailError)}
                     type="email"
                     required
                     value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    onChange={(e) => { setForm({ ...form, email: e.target.value }); if (emailError) setEmailError(""); }}
                     onFocus={() => setFocusedField("email")}
                     onBlur={() => setFocusedField(null)}
                     placeholder="admin@yourcompany.com"
                   />
+                  {emailError && <p style={{ margin: "5px 0 0", fontSize: "12px", color: "#F87171" }}>{emailError}</p>}
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                   <div>
-                    <label style={labelStyle}>Password *</label>
-                    <input
-                      style={inputStyle("password")}
-                      type="password"
-                      required
-                      minLength={8}
-                      value={form.password}
-                      onChange={(e) => setForm({ ...form, password: e.target.value })}
-                      onFocus={() => setFocusedField("password")}
-                      onBlur={() => setFocusedField(null)}
-                      placeholder="Min. 8 characters"
-                    />
+                    <label style={labelStyle}>Password <span style={{ color: "#F87171" }}>*</span></label>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        style={{ ...inputStyle("password", !!passwordError), paddingRight: "40px" }}
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={form.password}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setForm({ ...form, password: val });
+                          if (passwordError && val.length >= 8) setPasswordError("");
+                        }}
+                        onFocus={() => setFocusedField("password")}
+                        onBlur={() => {
+                          setFocusedField(null);
+                          if (form.password && form.password.length < 8) setPasswordError("Password must be at least 8 characters.");
+                        }}
+                        placeholder="Min. 8 characters"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", padding: 0, display: "flex", alignItems: "center" }}
+                      >
+                        {showPassword ? <FaEyeSlash size={15} /> : <FaEye size={15} />}
+                      </button>
+                    </div>
+                    {passwordError && <p style={{ margin: "5px 0 0", fontSize: "12px", color: "#F87171" }}>{passwordError}</p>}
                   </div>
                   <div>
-                    <label style={labelStyle}>Confirm Password *</label>
-                    <input
-                      style={inputStyle("confirmPassword")}
-                      type="password"
-                      required
-                      value={form.confirmPassword}
-                      onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                      onFocus={() => setFocusedField("confirmPassword")}
-                      onBlur={() => setFocusedField(null)}
-                      placeholder="Repeat password"
-                    />
+                    <label style={labelStyle}>Confirm Password <span style={{ color: "#F87171" }}>*</span></label>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        style={{ ...inputStyle("confirmPassword", !!confirmPasswordError), paddingRight: "40px" }}
+                        type={showConfirmPassword ? "text" : "password"}
+                        required
+                        value={form.confirmPassword}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setForm({ ...form, confirmPassword: val });
+                          if (confirmPasswordError && val === form.password) setConfirmPasswordError("");
+                        }}
+                        onFocus={() => setFocusedField("confirmPassword")}
+                        onBlur={() => {
+                          setFocusedField(null);
+                          if (form.confirmPassword && form.confirmPassword !== form.password) setConfirmPasswordError("Passwords do not match.");
+                        }}
+                        placeholder="Repeat password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword((v) => !v)}
+                        style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", padding: 0, display: "flex", alignItems: "center" }}
+                      >
+                        {showConfirmPassword ? <FaEyeSlash size={15} /> : <FaEye size={15} />}
+                      </button>
+                    </div>
+                    {confirmPasswordError && <p style={{ margin: "5px 0 0", fontSize: "12px", color: "#F87171" }}>{confirmPasswordError}</p>}
                   </div>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                   <div>
-                    <label style={labelStyle}>Phone *</label>
+                    <label style={labelStyle}>Phone <span style={{ color: "#F87171" }}>*</span></label>
                     <input
-                      style={{ ...inputStyle("phone"), borderColor: phoneError ? "#F87171" : focusedField === "phone" ? "#7B6CF6" : "rgba(255,255,255,0.08)" }}
+                      style={inputStyle("phone", !!phoneError)}
                       type="tel"
                       required
                       value={form.phone}
@@ -492,6 +555,12 @@ const CompanyRegister: React.FC = () => {
                   </div>
                 </div>
 
+                {submitError && (
+                  <div style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.3)", borderRadius: "8px", padding: "10px 14px", fontSize: "13px", color: "#F87171" }}>
+                    {submitError}
+                  </div>
+                )}
+
                 <button type="submit" className="reg-submit-btn" disabled={loading} style={{ marginTop: "4px" }}>
                   {loading ? "Setting up your account..." : (
                     <><span>Create Account & Start Free Trial</span> <FaArrowRight size={13} /></>
@@ -500,9 +569,9 @@ const CompanyRegister: React.FC = () => {
 
                 <p style={{ textAlign: "center", margin: 0, fontSize: "11px", color: "rgba(255,255,255,0.25)", lineHeight: 1.6 }}>
                   By continuing, you agree to our{" "}
-                  <span style={{ color: "#a78bfa", cursor: "pointer", fontWeight: 600 }} onClick={() => navigate("/terms")}>Terms of Service</span>
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: "#a78bfa", fontWeight: 600, textDecoration: "none" }}>Terms of Service</a>
                   {" "}and{" "}
-                  <span style={{ color: "#a78bfa", cursor: "pointer", fontWeight: 600 }} onClick={() => navigate("/privacy")}>Privacy Policy</span>.
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#a78bfa", fontWeight: 600, textDecoration: "none" }}>Privacy Policy</a>.
                 </p>
 
               </div>

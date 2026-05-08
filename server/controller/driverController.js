@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const Driver = require("../model/driverModel.js");
+const User = require("../model/userModel.js");
 const Organization = require("../model/organizationModel.js");
 const Timesheet = require("../model/timesheetModel.js");
 const asyncHandler = require("express-async-handler");
@@ -129,6 +130,13 @@ const create = async (req, res) => {
     const driverExist = await Driver.findOne({ email, ...orgFilter });
     if (driverExist) {
       res.status(400).json({ message: "Driver already exists" });
+      return;
+    }
+
+    // Prevent using an email that already belongs to an admin/dispatcher user
+    const userExist = await User.findOne({ email });
+    if (userExist) {
+      res.status(400).json({ message: "This email is already registered as an admin user and cannot be used for a driver account" });
       return;
     }
 

@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
+import { useAuth } from "../contexts/AuthContext";
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from "react-icons/fa";
 
 const ContactUs: React.FC = () => {
-  const [formData, setFormData] = useState({ name: "", email: "", message: "" });
+  const { user } = useAuth();
+  const [formData, setFormData] = useState({ name: user?.name || "", email: user?.email || "", message: "" });
   const [org, setOrg] = useState({ name: "", address: "", phone: "", email: "" });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -29,17 +31,9 @@ const ContactUs: React.FC = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/contacts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-      if (response.ok) {
-        setSubmitted(true);
-        setFormData({ name: "", email: "", message: "" });
-      } else {
-        alert("There was an error sending your message.");
-      }
+      await axios.post(`${API_BASE_URL}/contacts`, formData);
+      setSubmitted(true);
+      setFormData({ name: user?.name || "", email: user?.email || "", message: "" });
     } catch (error) {
       console.error("Error submitting form:", error);
       alert("There was an error submitting the form.");
@@ -172,8 +166,9 @@ const ContactUs: React.FC = () => {
                     onChange={handleChange}
                     required
                     placeholder="Enter your name"
+                    readOnly={!!user?.name}
                     data-cu-input
-                    style={{ width: "100%", padding: "10px 14px", fontSize: "14px", borderRadius: "8px", border: "1px solid var(--t-border)", backgroundColor: "var(--t-input-bg)", color: "var(--t-text-secondary)", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, transition: "border-color 0.15s, box-shadow 0.15s" }}
+                    style={{ width: "100%", padding: "10px 14px", fontSize: "14px", borderRadius: "8px", border: "1px solid var(--t-border)", backgroundColor: user?.name ? "var(--t-hover-bg)" : "var(--t-input-bg)", color: "var(--t-text-secondary)", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, transition: "border-color 0.15s, box-shadow 0.15s", cursor: user?.name ? "default" : "text" }}
                   />
                 </div>
 
@@ -188,8 +183,9 @@ const ContactUs: React.FC = () => {
                     onChange={handleChange}
                     required
                     placeholder="Enter your email"
+                    readOnly={!!user?.email}
                     data-cu-input
-                    style={{ width: "100%", padding: "10px 14px", fontSize: "14px", borderRadius: "8px", border: "1px solid var(--t-border)", backgroundColor: "var(--t-input-bg)", color: "var(--t-text-secondary)", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, transition: "border-color 0.15s, box-shadow 0.15s" }}
+                    style={{ width: "100%", padding: "10px 14px", fontSize: "14px", borderRadius: "8px", border: "1px solid var(--t-border)", backgroundColor: user?.email ? "var(--t-hover-bg)" : "var(--t-input-bg)", color: "var(--t-text-secondary)", fontFamily: "Inter, system-ui, sans-serif", boxSizing: "border-box" as const, transition: "border-color 0.15s, box-shadow 0.15s", cursor: user?.email ? "default" : "text" }}
                   />
                 </div>
 
