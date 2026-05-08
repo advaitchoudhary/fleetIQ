@@ -307,10 +307,10 @@ const Invoice: React.FC = () => {
       alternateRowStyles: { fillColor: palette.panel },
       columnStyles: {
         0: { cellWidth: 40, whiteSpace: "nowrap" as const },
-        1: { cellWidth: 68 },
-        2: { cellWidth: 22, halign: "right" as const },
+        1: { cellWidth: 54 },
+        2: { cellWidth: 30, halign: "right" as const },
         3: { cellWidth: 26, halign: "right" as const },
-        4: { cellWidth: 28, halign: "right" as const, fontStyle: "bold", textColor: palette.text },
+        4: { cellWidth: 36, halign: "right" as const, fontStyle: "bold", textColor: palette.text },
       },
       margin: { left: marginX, right: marginX, bottom: 34 },
       tableLineColor: palette.border,
