@@ -17,11 +17,6 @@ const DetailedTimesheet: React.FC = () => {
   const [resetHover, setResetHover] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [driversMap, setDriversMap] = useState<Record<string, string>>({});
-  // Local UI state for dropdown and supporting fields
-  const [, setExtraWorkSelected] = useState("No");
-  const [, setExtraWorkFrom] = useState("");
-  const [, setExtraWorkTo] = useState("");
-  const [, setExtraWorkComments] = useState("");
   // Multi-select for delay types (legacy, will be replaced by checkboxes)
   const [, setExtraDelay] = useState("No");
   const [, setExtraDelayTypes] = useState<string[]>([]);
@@ -88,7 +83,6 @@ const DetailedTimesheet: React.FC = () => {
     "date", "driver", "driverName", "startTime", "endTime", "customer", "totalHours",
     "category", "tripNumber", "loadID", "gateOutTime", "gateInTime", "plannedHours",
     "plannedKM", "startKM", "endKM", "comments", "attachments", "status",
-    "extraWorkSheet", "extraDuration", "durationFrom", "durationTo", "extraWorkSheetComments",
     "extraDelay", "delayStoreDuration", "delayStoreFrom", "delayStoreTo", "delayStoreReason",
     "delayRoadDuration", "delayRoadFrom", "delayRoadTo", "delayRoadReason",
     "delayOtherDuration", "delayOtherFrom", "delayOtherTo", "delayOtherReason",
@@ -141,8 +135,6 @@ const DetailedTimesheet: React.FC = () => {
         allFields.forEach((field) => {
           filledData[field] = field in data ? data[field] : "";
         });
-        // --- Normalize extraWorkSheet and extraDelay values for dropdowns ---
-        filledData.extraWorkSheet = data.extraWorkSheet ? "yes" : "no";
         filledData.extraDelay = data.extraDelay || "no";
 
         // --- Unified delayDetails object ---
@@ -166,40 +158,20 @@ const DetailedTimesheet: React.FC = () => {
             reason: data.delayOtherReason || "",
           },
         };
-        // --- Unified extraWorkSheetDetails object ---
-        const extraWorkSheetDetails = {
-          duration: data.extraWorkSheetDetails?.duration || "",
-          from: data.extraWorkSheetDetails?.from || "",
-          to: data.extraWorkSheetDetails?.to || "",
-          comments: data.extraWorkSheetDetails?.comments || data.extraWorkSheetComments || "",
-        };
         const transformedTimesheet = {
           ...data,
           delayDetails,
-          extraWorkSheetDetails,
         };
         setTimesheet(transformedTimesheet);
         setFormData({
           ...filledData,
-          extraWorkSheet: data.extraWorkSheet ? "yes" : "no",
           delayDetails,
-          extraWorkSheetDetails,
         });
         // --- Compute required fields with new logic ---
         const computeRequiredFields = (data: any, context: any) => {
-          const extraWorkSheet = context.extraWorkSheet?.toLowerCase?.() === "yes";
           const extraDelay = context.extraDelay?.toLowerCase?.() === "yes";
 
           const excludedFields: string[] = [];
-
-          if (!extraWorkSheet) {
-            excludedFields.push(
-              "extraDuration",
-              "durationFrom",
-              "durationTo",
-              "extraWorkSheetComments"
-            );
-          }
 
           if (!extraDelay) {
             excludedFields.push(
@@ -224,8 +196,6 @@ const DetailedTimesheet: React.FC = () => {
 
         setRequiredFields(computeRequiredFields(filledData, formData));
 
-        // Initialize extra work and store delay UI state
-        setExtraWorkSelected(data.extraWorkSheet ? "Yes" : "No");
         setExtraDelay(data.extraDelay || "No");
         setExtraDelayTypes([]); // reset on fetch
         setStoreDelayFields({
@@ -284,18 +254,8 @@ const DetailedTimesheet: React.FC = () => {
       return `${hours} hr ${minutes} min`;
     };
 
-    const extraDuration = calculateDuration(
-      formData.extraWorkSheetDetails?.from,
-      formData.extraWorkSheetDetails?.to
-    );
-
     setFormData((prev: any) => ({
       ...prev,
-      extraWorkSheetDetails: {
-        ...prev.extraWorkSheetDetails,
-        duration: extraDuration,
-      },
-      extraDuration: calculateDuration(prev.durationFrom, prev.durationTo),
       delayDetails: {
         ...prev.delayDetails,
         store: {
@@ -324,11 +284,8 @@ const DetailedTimesheet: React.FC = () => {
     }));
     // OtherDelayFields: duration is not based on from/to, so leave as is
   }, [
-    formData.durationFrom, formData.durationTo,
     storeDelayFields.from, storeDelayFields.to,
     roadDelayFields.from, roadDelayFields.to,
-    formData.extraWorkSheetDetails?.from,
-    formData.extraWorkSheetDetails?.to,
   ]);
 
   // Set default selected delay types when formData or timesheet is loaded
@@ -361,14 +318,6 @@ const DetailedTimesheet: React.FC = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({ ...prev, [name]: value }));
-    if (name === "extraWorkSheet") {
-      setExtraWorkSelected(value === "yes" ? "Yes" : "No");
-      if (value === "no") {
-        setExtraWorkFrom("");
-        setExtraWorkTo("");
-        setExtraWorkComments("");
-      }
-    }
     if (name === "extraDelay") {
       // This will always be "yes" or "no"
       // No need for extraDelay state variable, use formData.extraDelay everywhere
@@ -585,7 +534,6 @@ const DetailedTimesheet: React.FC = () => {
         {
           // Custom fields rendering for form, with new Extra Delay block
           (() => {
-            let inExtra = false;
             const categoryOptions = ["Backhaul", "Combo", "Extra Sheet/E.W", "Regular/Banner", "Wholesale", "Wholesale DZ", "voila", "TCS linehaul trenton"];
             // Filter out delay-related fields, will be handled in custom block
             const DELAY_FIELDS = [
@@ -595,17 +543,11 @@ const DetailedTimesheet: React.FC = () => {
               "delayOtherDuration", "delayOtherFrom", "delayOtherTo", "delayOtherReason",
               "delayDetails"
             ];
-            // Explicitly exclude extra worksheet fields to prevent duplicate rendering
-            const EXCLUDED_FIELDS = [
-              "extraDuration", "durationFrom", "durationTo", "extraWorkSheetComments"
-            ];
-            // Render all fields except delay and excluded extra worksheet fields (handled separately below)
             const filtered = Object.entries(formData)
               .filter(([key, value]) =>
                 value !== "" &&
                 key !== "status" &&
                 DELAY_FIELDS.indexOf(key) === -1 &&
-                EXCLUDED_FIELDS.indexOf(key) === -1 &&
                 (typeof value === "string" || typeof value === "number")
               );
             // We'll manually inject the new Extra Delay block after "extraDelay"
@@ -613,119 +555,7 @@ const DetailedTimesheet: React.FC = () => {
               <>
                 {filtered.map(([key, value]) => (
                   <React.Fragment key={key}>
-                    {/* Section header for Extra Worksheet */}
-                    {key === "extraWorkSheet" && !inExtra && (inExtra = true) && (
-                      <h4 style={{ gridColumn: "1 / -1", marginTop: "24px", color: "var(--t-text-faint)", fontSize: "10px", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "1px" }}>Extra Worksheet</h4>
-                    )}
-                    {/* Render extra worksheet fields conditionally */}
-                    {key === "extraWorkSheet" ? (
-                      <>
-                        <div style={styles.formRow}>
-                          <label style={styles.formLabel}>
-                            {key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^\w/, c => c.toUpperCase())}
-                          </label>
-                          <select
-                            name={key}
-                            value={formData.extraWorkSheet}
-                            onChange={handleInputChange}
-                            disabled={correctedFields.has(key)}
-                            style={styles.formSelect}
-                          >
-                            <option value="no">No</option>
-                            <option value="yes">Yes</option>
-                          </select>
-                          {!correctedFields.has(key) && (
-                            <button
-                              onClick={() => setCorrectedFields(prev => new Set(prev).add(key))}
-                              style={styles.correctButton}
-                              title="Mark as Correct"
-                            >
-                              <FaCheck size={11} />
-                            </button>
-                          )}
-                        </div>
-                        {formData.extraWorkSheet === "yes" && (
-                          <>
-                            {/* Extra Duration: no correct-info icon for duration */}
-                            <div style={styles.formRow}>
-                              <label style={styles.formLabel}>Extra Duration</label>
-                              <input
-                                type="text"
-                                name="extraDuration"
-                                value={formData.extraDuration}
-                                readOnly
-                                disabled
-                                style={styles.readOnlyInput}
-                              />
-                              {/* No correct-info icon for duration */}
-                            </div>
-                            {/* Duration From */}
-                            <div style={styles.formRow}>
-                              <label style={styles.formLabel}>Duration From</label>
-                              <input
-                                type="time"
-                                name="durationFrom"
-                                value={formData.durationFrom}
-                                onChange={handleInputChange}
-                                disabled={correctedFields.has("durationFrom")}
-                                style={styles.formInput}
-                              />
-                              {!correctedFields.has("durationFrom") && (
-                                <button
-                                  onClick={() => setCorrectedFields(prev => new Set(prev).add("durationFrom"))}
-                                  style={styles.correctButton}
-                                  title="Mark as Correct"
-                                >
-                                  <FaCheck size={11} />
-                                </button>
-                              )}
-                            </div>
-                            {/* Duration To */}
-                            <div style={styles.formRow}>
-                              <label style={styles.formLabel}>Duration To</label>
-                              <input
-                                type="time"
-                                name="durationTo"
-                                value={formData.durationTo}
-                                onChange={handleInputChange}
-                                disabled={correctedFields.has("durationTo")}
-                                style={styles.formInput}
-                              />
-                              {!correctedFields.has("durationTo") && (
-                                <button
-                                  onClick={() => setCorrectedFields(prev => new Set(prev).add("durationTo"))}
-                                  style={styles.correctButton}
-                                  title="Mark as Correct"
-                                >
-                                  <FaCheck size={11} />
-                                </button>
-                              )}
-                            </div>
-                            {/* Extra Work Sheet Comments */}
-                            <div style={styles.formRow}>
-                              <label style={styles.formLabel}>Extra Work Sheet Comments</label>
-                              <textarea
-                                name="extraWorkSheetComments"
-                                value={formData.extraWorkSheetComments}
-                                onChange={handleInputChange}
-                                rows={3}
-                                style={styles.formTextarea}
-                                disabled={correctedFields.has("extraWorkSheetComments")}
-                              />
-                              {!correctedFields.has("extraWorkSheetComments") && (
-                                <button
-                                  onClick={() => setCorrectedFields(prev => new Set(prev).add("extraWorkSheetComments"))}
-                                  style={styles.correctButton}
-                                  title="Mark as Correct"
-                                >
-                                  <FaCheck size={11} />
-                                </button>
-                              )}
-                            </div>
-                          </>
-                        )}
-                      </>
-                    ) : key === "category" ? (
+                    {key === "category" ? (
                       <div style={styles.formRow}>
                         <label style={styles.formLabel}>
                           {key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/^\w/, c => c.toUpperCase())}

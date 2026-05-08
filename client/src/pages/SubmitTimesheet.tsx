@@ -62,11 +62,6 @@ const SubmitTimesheet: React.FC = () => {
   const [totalHours, setTotalHours] = useState("0");
   const [showSuccess, setShowSuccess] = useState(false);
   const [submittedData, setSubmittedData] = useState<{ date: string; totalHours: string }>({ date: "", totalHours: "" });
-  // Extra Work Sheet state
-  const [extraWorkSheet, setExtraWorkSheet] = useState("");
-  const [extraWorkSheetDuration, setExtraWorkSheetDuration] = useState({ duration: "", from: "", to: "" });
-  const [extraWorkSheetComments, setExtraWorkSheetComments] = useState({ comments: "" });
-
   const [hasDelay, setHasDelay] = useState<string[]>([]);
   const [storeDelay, setStoreDelay] = useState({ duration: "", from: "", to: "", reason: "" });
   const [roadDelay, setRoadDelay] = useState({ duration: "", from: "", to: "", reason: "" });
@@ -425,7 +420,6 @@ const SubmitTimesheet: React.FC = () => {
       if (timesheet.attachments.length === 0 || timesheet.attachments.every(file => !file)) {
         console.log("📤 No attachments detected. Sending JSON payload...");
 
-        // Construct payload conditionally for delay fields and extraWorkSheet fields
         const payload: any = {
           ...timesheet,
           totalHours: totalHours,
@@ -447,13 +441,6 @@ const SubmitTimesheet: React.FC = () => {
           if (otherDelay.duration && otherDelay.from && otherDelay.to) {
             payload.otherDelay = otherDelay;
           }
-        }
-
-        // Only include extraWorkSheet fields if selected as 'yes'
-        if (extraWorkSheet === 'yes') {
-          payload.extraWorkSheet = extraWorkSheet;
-          payload.extraWorkSheetDetails = extraWorkSheetDuration;
-          payload.extraWorkSheetComments = extraWorkSheetComments.comments;
         }
 
         console.log("📄 Payload to send:", payload);
@@ -495,13 +482,6 @@ const SubmitTimesheet: React.FC = () => {
           formData.append("otherDelay", JSON.stringify(otherDelay));
         }
 
-        // Only include extraWorkSheet fields if selected as 'yes'
-        if (extraWorkSheet === 'yes') {
-          formData.append("extraWorkSheet", extraWorkSheet);
-          formData.append("extraWorkSheetDetails", JSON.stringify(extraWorkSheetDuration));
-          formData.append("extraWorkSheetComments", extraWorkSheetComments.comments);
-        }
-
         timesheet.attachments.forEach((file, idx) => {
           if (file) {
             formData.append("attachments", file);
@@ -524,10 +504,6 @@ const SubmitTimesheet: React.FC = () => {
       setShowSuccess(true);
 
       setTimesheet(getEmptyTimesheet(timesheet.driver));
-      // Reset delay and extra worksheet fields
-      setExtraWorkSheet("");
-      setExtraWorkSheetDuration({ duration: "", from: "", to: "" });
-      setExtraWorkSheetComments({ comments: "" });
       setHasDelay([]);
       setStoreDelay({ duration: "", from: "", to: "", reason: "" });
       setRoadDelay({ duration: "", from: "", to: "", reason: "" });
@@ -775,42 +751,6 @@ const SubmitTimesheet: React.FC = () => {
                   style={{ ...styles.input, colorScheme: "dark" }} />
                 {errors.gateInTime && <span style={styles.error}>{errors.gateInTime}</span>}
               </div>
-            </div>
-            {/* Extra Work Sheet */}
-            <div style={{ ...styles.extraWorkWrapper, marginTop: "14px" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <label style={{ fontSize: "14px", fontWeight: 600, color: "var(--t-text-secondary)" }}>Extra Work Sheet?</label>
-                <div style={{ display: "flex", gap: "12px" }}>
-                  {["yes", "no"].map(v => (
-                    <label key={v} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "13px", color: extraWorkSheet === v ? "var(--t-indigo)" : "var(--t-text-dim)", cursor: "pointer", fontWeight: extraWorkSheet === v ? 700 : 500 }}>
-                      <input type="radio" name="extraWorkSheet" value={v} checked={extraWorkSheet === v} onChange={e => setExtraWorkSheet(e.target.value)} style={{ accentColor: "var(--t-indigo)" }} />
-                      {v.charAt(0).toUpperCase() + v.slice(1)}
-                    </label>
-                  ))}
-                </div>
-              </div>
-              {extraWorkSheet === "yes" && (
-                <div style={{ marginTop: "14px", display: "flex", flexDirection: "column" as const, gap: "10px" }}>
-                  <div style={twoCol} className="db-two-col">
-                    <div>
-                      <p style={fieldLabel}>From</p>
-                      <input type="time" style={styles.input} value={extraWorkSheetDuration.from} onChange={e => { const v = e.target.value; setExtraWorkSheetDuration(p => { const n = { ...p, from: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} />
-                    </div>
-                    <div>
-                      <p style={fieldLabel}>To</p>
-                      <input type="time" style={styles.input} value={extraWorkSheetDuration.to} onChange={e => { const v = e.target.value; setExtraWorkSheetDuration(p => { const n = { ...p, to: v }; if (n.from && n.to) n.duration = calculateDuration(n.from, n.to); return n; }); }} />
-                    </div>
-                  </div>
-                  <div>
-                    <p style={fieldLabel}>Duration</p>
-                    <input type="text" style={{ ...styles.input, color: "var(--t-text-ghost)" }} value={extraWorkSheetDuration.duration} readOnly />
-                  </div>
-                  <div>
-                    <p style={fieldLabel}>Comments</p>
-                    <input type="text" style={styles.input} value={extraWorkSheetComments.comments} onChange={e => setExtraWorkSheetComments({ comments: e.target.value })} />
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -1071,12 +1011,6 @@ const styles: { [key: string]: CSSProperties } = {
     resize: "vertical" as const,
     fontFamily: "Inter, system-ui, sans-serif",
   },
-  extraWorkWrapper: {
-    border: "1px solid var(--t-border)",
-    borderRadius: "12px",
-    padding: "14px 16px",
-    backgroundColor: "var(--t-stripe)",
-  },
   delaySection: {
     border: "1px solid var(--t-border)",
     borderRadius: "12px",
@@ -1110,6 +1044,7 @@ const styles: { [key: string]: CSSProperties } = {
     backgroundColor: "var(--t-input-bg)",
     color: "var(--t-text-secondary)",
     fontFamily: "Inter, system-ui, sans-serif",
+    colorScheme: "dark" as const,
   },
   submitButton: {
     background: "linear-gradient(135deg, #4F46E5 0%, #6366f1 100%)",

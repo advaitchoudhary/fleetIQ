@@ -7,7 +7,6 @@ import axios from "axios";
 import {
   FaFileAlt, FaUser, FaPhoneAlt, FaTruck, FaClock,
   FaCheckCircle, FaExclamationCircle, FaHourglassHalf, FaTimesCircle,
-  FaIdCard,
 } from "react-icons/fa";
 
 interface DriverProfile {
@@ -236,7 +235,7 @@ const DriverHome: React.FC = () => {
               {/* Hours this week */}
               <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "14px", padding: "20px 24px", boxShadow: "var(--t-shadow)" }}>
                 <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", marginBottom: "10px" }}>HOURS THIS WEEK</div>
-                <div style={{ fontSize: "32px", fontWeight: 800, color: "var(--t-text)" }}>{driver?.hoursThisWeek ?? 0}</div>
+                <div style={{ fontSize: "32px", fontWeight: 800, color: "var(--t-text)" }}>{(driver?.hoursThisWeek ?? 0).toFixed(1)}</div>
                 <div style={{ fontSize: "12px", color: "var(--t-text-dim)", marginTop: "4px" }}>hrs logged</div>
               </div>
 
