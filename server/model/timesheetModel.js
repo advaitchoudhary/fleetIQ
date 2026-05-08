@@ -26,6 +26,7 @@ const timesheetSchema = new mongoose.Schema(
     comments: { type: String },
     attachments: { type: [String], default: [] },
     status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
+    rejectionReason: { type: String, default: "" },
     extraWorkSheet: { type: String, enum: ["yes", "no"], default: "no" },
     extraDuration: { type: String },
     durationFrom: { type: String },

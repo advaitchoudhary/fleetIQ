@@ -807,7 +807,7 @@ const AllTimesheets: React.FC = () => {
                     const rawName = (ts.driverName || "").replace(/\s*\(@.*?\)/, "");
                     const driverUsername = (ts.driverName || "").match(/\(@(.*?)\)/)?.[1] || "";
                     const initials = rawName.split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
-                    const dateStr = ts.date ? new Date(ts.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
+                    const dateStr = ts.date ? new Date(ts.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
                     return (
                       <tr key={ts._id} data-ts-row
                         onClick={(e) => { if ((e.target as HTMLElement).closest("button, input")) return; navigate(`/timesheet/${ts._id}?${searchParams.toString()}`); }}

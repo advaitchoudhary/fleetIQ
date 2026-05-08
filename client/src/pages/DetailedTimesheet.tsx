@@ -15,6 +15,8 @@ const DetailedTimesheet: React.FC = () => {
   const [correctedFields, setCorrectedFields] = useState<Set<string>>(new Set());
   const [requiredFields, setRequiredFields] = useState<string[]>([]);
   const [resetHover, setResetHover] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [driversMap, setDriversMap] = useState<Record<string, string>>({});
   // Multi-select for delay types (legacy, will be replaced by checkboxes)
@@ -135,6 +137,8 @@ const DetailedTimesheet: React.FC = () => {
         allFields.forEach((field) => {
           filledData[field] = field in data ? data[field] : "";
         });
+        // --- Normalize extraWorkSheet and extraDelay values for dropdowns ---
+        filledData.extraWorkSheet = data.extraWorkSheet === "yes" ? "yes" : "no";
         filledData.extraDelay = data.extraDelay || "no";
 
         // --- Unified delayDetails object ---
@@ -433,6 +437,12 @@ const DetailedTimesheet: React.FC = () => {
       </span>
     </div>
 
+    {timesheet.status === "rejected" && timesheet.rejectionReason && (
+      <div style={{ margin: "0 40px 16px", padding: "12px 16px", background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "10px", display: "flex", gap: "10px", alignItems: "flex-start" }}>
+        <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--t-error)", whiteSpace: "nowrap" }}>Rejection reason:</span>
+        <span style={{ fontSize: "13px", color: "var(--t-error)" }}>{timesheet.rejectionReason}</span>
+      </div>
+    )}
     <div style={{ display: "flex", padding: "24px 40px", gap: "24px", alignItems: "flex-start" }}>
       {/* Left Side: Overview Cards */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column" as const, gap: "16px" }}>
@@ -921,28 +931,34 @@ const DetailedTimesheet: React.FC = () => {
             );
           })()
         }
-        {/* Reset All Corrections Button */}
-        <button
-          onClick={() => setCorrectedFields(new Set())}
-          style={{
-            marginTop: "16px",
-            marginBottom: "24px",
-            padding: "8px 16px",
-            borderRadius: "8px",
-            border: "1px solid var(--t-border-strong)",
-            background: resetHover ? "var(--t-hover-bg)" : "var(--t-surface-alt)",
-            cursor: "pointer",
-            fontSize: "13px",
-            fontWeight: 600,
-            color: "var(--t-text-faint)",
-            transition: "background 0.2s",
-            fontFamily: "Inter, system-ui, sans-serif",
-          }}
-          onMouseEnter={() => setResetHover(true)}
-          onMouseLeave={() => setResetHover(false)}
-        >
-          Reset All Corrections
-        </button>
+        {/* Corrections action buttons */}
+        <div style={{ display: "flex", gap: "10px", marginTop: "16px", marginBottom: "24px" }}>
+          <button
+            onClick={() => setCorrectedFields(new Set(requiredFields))}
+            style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid var(--t-accent)", background: "var(--t-indigo-bg)", cursor: "pointer", fontSize: "13px", fontWeight: 600, color: "var(--t-accent)", fontFamily: "Inter, system-ui, sans-serif" }}
+          >
+            Mark All Correct
+          </button>
+          <button
+            onClick={() => setCorrectedFields(new Set())}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "8px",
+              border: "1px solid var(--t-border-strong)",
+              background: resetHover ? "var(--t-hover-bg)" : "var(--t-surface-alt)",
+              cursor: "pointer",
+              fontSize: "13px",
+              fontWeight: 600,
+              color: "var(--t-text-faint)",
+              transition: "background 0.2s",
+              fontFamily: "Inter, system-ui, sans-serif",
+            }}
+            onMouseEnter={() => setResetHover(true)}
+            onMouseLeave={() => setResetHover(false)}
+          >
+            Reset All Corrections
+          </button>
+        </div>
         {/* Approve button logic update with delay validation */}
         {(() => {
           const allCorrected = requiredFields.every((field) =>
@@ -1001,24 +1017,57 @@ const DetailedTimesheet: React.FC = () => {
                 ✓ Submit Changes
               </button>
               <button
-                onClick={async () => {
-                  try {
-                    await axios.put(`${API_BASE_URL}/timesheet/${id}/status`, { status: "rejected" });
-                    alert("Timesheet rejected.");
-                    window.location.reload();
-                  } catch (err) {
-                    alert("Failed to reject timesheet.");
-                  }
-                }}
+                onClick={() => { setRejectReason(""); setShowRejectModal(true); }}
                 style={{ padding: "11px 20px", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "10px", fontSize: "14px", fontWeight: 700, cursor: "pointer", background: "var(--t-error-bg)", color: "var(--t-error)", fontFamily: "Inter, system-ui, sans-serif" }}
               >
-                Discard
+                Reject
               </button>
             </div>
           );
         })()}
       </div>
       {/* Image Modal */}
+      {showRejectModal && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 2100, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowRejectModal(false); }}
+        >
+          <div style={{ background: "var(--t-modal-bg)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "440px", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" }}>
+            <h2 style={{ margin: "0 0 8px", fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Reject Timesheet</h2>
+            <p style={{ margin: "0 0 20px", fontSize: "13px", color: "var(--t-text-ghost)" }}>Provide a reason so the driver knows what to correct.</p>
+            <textarea
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="e.g. Missing load ID, incorrect hours..."
+              rows={4}
+              style={{ width: "100%", padding: "11px 14px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "14px", fontFamily: "Inter, system-ui, sans-serif", resize: "vertical", boxSizing: "border-box" }}
+            />
+            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "20px" }}>
+              <button
+                onClick={() => setShowRejectModal(false)}
+                style={{ padding: "9px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text-faint)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                Cancel
+              </button>
+              <button
+                disabled={!rejectReason.trim()}
+                onClick={async () => {
+                  try {
+                    await axios.put(`${API_BASE_URL}/timesheet/${id}/status`, { status: "rejected", rejectionReason: rejectReason.trim() });
+                    setShowRejectModal(false);
+                    window.location.reload();
+                  } catch {
+                    alert("Failed to reject timesheet.");
+                  }
+                }}
+                style={{ padding: "9px 18px", background: !rejectReason.trim() ? "var(--t-hover-bg)" : "var(--t-error)", border: "none", borderRadius: "8px", color: !rejectReason.trim() ? "var(--t-text-ghost)" : "#fff", fontSize: "13px", fontWeight: 700, cursor: !rejectReason.trim() ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                Confirm Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {selectedImageIndex !== null && (
         <div
           onClick={() => setSelectedImageIndex(null)}
