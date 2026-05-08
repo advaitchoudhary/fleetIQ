@@ -1,11 +1,13 @@
 const express = require("express");
-const { register, login, getUserProfile, changePassword, switchOrg } = require("../controller/authController.js");
+const { register, login, getUserProfile, changePassword, switchOrg, forgotPassword, resetPassword } = require("../controller/authController.js");
 const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
 
 const router = express.Router();
 
 router.post("/register", register);
 router.post("/login", login);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 router.get("/profile", protect, getUserProfile);
 
 router.post(

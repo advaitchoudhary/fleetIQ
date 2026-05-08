@@ -23,7 +23,7 @@ const checkFeature = (requiredPlan) => async (req, res, next) => {
   try {
     const org = await Organization.findById(orgId).select("subscription").lean();
     if (!org) {
-      return res.status(404).json({ message: "Organization not found" });
+      return res.status(401).json({ message: "Organization not found. Please log in again.", code: "ORG_NOT_FOUND" });
     }
 
     const { plan, status, trialEndsAt } = org.subscription || {};

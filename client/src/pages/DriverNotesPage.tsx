@@ -134,11 +134,23 @@ const DriverNotesPage: React.FC = () => {
               <p style={{ margin: 0, fontSize: "15px", fontWeight: 600, color: "var(--t-text)" }}>
                 {filter === "All" ? "No notes yet" : `No ${filter.toLowerCase()} notes`}
               </p>
-              <p style={{ margin: "6px 0 0", fontSize: "13px", color: "var(--t-text-ghost)" }}>
-                {filter === "All"
-                  ? "Open a driver's edit modal to add the first note."
-                  : "Switch to a different filter to see other notes."}
-              </p>
+              {filter === "All" ? (
+                <div style={{ marginTop: "12px" }}>
+                  <p style={{ margin: "0 0 16px", fontSize: "13px", color: "var(--t-text-ghost)", lineHeight: 1.6 }}>
+                    To add a note: go to <strong style={{ color: "var(--t-text-secondary)" }}>Drivers</strong> → click the <strong style={{ color: "var(--t-text-secondary)" }}>⋯ menu</strong> on any driver → select <strong style={{ color: "var(--t-text-secondary)" }}>Edit</strong> → open the <strong style={{ color: "var(--t-text-secondary)" }}>Notes</strong> tab.
+                  </p>
+                  <a
+                    href="/users"
+                    style={{ display: "inline-block", padding: "9px 20px", borderRadius: "9px", background: "var(--t-accent)", color: "#fff", fontSize: "13px", fontWeight: 600, textDecoration: "none", fontFamily: "Inter, system-ui, sans-serif" }}
+                  >
+                    Go to Drivers →
+                  </a>
+                </div>
+              ) : (
+                <p style={{ margin: "6px 0 0", fontSize: "13px", color: "var(--t-text-ghost)" }}>
+                  Switch to a different filter to see other notes.
+                </p>
+              )}
             </div>
           ) : (
             <table style={{ width: "100%", borderCollapse: "collapse" }}>

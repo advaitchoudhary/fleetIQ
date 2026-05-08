@@ -6,14 +6,14 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  isDark: true,
+  isDark: false,
   toggleTheme: () => {},
 });
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isDark, setIsDark] = useState<boolean>(() => {
     const saved = localStorage.getItem("fleetiq-theme");
-    return saved ? saved !== "light" : true; // default dark
+    return saved ? saved !== "light" : false; // default light
   });
 
   // Apply data-theme to <html> on first render and on change

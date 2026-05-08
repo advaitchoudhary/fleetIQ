@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { API_BASE_URL } from "../utils/env";
 import axios from "axios";
-import { FaTruck, FaCheckCircle, FaUsers, FaCar, FaCreditCard, FaArrowRight, FaShieldAlt } from "react-icons/fa";
+import { FaTruck, FaCheckCircle, FaUsers, FaCar, FaCreditCard, FaArrowRight, FaShieldAlt, FaMapMarkerAlt, FaFileInvoiceDollar, FaWrench, FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -12,6 +12,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const { login, loginDirect } = useAuth();
 
   useEffect(() => {
@@ -75,10 +76,12 @@ const Login: React.FC = () => {
   });
 
   const features = [
-    { icon: <FaUsers size={15} />, title: "Driver Management & Applications", desc: "Manage driver profiles, onboarding, and documents in one place." },
-    { icon: <FaShieldAlt size={15} />, title: "Compliance & Document Tracking", desc: "Stay audit-ready with automated compliance and file storage." },
-    { icon: <FaCreditCard size={15} />, title: "Stripe-Powered Driver Payouts", desc: "Process and track driver payments directly from your dashboard." },
-    { icon: <FaCar size={15} />, title: "Vehicle & Fleet Operations", desc: "Track vehicles, maintenance, warranties, and fuel logs." },
+    { icon: <FaUsers size={14} />, title: "Driver Management", desc: "Profiles, onboarding, documents, and timesheets." },
+    { icon: <FaCar size={14} />, title: "Vehicle & Fleet Ops", desc: "Maintenance, warranties, inspections, and fuel logs." },
+    { icon: <FaMapMarkerAlt size={14} />, title: "Live GPS Tracking", desc: "Real-time driver location sharing with 30s polling." },
+    { icon: <FaCreditCard size={14} />, title: "Driver Payouts", desc: "Stripe-powered payments processed from your dashboard." },
+    { icon: <FaFileInvoiceDollar size={14} />, title: "IFTA Reporting", desc: "Auto-generate quarterly fuel tax reports by jurisdiction." },
+    { icon: <FaWrench size={14} />, title: "Preventive Maintenance", desc: "Scheduled PM templates and auto-generated work orders." },
   ];
 
   return (
@@ -98,36 +101,6 @@ const Login: React.FC = () => {
           display: flex; flex-direction: column;
           align-items: center; justify-content: center;
           padding: 48px 32px; position: relative;
-        }
-
-        .fl-mockup {
-          background: #0F1629;
-          border-radius: 14px;
-          border: 1px solid rgba(255,255,255,0.07);
-          padding: 20px;
-          margin-bottom: 36px;
-        }
-        .fl-mockup-bar {
-          height: 5px;
-          background: linear-gradient(90deg, #7B6CF6 0%, #06B6D4 55%, rgba(255,255,255,0.06) 100%);
-          border-radius: 3px; margin-bottom: 14px;
-        }
-        .fl-mockup-stats {
-          display: flex; gap: 10px; margin-bottom: 14px;
-        }
-        .fl-mockup-stat {
-          flex: 1; background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.05);
-          border-radius: 8px; padding: 10px 12px;
-        }
-        .fl-mockup-stat-label { font-size: 9px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
-        .fl-mockup-stat-val { font-size: 16px; font-weight: 700; color: #fff; }
-        .fl-mockup-stat-val.cyan { color: #06B6D4; }
-        .fl-mockup-stat-val.green { color: #34D399; }
-        .fl-mockup-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 12px 0; }
-        .fl-mockup-row {
-          display: flex; justify-content: space-between;
-          font-size: 11px; margin-bottom: 7px;
         }
 
         .fl-feature {
@@ -216,61 +189,34 @@ const Login: React.FC = () => {
 
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "44px" }}>
-          <div style={{ width: "34px", height: "34px", borderRadius: "8px", background: "linear-gradient(135deg, #7B6CF6, #4F46E5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: "34px", height: "34px", borderRadius: "8px", background: "linear-gradient(135deg, #4F46E5, #7c3aed)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <FaTruck size={16} color="#fff" />
           </div>
           <span style={{ fontSize: "18px", fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>
-            Fleet<span style={{ color: "#7B6CF6" }}>IQ</span>
+            Fleet<span style={{ color: "#818CF8" }}>IQ</span>
           </span>
         </div>
 
-        {/* Dashboard mockup */}
-        <div className="fl-mockup">
-          <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "12px" }}>Live Dashboard</div>
-          <div className="fl-mockup-bar" />
-          <div className="fl-mockup-stats">
-            <div className="fl-mockup-stat">
-              <div className="fl-mockup-stat-label">Active Drivers</div>
-              <div className="fl-mockup-stat-val">24</div>
-            </div>
-            <div className="fl-mockup-stat">
-              <div className="fl-mockup-stat-label">Payouts</div>
-              <div className="fl-mockup-stat-val green">$18,430</div>
-            </div>
-            <div className="fl-mockup-stat">
-              <div className="fl-mockup-stat-label">On-Road</div>
-              <div className="fl-mockup-stat-val cyan">18</div>
-            </div>
-          </div>
-          <div className="fl-mockup-divider" />
-          {[
-            { label: "Premier Choice Transport", val: "$4,200" },
-            { label: "Oakville Logistics", val: "24 drivers" },
-            { label: "GTA Transport Group", val: "On route" },
-            { label: "Durham Express", val: "$1,083" },
-          ].map((row) => (
-            <div className="fl-mockup-row" key={row.label}>
-              <span style={{ color: "rgba(255,255,255,0.35)" }}>{row.label}</span>
-              <span style={{ color: "rgba(255,255,255,0.65)", fontWeight: 600 }}>{row.val}</span>
-            </div>
-          ))}
-        </div>
-
         {/* Headline */}
-        <div style={{ marginBottom: "32px" }}>
+        <div style={{ marginBottom: "36px" }}>
           <h1 style={{ margin: "0 0 12px", fontSize: "clamp(26px, 2.8vw, 36px)", fontWeight: 800, color: "#fff", lineHeight: 1.15, letterSpacing: "-0.5px" }}>
             Everything your <span style={{ color: "#06B6D4" }}>fleet</span><br />needs, in one place.
           </h1>
+          <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
+            One platform for dispatch, compliance, tracking, and payouts — built for modern fleets.
+          </p>
         </div>
 
-        {/* Features */}
-        <div style={{ marginBottom: "auto" }}>
-          {features.slice(0, 2).map((f, i) => (
-            <div key={i} className="fl-feature">
-              <div className="fl-feature-icon">{f.icon}</div>
+        {/* Features grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "auto" }}>
+          {features.map((f, i) => (
+            <div key={i} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "12px", padding: "14px 16px", display: "flex", gap: "12px", alignItems: "flex-start" }}>
+              <div style={{ width: "30px", height: "30px", background: "rgba(123,108,246,0.12)", border: "1px solid rgba(123,108,246,0.2)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "#7B6CF6", flexShrink: 0 }}>
+                {f.icon}
+              </div>
               <div>
-                <div style={{ fontSize: "14px", fontWeight: 700, color: "#fff", marginBottom: "2px" }}>{f.title}</div>
-                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)" }}>{f.desc}</div>
+                <div style={{ fontSize: "12px", fontWeight: 700, color: "#fff", marginBottom: "3px" }}>{f.title}</div>
+                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)", lineHeight: 1.45 }}>{f.desc}</div>
               </div>
             </div>
           ))}
@@ -279,11 +225,18 @@ const Login: React.FC = () => {
         {/* Footer */}
         <div style={{ paddingTop: "32px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
           <div className="fl-footer-links">
-            {["Privacy Policy", "Terms of Service", "Support"].map((link) => (
-              <span key={link} style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", cursor: "pointer" }}>{link}</span>
+            {[
+              { label: "Privacy Policy", href: "/privacy" },
+              { label: "Terms of Service", href: "/terms" },
+              { label: "Support", href: "/support" },
+            ].map(({ label, href }) => (
+              <a key={label} href={href} style={{ fontSize: "11px", color: "rgba(255,255,255,0.25)", cursor: "pointer", textDecoration: "none" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.5)")}
+                onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.25)")}
+              >{label}</a>
             ))}
           </div>
-          <div style={{ marginTop: "8px", fontSize: "11px", color: "rgba(255,255,255,0.15)" }}>© 2024 FleetIQ Systems. All rights reserved.</div>
+          <div style={{ marginTop: "8px", fontSize: "11px", color: "rgba(255,255,255,0.15)" }}>© {new Date().getFullYear()} FleetIQ Logistics. All rights reserved.</div>
         </div>
       </div>
 
@@ -373,21 +326,51 @@ const Login: React.FC = () => {
 
               {/* Password */}
               <div>
-                <label style={{ display: "block", fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.35)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.8px" }}>
-                  Password
-                </label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                  <label style={{ fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                    Password
+                  </label>
+                  {role !== "driver" && (
+                    <button
+                      type="button"
+                      onClick={() => navigate("/forgot-password")}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "rgba(123,108,246,0.7)",
+                        cursor: "pointer",
+                        fontSize: "11px",
+                        fontFamily: "Inter, system-ui, sans-serif",
+                        fontWeight: 500,
+                        padding: 0,
+                        transition: "color 0.2s",
+                      }}
+                      onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "#7B6CF6")}
+                      onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.color = "rgba(123,108,246,0.7)")}
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
                 <div className="fl-input-wrap">
                   <span className="fl-input-icon">🔑</span>
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     onFocus={() => setFocusedField("password")}
                     onBlur={() => setFocusedField(null)}
                     required
-                    style={inputStyle("password")}
+                    style={{ ...inputStyle("password"), paddingRight: "40px" }}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", padding: 0, display: "flex", alignItems: "center" }}
+                  >
+                    {showPassword ? <FaEyeSlash size={15} /> : <FaEye size={15} />}
+                  </button>
                 </div>
               </div>
 
@@ -422,9 +405,9 @@ const Login: React.FC = () => {
           <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.35)" }}>Don't have an account? </span>
           <button
             onClick={() => navigate("/register")}
-            style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", fontWeight: 700, fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", textDecoration: "underline" }}
+            style={{ background: "none", border: "none", color: "#7B6CF6", cursor: "pointer", fontWeight: 700, fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif" }}
           >
-            Create Account
+            Sign up →
           </button>
         </div>
 

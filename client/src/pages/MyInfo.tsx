@@ -40,6 +40,9 @@ const MyInfo: React.FC = () => {
   const [mandatoryDocuments, setMandatoryDocuments] = useState<string[]>([]);
   const [docsLoading, setDocsLoading] = useState(true);
   const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewTitle, setPreviewTitle] = useState<string>("");
+  const [uploadingIdentity, setUploadingIdentity] = useState<"licence" | "workAuth" | null>(null);
 
   useEffect(() => {
     if (driver?.email) {
@@ -89,23 +92,18 @@ const MyInfo: React.FC = () => {
       const storedUser = localStorage.getItem("user");
       if (!storedUser) return;
       const parsedUser = JSON.parse(storedUser);
+      if (!parsedUser.id) return;
       const token = localStorage.getItem("token");
       const authHeaders = { Authorization: `Bearer ${token}` };
       try {
-        const allDriversRes = await axios.get(`${API_BASE_URL}/drivers`, { headers: authHeaders });
-        const matchedDriver = allDriversRes.data.find(
-          (drv: any) => drv.email === parsedUser.email
+        const fullDriverRes = await axios.get(
+          `${API_BASE_URL}/drivers/${parsedUser.id}`,
+          { headers: authHeaders }
         );
-        if (matchedDriver) {
-          const fullDriverRes = await axios.get(
-            `${API_BASE_URL}/drivers/${matchedDriver._id}`,
-            { headers: authHeaders }
-          );
-          setDriver(fullDriverRes.data);
-          setFormData(fullDriverRes.data);
-          if (!fullDriverRes.data.bankDetails) {
-            setShowBankForm(true);
-          }
+        setDriver(fullDriverRes.data);
+        setFormData(fullDriverRes.data);
+        if (!fullDriverRes.data.bankDetails) {
+          setShowBankForm(true);
         }
       } catch (error) {
         console.error("Error fetching driver details:", error);
@@ -113,6 +111,12 @@ const MyInfo: React.FC = () => {
     };
     fetchDriverDetails();
   }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setPreviewUrl(null); };
+    if (previewUrl) document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [previewUrl]);
 
   if (!driver || !formData) return <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", color: "var(--t-text-faint)", fontSize: "15px" }}>Loading...</div>;
 
@@ -156,6 +160,9 @@ const MyInfo: React.FC = () => {
         [data-mi-form-card-inner]:hover { box-shadow: var(--t-shadow) !important; transform: translateY(-1px); border-color: var(--t-accent-light) !important; }
         [data-mi-training-card-inner]:hover { box-shadow: var(--t-shadow) !important; transform: translateY(-1px); border-color: var(--t-accent-light) !important; }
         input[data-mi-input]:focus { outline: none; border-color: #4F46E5 !important; box-shadow: 0 0 0 3px rgba(79,70,229,0.15); }
+        input[type="date"][data-mi-input], select[data-mi-input] { color-scheme: dark; }
+        input[type="date"][data-mi-input]::-webkit-calendar-picker-indicator { filter: invert(0.65) brightness(1.4); cursor: pointer; padding: 2px; border-radius: 3px; opacity: 0.75; transition: opacity 0.15s; }
+        input[type="date"][data-mi-input]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
       `}</style>
       <Navbar />
 
@@ -362,6 +369,7 @@ const MyInfo: React.FC = () => {
                     })
                   }
                   style={styles.inputField}
+                  data-mi-input
                 />
               </label>
             ) : (
@@ -374,6 +382,36 @@ const MyInfo: React.FC = () => {
                 </span>
               </div>
             )}
+            {/* Licence document upload */}
+            <div style={styles.infoItem}>
+              <span style={styles.infoLabel}>Licence Document</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" as const, marginTop: "4px" }}>
+                {driver.licenceDocument ? (
+                  <>
+                    <span style={{ fontSize: "12px", color: "var(--t-success)", fontWeight: 600 }}>✓ Uploaded</span>
+                    <button onClick={() => { setPreviewTitle("Licence Document"); setPreviewUrl(`${API_BASE_URL.replace("/api", "")}/${driver.licenceDocument}`); }} style={styles.viewLinkBtn}>View</button>
+                  </>
+                ) : (
+                  <span style={{ fontSize: "12px", color: "var(--t-text-ghost)" }}>Not uploaded</span>
+                )}
+                <label style={{ ...styles.uploadButton, fontSize: "11px", padding: "4px 10px" }}>
+                  {uploadingIdentity === "licence" ? "Uploading…" : driver.licenceDocument ? "Update" : "Upload"}
+                  <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style={{ display: "none" }} disabled={uploadingIdentity === "licence"}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0]; if (!file) return;
+                      setUploadingIdentity("licence");
+                      const fd = new FormData(); fd.append("file", file); fd.append("driverId", driver._id); fd.append("docType", "licence");
+                      try {
+                        const token = localStorage.getItem("token");
+                        const res = await axios.post(`${API_BASE_URL}/drivers/upload-identity-document`, fd, { headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" } });
+                        setDriver(res.data.driver); setFormData(res.data.driver);
+                      } catch (err: any) { alert(err.response?.data?.message || "Failed to upload licence document"); }
+                      finally { setUploadingIdentity(null); }
+                    }} />
+                </label>
+              </div>
+            </div>
+
             <div style={styles.infoItem}>
               <span style={styles.infoLabel}>Status</span>
               <span style={styles.infoValue}>{driver.status}</span>
@@ -407,6 +445,7 @@ const MyInfo: React.FC = () => {
                       setFormData({ ...formData, workStatus: e.target.value, workAuthExpiry: "" })
                     }
                     style={{ ...styles.inputField, cursor: "pointer" }}
+                    data-mi-input
                   >
                     <option value="">Select work authorization</option>
                     {WORK_AUTH_OPTIONS.map((o) => (
@@ -424,6 +463,7 @@ const MyInfo: React.FC = () => {
                         setFormData({ ...formData, workAuthExpiry: e.target.value })
                       }
                       style={styles.inputField}
+                      data-mi-input
                     />
                   </label>
                 )}
@@ -443,6 +483,38 @@ const MyInfo: React.FC = () => {
                   </div>
                 )}
               </>
+            )}
+
+            {/* Work auth document upload — only shown when work status requires a permit */}
+            {workAuthNeedsExpiry(driver.workStatus) && (
+              <div style={styles.infoItem}>
+                <span style={styles.infoLabel}>Work Auth Document</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" as const, marginTop: "4px" }}>
+                  {driver.workAuthDocument ? (
+                    <>
+                      <span style={{ fontSize: "12px", color: "var(--t-success)", fontWeight: 600 }}>✓ Uploaded</span>
+                      <button onClick={() => { setPreviewTitle("Work Authorization Document"); setPreviewUrl(`${API_BASE_URL.replace("/api", "")}/${driver.workAuthDocument}`); }} style={styles.viewLinkBtn}>View</button>
+                    </>
+                  ) : (
+                    <span style={{ fontSize: "12px", color: "var(--t-text-ghost)" }}>Not uploaded</span>
+                  )}
+                  <label style={{ ...styles.uploadButton, fontSize: "11px", padding: "4px 10px" }}>
+                    {uploadingIdentity === "workAuth" ? "Uploading…" : driver.workAuthDocument ? "Update" : "Upload"}
+                    <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style={{ display: "none" }} disabled={uploadingIdentity === "workAuth"}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0]; if (!file) return;
+                        setUploadingIdentity("workAuth");
+                        const fd = new FormData(); fd.append("file", file); fd.append("driverId", driver._id); fd.append("docType", "workAuth");
+                        try {
+                          const token = localStorage.getItem("token");
+                          const res = await axios.post(`${API_BASE_URL}/drivers/upload-identity-document`, fd, { headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" } });
+                          setDriver(res.data.driver); setFormData(res.data.driver);
+                        } catch (err: any) { alert(err.response?.data?.message || "Failed to upload work auth document"); }
+                        finally { setUploadingIdentity(null); }
+                      }} />
+                  </label>
+                </div>
+              </div>
             )}
           </div>
           {isEditing && (
@@ -464,7 +536,7 @@ const MyInfo: React.FC = () => {
                   );
 
                   await axios.post(`${API_BASE_URL}/notifications`, {
-                    message: `${driver.name} updated ${changedFields.join(", ")} details`,
+                    message: `You updated ${changedFields.join(", ")} details`,
                     email: driver.email,
                     field: changedFields.join(", ") || "Unknown",
                   });
@@ -503,9 +575,12 @@ const MyInfo: React.FC = () => {
                       {hasDoc ? (
                         <div style={styles.formUploaded}>
                           <p style={styles.formStatus}>✓ Uploaded</p>
-                          <a href={`${API_BASE_URL.replace("/api", "")}/${entry.document}`} target="_blank" rel="noopener noreferrer" style={styles.viewLink}>
+                          <button
+                            onClick={() => { setPreviewTitle(docName); setPreviewUrl(`${API_BASE_URL.replace("/api", "")}/${entry.document}`); }}
+                            style={styles.viewLinkBtn}
+                          >
                             View Document
-                          </a>
+                          </button>
                           <label style={styles.uploadButton}>
                             {uploadingDoc === docName ? "Uploading..." : "Update"}
                             <input
@@ -604,14 +679,12 @@ const MyInfo: React.FC = () => {
                     {hasProof ? (
                       <div style={styles.trainingUploaded}>
                         <p style={styles.trainingStatus}>✓ Passed</p>
-                        <a
-                          href={`${API_BASE_URL.replace("/api", "")}/${training.proofDocument}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={styles.viewLink}
+                        <button
+                          onClick={() => { setPreviewTitle(trainingName); setPreviewUrl(`${API_BASE_URL.replace("/api", "")}/${training.proofDocument}`); }}
+                          style={styles.viewLinkBtn}
                         >
                           View Proof
-                        </a>
+                        </button>
                         <label 
                           style={styles.uploadButton}
                           onMouseEnter={(e) => {
@@ -824,6 +897,57 @@ const MyInfo: React.FC = () => {
         </div>
       </div>
       </div>
+
+      {/* Document Preview Modal */}
+      {previewUrl && (
+        <div
+          onClick={() => setPreviewUrl(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", boxShadow: "0 24px 60px rgba(0,0,0,0.5)", display: "flex", flexDirection: "column", width: "min(900px, 95vw)", height: "min(820px, 90vh)", overflow: "hidden" }}
+          >
+            {/* Modal header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--t-border)", flexShrink: 0 }}>
+              <div>
+                <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "2px" }}>Document Preview</div>
+                <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--t-text)" }}>{previewTitle}</div>
+              </div>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <a
+                  href={previewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ padding: "7px 14px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "12px", fontWeight: 600, color: "var(--t-text-secondary)", textDecoration: "none", fontFamily: "Inter, system-ui, sans-serif" }}
+                >
+                  Open in Tab ↗
+                </a>
+                <button
+                  onClick={() => setPreviewUrl(null)}
+                  style={{ width: "32px", height: "32px", borderRadius: "8px", border: "1px solid var(--t-border-strong)", background: "var(--t-hover-bg)", color: "var(--t-text-secondary)", cursor: "pointer", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, system-ui, sans-serif" }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            {/* Modal body */}
+            <div style={{ flex: 1, overflow: "hidden", background: "var(--t-bg)" }}>
+              {/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(previewUrl) ? (
+                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px", boxSizing: "border-box" }}>
+                  <img src={previewUrl} alt={previewTitle} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", borderRadius: "8px" }} />
+                </div>
+              ) : (
+                <iframe
+                  src={previewUrl}
+                  title={previewTitle}
+                  style={{ width: "100%", height: "100%", border: "none" }}
+                />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -1057,6 +1181,18 @@ const styles: { [key: string]: React.CSSProperties } = {
     textDecoration: "none",
     fontSize: "12px",
     fontWeight: 600,
+  },
+  viewLinkBtn: {
+    background: "none",
+    border: "none",
+    padding: 0,
+    color: "var(--t-indigo)",
+    fontSize: "12px",
+    fontWeight: 600,
+    cursor: "pointer",
+    fontFamily: "Inter, system-ui, sans-serif",
+    textDecoration: "underline",
+    textUnderlineOffset: "2px",
   },
   downloadButton: {
     backgroundColor: "var(--t-success-bg)",

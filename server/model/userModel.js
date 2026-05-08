@@ -16,6 +16,8 @@ const userSchema = new mongoose.Schema(
       ref: "Organization",
       default: null, // null = admin (platform level)
     },
+    resetPasswordToken: { type: String, default: null },
+    resetPasswordExpires: { type: Date, default: null },
   },
   { timestamps: true }
 );

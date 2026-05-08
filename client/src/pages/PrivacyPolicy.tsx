@@ -43,7 +43,7 @@ const PrivacyPolicy: React.FC = () => {
         <div style={{ marginBottom: "48px" }}>
           <p style={{ fontSize: "12px", fontWeight: 700, color: "#4F46E5", letterSpacing: "1px", textTransform: "uppercase", margin: "0 0 12px" }}>Legal</p>
           <h1 style={{ fontSize: "36px", fontWeight: 800, color: "#111827", margin: "0 0 12px", letterSpacing: "-0.5px" }}>Privacy Policy</h1>
-          <p style={{ fontSize: "14px", color: "#9ca3af", margin: 0 }}>Last updated: March 23, 2026</p>
+          <p style={{ fontSize: "14px", color: "#9ca3af", margin: 0 }}>Last updated: May 7, 2026</p>
         </div>
 
         <div style={{ background: "#fff", borderRadius: "16px", border: "1px solid #e0e7ff", padding: "40px 48px", boxShadow: "0 2px 16px rgba(79,70,229,0.07)" }}>

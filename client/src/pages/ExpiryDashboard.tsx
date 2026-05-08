@@ -3,8 +3,9 @@ import axios from "axios";
 import { format, differenceInCalendarDays } from "date-fns";
 import {
   FaIdCard, FaShieldAlt, FaExclamationTriangle,
-  FaCheckCircle, FaExclamationCircle, FaClock,
+  FaCheckCircle, FaExclamationCircle, FaClock, FaEye,
 } from "react-icons/fa";
+import { FILE_BASE_URL } from "../utils/env";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
@@ -24,6 +25,8 @@ interface ExpiryItem {
   type: "Licence" | "Work Authorization";
   expiryDate: Date;
   daysLeft: number;
+  documentUrl: string | null;
+  documentName: string | null;
 }
 
 type Filter = "all" | "expired" | "critical" | "warning";
@@ -35,10 +38,23 @@ const getUrgency = (days: number) => {
   return           { label: "OK",          color: "#10b981", bg: "rgba(16,185,129,0.12)",  border: "rgba(16,185,129,0.3)"  };
 };
 
+function makeDocEntry(filePath: string | null | undefined, label: string): { url: string; name: string } | null {
+  if (!filePath) return null;
+  return { url: `${FILE_BASE_URL}/${filePath}`, name: label };
+}
+
 const ExpiryDashboard: React.FC = () => {
   const [items, setItems] = useState<ExpiryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>("all");
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewTitle, setPreviewTitle] = useState("");
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setPreviewUrl(null); };
+    if (previewUrl) document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [previewUrl]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -52,11 +68,13 @@ const ExpiryDashboard: React.FC = () => {
         drivers.forEach((d) => {
           if (d.licence_expiry_date) {
             const exp = new Date(d.licence_expiry_date); exp.setHours(0, 0, 0, 0);
-            flat.push({ driverId: d._id, driverName: d.name, type: "Licence", expiryDate: exp, daysLeft: differenceInCalendarDays(exp, today) });
+            const found = makeDocEntry(d.licenceDocument, "Licence Document");
+            flat.push({ driverId: d._id, driverName: d.name, type: "Licence", expiryDate: exp, daysLeft: differenceInCalendarDays(exp, today), documentUrl: found?.url ?? null, documentName: found?.name ?? null });
           }
           if (d.workAuthExpiry && EXPIRY_WORK_STATUSES.has(d.workStatus)) {
             const exp = new Date(d.workAuthExpiry); exp.setHours(0, 0, 0, 0);
-            flat.push({ driverId: d._id, driverName: d.name, type: "Work Authorization", expiryDate: exp, daysLeft: differenceInCalendarDays(exp, today) });
+            const found = makeDocEntry(d.workAuthDocument, "Work Authorization Document");
+            flat.push({ driverId: d._id, driverName: d.name, type: "Work Authorization", expiryDate: exp, daysLeft: differenceInCalendarDays(exp, today), documentUrl: found?.url ?? null, documentName: found?.name ?? null });
           }
         });
 
@@ -242,7 +260,7 @@ const ExpiryDashboard: React.FC = () => {
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--t-border)" }}>
-                  {["DRIVER", "DOCUMENT TYPE", "EXPIRY DATE", "DAYS REMAINING", "STATUS"].map((h) => (
+                  {["DRIVER", "DOCUMENT TYPE", "EXPIRY DATE", "DAYS REMAINING", "STATUS", ""].map((h) => (
                     <th key={h} style={{
                       padding: "13px 18px", textAlign: "left", fontSize: "10px",
                       fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px",
@@ -324,6 +342,20 @@ const ExpiryDashboard: React.FC = () => {
                           {u.label}
                         </span>
                       </td>
+
+                      {/* View document */}
+                      <td style={{ padding: "14px 18px" }}>
+                        {item.documentUrl ? (
+                          <button
+                            onClick={() => { setPreviewTitle(`${item.driverName} — ${item.documentName ?? item.type}`); setPreviewUrl(item.documentUrl); }}
+                            style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 12px", borderRadius: "8px", border: "1px solid var(--t-border)", background: "var(--t-hover-bg)", color: "var(--t-accent)", fontSize: "12px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", whiteSpace: "nowrap" }}
+                          >
+                            <FaEye size={11} /> View
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: "12px", color: "var(--t-text-ghost)" }}>—</span>
+                        )}
+                      </td>
                     </tr>
                   );
                 })}
@@ -339,6 +371,43 @@ const ExpiryDashboard: React.FC = () => {
           </p>
         )}
       </div>
+
+      {/* Document Preview Modal */}
+      {previewUrl && (
+        <div
+          onClick={() => setPreviewUrl(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", boxShadow: "0 24px 60px rgba(0,0,0,0.5)", display: "flex", flexDirection: "column", width: "min(900px, 95vw)", height: "min(820px, 90vh)", overflow: "hidden" }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--t-border)", flexShrink: 0 }}>
+              <div>
+                <div style={{ fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "2px" }}>Document Preview</div>
+                <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--t-text)" }}>{previewTitle}</div>
+              </div>
+              <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                <a href={previewUrl} target="_blank" rel="noopener noreferrer" style={{ padding: "7px 14px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", fontSize: "12px", fontWeight: 600, color: "var(--t-text-secondary)", textDecoration: "none", fontFamily: "Inter, system-ui, sans-serif" }}>
+                  Open in Tab ↗
+                </a>
+                <button onClick={() => setPreviewUrl(null)} style={{ width: "32px", height: "32px", borderRadius: "8px", border: "1px solid var(--t-border-strong)", background: "var(--t-hover-bg)", color: "var(--t-text-secondary)", cursor: "pointer", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, system-ui, sans-serif" }}>
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div style={{ flex: 1, overflow: "hidden", background: "var(--t-bg)" }}>
+              {/\.(jpg|jpeg|png|gif|webp|svg)$/i.test(previewUrl) ? (
+                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px", boxSizing: "border-box" }}>
+                  <img src={previewUrl} alt={previewTitle} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", borderRadius: "8px" }} />
+                </div>
+              ) : (
+                <iframe src={previewUrl} title={previewTitle} style={{ width: "100%", height: "100%", border: "none" }} />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

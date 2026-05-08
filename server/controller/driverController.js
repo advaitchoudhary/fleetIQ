@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const Driver = require("../model/driverModel.js");
+const User = require("../model/userModel.js");
 const Organization = require("../model/organizationModel.js");
 const Timesheet = require("../model/timesheetModel.js");
 const asyncHandler = require("express-async-handler");
@@ -122,12 +123,20 @@ const updateAllDriversHours = async (req, res) => {
 
 const create = async (req, res) => {
   try {
-    const { email, username, password } = req.body;
+    // Strip fields that must never be set by the client on create
+    const { _id: _sid, __v: _sv, createdAt: _ca, updatedAt: _ua, password, email, username, ...safeBody } = req.body;
 
     const orgFilter = getOrgFilter(req);
     const driverExist = await Driver.findOne({ email, ...orgFilter });
     if (driverExist) {
       res.status(400).json({ message: "Driver already exists" });
+      return;
+    }
+
+    // Prevent using an email that already belongs to an admin/dispatcher user
+    const userExist = await User.findOne({ email });
+    if (userExist) {
+      res.status(400).json({ message: "This email is already registered as an admin user and cannot be used for a driver account" });
       return;
     }
 
@@ -158,7 +167,9 @@ const create = async (req, res) => {
     }
 
     const newDriver = new Driver({
-      ...req.body,
+      ...safeBody,
+      email,
+      username,
       organizationId: req.organizationId || null,
       driverId,
       password: hashedPassword,
@@ -339,6 +350,10 @@ const updateDriverById = asyncHandler(async (req, res) => {
       Object.entries(safeBody).filter(([key]) => DRIVER_EDITABLE_FIELDS.includes(key))
     );
   }
+
+  // trainings and complianceDocuments are managed via their own upload endpoints — strip them here
+  delete updatePayload.trainings;
+  delete updatePayload.complianceDocuments;
 
   try {
     const updatedDriver = await Driver.findOneAndUpdate(
@@ -669,6 +684,73 @@ const uploadComplianceDoc = multer({
   limits: { fileSize: 15 * 1024 * 1024 },
 });
 
+// Configure multer for licence / work-auth identity documents
+const IDENTITY_DOCS_DIR = "uploads/identity-documents/";
+if (!fs.existsSync(IDENTITY_DOCS_DIR)) {
+  fs.mkdirSync(IDENTITY_DOCS_DIR, { recursive: true });
+}
+
+const identityDocStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, IDENTITY_DOCS_DIR),
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  },
+});
+
+const uploadIdentityDoc = multer({
+  storage: identityDocStorage,
+  fileFilter: (req, file, cb) => {
+    const allowed = ["image/jpeg", "image/jpg", "image/png", "application/pdf",
+      "application/msword", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+    if (allowed.includes(file.mimetype?.toLowerCase().trim())) cb(null, true);
+    else cb(new Error("Only JPEG, PNG, PDF, and DOC files are allowed"), false);
+  },
+  limits: { fileSize: 15 * 1024 * 1024 },
+});
+
+// POST /api/drivers/upload-identity-document
+// body: { driverId, docType: "licence" | "workAuth" }
+const uploadIdentityDocument = asyncHandler(async (req, res) => {
+  try {
+    const { driverId, docType } = req.body;
+    if (!driverId || !["licence", "workAuth"].includes(docType)) {
+      return res.status(400).json({ message: "driverId and docType ('licence' or 'workAuth') are required" });
+    }
+    if (!req.file) {
+      return res.status(400).json({ message: "File is required" });
+    }
+
+    const driver = await Driver.findById(driverId).lean();
+    if (!driver) {
+      if (req.file.path) fs.unlinkSync(req.file.path);
+      return res.status(404).json({ message: "Driver not found" });
+    }
+
+    // Drivers can only update their own documents
+    if (req.user && req.user.role === "driver") {
+      const driverFromToken = await Driver.findById(req.user.id).lean();
+      if (!driverFromToken || String(driverFromToken._id) !== String(driver._id)) {
+        if (req.file.path) fs.unlinkSync(req.file.path);
+        return res.status(403).json({ message: "You can only update your own documents" });
+      }
+    }
+
+    const field = docType === "licence" ? "licenceDocument" : "workAuthDocument";
+    const oldPath = driver[field];
+    if (oldPath && fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+
+    await Driver.findByIdAndUpdate(driverId, { [field]: req.file.path });
+    const updated = await Driver.findById(driverId).lean();
+    const { password, plainPassword, ...driverWithoutPassword } = updated;
+    res.status(200).json({ message: "Document uploaded successfully", driver: driverWithoutPassword });
+  } catch (error) {
+    if (req.file && req.file.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+    console.error("Error uploading identity document:", error);
+    res.status(500).json({ message: "Failed to upload document", error: error.message });
+  }
+});
+
 // POST /api/drivers/upload-compliance-document
 const uploadComplianceDocument = asyncHandler(async (req, res) => {
   try {
@@ -735,4 +817,6 @@ module.exports = {
   uploadTrainingProof,
   uploadComplianceDocument,
   uploadComplianceDoc,
+  uploadIdentityDocument,
+  uploadIdentityDoc,
 };

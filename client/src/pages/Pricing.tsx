@@ -68,16 +68,24 @@ const formatPrice = (amount: number) => `$${amount}`;
 const Pricing: React.FC = () => {
   const [searchParams] = useSearchParams();
   const billingFromUrl = searchParams.get("billing") === "annual" ? "annual" : "monthly";
+  const planFromUrl = searchParams.get("plan") || null;
   const [billing, setBilling] = useState<"monthly" | "annual">(billingFromUrl);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(planFromUrl);
+  const [hoveredPlan, setHoveredPlan] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const goToRegister = (planKey: string) => {
+    setSelectedPlan(planKey);
+    navigate(`/register?plan=${planKey}&billing=${billing}`);
+  };
 
   return (
     <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "#f9fafb", minHeight: "100vh" }}>
       {/* Header */}
       <header style={{ background: "#111827", padding: "16px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <FaTruck style={{ color: "#4F46E5" }} size={22} />
-          <span style={{ color: "#fff", fontWeight: 700, fontSize: "18px" }}>FleetIQ</span>
+          <FaTruck style={{ color: "#818CF8" }} size={22} />
+          <span style={{ color: "#fff", fontWeight: 800, fontSize: "18px", letterSpacing: "-0.3px" }}>Fleet<span style={{ color: "#818CF8" }}>IQ</span></span>
         </div>
         <div style={{ display: "flex", gap: "12px" }}>
           <button onClick={() => navigate("/")} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.2)", color: "#fff", borderRadius: "8px", padding: "8px 16px", fontSize: "14px", cursor: "pointer" }}>
@@ -120,23 +128,39 @@ const Pricing: React.FC = () => {
         {/* Plans */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px", marginBottom: "64px" }}>
           {PLANS.map((plan) => {
-            const displayPrice = billing === "monthly"
-              ? formatPrice(plan.monthlyPrice)
-              : formatPrice(plan.annualTotal);
             const isBundle = plan.key === "bundle";
+            const isHovered = hoveredPlan === plan.key;
+            const isSelected = selectedPlan === plan.key;
             return (
               <div
                 key={plan.key}
+                onClick={() => goToRegister(plan.key)}
+                onMouseEnter={() => setHoveredPlan(plan.key)}
+                onMouseLeave={() => setHoveredPlan(null)}
                 style={{
                   background: isBundle ? "#4F46E5" : "#fff",
                   borderRadius: "20px",
-                  border: isBundle ? "none" : "1px solid #e5e7eb",
+                  border: isBundle
+                    ? `2px solid ${isSelected ? "rgba(255,255,255,0.5)" : "transparent"}`
+                    : `2px solid ${isSelected ? "#4F46E5" : isHovered ? "#4F46E5" : "#e5e7eb"}`,
                   padding: "32px",
                   position: "relative",
-                  boxShadow: isBundle ? "0 20px 60px rgba(79,70,229,0.3)" : "0 1px 3px rgba(0,0,0,0.06)",
-                  transform: isBundle ? "scale(1.02)" : "none",
+                  boxShadow: isBundle
+                    ? isHovered ? "0 28px 72px rgba(79,70,229,0.45)" : "0 20px 60px rgba(79,70,229,0.3)"
+                    : isSelected ? "0 8px 32px rgba(79,70,229,0.18)" : isHovered ? "0 8px 32px rgba(79,70,229,0.15)" : "0 1px 3px rgba(0,0,0,0.06)",
+                  transform: isBundle
+                    ? isHovered ? "scale(1.04)" : "scale(1.02)"
+                    : isSelected || isHovered ? "translateY(-4px)" : "none",
+                  cursor: "pointer",
+                  transition: "box-shadow 0.2s, transform 0.2s, border-color 0.2s",
+                  outline: isSelected && !isBundle ? "none" : undefined,
                 }}
               >
+                {isSelected && (
+                  <div style={{ position: "absolute", top: "-14px", right: "20px", background: isBundle ? "#fff" : "#4F46E5", color: isBundle ? "#4F46E5" : "#fff", fontSize: "11px", fontWeight: 700, padding: "4px 12px", borderRadius: "20px", whiteSpace: "nowrap" }}>
+                    ✓ Current Selection
+                  </div>
+                )}
                 {plan.badge && (
                   <div style={{ position: "absolute", top: "-14px", left: "50%", transform: "translateX(-50%)", background: "#f59e0b", color: "#fff", fontSize: "11px", fontWeight: 700, padding: "4px 16px", borderRadius: "20px", whiteSpace: "nowrap" }}>
                     ⭐ {plan.badge}
@@ -173,22 +197,21 @@ const Pricing: React.FC = () => {
                     </li>
                   ))}
                 </ul>
-                <button
-                  onClick={() => navigate(`/register?plan=${plan.key}&billing=${billing}`)}
+                <div
                   style={{
                     width: "100%",
                     padding: "14px",
-                    border: "none",
                     borderRadius: "10px",
                     fontSize: "15px",
                     fontWeight: 700,
-                    cursor: "pointer",
-                    background: isBundle ? "#fff" : "#4F46E5",
+                    textAlign: "center",
+                    background: isBundle ? (isHovered ? "#f0f0ff" : "#fff") : (isHovered || isSelected ? "#4338ca" : "#4F46E5"),
                     color: isBundle ? "#4F46E5" : "#fff",
+                    transition: "background 0.2s",
                   }}
                 >
-                  Start Free Trial
-                </button>
+                  {isSelected ? "Continue with this Plan →" : "Start Free Trial →"}
+                </div>
               </div>
             );
           })}
@@ -206,7 +229,7 @@ const Pricing: React.FC = () => {
             Start your 14-day free trial today. No credit card required. If you decide it's not for you, cancel with one click — no questions asked.
           </p>
           <button
-            onClick={() => navigate("/register")}
+            onClick={() => goToRegister("bundle")}
             style={{ padding: "14px 36px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "10px", fontSize: "16px", fontWeight: 700, cursor: "pointer" }}
           >
             Get started for free →

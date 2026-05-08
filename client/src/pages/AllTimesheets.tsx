@@ -36,19 +36,12 @@ interface Timesheet {
   status: string;
   createdAt: string;
   updatedAt: string;
-  extraWorkSheetDetails: {
-    duration: string;
-    from: string;
-    to: string;
-    comments: string;
-  };
   storeDelay: {
     duration: string;
     from: string;
     to: string;
     reason: string;
   };
-  extraWorkSheetComments?: string;
   delayStoreReason?: string;
 }
 
@@ -370,7 +363,6 @@ const AllTimesheets: React.FC = () => {
       { header: "Start KMS", key: "startKMS" },
       { header: "Finish KMS", key: "finishKMS" },
       { header: "Total KMS", key: "totalKMS" },
-      { header: "Extra Work", key: "extraWork" },
       { header: "Store Delays", key: "storeDelays" },
       { header: "Planned Hours", key: "plannedHours" },
       { header: "Driver Comments", key: "driverComments" },
@@ -392,7 +384,6 @@ const AllTimesheets: React.FC = () => {
       startKMS: item.startKM ?? "",
       finishKMS: item.endKM ?? "",
       totalKMS: item.endKM && item.startKM ? (item.endKM - item.startKM).toFixed(2) : "N/A",
-      extraWork: item.extraWorkSheetDetails?.duration ? `"Yes/${item.extraWorkSheetComments}"` : "N/A",
       storeDelays: item.storeDelay?.duration ? `"Yes"/${item.delayStoreReason}` : "N/A",
       plannedHours: item.plannedHours || "",
       driverComments: item.comments || "",
@@ -816,7 +807,7 @@ const AllTimesheets: React.FC = () => {
                     const rawName = (ts.driverName || "").replace(/\s*\(@.*?\)/, "");
                     const driverUsername = (ts.driverName || "").match(/\(@(.*?)\)/)?.[1] || "";
                     const initials = rawName.split(" ").map((w: string) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
-                    const dateStr = ts.date ? new Date(ts.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
+                    const dateStr = ts.date ? new Date(ts.date + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—";
                     return (
                       <tr key={ts._id} data-ts-row
                         onClick={(e) => { if ((e.target as HTMLElement).closest("button, input")) return; navigate(`/timesheet/${ts._id}?${searchParams.toString()}`); }}

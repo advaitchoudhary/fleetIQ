@@ -348,16 +348,19 @@ const deleteTimesheetById = async (req, res) => {
 const updateTimesheetStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, rejectionReason } = req.body;
 
     if (!["approved", "rejected"].includes(status)) {
       return res.status(400).json({ message: "Invalid status value" });
     }
 
+    const update = { status };
+    if (status === "rejected") update.rejectionReason = rejectionReason || "";
+
     const orgFilter = getOrgFilter(req);
     const updatedTimesheet = await Timesheet.findOneAndUpdate(
       { _id: id, ...orgFilter },
-      { status },
+      update,
       { new: true, runValidators: true }
     );
 
@@ -377,7 +380,7 @@ const updateTimesheetStatus = async (req, res) => {
         organizationId: updatedTimesheet.organizationId,
         message: status === "approved"
           ? `Your timesheet for ${dateStr} has been approved.`
-          : `Your timesheet for ${dateStr} has been rejected. Please contact your admin.`,
+          : `Your timesheet for ${dateStr} has been rejected${updatedTimesheet.rejectionReason ? `: ${updatedTimesheet.rejectionReason}` : ". Please contact your admin."}`,
         email: updatedTimesheet.driver,
         field: "timesheet_status",
       }).catch(err => console.error("Timesheet notification failed:", err));
