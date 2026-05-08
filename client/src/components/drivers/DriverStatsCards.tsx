@@ -7,11 +7,11 @@ interface Props {
 const DriverStatsCards: React.FC<Props> = ({ data }) => {
   const totalFleet = data.length;
   const compliantCount = data.filter((d: any) => (d.status || "").toLowerCase() === "active").length;
-  const today = new Date();
+  const today = new Date(); today.setHours(0, 0, 0, 0);
   const renewalCount = data.filter((d: any) => {
     if (!d.licence_expiry_date) return false;
-    const exp = new Date(d.licence_expiry_date + "T00:00:00");
-    const diff = (exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24);
+    const exp = new Date(d.licence_expiry_date); exp.setHours(0, 0, 0, 0);
+    const diff = Math.round((exp.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     return diff >= 0 && diff <= 15;
   }).length;
   const avgHrs = totalFleet > 0 ? data.reduce((s: number, d: any) => s + parseFloat(d.hoursThisWeek || "0"), 0) / totalFleet : 0;

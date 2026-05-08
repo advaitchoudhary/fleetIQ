@@ -1,11 +1,28 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { FaTrashAlt } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
 const Inquiries: React.FC = () => {
   const [inquiries, setInquiries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDelete = async (id: string) => {
+    setDeletingId(id);
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`${API_BASE_URL}/contacts/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setInquiries((prev) => prev.filter((e) => e._id !== id));
+    } catch (error) {
+      console.error("Error deleting inquiry:", error);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   useEffect(() => {
     const fetchInquiries = async () => {
@@ -54,6 +71,7 @@ const Inquiries: React.FC = () => {
                   <th style={styles.th}>Email</th>
                   <th style={styles.th}>Message</th>
                   <th style={styles.th}>Date</th>
+                  <th style={{ ...styles.th, width: "48px" }}></th>
                 </tr>
               </thead>
               <tbody>
@@ -63,6 +81,16 @@ const Inquiries: React.FC = () => {
                     <td style={styles.td}>{entry.email}</td>
                     <td style={styles.td}>{entry.message}</td>
                     <td style={styles.td}>{new Date(entry.createdAt).toLocaleString()}</td>
+                    <td style={{ ...styles.td, textAlign: "center" }}>
+                      <button
+                        onClick={() => handleDelete(entry._id)}
+                        disabled={deletingId === entry._id}
+                        title="Delete inquiry"
+                        style={{ width: "30px", height: "30px", borderRadius: "7px", background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.2)", color: "var(--t-error)", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: deletingId === entry._id ? "not-allowed" : "pointer", opacity: deletingId === entry._id ? 0.5 : 1 }}
+                      >
+                        <FaTrashAlt size={11} />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -42,6 +42,7 @@ const MyInfo: React.FC = () => {
   const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = useState<string>("");
+  const [uploadingIdentity, setUploadingIdentity] = useState<"licence" | "workAuth" | null>(null);
 
   useEffect(() => {
     if (driver?.email) {
@@ -381,6 +382,36 @@ const MyInfo: React.FC = () => {
                 </span>
               </div>
             )}
+            {/* Licence document upload */}
+            <div style={styles.infoItem}>
+              <span style={styles.infoLabel}>Licence Document</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" as const, marginTop: "4px" }}>
+                {driver.licenceDocument ? (
+                  <>
+                    <span style={{ fontSize: "12px", color: "var(--t-success)", fontWeight: 600 }}>✓ Uploaded</span>
+                    <button onClick={() => { setPreviewTitle("Licence Document"); setPreviewUrl(`${API_BASE_URL.replace("/api", "")}/${driver.licenceDocument}`); }} style={styles.viewLinkBtn}>View</button>
+                  </>
+                ) : (
+                  <span style={{ fontSize: "12px", color: "var(--t-text-ghost)" }}>Not uploaded</span>
+                )}
+                <label style={{ ...styles.uploadButton, fontSize: "11px", padding: "4px 10px" }}>
+                  {uploadingIdentity === "licence" ? "Uploading…" : driver.licenceDocument ? "Update" : "Upload"}
+                  <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style={{ display: "none" }} disabled={uploadingIdentity === "licence"}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0]; if (!file) return;
+                      setUploadingIdentity("licence");
+                      const fd = new FormData(); fd.append("file", file); fd.append("driverId", driver._id); fd.append("docType", "licence");
+                      try {
+                        const token = localStorage.getItem("token");
+                        const res = await axios.post(`${API_BASE_URL}/drivers/upload-identity-document`, fd, { headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" } });
+                        setDriver(res.data.driver); setFormData(res.data.driver);
+                      } catch (err: any) { alert(err.response?.data?.message || "Failed to upload licence document"); }
+                      finally { setUploadingIdentity(null); }
+                    }} />
+                </label>
+              </div>
+            </div>
+
             <div style={styles.infoItem}>
               <span style={styles.infoLabel}>Status</span>
               <span style={styles.infoValue}>{driver.status}</span>
@@ -453,6 +484,38 @@ const MyInfo: React.FC = () => {
                 )}
               </>
             )}
+
+            {/* Work auth document upload — only shown when work status requires a permit */}
+            {workAuthNeedsExpiry(driver.workStatus) && (
+              <div style={styles.infoItem}>
+                <span style={styles.infoLabel}>Work Auth Document</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" as const, marginTop: "4px" }}>
+                  {driver.workAuthDocument ? (
+                    <>
+                      <span style={{ fontSize: "12px", color: "var(--t-success)", fontWeight: 600 }}>✓ Uploaded</span>
+                      <button onClick={() => { setPreviewTitle("Work Authorization Document"); setPreviewUrl(`${API_BASE_URL.replace("/api", "")}/${driver.workAuthDocument}`); }} style={styles.viewLinkBtn}>View</button>
+                    </>
+                  ) : (
+                    <span style={{ fontSize: "12px", color: "var(--t-text-ghost)" }}>Not uploaded</span>
+                  )}
+                  <label style={{ ...styles.uploadButton, fontSize: "11px", padding: "4px 10px" }}>
+                    {uploadingIdentity === "workAuth" ? "Uploading…" : driver.workAuthDocument ? "Update" : "Upload"}
+                    <input type="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" style={{ display: "none" }} disabled={uploadingIdentity === "workAuth"}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0]; if (!file) return;
+                        setUploadingIdentity("workAuth");
+                        const fd = new FormData(); fd.append("file", file); fd.append("driverId", driver._id); fd.append("docType", "workAuth");
+                        try {
+                          const token = localStorage.getItem("token");
+                          const res = await axios.post(`${API_BASE_URL}/drivers/upload-identity-document`, fd, { headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" } });
+                          setDriver(res.data.driver); setFormData(res.data.driver);
+                        } catch (err: any) { alert(err.response?.data?.message || "Failed to upload work auth document"); }
+                        finally { setUploadingIdentity(null); }
+                      }} />
+                  </label>
+                </div>
+              </div>
+            )}
           </div>
           {isEditing && (
             <button
@@ -473,7 +536,7 @@ const MyInfo: React.FC = () => {
                   );
 
                   await axios.post(`${API_BASE_URL}/notifications`, {
-                    message: `${driver.name} updated ${changedFields.join(", ")} details`,
+                    message: `You updated ${changedFields.join(", ")} details`,
                     email: driver.email,
                     field: changedFields.join(", ") || "Unknown",
                   });

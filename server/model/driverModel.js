@@ -31,6 +31,8 @@ const driverSchema = new mongoose.Schema(
         categoryRates: { type: Object, default: {} }, // keyed by category name — Object avoids Mongoose Map's dot-in-key restriction
         licence: { type: String, required: true },
         licence_expiry_date: { type: Date, required: true },
+        licenceDocument: { type: String, default: null },
+        workAuthDocument: { type: String, default: null },
         status: {
             type: String,
             enum: ["Active", "Inactive", "Suspended"],

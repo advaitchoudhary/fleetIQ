@@ -109,7 +109,7 @@ app.options("*", cors({
     credentials: true
 }));
 
-app.use("/uploads", express.static(path.join(__dirname, "../../uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 app.use(cors({
     origin: (origin, callback) => {
        const allowedOrigins = [
