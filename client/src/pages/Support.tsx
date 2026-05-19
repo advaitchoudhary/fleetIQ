@@ -106,7 +106,7 @@ const Support: React.FC = () => {
           <h1 style={{ margin: "0 0 12px", fontSize: "clamp(28px, 4vw, 42px)", fontWeight: 800, letterSpacing: "-0.5px", lineHeight: 1.15 }}>
             How can we help you?
           </h1>
-          <p style={{ margin: 0, fontSize: "15px", color: "rgba(255,255,255,0.4)", maxWidth: "500px", margin: "0 auto", lineHeight: 1.6 }}>
+          <p style={{ fontSize: "15px", color: "rgba(255,255,255,0.4)", maxWidth: "500px", margin: "0 auto", lineHeight: 1.6 }}>
             Reach out to the FleetIQ Logistics team — we're here Monday through Friday.
           </p>
         </div>
