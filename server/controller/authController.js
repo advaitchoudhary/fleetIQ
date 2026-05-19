@@ -4,7 +4,7 @@ const Organization = require("../model/organizationModel.js");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
-const { Resend } = require("resend");
+const { sendPasswordResetEmail } = require("../utils/emailService.js");
 
 // Register a new user
 const register = async (req, res) => {
@@ -196,51 +196,14 @@ const forgotPassword = async (req, res) => {
     const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
     const resetUrl = `${clientUrl}/reset-password?token=${rawToken}`;
 
-    // Send email via Resend if configured
-    if (process.env.RESEND_API_KEY) {
-      try {
-        const resend = new Resend(process.env.RESEND_API_KEY);
-        const fromAddress = process.env.EMAIL_FROM || "FleetIQ <noreply@fleetiq.app>";
-        await resend.emails.send({
-          from: fromAddress,
-          to: user.email,
-          subject: "FleetIQ — Reset Your Password",
-          html: `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8" />
-  <style>
-    body { font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background: #4F46E5; color: #fff; padding: 24px; text-align: center; border-radius: 8px 8px 0 0; }
-    .header h1 { margin: 0; font-size: 20px; }
-    .body { background: #f9f9f9; padding: 30px; border-radius: 0 0 8px 8px; }
-    .warning { background: #fff3cd; border-left: 4px solid #f59e0b; padding: 12px 16px; border-radius: 4px; margin: 16px 0; font-size: 14px; }
-    .footer { text-align: center; margin-top: 24px; color: #999; font-size: 11px; }
-  </style>
-</head>
-<body>
-  <div class="header"><h1>FleetIQ — Password Reset</h1></div>
-  <div class="body">
-    <p>Hi ${user.name || user.email},</p>
-    <p>We received a request to reset your FleetIQ password. Click the button below to set a new password. This link is valid for <strong>1 hour</strong>.</p>
-    <div style="text-align:center;margin:28px 0;">
-      <a href="${resetUrl}" style="display:inline-block;background:#4F46E5;color:#fff;padding:13px 32px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:15px;">Reset My Password</a>
-    </div>
-    <div class="warning">If you did not request a password reset, you can safely ignore this email. Your password will not change.</div>
-    <p>Or copy and paste this URL into your browser:<br><small>${resetUrl}</small></p>
-    <p>Best regards,<br><strong>FleetIQ Team</strong></p>
-  </div>
-  <div class="footer">This is an automated message. Please do not reply.</div>
-</body>
-</html>`,
-        });
-        console.log(`Password reset email sent to ${user.email}`);
-      } catch (emailErr) {
-        console.warn("Failed to send reset email:", emailErr.message);
-        // Don't fail the request — still return 200
-      }
-    } else {
-      console.warn("RESEND_API_KEY not set. Skipping password reset email.");
+    // Always log reset URL so devs can test without email delivery
+    console.log(`🔗 [Password Reset] URL for ${user.email}: ${resetUrl}`);
+
+    try {
+      await sendPasswordResetEmail(user.email, user.name, resetUrl);
+    } catch (emailErr) {
+      console.error("Failed to send password reset email:", emailErr?.response?.body || emailErr?.message || emailErr);
+      // Don't fail the request — token is saved, user can request again after fixing email config
     }
 
     return res.status(200).json({ message: GENERIC_MSG });
