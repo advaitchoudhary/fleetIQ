@@ -27,8 +27,7 @@ npm run build
 
 # --- PM2 ---
 pm2 delete fleet-api 2>/dev/null || true
-pm2 start dist/index.js --name fleet-api
+pm2 start dist/index.js --name fleet-api --cwd /var/www/fleet-management/server
 pm2 save
-pm2 startup
 
 pm2 ls
