@@ -163,6 +163,7 @@ const Landing: React.FC = () => {
           cursor: pointer; font-size: 14px; font-weight: 500;
           font-family: Inter, system-ui, sans-serif;
           transition: background 0.2s, border-color 0.2s;
+          white-space: nowrap;
         }
         .land-nav-btn-outline:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.5); }
         .land-nav-btn-primary {
@@ -171,6 +172,7 @@ const Landing: React.FC = () => {
           font-family: Inter, system-ui, sans-serif;
           box-shadow: 0 4px 14px rgba(79,70,229,0.4);
           transition: transform 0.2s, box-shadow 0.2s;
+          white-space: nowrap;
         }
         .land-nav-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(79,70,229,0.6); }
 
@@ -394,6 +396,8 @@ const Landing: React.FC = () => {
           .land-testimonials-grid { grid-template-columns: 1fr !important; max-width: 480px !important; margin: 0 auto !important; }
         }
         @media (max-width: 480px) {
+          .land-nav { padding: 12px 14px !important; }
+          .land-nav-btn-outline, .land-nav-btn-primary { padding: 8px 14px !important; font-size: 13px !important; }
           .land-hero-heading { font-size: 30px !important; }
           .land-features-grid { grid-template-columns: 1fr !important; }
           .land-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }

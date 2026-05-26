@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { FaBox, FaPlus, FaEdit, FaTrashAlt, FaSearch, FaCheckCircle, FaWrench } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrashAlt, FaCheckCircle, FaWrench } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 

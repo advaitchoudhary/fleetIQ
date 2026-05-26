@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ExcelJS from "exceljs";
 import axios from "axios";
-import { FaWrench, FaPlus, FaEdit, FaTrashAlt, FaSearch, FaBell } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrashAlt, FaSearch, FaBell } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 

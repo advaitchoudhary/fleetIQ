@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { FaDollarSign, FaStripe, FaCheckCircle, FaClock, FaExternalLinkAlt } from "react-icons/fa";
+import { FaDollarSign, FaStripe, FaCheckCircle, FaExternalLinkAlt } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 

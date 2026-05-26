@@ -263,7 +263,7 @@ interface FeatureSectionProps {
 }
 
 const FeatureSection: React.FC<FeatureSectionProps> = ({
-  title, features, unlocked, loading, navigate, accentColor, pendingTimesheets, upgradePlan,
+  title, features, unlocked, loading, navigate, accentColor, pendingTimesheets, upgradePlan: _upgradePlan,
 }) => (
   <div style={{ marginBottom: "52px" }}>
     {/* Section header */}

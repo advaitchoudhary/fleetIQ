@@ -5,12 +5,6 @@ import { FaTruck, FaCheckCircle, FaArrowRight, FaEye, FaEyeSlash } from "react-i
 import { API_BASE_URL } from "../utils/env";
 import { useAuth } from "../contexts/AuthContext";
 
-const PLAN_PRICES: Record<string, { monthly: number; annual: number; bundleMonthly: number; bundleAnnual: number }> = {
-  driver:  { monthly: 49, annual: 39, bundleMonthly: 0, bundleAnnual: 0 },
-  vehicle: { monthly: 49, annual: 39, bundleMonthly: 0, bundleAnnual: 0 },
-  bundle:  { monthly: 79, annual: 63, bundleMonthly: 0, bundleAnnual: 0 },
-};
-
 const getPlanLabel = (plan: string, billing: string): string => {
   const isAnnual = billing === "annual";
   if (plan === "driver")  return isAnnual ? "Driver Management — $39/month" : "Driver Management — $49/month";
