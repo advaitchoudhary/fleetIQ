@@ -29,6 +29,7 @@ import {
   FaLock,
   FaFileAlt,
   FaPlug,
+  FaCog,
 } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md"; // Material Dashboard Icon
 import { useAuth } from "../contexts/AuthContext";
@@ -569,6 +570,15 @@ const Navbar: React.FC = () => {
                     {renderNavItem("/payments",               <FaDollarSign size={16} />,       "Driver Payments",    false, !hasDriver)}
                     {renderNavItem("/payment-history",        <FaHistory size={16} />,          "Payment History",    false, !hasDriver)}
                     {renderNavItem("/subscription",           <FaCreditCard size={16} />,       "Subscription")}
+
+                    {(user?.role === "admin" || user?.role === "company_admin") && (
+                      <>
+                        <li style={{ ...styles.navItem, marginTop: "14px" }}>
+                          {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Organization</span> : <div style={styles.sectionDivider} />}
+                        </li>
+                        {renderNavItem("/organization-settings", <FaCog size={16} />, "Org Settings")}
+                      </>
+                    )}
                   </>
                 );
               })()}
