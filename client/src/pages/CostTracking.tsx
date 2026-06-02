@@ -3,9 +3,6 @@ import ExcelJS from "exceljs";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-
 const CostTracking: React.FC = () => {
   const [summary, setSummary] = useState<any>(null);
   const [trend, setTrend] = useState<any[]>([]);

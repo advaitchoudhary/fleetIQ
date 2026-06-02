@@ -12,6 +12,7 @@ import DriverPayStubs from "./pages/DriverPayStubs";
 import Users from "./pages/Drivers";
 import AdminHome from "./pages/AdminHome";
 import Profile from "./pages/Profile";
+import OrganizationSettings from "./pages/OrganizationSettings";
 import Inquiries from "./pages/Inquiries";
 import ContactUs from "./pages/ContactUs";
 import Invoice from "./pages/Invoice";
@@ -163,6 +164,15 @@ const AnimatedRoutes: React.FC = () => {
           element={
             <ProtectedRoute requiredRole="admin">
               <Profile />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/organization-settings"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "company_admin"]}>
+              <OrganizationSettings />
             </ProtectedRoute>
           }
         />

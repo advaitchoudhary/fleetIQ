@@ -57,8 +57,8 @@ const SubmitTimesheet: React.FC = () => {
   const { user } = useAuth();
   const [driverName, setDriverName] = useState("");
   const [driverIdDisplay, setDriverIdDisplay] = useState("");
-  const [orgName, setOrgName] = useState("");
-  const [driverStatus, setDriverStatus] = useState("Active");
+  const [, setOrgName] = useState("");
+  const [, setDriverStatus] = useState("Active");
   const [totalHours, setTotalHours] = useState("0");
   const [showSuccess, setShowSuccess] = useState(false);
   const [submittedData, setSubmittedData] = useState<{ date: string; totalHours: string }>({ date: "", totalHours: "" });

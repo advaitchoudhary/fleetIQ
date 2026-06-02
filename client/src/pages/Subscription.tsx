@@ -258,9 +258,6 @@ const Subscription: React.FC = () => {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "20px" }}>
           {PLANS.map((plan) => {
             const isCurrent = currentPlan === plan.key && isActive;
-            const displayPrice = billing === "monthly"
-              ? formatPrice(plan.monthlyPrice)
-              : formatPrice(plan.annualTotal);
             return (
               <div
                 key={plan.key}

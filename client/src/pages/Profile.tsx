@@ -21,25 +21,13 @@ const Profile: React.FC = () => {
   const [trainingSaving, setTrainingSaving] = useState(false);
   const [trainingSaved, setTrainingSaved] = useState(false);
 
-  // Org-level mandatory training list (dynamic — admin-configured)
+  // Org-level mandatory training list (read-only here — managed in /organization-settings)
   const [mandatoryTrainings, setMandatoryTrainings] = useState<string[]>([]);
   const [trainingsLoading, setTrainingsLoading] = useState(true);
 
-  // Configure trainings modal state
-  const [showConfigureModal, setShowConfigureModal] = useState(false);
-  const [configDraft, setConfigDraft] = useState<string[]>([]);
-  const [newTrainingInput, setNewTrainingInput] = useState("");
-  const [configureSaving, setConfigureSaving] = useState(false);
-
-  // Org-level mandatory compliance documents (dynamic — admin-configured)
+  // Org-level mandatory compliance documents (read-only here — managed in /organization-settings)
   const [mandatoryDocuments, setMandatoryDocuments] = useState<string[]>([]);
   const [docsLoading, setDocsLoading] = useState(true);
-
-  // Configure compliance documents modal state
-  const [showDocsConfigModal, setShowDocsConfigModal] = useState(false);
-  const [docsConfigDraft, setDocsConfigDraft] = useState<string[]>([]);
-  const [newDocInput, setNewDocInput] = useState("");
-  const [docsConfigSaving, setDocsConfigSaving] = useState(false);
 
   // Org-level timesheet categories (admin-configured)
   const [timesheetCategories, setTimesheetCategories] = useState<string[]>([]);
@@ -312,7 +300,8 @@ const Profile: React.FC = () => {
                         </>
                       )}
                       <button
-                        onClick={() => { setConfigDraft([...mandatoryTrainings]); setNewTrainingInput(""); setShowConfigureModal(true); }}
+                        onClick={() => navigate("/organization-settings")}
+                        title="Manage org-wide mandatory trainings"
                         style={{ padding: "5px 12px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "6px", color: "var(--t-text-faint)", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
                         ⚙ Configure
                       </button>
@@ -326,7 +315,7 @@ const Profile: React.FC = () => {
                       <p style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700, color: "var(--t-text-secondary)" }}>No mandatory trainings configured</p>
                       <p style={{ margin: "0 0 16px", fontSize: "13px", color: "var(--t-text-ghost)" }}>Set up the required training list for your organization before tracking driver compliance.</p>
                       <button
-                        onClick={() => { setConfigDraft([]); setNewTrainingInput(""); setShowConfigureModal(true); }}
+                        onClick={() => navigate("/organization-settings")}
                         style={{ padding: "9px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
                         + Configure Mandatory Trainings
                       </button>
@@ -423,7 +412,8 @@ const Profile: React.FC = () => {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
               <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px" }}>COMPLIANCE DOCUMENTS</p>
               <button
-                onClick={() => { setDocsConfigDraft([...mandatoryDocuments]); setNewDocInput(""); setShowDocsConfigModal(true); }}
+                onClick={() => navigate("/organization-settings")}
+                title="Manage org-wide compliance documents"
                 style={{ padding: "5px 12px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "6px", color: "var(--t-text-faint)", fontSize: "11px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
                 ⚙ Configure
               </button>
@@ -436,7 +426,7 @@ const Profile: React.FC = () => {
                 <p style={{ margin: "0 0 6px", fontSize: "15px", fontWeight: 700, color: "var(--t-text-secondary)" }}>No compliance documents configured</p>
                 <p style={{ margin: "0 0 16px", fontSize: "13px", color: "var(--t-text-ghost)" }}>Define the required documents your drivers must submit.</p>
                 <button
-                  onClick={() => { setDocsConfigDraft([]); setNewDocInput(""); setShowDocsConfigModal(true); }}
+                  onClick={() => navigate("/organization-settings")}
                   style={{ padding: "9px 20px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
                   + Configure Compliance Documents
                 </button>
@@ -624,86 +614,6 @@ const Profile: React.FC = () => {
 
       </div>
 
-      {/* Configure Compliance Documents Modal */}
-      {showDocsConfigModal && (
-        <div style={{ position: "fixed" as const, inset: 0, background: "var(--t-modal-overlay)", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowDocsConfigModal(false); }}>
-          <div style={{ background: "var(--t-modal-bg)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "520px", maxHeight: "80vh", display: "flex", flexDirection: "column" as const, boxShadow: "var(--t-shadow-lg)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
-              <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Configure Compliance Documents</h2>
-              <button onClick={() => setShowDocsConfigModal(false)} style={{ background: "none", border: "none", color: "var(--t-text-faint)", fontSize: "20px", cursor: "pointer", lineHeight: 1 }}>×</button>
-            </div>
-            <p style={{ margin: "0 0 20px", fontSize: "13px", color: "var(--t-text-ghost)" }}>These documents will be required from all drivers in your organization.</p>
-
-            <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-              <input
-                type="text"
-                value={newDocInput}
-                onChange={(e) => setNewDocInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && newDocInput.trim() && !docsConfigDraft.includes(newDocInput.trim())) {
-                    setDocsConfigDraft((prev) => [...prev, newDocInput.trim()]);
-                    setNewDocInput("");
-                  }
-                }}
-                placeholder="e.g. Agency Sign Off"
-                style={{ flex: 1, padding: "9px 12px", background: "var(--t-input-bg)", border: "1px solid var(--t-input-border)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", outline: "none" }}
-              />
-              <button
-                onClick={() => {
-                  const name = newDocInput.trim();
-                  if (name && !docsConfigDraft.includes(name)) {
-                    setDocsConfigDraft((prev) => [...prev, name]);
-                    setNewDocInput("");
-                  }
-                }}
-                style={{ padding: "9px 16px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", whiteSpace: "nowrap" as const }}>
-                + Add
-              </button>
-            </div>
-
-            <div style={{ flex: 1, overflowY: "auto" as const, display: "flex", flexDirection: "column" as const, gap: "6px", marginBottom: "20px" }}>
-              {docsConfigDraft.length === 0 ? (
-                <p style={{ textAlign: "center" as const, padding: "32px", color: "var(--t-text-ghost)", fontSize: "13px", margin: 0 }}>No documents added yet.</p>
-              ) : docsConfigDraft.map((name, idx) => (
-                <div key={idx} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "8px" }}>
-                  <span style={{ flex: 1, fontSize: "13px", color: "var(--t-text-secondary)", fontWeight: 500 }}>{name}</span>
-                  <button onClick={() => setDocsConfigDraft((prev) => prev.filter((_, i) => i !== idx))}
-                    style={{ background: "none", border: "none", color: "var(--t-text-ghost)", fontSize: "16px", cursor: "pointer", lineHeight: 1, padding: "0 4px" }}>×</button>
-                </div>
-              ))}
-            </div>
-
-            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-              <button onClick={() => setShowDocsConfigModal(false)}
-                style={{ padding: "9px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text-faint)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
-                Cancel
-              </button>
-              <button
-                disabled={docsConfigSaving}
-                onClick={async () => {
-                  try {
-                    setDocsConfigSaving(true);
-                    const token = localStorage.getItem("token");
-                    const res = await axios.put(`${API_BASE_URL}/organizations/mandatory-documents`, { mandatoryDocuments: docsConfigDraft }, {
-                      headers: { Authorization: `Bearer ${token}` },
-                    });
-                    setMandatoryDocuments(res.data.mandatoryDocuments);
-                    setShowDocsConfigModal(false);
-                  } catch (err) {
-                    console.error("Failed to save mandatory documents:", err);
-                  } finally {
-                    setDocsConfigSaving(false);
-                  }
-                }}
-                style={{ padding: "9px 18px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: docsConfigSaving ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif", opacity: docsConfigSaving ? 0.7 : 1 }}>
-                {docsConfigSaving ? "Saving…" : "Save"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Configure Timesheet Categories Modal */}
       {showCategoriesModal && (
         <div style={{ position: "fixed" as const, inset: 0, background: "var(--t-modal-overlay)", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
@@ -778,92 +688,6 @@ const Profile: React.FC = () => {
                 }}
                 style={{ padding: "9px 18px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: categoriesSaving ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif", opacity: categoriesSaving ? 0.7 : 1 }}>
                 {categoriesSaving ? "Saving…" : "Save"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Configure Mandatory Trainings Modal */}
-      {showConfigureModal && (
-        <div style={{ position: "fixed" as const, inset: 0, background: "var(--t-modal-overlay)", zIndex: 1100, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowConfigureModal(false); }}>
-          <div style={{ background: "var(--t-modal-bg)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "520px", maxHeight: "80vh", display: "flex", flexDirection: "column" as const, gap: "0", boxShadow: "var(--t-shadow-lg)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
-              <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Configure Mandatory Trainings</h2>
-              <button onClick={() => setShowConfigureModal(false)} style={{ background: "none", border: "none", color: "var(--t-text-faint)", fontSize: "20px", cursor: "pointer", lineHeight: 1 }}>×</button>
-            </div>
-            <p style={{ margin: "0 0 20px", fontSize: "13px", color: "var(--t-text-ghost)" }}>These trainings will be required for all drivers in your organization.</p>
-
-            {/* Add new training */}
-            <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-              <input
-                type="text"
-                value={newTrainingInput}
-                onChange={(e) => setNewTrainingInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && newTrainingInput.trim() && !configDraft.includes(newTrainingInput.trim())) {
-                    setConfigDraft((prev) => [...prev, newTrainingInput.trim()]);
-                    setNewTrainingInput("");
-                  }
-                }}
-                placeholder="e.g. Defensive Driving"
-                style={{ flex: 1, padding: "9px 12px", background: "var(--t-input-bg)", border: "1px solid var(--t-input-border)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", outline: "none" }}
-              />
-              <button
-                onClick={() => {
-                  const name = newTrainingInput.trim();
-                  if (name && !configDraft.includes(name)) {
-                    setConfigDraft((prev) => [...prev, name]);
-                    setNewTrainingInput("");
-                  }
-                }}
-                style={{ padding: "9px 16px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", whiteSpace: "nowrap" as const }}>
-                + Add
-              </button>
-            </div>
-
-            {/* Training list */}
-            <div style={{ flex: 1, overflowY: "auto" as const, display: "flex", flexDirection: "column" as const, gap: "6px", marginBottom: "20px" }}>
-              {configDraft.length === 0 ? (
-                <p style={{ textAlign: "center" as const, padding: "32px", color: "var(--t-text-ghost)", fontSize: "13px", margin: 0 }}>No trainings added yet. Type a name above and click Add.</p>
-              ) : configDraft.map((name, idx) => (
-                <div key={idx} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "8px" }}>
-                  <span style={{ flex: 1, fontSize: "13px", color: "var(--t-text-secondary)", fontWeight: 500 }}>{name}</span>
-                  <button
-                    onClick={() => setConfigDraft((prev) => prev.filter((_, i) => i !== idx))}
-                    style={{ background: "none", border: "none", color: "var(--t-text-ghost)", fontSize: "16px", cursor: "pointer", lineHeight: 1, padding: "0 4px" }}>
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {/* Footer buttons */}
-            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-              <button onClick={() => setShowConfigureModal(false)}
-                style={{ padding: "9px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text-faint)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
-                Cancel
-              </button>
-              <button
-                disabled={configureSaving}
-                onClick={async () => {
-                  try {
-                    setConfigureSaving(true);
-                    const token = localStorage.getItem("token");
-                    const res = await axios.put(`${API_BASE_URL}/organizations/mandatory-trainings`, { mandatoryTrainings: configDraft }, {
-                      headers: { Authorization: `Bearer ${token}` },
-                    });
-                    setMandatoryTrainings(res.data.mandatoryTrainings);
-                    setShowConfigureModal(false);
-                  } catch (err) {
-                    console.error("Failed to save mandatory trainings:", err);
-                  } finally {
-                    setConfigureSaving(false);
-                  }
-                }}
-                style={{ padding: "9px 18px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: configureSaving ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif", opacity: configureSaving ? 0.7 : 1 }}>
-                {configureSaving ? "Saving…" : "Save"}
               </button>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, JSX } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL, FILE_BASE_URL } from "../utils/env";

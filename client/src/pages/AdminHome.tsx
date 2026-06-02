@@ -52,10 +52,13 @@ const AdminHome: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<FleetStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [complianceSetupNeeded, setComplianceSetupNeeded] = useState(false);
+  const [complianceCheckLoading, setComplianceCheckLoading] = useState(true);
 
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const adminName = user?.name || user?.email?.split("@")[0] || "Admin";
+  const canConfigureOrg = user?.role === "admin" || user?.role === "company_admin";
 
   useEffect(() => {
     const authHeader = { Authorization: `Bearer ${token}` };
@@ -77,6 +80,19 @@ const AdminHome: React.FC = () => {
       });
     }).catch(() => setStats(null))
       .finally(() => setStatsLoading(false));
+
+    if (canConfigureOrg) {
+      Promise.allSettled([
+        axios.get(`${API_BASE_URL}/organizations/mandatory-trainings`, { headers: authHeader }),
+        axios.get(`${API_BASE_URL}/organizations/mandatory-documents`, { headers: authHeader }),
+      ]).then(([tr, dr]) => {
+        const trainings = tr.status === "fulfilled" ? (tr.value.data.mandatoryTrainings || []) : [];
+        const docs      = dr.status === "fulfilled" ? (dr.value.data.mandatoryDocuments || []) : [];
+        setComplianceSetupNeeded(trainings.length === 0 && docs.length === 0);
+      }).finally(() => setComplianceCheckLoading(false));
+    } else {
+      setComplianceCheckLoading(false);
+    }
   }, []);
 
   const plan   = subscription?.plan   || "inactive";
@@ -123,6 +139,43 @@ const AdminHome: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* ── Compliance Setup Banner ── */}
+        {canConfigureOrg && !complianceCheckLoading && complianceSetupNeeded && (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "16px",
+            flexWrap: "wrap" as const,
+            padding: "18px 22px",
+            marginBottom: "28px",
+            background: "var(--t-indigo-bg)",
+            border: "1px solid var(--t-border-strong)",
+            borderLeft: "4px solid var(--t-indigo)",
+            borderRadius: "12px",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px", flex: 1, minWidth: "260px" }}>
+              <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "var(--t-indigo)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <FaClipboardList size={18} color="#fff" />
+              </div>
+              <div>
+                <p style={{ margin: "0 0 3px", fontSize: "14px", fontWeight: 700, color: "var(--t-text)" }}>
+                  Set up your compliance requirements
+                </p>
+                <p style={{ margin: 0, fontSize: "12px", color: "var(--t-text-dim)" }}>
+                  Define the documents and trainings your drivers need to upload — this turns on the compliance flow for every driver in your org.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate("/organization-settings")}
+              style={{ padding: "10px 18px", background: "var(--t-indigo)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", whiteSpace: "nowrap" as const }}
+            >
+              Configure now →
+            </button>
+          </div>
+        )}
 
         {/* ── Stats Row ── */}
         {!statsLoading && stats && (
@@ -263,7 +316,7 @@ interface FeatureSectionProps {
 }
 
 const FeatureSection: React.FC<FeatureSectionProps> = ({
-  title, features, unlocked, loading, navigate, accentColor, pendingTimesheets, upgradePlan,
+  title, features, unlocked, loading, navigate, accentColor, pendingTimesheets, upgradePlan: _upgradePlan,
 }) => (
   <div style={{ marginBottom: "52px" }}>
     {/* Section header */}

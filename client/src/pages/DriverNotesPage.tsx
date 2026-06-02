@@ -27,8 +27,6 @@ const TYPE_CFG: Record<NoteType, { color: string; bg: string; border: string; ic
   Compliment: { color: "#10b981", bg: "rgba(16,185,129,0.1)",  border: "rgba(16,185,129,0.25)", icon: <FaStar size={11} /> },
 };
 
-const FILTERS: FilterType[] = ["All", "General", "Warning", "Incident", "Compliment"];
-
 const DriverNotesPage: React.FC = () => {
   const [notes, setNotes] = useState<OrgNote[]>([]);
   const [loading, setLoading] = useState(true);

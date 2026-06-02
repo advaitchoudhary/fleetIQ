@@ -481,6 +481,37 @@ const sendSubscriptionCancelledEmail = async (email, orgName) => {
   console.log(`✅ Subscription cancelled email sent to ${email}`);
 };
 
+// Sends a password reset link to an admin/company_admin user
+const sendPasswordResetEmail = async (email, name, resetUrl) => {
+  const resend = getClient();
+  if (!resend) {
+    console.warn("⚠️  RESEND_API_KEY not set. Skipping password reset email.");
+    console.log(`🔗 [DEV] Password reset URL for ${email}: ${resetUrl}`);
+    return;
+  }
+
+  const html = emailShell(
+    "FleetIQ — Password Reset",
+    `<p>Hi ${name || email},</p>
+    <p>We received a request to reset your FleetIQ password. Click the button below to set a new password. This link is valid for <strong>1 hour</strong>.</p>
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${resetUrl}" style="display:inline-block;background:#4F46E5;color:#fff;padding:13px 32px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:15px;">Reset My Password</a>
+    </div>
+    <div class="warning">If you did not request a password reset, you can safely ignore this email. Your password will not change.</div>
+    <p>Or copy and paste this URL into your browser:<br><small>${resetUrl}</small></p>
+    <p>Best regards,<br><strong>FleetIQ Team</strong></p>`
+  );
+
+  await resend.emails.send({
+    from: FROM(),
+    to: email,
+    subject: "FleetIQ — Reset Your Password",
+    html,
+  });
+
+  console.log(`✅ Password reset email sent to ${email}`);
+};
+
 module.exports = {
   sendDriverCredentialsEmail,
   sendDriverApplicationApprovedEmail,
@@ -490,4 +521,5 @@ module.exports = {
   sendTrialExpiringEmail,
   sendTrialExpiredEmail,
   sendSubscriptionCancelledEmail,
+  sendPasswordResetEmail,
 };
