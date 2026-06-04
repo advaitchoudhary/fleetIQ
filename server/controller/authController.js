@@ -85,10 +85,12 @@ const login = async (req, res) => {
       message: "Login successful",
       token,
       user: {
+        id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
         organizationId: user.organizationId || null,
+        tourState: user.tourState ? Object.fromEntries(user.tourState) : {},
       },
     });
   } catch (error) {
@@ -150,6 +152,42 @@ const getUserProfile = async (req, res) => {
         console.error("getUserProfile error:", error);
         res.status(500).json({ error: "Server error" });
     }
+};
+
+// Update a single tour key on the current user's tourState
+const updateTourState = async (req, res) => {
+  try {
+    const { tourKey, status } = req.body;
+    if (!tourKey || !["completed", "skipped"].includes(status)) {
+      return res.status(400).json({ error: "tourKey and status (completed|skipped) are required" });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    if (!user.tourState) user.tourState = new Map();
+    user.tourState.set(tourKey, { status, at: new Date() });
+    await user.save();
+
+    res.json({ tourState: Object.fromEntries(user.tourState) });
+  } catch (error) {
+    console.error("updateTourState error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
+};
+
+// Clear all tour state for the current user (replay onboarding)
+const resetTourState = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: "User not found" });
+    user.tourState = new Map();
+    await user.save();
+    res.json({ tourState: {} });
+  } catch (error) {
+    console.error("resetTourState error:", error);
+    res.status(500).json({ error: "Server error" });
+  }
 };
 
 // Switch org context for super_admin
@@ -258,4 +296,6 @@ module.exports = {
     switchOrg,
     forgotPassword,
     resetPassword,
+    updateTourState,
+    resetTourState,
 };

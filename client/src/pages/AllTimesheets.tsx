@@ -5,6 +5,8 @@ import axios from "axios";
 import Navbar from "./Navbar";
 
 import { FILE_BASE_URL, API_BASE_URL } from "../utils/env";
+import { useTour } from "../hooks/useTour";
+import { TIMESHEETS_TOUR_KEY, timesheetsSteps } from "../tours/timesheetsTour";
 
 // TypeScript interfaces
 interface Timesheet {
@@ -54,6 +56,8 @@ interface Driver {
 }
 
 const AllTimesheets: React.FC = () => {
+  useTour({ tourKey: TIMESHEETS_TOUR_KEY, steps: timesheetsSteps, autoStartDelayMs: 600 });
+
   const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
   const [data, setData] = useState<Timesheet[]>([]);
@@ -525,7 +529,7 @@ const AllTimesheets: React.FC = () => {
               timesheets from this pay period.
             </p>
           </div>
-          <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
+          <div data-tour="timesheets-actions" style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
             <button onClick={handleExport}
               style={{ display: "flex", alignItems: "center", gap: "8px", padding: "10px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "10px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
               ⬇ Export (Excel)
@@ -546,7 +550,7 @@ const AllTimesheets: React.FC = () => {
         <div style={{ background: "var(--t-surface)", borderRadius: "16px", border: "1px solid var(--t-border)", overflow: "hidden", marginBottom: "24px" }}>
 
           {/* Filter Bar */}
-          <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" as const }}>
+          <div data-tour="timesheets-filters" style={{ padding: "14px 20px", borderBottom: "1px solid var(--t-hover-bg)", display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" as const }}>
             <div style={{ position: "relative" as const, flex: 1, minWidth: "200px" }}>
               <span style={{ position: "absolute" as const, left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--t-text-ghost)", fontSize: "14px", pointerEvents: "none" as const }}>🔍</span>
               <input type="text" placeholder="Search by driver name or load ID..."
@@ -594,7 +598,7 @@ const AllTimesheets: React.FC = () => {
           ) : error ? (
             <div style={{ padding: "56px", textAlign: "center" as const, color: "var(--t-error)", fontSize: "14px" }}>{error}</div>
           ) : (
-            <div style={{ overflowX: "auto" as const }}>
+            <div data-tour="timesheets-table" style={{ overflowX: "auto" as const }}>
               <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
                 <thead>
                   <tr style={{ borderBottom: "1px solid var(--t-hover-bg)" }}>

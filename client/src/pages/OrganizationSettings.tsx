@@ -1,12 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { FaArrowLeft, FaCog, FaShieldAlt, FaGraduationCap } from "react-icons/fa";
+import { FaArrowLeft, FaCog, FaShieldAlt, FaGraduationCap, FaRedo } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
+import { useAuth } from "../contexts/AuthContext";
 
 const OrganizationSettings: React.FC = () => {
   const navigate = useNavigate();
+  const { resetAllTours } = useAuth();
+  const [resettingTours, setResettingTours] = useState(false);
+  const [toursReset, setToursReset] = useState(false);
+
+  const handleReplayTours = async () => {
+    if (!window.confirm("Reset all onboarding tours? You'll see them again the next time you visit each module.")) return;
+    setResettingTours(true);
+    try {
+      await resetAllTours();
+      setToursReset(true);
+      setTimeout(() => setToursReset(false), 3000);
+    } finally {
+      setResettingTours(false);
+    }
+  };
 
   // Mandatory trainings
   const [mandatoryTrainings, setMandatoryTrainings] = useState<string[]>([]);
@@ -287,6 +303,28 @@ const OrganizationSettings: React.FC = () => {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Replay tours — per-user, not org-wide */}
+        <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "20px 24px", marginBottom: "20px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" as const }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "14px", flex: 1, minWidth: "260px" }}>
+            <div style={{ width: "36px", height: "36px", borderRadius: "9px", background: "var(--t-indigo-bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <FaRedo size={14} color="var(--t-indigo)" />
+            </div>
+            <div>
+              <p style={{ margin: "0 0 3px", fontSize: "13px", fontWeight: 700, color: "var(--t-text)" }}>Replay onboarding tours</p>
+              <p style={{ margin: 0, fontSize: "12px", color: "var(--t-text-ghost)" }}>
+                Resets your personal tour history. The walkthrough will play again the next time you visit each module.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={handleReplayTours}
+            disabled={resettingTours}
+            style={{ padding: "9px 16px", background: toursReset ? "var(--t-success-bg)" : "var(--t-accent)", border: toursReset ? "1px solid rgba(16,185,129,0.3)" : "none", borderRadius: "8px", color: toursReset ? "var(--t-success)" : "#fff", fontSize: "12.5px", fontWeight: 700, cursor: resettingTours ? "wait" : "pointer", fontFamily: "Inter, system-ui, sans-serif", whiteSpace: "nowrap" as const, opacity: resettingTours ? 0.6 : 1 }}
+          >
+            {toursReset ? "✓ Reset" : resettingTours ? "Resetting…" : "Reset Tours"}
+          </button>
         </div>
 
         {/* Helper footer */}

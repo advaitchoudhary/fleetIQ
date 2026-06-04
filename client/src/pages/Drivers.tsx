@@ -10,9 +10,13 @@ import CategoryModal from "../components/drivers/CategoryModal";
 import DriversTable from "../components/drivers/DriversTable";
 import DriverStatsCards from "../components/drivers/DriverStatsCards";
 import { FALLBACK_CATEGORIES, INITIAL_DRIVER_STATE, exportDriversToExcel } from "../utils/driverUtils";
+import { useTour } from "../hooks/useTour";
+import { DRIVERS_TOUR_KEY, driversSteps } from "../tours/driversTour";
 
 const Drivers: React.FC = () => {
   const navigate = useNavigate();
+
+  useTour({ tourKey: DRIVERS_TOUR_KEY, steps: driversSteps, autoStartDelayMs: 600 });
 
   const [data, setData] = useState<any[]>([]);
 
@@ -149,7 +153,7 @@ const Drivers: React.FC = () => {
             <h1 style={{ margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>Driver Management</h1>
             <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>Manage driver profiles, rates & credentials for the entire logistical network.</p>
           </div>
-          <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
+          <div data-tour="drivers-actions" style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
 
             <button
               onClick={handleExport}
@@ -167,7 +171,7 @@ const Drivers: React.FC = () => {
         </div>
 
         {/* Search + Sort */}
-        <div style={{ display: "flex", gap: "12px", marginBottom: "16px", alignItems: "center" }}>
+        <div data-tour="drivers-search" style={{ display: "flex", gap: "12px", marginBottom: "16px", alignItems: "center" }}>
           <div style={{ flex: 1, position: "relative" as const }}>
             <span style={{ position: "absolute" as const, left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--t-text-ghost)", pointerEvents: "none" as const, fontSize: "14px" }}>🔍</span>
             <input
@@ -189,14 +193,16 @@ const Drivers: React.FC = () => {
           </select>
         </div>
 
-        <DriversTable
-          drivers={filteredData}
-          totalCount={data.length}
-          orgNotesSummary={orgNotesSummary}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onRowClick={(driver) => navigate("/profile", { state: { driver } })}
-        />
+        <div data-tour="drivers-table">
+          <DriversTable
+            drivers={filteredData}
+            totalCount={data.length}
+            orgNotesSummary={orgNotesSummary}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onRowClick={(driver) => navigate("/profile", { state: { driver } })}
+          />
+        </div>
 
         <DriverStatsCards data={data} />
 

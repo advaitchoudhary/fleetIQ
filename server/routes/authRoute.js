@@ -1,5 +1,5 @@
 const express = require("express");
-const { register, login, getUserProfile, changePassword, switchOrg, forgotPassword, resetPassword } = require("../controller/authController.js");
+const { register, login, getUserProfile, changePassword, switchOrg, forgotPassword, resetPassword, updateTourState, resetTourState } = require("../controller/authController.js");
 const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
 
 const router = express.Router();
@@ -18,6 +18,9 @@ router.post(
 );
 
 router.post("/switch-org", protect, authorizeRoles("admin"), switchOrg);
+
+router.patch("/tour-state", protect, authorizeRoles("admin", "company_admin", "dispatcher"), updateTourState);
+router.delete("/tour-state", protect, authorizeRoles("admin", "company_admin", "dispatcher"), resetTourState);
 
 router.get("/admin", protect, authorizeRoles("admin"), (req, res) => {
   res.json({ message: "Welcome Admin!" });

@@ -1,0 +1,110 @@
+/* FleetIQ Shepherd theme — overrides the library's default look to match our design tokens.
+   Token sources: client/src/index.css (:root + :root[data-theme="light"]). */
+
+.shepherd-element.fleetiq-tour-step {
+  background: var(--t-modal-bg);
+  border: 1px solid var(--t-border-strong);
+  border-radius: 14px;
+  box-shadow: var(--t-shadow-lg);
+  color: var(--t-text);
+  font-family: Inter, system-ui, sans-serif;
+  max-width: 380px;
+  padding: 0;
+}
+
+.shepherd-element.fleetiq-tour-step .shepherd-content {
+  background: transparent;
+  border-radius: 14px;
+  padding: 0;
+}
+
+.shepherd-element.fleetiq-tour-step .shepherd-header {
+  background: transparent;
+  border-bottom: 1px solid var(--t-border);
+  padding: 16px 20px 12px;
+  border-radius: 14px 14px 0 0;
+}
+
+.shepherd-element.fleetiq-tour-step .shepherd-title {
+  color: var(--t-text);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.shepherd-element.fleetiq-tour-step .shepherd-text {
+  color: var(--t-text-muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+  padding: 16px 20px 4px;
+}
+
+.shepherd-element.fleetiq-tour-step .shepherd-footer {
+  border-top: 1px solid var(--t-border);
+  padding: 12px 20px 14px;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  background: var(--t-surface-alt);
+  border-radius: 0 0 14px 14px;
+}
+
+.shepherd-element.fleetiq-tour-step .shepherd-button {
+  border-radius: 8px;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.shepherd-element.fleetiq-tour-step .shepherd-button.shepherd-button-primary {
+  background: var(--t-accent);
+  color: #fff;
+}
+.shepherd-element.fleetiq-tour-step .shepherd-button.shepherd-button-primary:hover {
+  background: #4338ca;
+}
+
+.shepherd-element.fleetiq-tour-step .shepherd-button.shepherd-button-secondary {
+  background: var(--t-hover-bg);
+  color: var(--t-text-secondary);
+  border-color: var(--t-border-strong);
+}
+.shepherd-element.fleetiq-tour-step .shepherd-button.shepherd-button-secondary:hover {
+  background: var(--t-surface-alt);
+  color: var(--t-text);
+}
+
+.shepherd-element.fleetiq-tour-step .shepherd-cancel-icon {
+  color: var(--t-text-faint);
+  font-size: 18px;
+  transition: color 120ms ease;
+}
+.shepherd-element.fleetiq-tour-step .shepherd-cancel-icon:hover {
+  color: var(--t-text);
+}
+
+/* Step counter / progress hint — Shepherd doesn't render one by default,
+   but if we add it later via "title" prefix or a footer slot, this keeps it tidy. */
+.shepherd-element.fleetiq-tour-step .fleetiq-step-counter {
+  color: var(--t-text-ghost);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+/* Arrow */
+.shepherd-element.fleetiq-tour-step .shepherd-arrow:before {
+  background: var(--t-modal-bg);
+  border: 1px solid var(--t-border-strong);
+}
+
+/* Modal overlay — sits behind the popover and dims the page,
+   while cutting out a "spotlight" around the attachTo target. */
+.shepherd-modal-overlay-container {
+  fill: rgba(0, 0, 0, 0.6);
+}

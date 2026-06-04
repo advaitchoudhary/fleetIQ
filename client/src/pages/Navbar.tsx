@@ -448,6 +448,7 @@ const Navbar: React.FC = () => {
       {/* Sidebar Navigation */}
       <nav
         ref={sidebarRef}
+        data-tour="sidebar"
         onScroll={(e) => { sidebarScrollRef.current = (e.currentTarget as HTMLElement).scrollTop; }}
         style={{
           ...styles.sidebar,

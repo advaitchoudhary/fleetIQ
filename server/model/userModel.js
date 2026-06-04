@@ -18,6 +18,17 @@ const userSchema = new mongoose.Schema(
     },
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
+    tourState: {
+      type: Map,
+      of: new mongoose.Schema(
+        {
+          status: { type: String, enum: ["completed", "skipped"], required: true },
+          at: { type: Date, default: Date.now },
+        },
+        { _id: false }
+      ),
+      default: () => new Map(),
+    },
   },
   { timestamps: true }
 );

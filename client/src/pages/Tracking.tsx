@@ -5,6 +5,8 @@ import "leaflet/dist/leaflet.css";
 import axios from "axios";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
+import { useTour } from "../hooks/useTour";
+import { TRACKING_TOUR_KEY, trackingSteps } from "../tours/trackingTour";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -36,6 +38,8 @@ type TripCoord = { lat: number; lng: number; speed: number; timestamp: string };
 type Trip = { _id: string; tripStart: string; tripEnd: string; totalDistance: number; driverId?: { name: string }; coordinates: TripCoord[]; };
 
 const Tracking: React.FC = () => {
+  useTour({ tourKey: TRACKING_TOUR_KEY, steps: trackingSteps, autoStartDelayMs: 800 });
+
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [tripHistory, setTripHistory] = useState<Trip[]>([]);
@@ -140,7 +144,7 @@ const Tracking: React.FC = () => {
       </div>
 
       <div style={{ display: "flex", height: "calc(100vh - 170px)", padding: "0 40px 40px", boxSizing: "border-box", maxWidth: "1380px", margin: "0 auto" }}>
-        <div style={{ width: 300, background: "var(--t-surface)", borderRight: "1px solid var(--t-border)", overflowY: "auto", flexShrink: 0 }}>
+        <div data-tour="tracking-sidebar" style={{ width: 300, background: "var(--t-surface)", borderRight: "1px solid var(--t-border)", overflowY: "auto", flexShrink: 0 }}>
           <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--t-border)" }}>
             <div style={{ fontWeight: 700, fontSize: 16, color: "var(--t-text)" }}>Live Tracking</div>
             <div style={{ fontSize: 12, color: "var(--t-text-ghost)", marginTop: 2 }}>
@@ -197,7 +201,7 @@ const Tracking: React.FC = () => {
             </div>
           )}
         </div>
-        <div style={{ flex: 1 }}>
+        <div data-tour="tracking-map" style={{ flex: 1 }}>
           <MapContainer center={mapCenter} zoom={10} style={{ height: "100%", width: "100%" }}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'

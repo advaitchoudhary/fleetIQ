@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
+import { useTour } from "../hooks/useTour";
+import { ADMIN_HOME_TOUR_KEY, adminHomeSteps } from "../tours/adminHomeTour";
 import {
   FaUsers, FaFileAlt, FaCreditCard, FaHistory,
   FaEnvelope, FaTruck, FaWrench, FaCheckSquare, FaGasPump,
@@ -59,6 +61,8 @@ const AdminHome: React.FC = () => {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const adminName = user?.name || user?.email?.split("@")[0] || "Admin";
   const canConfigureOrg = user?.role === "admin" || user?.role === "company_admin";
+
+  useTour({ tourKey: ADMIN_HOME_TOUR_KEY, steps: adminHomeSteps, autoStartDelayMs: 600 });
 
   useEffect(() => {
     const authHeader = { Authorization: `Bearer ${token}` };
@@ -142,7 +146,7 @@ const AdminHome: React.FC = () => {
 
         {/* ── Compliance Setup Banner ── */}
         {canConfigureOrg && !complianceCheckLoading && complianceSetupNeeded && (
-          <div style={{
+          <div data-tour="compliance-banner" style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -179,7 +183,7 @@ const AdminHome: React.FC = () => {
 
         {/* ── Stats Row ── */}
         {!statsLoading && stats && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "40px" }}>
+          <div data-tour="stats-row" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px", marginBottom: "40px" }}>
             {[
               {
                 label: "TOTAL VEHICLES",
@@ -274,29 +278,31 @@ const AdminHome: React.FC = () => {
           </div>
         )}
 
-        {/* ── Driver Management ── */}
-        <FeatureSection
-          title="Driver Management"
-          features={DRIVER_FEATURES}
-          unlocked={showDriver}
-          loading={loading}
-          navigate={navigate}
-          accentColor="var(--t-accent)"
-          pendingTimesheets={stats?.pendingTimesheets ?? 0}
-          upgradePlan="driver"
-        />
+        <div data-tour="feature-sections">
+          {/* ── Driver Management ── */}
+          <FeatureSection
+            title="Driver Management"
+            features={DRIVER_FEATURES}
+            unlocked={showDriver}
+            loading={loading}
+            navigate={navigate}
+            accentColor="var(--t-accent)"
+            pendingTimesheets={stats?.pendingTimesheets ?? 0}
+            upgradePlan="driver"
+          />
 
-        {/* ── Vehicle & Fleet Operations ── */}
-        <FeatureSection
-          title="Vehicle & Fleet Operations"
-          features={VEHICLE_FEATURES}
-          unlocked={showVehicle}
-          loading={loading}
-          navigate={navigate}
-          accentColor="var(--t-info)"
-          pendingTimesheets={0}
-          upgradePlan="vehicle"
-        />
+          {/* ── Vehicle & Fleet Operations ── */}
+          <FeatureSection
+            title="Vehicle & Fleet Operations"
+            features={VEHICLE_FEATURES}
+            unlocked={showVehicle}
+            loading={loading}
+            navigate={navigate}
+            accentColor="var(--t-info)"
+            pendingTimesheets={0}
+            upgradePlan="vehicle"
+          />
+        </div>
 
       </div>
     </div>

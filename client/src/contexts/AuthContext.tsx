@@ -4,6 +4,9 @@ import axios from "axios";
 
 import { API_BASE_URL } from "../utils/env";// Update as per your backend URL
 
+export type TourStatus = "completed" | "skipped";
+export type TourState = Record<string, { status: TourStatus; at: string }>;
+
 interface User {
   id?: string;
   email: string;
@@ -12,6 +15,7 @@ interface User {
   organizationId?: string | null;
   driverId?: string | null;
   orgName?: string | null;
+  tourState?: TourState;
 }
 
 interface AuthContextType {
@@ -22,6 +26,8 @@ interface AuthContextType {
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
   switchOrg: (orgId: string, orgName: string) => Promise<void>;
   exitOrg: () => void;
+  setTourState: (tourKey: string, status: TourStatus) => Promise<void>;
+  resetAllTours: () => Promise<void>;
   isInsideOrg: boolean;
   activeOrgName: string | null;
 }
@@ -145,6 +151,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     navigate("/admin-home");
   };
 
+  const setTourState = async (tourKey: string, status: TourStatus) => {
+    setUser((u) => {
+      if (!u) return u;
+      const nextTourState: TourState = {
+        ...(u.tourState || {}),
+        [tourKey]: { status, at: new Date().toISOString() },
+      };
+      return { ...u, tourState: nextTourState };
+    });
+    try {
+      await axios.patch(`${API_BASE_URL}/auth/tour-state`, { tourKey, status });
+    } catch (err) {
+      console.error("Failed to persist tour state:", err);
+    }
+  };
+
+  const resetAllTours = async () => {
+    setUser((u) => (u ? { ...u, tourState: {} } : u));
+    try {
+      await axios.delete(`${API_BASE_URL}/auth/tour-state`);
+    } catch (err) {
+      console.error("Failed to reset tour state:", err);
+    }
+  };
+
   const exitOrg = () => {
     const orig = localStorage.getItem("superadmin_token");
     if (!orig) {
@@ -163,7 +194,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, loginDirect, logout, changePassword, switchOrg, exitOrg, isInsideOrg, activeOrgName }}>
+    <AuthContext.Provider value={{ user, login, loginDirect, logout, changePassword, switchOrg, exitOrg, setTourState, resetAllTours, isInsideOrg, activeOrgName }}>
       {children}
     </AuthContext.Provider>
   );

@@ -4,6 +4,8 @@ import axios from "axios";
 import { FaPlus, FaEdit, FaTrashAlt, FaSearch, FaUserPlus } from "react-icons/fa";
 import Navbar from "./Navbar";
 import { API_BASE_URL } from "../utils/env";
+import { useTour } from "../hooks/useTour";
+import { VEHICLES_TOUR_KEY, vehiclesSteps } from "../tours/vehiclesTour";
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   active: { bg: "rgba(16,185,129,0.15)", color: "var(--t-success)" },
@@ -39,6 +41,8 @@ const emptyForm = {
 
 
 const Vehicles: React.FC = () => {
+  useTour({ tourKey: VEHICLES_TOUR_KEY, steps: vehiclesSteps, autoStartDelayMs: 600 });
+
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
@@ -326,7 +330,7 @@ const Vehicles: React.FC = () => {
             <h1 style={{ margin: "0 0 8px", fontSize: "30px", fontWeight: 800, color: "var(--t-text)", letterSpacing: "-0.5px" }}>Vehicle Management</h1>
             <p style={{ margin: 0, fontSize: "14px", color: "var(--t-text-dim)" }}>Manage your fleet vehicles, assignments, and operational status.</p>
           </div>
-          <div style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
+          <div data-tour="vehicles-actions" style={{ display: "flex", gap: "10px", flexShrink: 0 }}>
             <button onClick={handleExport} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-hover-bg)", border: "1px solid var(--t-border)", borderRadius: "10px", color: "var(--t-text-secondary)", fontSize: "13px", fontWeight: 600, padding: "10px 18px" }}>
               Export
             </button>
@@ -337,7 +341,7 @@ const Vehicles: React.FC = () => {
         </div>
 
         {/* Stats Cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" }}>
+        <div data-tour="vehicles-stats" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "16px", marginBottom: "24px" }}>
           {[
             { label: "Total Vehicles", value: stats.total, color: "var(--t-accent)" },
             { label: "Active", value: stats.active, color: "var(--t-success)" },
@@ -352,7 +356,7 @@ const Vehicles: React.FC = () => {
         </div>
 
         {/* Search */}
-        <div style={{ position: "relative", marginBottom: "16px", maxWidth: "360px" }}>
+        <div data-tour="vehicles-search" style={{ position: "relative", marginBottom: "16px", maxWidth: "360px" }}>
           <FaSearch style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--t-text-faint)" }} />
           <input
             placeholder="Search by unit, make, model, plate..."
@@ -364,7 +368,7 @@ const Vehicles: React.FC = () => {
         </div>
 
         {/* Table */}
-        <div style={styles.tableContainer}>
+        <div data-tour="vehicles-list" style={styles.tableContainer}>
           {loading ? (
             <div style={{ padding: "40px", textAlign: "center", color: "var(--t-text-dim)" }}>Loading vehicles...</div>
           ) : filtered.length === 0 ? (
