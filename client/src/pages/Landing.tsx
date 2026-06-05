@@ -5,13 +5,15 @@ import {
   FaShieldAlt, FaTools, FaChartBar, FaCheckCircle, FaArrowRight,
   FaCar, FaGasPump, FaClipboardList, FaBell, FaBuilding,
   FaAngleDown, FaChevronDown, FaQuoteLeft, FaRobot,
-  FaMapMarkerAlt,
+  FaMapMarkerAlt, FaPlay, FaTimes, FaChevronLeft, FaChevronRight,
 } from "react-icons/fa";
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [tourOpen, setTourOpen] = useState(false);
+  const [tourSlide, setTourSlide] = useState(0);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -35,6 +37,184 @@ const Landing: React.FC = () => {
     document.querySelectorAll(".land-reveal, .land-reveal-left, .land-reveal-right, .land-reveal-scale").forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (!tourOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setTourOpen(false);
+      if (e.key === "ArrowRight") setTourSlide((s) => Math.min(s + 1, tourSlides.length - 1));
+      if (e.key === "ArrowLeft") setTourSlide((s) => Math.max(s - 1, 0));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tourOpen]);
+
+  const tourSlides = [
+    {
+      label: "Admin Dashboard",
+      icon: <FaChartBar size={15} />,
+      color: "#4F46E5",
+      title: "Everything at a glance",
+      desc: "Your command centre. See active drivers, pending timesheets, payouts sent, and vehicle compliance status — all without leaving the home screen.",
+      highlights: ["Live driver & vehicle counts", "Pending actions surface automatically", "Compliance & expiry alerts", "Stripe payout status"],
+      mockup: (
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {[
+            { label: "Active Drivers", value: "24", badge: "Active", bc: "#d1fae5", tc: "#059669" },
+            { label: "Pending Timesheets", value: "7", badge: "Review", bc: "#fef3c7", tc: "#d97706" },
+            { label: "Payouts This Month", value: "$18,430", badge: "Sent", bc: "#ede9fe", tc: "#7c3aed" },
+            { label: "Vehicles Road-Ready", value: "31 / 34", badge: "Good", bc: "#d1fae5", tc: "#059669" },
+            { label: "Docs Expiring Soon", value: "2", badge: "Action", bc: "#fee2e2", tc: "#dc2626" },
+          ].map((r, i) => (
+            <div key={i} style={{ background: "rgba(255,255,255,0.06)", borderRadius: "9px", padding: "11px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.6)" }}>{r.label}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
+                <span style={{ fontSize: "14px", fontWeight: 700, color: "#fff" }}>{r.value}</span>
+                <span style={{ fontSize: "9px", fontWeight: 700, padding: "2px 8px", borderRadius: "20px", background: r.bc, color: r.tc, textTransform: "uppercase" }}>{r.badge}</span>
+              </div>
+            </div>
+          ))}
+          <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
+            <div style={{ flex: 1, padding: "12px", background: "rgba(79,70,229,0.15)", borderRadius: "9px", border: "1px solid rgba(79,70,229,0.25)", textAlign: "center" }}>
+              <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "3px" }}>Stripe</div>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#A5B4FC" }}>Connected</div>
+            </div>
+            <div style={{ flex: 1, padding: "12px", background: "rgba(16,185,129,0.1)", borderRadius: "9px", border: "1px solid rgba(16,185,129,0.18)", textAlign: "center" }}>
+              <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "3px" }}>Compliance</div>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#34d399" }}>94% OK</div>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      label: "Driver Management",
+      icon: <FaUsers size={15} />,
+      color: "#4F46E5",
+      title: "Manage every driver, end-to-end",
+      desc: "Onboard drivers digitally, upload licence documents, set pay rates per category, log warnings, and track compliance — all in one profile.",
+      highlights: ["Digital driver applications", "Licence & document expiry alerts", "Warning & incident log", "Per-driver pay rate config"],
+      mockup: (
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "4px" }}>Driver Roster</div>
+          {[
+            { name: "James Martinez", role: "Class A", status: "Active", sc: "#d1fae5", tc: "#059669", docs: "✓ All docs valid" },
+            { name: "Priya Sharma", role: "Class B", status: "Active", sc: "#d1fae5", tc: "#059669", docs: "⚠ Licence expires 30d" },
+            { name: "Tom Williams", role: "Class A", status: "On Leave", sc: "#fef3c7", tc: "#d97706", docs: "✓ All docs valid" },
+            { name: "Liu Wei", role: "New", status: "Pending", sc: "#e0f2fe", tc: "#0891b2", docs: "⏳ Application review" },
+          ].map((d, i) => (
+            <div key={i} style={{ background: "rgba(255,255,255,0.06)", borderRadius: "9px", padding: "11px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div>
+                <div style={{ fontSize: "12px", fontWeight: 600, color: "#fff" }}>{d.name}</div>
+                <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", marginTop: "2px" }}>{d.role} · {d.docs}</div>
+              </div>
+              <span style={{ fontSize: "9px", fontWeight: 700, padding: "2px 8px", borderRadius: "20px", background: d.sc, color: d.tc, textTransform: "uppercase" }}>{d.status}</span>
+            </div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      label: "Timesheets",
+      icon: <FaFileAlt size={15} />,
+      color: "#059669",
+      title: "Paperless timesheet workflow",
+      desc: "Drivers submit hours from any device. Admins review and approve in one click. Pay totals auto-calculate from approved sheets — no spreadsheets, no back-and-forth.",
+      highlights: ["Mobile-friendly submission form", "Admin approve / reject workflow", "Auto-calculated pay totals", "Full submission history"],
+      mockup: (
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "4px" }}>All Timesheets — This Week</div>
+          {[
+            { name: "J. Martinez", period: "May 12–18", hours: "44h", pay: "$1,760", status: "Approved", sc: "#d1fae5", tc: "#059669" },
+            { name: "P. Sharma", period: "May 12–18", hours: "38h", pay: "$1,520", status: "Pending", sc: "#fef3c7", tc: "#d97706" },
+            { name: "T. Williams", period: "May 12–18", hours: "40h", pay: "$1,600", status: "Pending", sc: "#fef3c7", tc: "#d97706" },
+            { name: "L. Wei", period: "May 12–18", hours: "35h", pay: "$1,400", status: "Rejected", sc: "#fee2e2", tc: "#dc2626" },
+          ].map((r, i) => (
+            <div key={i} style={{ background: "rgba(255,255,255,0.06)", borderRadius: "9px", padding: "11px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div>
+                <div style={{ fontSize: "12px", fontWeight: 600, color: "#fff" }}>{r.name}</div>
+                <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", marginTop: "2px" }}>{r.period} · {r.hours}</div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "13px", fontWeight: 700, color: "#34d399" }}>{r.pay}</span>
+                <span style={{ fontSize: "9px", fontWeight: 700, padding: "2px 8px", borderRadius: "20px", background: r.sc, color: r.tc, textTransform: "uppercase" }}>{r.status}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      label: "Vehicle Operations",
+      icon: <FaTruck size={15} />,
+      color: "#0891b2",
+      title: "Keep every vehicle road-ready",
+      desc: "Full vehicle registry, DVIR inspections, preventive maintenance scheduling, fuel log analytics, parts inventory, and warranty tracking — linked to your fleet.",
+      highlights: ["Preventive maintenance scheduler", "DVIR pre/post-trip inspections", "Fuel L/100km analytics", "Parts & warranty tracking"],
+      mockup: (
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "4px" }}>Fleet Status</div>
+          {[
+            { label: "Unit #104 — Oil Change Due", status: "Due Soon", sc: "#fef3c7", tc: "#d97706" },
+            { label: "Unit #087 — Inspection Passed", status: "OK", sc: "#d1fae5", tc: "#059669" },
+            { label: "Unit #112 — In Maintenance", status: "In Progress", sc: "#e0f2fe", tc: "#0891b2" },
+            { label: "Unit #033 — Warranty Expiring", status: "Alert", sc: "#fee2e2", tc: "#dc2626" },
+          ].map((r, i) => (
+            <div key={i} style={{ background: "rgba(255,255,255,0.06)", borderRadius: "9px", padding: "11px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{r.label}</span>
+              <span style={{ fontSize: "9px", fontWeight: 700, padding: "2px 8px", borderRadius: "20px", background: r.sc, color: r.tc, textTransform: "uppercase" }}>{r.status}</span>
+            </div>
+          ))}
+          <div style={{ marginTop: "4px", padding: "12px", background: "rgba(56,189,248,0.08)", borderRadius: "9px", border: "1px solid rgba(56,189,248,0.18)" }}>
+            <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", marginBottom: "4px", textTransform: "uppercase", letterSpacing: "0.8px" }}>Avg Fuel Efficiency</div>
+            <div style={{ fontSize: "24px", fontWeight: 800, color: "#38bdf8" }}>11.4 <span style={{ fontSize: "13px", fontWeight: 500, color: "rgba(255,255,255,0.4)" }}>L/100km</span></div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      label: "Live Tracking",
+      icon: <FaMapMarkerAlt size={15} />,
+      color: "#dc2626",
+      title: "Real-time GPS — no hardware",
+      desc: "Drivers share their location from any browser. The admin live map updates every 30 seconds. Full trip history with polyline replay and distance totals.",
+      highlights: ["Live admin map with all vehicles", "30-second polling — no hardware", "Trip start / stop from driver app", "Polyline trip replay & distance"],
+      mockup: (
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          <div style={{ background: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "9px", padding: "14px", marginBottom: "4px", position: "relative", overflow: "hidden", minHeight: "110px" }}>
+            <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "8px" }}>Live Map — Toronto, ON</div>
+            {[
+              { top: "28%", left: "30%", active: true, label: "#104" },
+              { top: "55%", left: "58%", active: true, label: "#087" },
+              { top: "20%", left: "70%", active: false, label: "#112" },
+              { top: "68%", left: "22%", active: false, label: "#033" },
+            ].map((pin, i) => (
+              <div key={i} style={{ position: "absolute", top: pin.top, left: pin.left, display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: pin.active ? "#22c55e" : "#6b7280", boxShadow: pin.active ? "0 0 0 3px rgba(34,197,94,0.3)" : "none" }} />
+                <span style={{ fontSize: "9px", fontWeight: 700, color: pin.active ? "#86efac" : "rgba(255,255,255,0.3)", background: "rgba(0,0,0,0.5)", padding: "1px 4px", borderRadius: "3px" }}>{pin.label}</span>
+              </div>
+            ))}
+            <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", opacity: 0.15 }} xmlns="http://www.w3.org/2000/svg">
+              <polyline points="30%,28% 58%,55%" stroke="#2563eb" strokeWidth="2" fill="none" strokeDasharray="4 3" />
+            </svg>
+          </div>
+          {[
+            { label: "Unit #104 · J. Martinez", speed: "72 km/h", status: "Active", sc: "#d1fae5", tc: "#059669" },
+            { label: "Unit #087 · S. Patel", speed: "58 km/h", status: "Active", sc: "#d1fae5", tc: "#059669" },
+            { label: "Unit #112 · Unassigned", speed: "—", status: "Idle", sc: "#f3f4f6", tc: "#6b7280" },
+          ].map((r, i) => (
+            <div key={i} style={{ background: "rgba(255,255,255,0.06)", borderRadius: "9px", padding: "10px 14px", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.75)" }}>{r.label}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.45)" }}>{r.speed}</span>
+                <span style={{ fontSize: "9px", fontWeight: 700, padding: "2px 8px", borderRadius: "20px", background: r.sc, color: r.tc, textTransform: "uppercase" }}>{r.status}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ),
+    },
+  ];
 
   const driverFeatures = [
     { icon: <FaUsers size={16} />, text: "Digital driver onboarding & applications" },
@@ -376,6 +556,97 @@ const Landing: React.FC = () => {
           opacity: 1; transform: none;
         }
 
+        /* ── Tour modal ── */
+        .land-tour-overlay {
+          position: fixed; inset: 0; z-index: 999;
+          background: rgba(5,8,20,0.88); backdrop-filter: blur(10px);
+          display: flex; align-items: center; justify-content: center;
+          padding: 20px;
+          animation: land-fadeInUp 0.3s ease-out both;
+        }
+        .land-tour-modal {
+          background: linear-gradient(135deg, #0F172A 0%, #1e1b4b 100%);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 24px;
+          width: 100%; max-width: 960px;
+          max-height: 90vh; overflow: hidden;
+          display: flex; flex-direction: column;
+          box-shadow: 0 40px 100px rgba(0,0,0,0.7);
+        }
+        .land-tour-header {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 22px 28px 16px;
+          border-bottom: 1px solid rgba(255,255,255,0.07);
+          flex-shrink: 0;
+        }
+        .land-tour-tabs {
+          display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px;
+          scrollbar-width: none;
+        }
+        .land-tour-tabs::-webkit-scrollbar { display: none; }
+        .land-tour-tab {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+          font-size: 12px; font-weight: 600; white-space: nowrap;
+          cursor: pointer; transition: all 0.2s;
+          font-family: Inter, system-ui, sans-serif;
+          background: transparent; color: rgba(255,255,255,0.45);
+        }
+        .land-tour-tab:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.75); }
+        .land-tour-tab.active { color: #fff; border-color: transparent; }
+        .land-tour-close {
+          width: 34px; height: 34px; border-radius: 50%;
+          background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+          color: rgba(255,255,255,0.6); cursor: pointer; font-size: 14px;
+          display: flex; align-items: center; justify-content: center;
+          transition: background 0.2s, color 0.2s; flex-shrink: 0;
+          font-family: Inter, system-ui, sans-serif;
+        }
+        .land-tour-close:hover { background: rgba(239,68,68,0.2); color: #f87171; border-color: rgba(239,68,68,0.3); }
+        .land-tour-body {
+          display: grid; grid-template-columns: 1fr 1fr;
+          gap: 0; overflow: hidden; flex: 1;
+        }
+        .land-tour-left {
+          padding: 32px 28px; display: flex; flex-direction: column;
+          border-right: 1px solid rgba(255,255,255,0.06);
+          overflow-y: auto;
+        }
+        .land-tour-right {
+          padding: 28px 24px; overflow-y: auto;
+          background: rgba(0,0,0,0.2);
+        }
+        .land-tour-nav {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 16px 28px;
+          border-top: 1px solid rgba(255,255,255,0.07);
+          flex-shrink: 0;
+        }
+        .land-tour-nav-btn {
+          display: inline-flex; align-items: center; gap: 7px;
+          padding: 9px 18px; border-radius: 9px; border: 1px solid rgba(255,255,255,0.12);
+          background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.6);
+          font-size: 13px; font-weight: 600; cursor: pointer;
+          font-family: Inter, system-ui, sans-serif;
+          transition: all 0.2s;
+        }
+        .land-tour-nav-btn:hover:not(:disabled) { background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.25); }
+        .land-tour-nav-btn:disabled { opacity: 0.3; cursor: default; }
+        .land-tour-nav-btn.primary { background: #4F46E5; color: #fff; border-color: transparent; box-shadow: 0 4px 14px rgba(79,70,229,0.4); }
+        .land-tour-nav-btn.primary:hover { background: #4338ca; }
+        .land-tour-dots { display: flex; gap: 6px; align-items: center; }
+        .land-tour-dot {
+          width: 7px; height: 7px; border-radius: 50%;
+          background: rgba(255,255,255,0.2); cursor: pointer;
+          transition: all 0.2s; border: none; padding: 0;
+        }
+        .land-tour-dot.active { background: #818CF8; width: 20px; border-radius: 4px; }
+        @media (max-width: 700px) {
+          .land-tour-body { grid-template-columns: 1fr !important; }
+          .land-tour-right { display: none !important; }
+          .land-tour-modal { max-height: 95vh; border-radius: 18px; }
+        }
+
         /* ── Responsive ── */
         @media (max-width: 1024px) {
           .land-hero-grid { grid-template-columns: 1fr !important; }
@@ -542,6 +813,29 @@ const Landing: React.FC = () => {
                   Log In to Dashboard
                 </button>
               </div>
+              <button
+                onClick={() => { setTourSlide(0); setTourOpen(true); }}
+                style={{
+                  marginTop: "16px",
+                  display: "inline-flex", alignItems: "center", gap: "9px",
+                  background: "none", border: "none", cursor: "pointer", padding: 0,
+                  color: "rgba(255,255,255,0.55)", fontSize: "14px", fontWeight: 500,
+                  fontFamily: "Inter, system-ui, sans-serif",
+                  transition: "color 0.2s",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+                onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.55)")}
+              >
+                <span style={{
+                  width: "32px", height: "32px", borderRadius: "50%",
+                  background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)",
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0,
+                }}>
+                  <FaPlay size={10} style={{ marginLeft: "2px" }} />
+                </span>
+                Watch App Tour · 5 slides
+              </button>
             </div>
 
             {/* Trust line */}
@@ -1345,10 +1639,127 @@ const Landing: React.FC = () => {
         </div>
       </section>
 
+      {/* ── APP TOUR MODAL ── */}
+      {tourOpen && (
+        <div className="land-tour-overlay" onClick={(e) => { if (e.target === e.currentTarget) setTourOpen(false); }}>
+          <div className="land-tour-modal">
+            {/* Header */}
+            <div className="land-tour-header">
+              <div style={{ display: "flex", alignItems: "center", gap: "16px", flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "7px", flexShrink: 0 }}>
+                  <FaTruck size={16} style={{ color: "#818CF8" }} />
+                  <span style={{ fontSize: "14px", fontWeight: 800, color: "#fff" }}>Fleet<span style={{ color: "#818CF8" }}>IQ</span> Tour</span>
+                </div>
+                <div className="land-tour-tabs">
+                  {tourSlides.map((s, i) => (
+                    <button
+                      key={i}
+                      className={`land-tour-tab${tourSlide === i ? " active" : ""}`}
+                      style={tourSlide === i ? { background: `${s.color}22`, borderColor: `${s.color}55`, color: "#fff" } : {}}
+                      onClick={() => setTourSlide(i)}
+                    >
+                      <span style={{ color: tourSlide === i ? s.color : "inherit" }}>{s.icon}</span>
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <button className="land-tour-close" onClick={() => setTourOpen(false)} style={{ marginLeft: "12px" }}>
+                <FaTimes size={13} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="land-tour-body">
+              {/* Left — text */}
+              <div className="land-tour-left">
+                <div style={{
+                  display: "inline-flex", alignItems: "center", gap: "7px",
+                  background: `${tourSlides[tourSlide].color}22`,
+                  border: `1px solid ${tourSlides[tourSlide].color}44`,
+                  borderRadius: "20px", padding: "5px 14px",
+                  fontSize: "11px", fontWeight: 700, color: tourSlides[tourSlide].color,
+                  textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "18px",
+                }}>
+                  {tourSlides[tourSlide].icon}
+                  {tourSlides[tourSlide].label}
+                </div>
+                <h2 style={{ fontSize: "clamp(20px, 2.8vw, 26px)", fontWeight: 800, color: "#fff", marginTop: 0, marginBottom: "14px", lineHeight: 1.15, letterSpacing: "-0.3px" }}>
+                  {tourSlides[tourSlide].title}
+                </h2>
+                <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.6)", lineHeight: 1.75, marginBottom: "24px", marginTop: 0 }}>
+                  {tourSlides[tourSlide].desc}
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "28px" }}>
+                  {tourSlides[tourSlide].highlights.map((h, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <FaCheckCircle size={13} style={{ color: tourSlides[tourSlide].color, flexShrink: 0 }} />
+                      <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", fontWeight: 500 }}>{h}</span>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: "auto", display: "flex", gap: "10px" }}>
+                  <button
+                    className="land-tour-nav-btn primary"
+                    onClick={() => { setTourOpen(false); navigate("/register"); }}
+                  >
+                    Start Free Trial <FaArrowRight size={11} />
+                  </button>
+                  <button
+                    className="land-tour-nav-btn"
+                    onClick={() => { setTourOpen(false); navigate("/login"); }}
+                  >
+                    Log In
+                  </button>
+                </div>
+              </div>
+
+              {/* Right — mockup */}
+              <div className="land-tour-right">
+                <div style={{ marginBottom: "14px", display: "flex", alignItems: "center", gap: "7px" }}>
+                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#ef4444" }} />
+                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#f59e0b" }} />
+                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10b981" }} />
+                  <span style={{ marginLeft: "6px", fontSize: "10px", color: "rgba(255,255,255,0.25)", letterSpacing: "0.5px" }}>
+                    FleetIQ · {tourSlides[tourSlide].label}
+                  </span>
+                </div>
+                {tourSlides[tourSlide].mockup}
+              </div>
+            </div>
+
+            {/* Footer nav */}
+            <div className="land-tour-nav">
+              <button
+                className="land-tour-nav-btn"
+                onClick={() => setTourSlide((s) => Math.max(s - 1, 0))}
+                disabled={tourSlide === 0}
+              >
+                <FaChevronLeft size={11} /> Previous
+              </button>
+              <div className="land-tour-dots">
+                {tourSlides.map((_, i) => (
+                  <button key={i} className={`land-tour-dot${tourSlide === i ? " active" : ""}`} onClick={() => setTourSlide(i)} />
+                ))}
+              </div>
+              {tourSlide < tourSlides.length - 1 ? (
+                <button className="land-tour-nav-btn primary" onClick={() => setTourSlide((s) => s + 1)}>
+                  Next <FaChevronRight size={11} />
+                </button>
+              ) : (
+                <button className="land-tour-nav-btn primary" onClick={() => { setTourOpen(false); navigate("/register"); }}>
+                  Get Started <FaArrowRight size={11} />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── FOOTER ── */}
       <footer style={{
         backgroundColor: "#0A0F1E",
-        borderTop: "1px solid rgba(255,255,255,0.07)",
+        borderTop: "1px solid rba(255,255,255,0.07)",
         padding: "28px 48px",
       }}>
         <div
