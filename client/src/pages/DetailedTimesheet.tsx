@@ -17,6 +17,7 @@ const DetailedTimesheet: React.FC = () => {
   const [resetHover, setResetHover] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
+  const [showApprovedModal, setShowApprovedModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [driversMap, setDriversMap] = useState<Record<string, string>>({});
   // Multi-select for delay types (legacy, will be replaced by checkboxes)
@@ -449,9 +450,16 @@ const DetailedTimesheet: React.FC = () => {
 
         {/* OVERVIEW Card */}
         <div style={{ background: "var(--t-surface)", border: "1px solid var(--t-border)", borderRadius: "14px", padding: "20px 24px" }}>
-          <p style={{ margin: "0 0 16px", fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--t-accent)", display: "inline-block" }} /> OVERVIEW
-          </p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+            <p style={{ margin: 0, fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--t-accent)", display: "inline-block" }} /> OVERVIEW
+            </p>
+            {timesheet.paymentStatus === "cleared" && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "4px 10px", borderRadius: "20px", background: "var(--t-success-bg)", border: "1px solid rgba(16,185,129,0.3)", color: "var(--t-success)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
+                ✓ INVOICE CLEARED
+              </span>
+            )}
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "18px" }}>
             {([
               ["ORGANIZATION ID", `FLT-${String(timesheet._id || "").slice(-8).toUpperCase()}`],
@@ -994,7 +1002,7 @@ const DetailedTimesheet: React.FC = () => {
                   try {
                     await axios.put(`${API_BASE_URL}/timesheet/${id}`, formData);
                     await axios.put(`${API_BASE_URL}/timesheet/${id}/status`, { status: "approved" });
-                    navigate("/all-timesheets");
+                    setShowApprovedModal(true);
                   } catch (err) {
                     alert("Failed to update or approve timesheet.");
                   }
@@ -1063,6 +1071,36 @@ const DetailedTimesheet: React.FC = () => {
                 style={{ padding: "9px 18px", background: !rejectReason.trim() ? "var(--t-hover-bg)" : "var(--t-error)", border: "none", borderRadius: "8px", color: !rejectReason.trim() ? "var(--t-text-ghost)" : "#fff", fontSize: "13px", fontWeight: 700, cursor: !rejectReason.trim() ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
               >
                 Confirm Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Post-approval: continue or clear invoice */}
+      {showApprovedModal && timesheet && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 2100, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
+        >
+          <div style={{ background: "var(--t-modal-bg)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "460px", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" }}>
+            <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: "var(--t-success-bg)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
+              <span style={{ fontSize: "22px", color: "var(--t-success)" }}>✓</span>
+            </div>
+            <h2 style={{ margin: "0 0 8px", fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Timesheet Approved</h2>
+            <p style={{ margin: "0 0 22px", fontSize: "13px", color: "var(--t-text-ghost)" }}>
+              What would you like to do next?
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <button
+                onClick={() => navigate(`/invoice?driver=${encodeURIComponent(timesheet.driver || "")}`)}
+                style={{ padding: "12px 20px", border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: 700, cursor: "pointer", background: "var(--t-accent)", color: "#fff", boxShadow: "0 4px 14px rgba(79,70,229,0.35)", fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                Clear Invoice for {driversMap[timesheet.driver] || timesheet.driverName || timesheet.driver || "Driver"}
+              </button>
+              <button
+                onClick={() => navigate("/all-timesheets")}
+                style={{ padding: "12px 20px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "10px", color: "var(--t-text-faint)", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
+              >
+                Continue Approving Timesheets
               </button>
             </div>
           </div>

@@ -460,7 +460,41 @@ function createInvoicePDF(data) {
   return filePath;
 }
 
-// **9. Send Invoice Email**
+// **9. Clear Invoice — mark approved timesheets as paid**
+const clearInvoice = async (req, res) => {
+  try {
+    const { timesheetIds, invoiceNumber } = req.body;
+    if (!Array.isArray(timesheetIds) || timesheetIds.length === 0) {
+      return res.status(400).json({ message: "No timesheets provided to clear." });
+    }
+
+    const orgFilter = getOrgFilter(req);
+    const result = await Timesheet.updateMany(
+      {
+        _id: { $in: timesheetIds },
+        status: "approved",
+        // Match "pending" as well as docs predating the field (absent => not cleared).
+        paymentStatus: { $ne: "cleared" },
+        ...orgFilter,
+      },
+      {
+        paymentStatus: "cleared",
+        invoiceClearedAt: new Date(),
+        invoiceNumber: invoiceNumber || "",
+      }
+    );
+
+    res.status(200).json({
+      message: "Invoice cleared successfully.",
+      clearedCount: result.modifiedCount ?? result.nModified ?? 0,
+    });
+  } catch (error) {
+    console.error("Failed to clear invoice:", error);
+    res.status(500).json({ errorMessage: error.message });
+  }
+};
+
+// **10. Send Invoice Email**
 const sendInvoiceEmail = async (req, res) => {
   try {
     const { driverId, amount, invoicePdf } = req.body;
@@ -524,5 +558,6 @@ module.exports = {
   updateTimesheetById,
   deleteTimesheetById,
   updateTimesheetStatus,
+  clearInvoice,
   sendInvoiceEmail
 };

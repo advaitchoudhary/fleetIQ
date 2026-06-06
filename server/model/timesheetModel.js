@@ -27,6 +27,11 @@ const timesheetSchema = new mongoose.Schema(
     attachments: { type: [String], default: [] },
     status: { type: String, enum: ["pending", "approved", "rejected"], default: "pending" },
     rejectionReason: { type: String, default: "" },
+
+    // Payment / invoice clearing — approval and payment are orthogonal.
+    paymentStatus: { type: String, enum: ["pending", "cleared"], default: "pending" },
+    invoiceClearedAt: { type: Date, default: null },
+    invoiceNumber: { type: String, default: "" },
     extraWorkSheet: { type: String, enum: ["yes", "no"], default: "no" },
     extraDuration: { type: String },
     durationFrom: { type: String },

@@ -30,6 +30,7 @@ interface Timesheet {
   comments: string;
   attachments: string[];
   status: string;
+  paymentStatus?: string;
   createdAt: string;
   updatedAt: string;
   storeDelay: {
@@ -705,10 +706,17 @@ const AllTimesheets: React.FC = () => {
                         </td>
                         {/* Status */}
                         <td style={{ padding: "16px 16px" }}>
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, background: sc.bg, color: sc.color, textTransform: "uppercase" as const, whiteSpace: "nowrap" as const }}>
-                            <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: sc.dot, display: "inline-block" }} />
-                            {ts.status === "approved" ? "Approved" : ts.status === "rejected" ? "Rejected" : "Pending"}
-                          </span>
+                          <div style={{ display: "flex", flexWrap: "wrap" as const, alignItems: "center", gap: "5px" }}>
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", padding: "4px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, background: sc.bg, color: sc.color, textTransform: "uppercase" as const, whiteSpace: "nowrap" as const }}>
+                              <span style={{ width: "5px", height: "5px", borderRadius: "50%", background: sc.dot, display: "inline-block" }} />
+                              {ts.status === "approved" ? "Approved" : ts.status === "rejected" ? "Rejected" : "Pending"}
+                            </span>
+                            {ts.paymentStatus === "cleared" && (
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "4px 9px", borderRadius: "20px", fontSize: "10px", fontWeight: 700, background: "var(--t-success-bg)", border: "1px solid rgba(16,185,129,0.3)", color: "var(--t-success)", whiteSpace: "nowrap" as const, letterSpacing: "0.3px" }}>
+                                ✓ Invoice Cleared
+                              </span>
+                            )}
+                          </div>
                         </td>
                         {/* Delete */}
                         <td style={{ padding: "16px 12px" }} onClick={(e) => e.stopPropagation()}>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, CSSProperties } from "react";
+import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -6,7 +7,7 @@ import Navbar from "./Navbar";
 import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 import { API_BASE_URL } from "../utils/env";
-import { FaFilePdf, FaArrowRight, FaInfoCircle, FaTruck } from "react-icons/fa";
+import { FaFilePdf, FaArrowRight, FaInfoCircle, FaTruck, FaCheckCircle } from "react-icons/fa";
 
 interface InvoiceItem {
   id: number; name: string; quantity: number; rate: number; tax: string; amount: number;
@@ -36,6 +37,9 @@ const Invoice: React.FC = () => {
   const [categoryRates, setCategoryRates]       = useState<Record<string, number>>({});
   const [timesheetsLoading, setTimesheetsLoading] = useState(false);
   const [emailStatus, setEmailStatus]           = useState<null | "sending" | "success" | "error">(null);
+  const [clearStatus, setClearStatus]           = useState<null | "clearing" | "success" | "error">(null);
+  const [showClearModal, setShowClearModal]     = useState(false);
+  const [searchParams]                          = useSearchParams();
 
   const [fromDetails, setFromDetails] = useState({ name: "", address: "", phone: "", email: "" });
   const [toDetails,   setToDetails]   = useState({ name: "", businessName: "", contact: "", address: "", gst: "" });
@@ -57,37 +61,64 @@ const Invoice: React.FC = () => {
     ? `${format(customRange.from, "yyyy-MM-dd")} - ${format(customRange.to, "yyyy-MM-dd")}`
     : "";
 
-  const handleDriverChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const driverId = e.target.value;
+  const fetchDriverTimesheets = async (driver?: Driver) => {
+    if (!driver?.email) return;
+    setTimesheetsLoading(true);
+    setEmailStatus(null);
+    setClearStatus(null);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get(`${API_BASE_URL}/timesheets?noPagination=true`, { headers: { Authorization: `Bearer ${token}` } });
+      const all = res.data.data.filter((t: any) => t.driver === driver.email);
+      setTimesheetsRaw(all);
+      // Expand the billing period to cover ALL uncleared approved work for this driver,
+      // so nothing unpaid is ever hidden by the default window. Admin can still narrow it.
+      const unpaidDates = all
+        .filter((t: any) => t.status === "approved" && t.paymentStatus !== "cleared")
+        .map((t: any) => new Date(t.date + "T00:00:00"))
+        .filter((d: Date) => !isNaN(d.getTime()));
+      if (unpaidDates.length > 0) {
+        const earliest = new Date(Math.min(...unpaidDates.map((d: Date) => d.getTime())));
+        const latest = new Date(Math.max(...unpaidDates.map((d: Date) => d.getTime())));
+        const today = new Date();
+        setCustomRange({ from: earliest, to: latest > today ? latest : today });
+      }
+    } catch (err) {
+      console.error("Error fetching driver timesheets:", err);
+    } finally {
+      setTimesheetsLoading(false);
+    }
+  };
+
+  const selectDriver = (driverId: string, driverList: Driver[] = data) => {
     setSelectedDriver(driverId);
-    const driver = data.find((d) => d._id === driverId);
+    const driver = driverList.find((d) => d._id === driverId);
     if (driver) {
       setToDetails({ name: driver.name || "", businessName: driver.business_name || "", contact: driver.contact || "", address: driver.address || "", gst: driver.hst_gst || "" });
     }
-    const fetchDriverTimesheets = async () => {
-      if (!driver?.email) return;
-      setTimesheetsLoading(true);
-      setEmailStatus(null);
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get(`${API_BASE_URL}/timesheets?noPagination=true`, { headers: { Authorization: `Bearer ${token}` } });
-        setTimesheetsRaw(res.data.data.filter((t: any) => t.driver === driver.email));
-      } catch (err) {
-        console.error("Error fetching driver timesheets:", err);
-      } finally {
-        setTimesheetsLoading(false);
-      }
-    };
-    fetchDriverTimesheets();
+    fetchDriverTimesheets(driver);
+  };
+
+  const handleDriverChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    selectDriver(e.target.value);
   };
 
   useEffect(() => {
-    fetchDrivers().then(setData);
+    fetchDrivers().then((drivers) => {
+      setData(drivers);
+      // Pre-select a driver passed via ?driver=<email> (e.g. from the timesheet-approval modal).
+      const driverEmail = searchParams.get("driver");
+      if (driverEmail) {
+        const match = drivers.find((d) => d.email === driverEmail);
+        if (match) selectDriver(match._id, drivers);
+      }
+    });
     axios.get(`${API_BASE_URL}/organizations/profile`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } })
       .then((res) => {
         const o = res.data;
         setFromDetails({ name: o.name || "", address: o.address || "", phone: o.phone || "", email: o.email || "" });
       }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -98,7 +129,7 @@ const Invoice: React.FC = () => {
 
   useEffect(() => {
     const newTotal = timesheets.reduce((acc, t) => {
-      if (t.status !== "approved") return acc;
+      if (t.status !== "approved" || t.paymentStatus === "cleared") return acc;
       const rate = categoryRates[t.category] || 0;
       let start = new Date(`1970-01-01T${t.startTime}`);
       let end   = new Date(`1970-01-01T${t.endTime}`);
@@ -137,7 +168,7 @@ const Invoice: React.FC = () => {
 
   const getApprovedRows = () =>
     timesheets
-      .filter((t) => t.status === "approved")
+      .filter((t) => t.status === "approved" && t.paymentStatus !== "cleared")
       .map((t) => {
         const rate = categoryRates[t.category] || 0;
         let start = new Date(`1970-01-01T${t.startTime}`);
@@ -390,7 +421,24 @@ const Invoice: React.FC = () => {
   const isDisabled = !selectedDriver || selectedDriver === "__placeholder__";
   const invoiceNumber = `INV-${invoiceDate.getFullYear()}-${String(invoiceDate.getMonth() + 1).padStart(2, "0")}${String(invoiceDate.getDate()).padStart(2, "0")}`;
   const dueDateLabel = invoiceDate.toLocaleDateString("en-CA", { month: "long", day: "numeric", year: "numeric" });
-  const approvedTimesheets = timesheets.filter((t) => t.status === "approved");
+  // Approved, not-yet-cleared timesheets in the billing period — the line items eligible for clearing.
+  const approvedTimesheets = timesheets.filter((t) => t.status === "approved" && t.paymentStatus !== "cleared");
+
+  const clearInvoice = async () => {
+    const ids = approvedTimesheets.map((t) => t._id).filter(Boolean);
+    if (ids.length === 0) return;
+    setShowClearModal(false);
+    setClearStatus("clearing");
+    try {
+      const driver = data.find((d) => d._id === selectedDriver);
+      await axios.put(`${API_BASE_URL}/timesheets/clear-invoice`, { timesheetIds: ids, invoiceNumber }, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } });
+      setClearStatus("success");
+      // Refetch so cleared rows drop out of the invoice preview.
+      await fetchDriverTimesheets(driver);
+    } catch {
+      setClearStatus("error");
+    }
+  };
 
   const STATUS_BADGE: Record<string, { bg: string; border: string; color: string; label: string }> = {
     approved: { bg: "var(--t-success-bg)",  border: "rgba(16,185,129,0.25)",  color: "var(--t-success)", label: "Approved" },
@@ -732,6 +780,18 @@ const Invoice: React.FC = () => {
             >
               <FaArrowRight size={12} /> {emailStatus === "sending" ? "Sending…" : "Send Email"}
             </button>
+            {(() => {
+              const clearDisabled = isDisabled || approvedTimesheets.length === 0 || clearStatus === "clearing";
+              return (
+                <button
+                  onClick={() => setShowClearModal(true)}
+                  disabled={clearDisabled}
+                  style={{ display: "inline-flex", alignItems: "center", gap: "7px", padding: "10px 20px", background: clearDisabled ? "var(--t-hover-bg)" : "var(--t-success)", border: "none", borderRadius: "10px", color: clearDisabled ? "var(--t-text-ghost)" : "#fff", fontSize: "13px", fontWeight: 600, cursor: clearDisabled ? "not-allowed" : "pointer", fontFamily: "Inter, system-ui, sans-serif", boxShadow: clearDisabled ? "none" : "0 4px 14px rgba(16,185,129,0.35)" }}
+                >
+                  <FaCheckCircle size={13} /> {clearStatus === "clearing" ? "Clearing…" : "Mark as Paid"}
+                </button>
+              );
+            })()}
           </div>
         </div>
 
@@ -746,6 +806,52 @@ const Invoice: React.FC = () => {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "10px", padding: "12px 16px", marginBottom: "20px", fontSize: "13px", fontWeight: 600, color: "var(--t-error)" }}>
             <span>✕ Failed to send invoice. Please try again.</span>
             <button onClick={() => setEmailStatus(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--t-error)", fontSize: "16px", lineHeight: 1, fontFamily: "Inter, system-ui, sans-serif" }}>✕</button>
+          </div>
+        )}
+
+        {/* Invoice clear status banner */}
+        {clearStatus === "success" && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", background: "var(--t-success-bg)", border: "1px solid rgba(16,185,129,0.3)", borderRadius: "10px", padding: "12px 16px", marginBottom: "20px", fontSize: "13px", fontWeight: 600, color: "var(--t-success)" }}>
+            <span>✓ Invoice cleared. These timesheets are now marked as paid.</span>
+            <button onClick={() => setClearStatus(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--t-success)", fontSize: "16px", lineHeight: 1, fontFamily: "Inter, system-ui, sans-serif" }}>✕</button>
+          </div>
+        )}
+        {clearStatus === "error" && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "10px", padding: "12px 16px", marginBottom: "20px", fontSize: "13px", fontWeight: 600, color: "var(--t-error)" }}>
+            <span>✕ Failed to clear invoice. Please try again.</span>
+            <button onClick={() => setClearStatus(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--t-error)", fontSize: "16px", lineHeight: 1, fontFamily: "Inter, system-ui, sans-serif" }}>✕</button>
+          </div>
+        )}
+
+        {/* Mark-as-paid confirmation modal */}
+        {showClearModal && (
+          <div
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 2100, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
+            onClick={(e) => { if (e.target === e.currentTarget) setShowClearModal(false); }}
+          >
+            <div style={{ background: "var(--t-modal-bg)", border: "1px solid var(--t-border)", borderRadius: "16px", padding: "28px", width: "100%", maxWidth: "440px", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" }}>
+              <div style={{ width: "48px", height: "48px", borderRadius: "14px", background: "var(--t-success-bg)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}>
+                <FaCheckCircle size={22} color="var(--t-success)" />
+              </div>
+              <h2 style={{ margin: "0 0 8px", fontSize: "18px", fontWeight: 800, color: "var(--t-text)" }}>Mark Invoice as Paid?</h2>
+              <p style={{ margin: "0 0 22px", fontSize: "13px", color: "var(--t-text-ghost)" }}>
+                This records that payment was made to <strong style={{ color: "var(--t-text-secondary)" }}>{toDetails.name || "the driver"}</strong> for <strong style={{ color: "var(--t-text-secondary)" }}>{approvedTimesheets.length}</strong> approved timesheet{approvedTimesheets.length === 1 ? "" : "s"}. They'll be tagged "Invoice Cleared" and removed from future invoices.
+              </p>
+              <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+                <button
+                  onClick={() => setShowClearModal(false)}
+                  style={{ padding: "9px 18px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text-faint)", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={clearInvoice}
+                  style={{ padding: "9px 18px", background: "var(--t-success)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}
+                >
+                  Confirm Payment
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

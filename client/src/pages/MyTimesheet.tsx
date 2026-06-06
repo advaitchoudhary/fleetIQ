@@ -25,6 +25,7 @@ interface Timesheet {
   comments: string;
   attachments: string[];
   status: string;
+  paymentStatus?: string;
   totalHours: string;
 }
 
@@ -208,13 +209,20 @@ const MyTimesheet: React.FC = () => {
       cell: ({ row }: { row: { original: Timesheet } }) => {
         const status = row.original.status;
         return (
-          <span style={statusStyles[status] || statusStyles.pending}>
-            {status === "approved"
-              ? "Approved"
-              : status === "rejected"
-              ? "Rejected"
-              : "Pending"}
-          </span>
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "5px" }}>
+            <span style={statusStyles[status] || statusStyles.pending}>
+              {status === "approved"
+                ? "Approved"
+                : status === "rejected"
+                ? "Rejected"
+                : "Pending"}
+            </span>
+            {row.original.paymentStatus === "cleared" && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "4px", padding: "4px 9px", borderRadius: "20px", fontSize: "10px", fontWeight: 700, background: "var(--t-success-bg)", border: "1px solid rgba(16,185,129,0.3)", color: "var(--t-success)", whiteSpace: "nowrap", letterSpacing: "0.3px" }}>
+                ✓ Invoice Cleared
+              </span>
+            )}
+          </div>
         );
       },
     },
