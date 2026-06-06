@@ -17,8 +17,6 @@ const PLANS = [
       "Digital driver applications & approvals",
       "Timesheet submission, review & approval",
       "7 per-category payment rate management",
-      "Stripe-powered direct driver payouts",
-      "Payment history & audit trail",
       "Required document & compliance tracking",
       "Training certificate management (12 types)",
       "Licence expiry alerts",
@@ -57,7 +55,7 @@ const PLANS = [
     monthlyPrice: 79,
     annualMonthlyEquivalent: 63,
     annualTotal: 756,
-    description: "The complete platform — drivers, vehicles, and payments under one roof.",
+    description: "The complete platform — drivers and vehicles under one roof.",
     badge: "Best Value",
     features: [
       "Everything in Driver Management",

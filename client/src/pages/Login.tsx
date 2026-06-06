@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { API_BASE_URL } from "../utils/env";
 import axios from "axios";
-import { FaTruck, FaCheckCircle, FaUsers, FaCar, FaCreditCard, FaArrowRight, FaShieldAlt, FaMapMarkerAlt, FaFileInvoiceDollar, FaWrench, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaTruck, FaCheckCircle, FaUsers, FaCar, FaArrowRight, FaShieldAlt, FaMapMarkerAlt, FaFileInvoiceDollar, FaWrench, FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -79,7 +79,6 @@ const Login: React.FC = () => {
     { icon: <FaUsers size={14} />, title: "Driver Management", desc: "Profiles, onboarding, documents, and timesheets." },
     { icon: <FaCar size={14} />, title: "Vehicle & Fleet Ops", desc: "Maintenance, warranties, inspections, and fuel logs." },
     { icon: <FaMapMarkerAlt size={14} />, title: "Live GPS Tracking", desc: "Real-time driver location sharing with 30s polling." },
-    { icon: <FaCreditCard size={14} />, title: "Driver Payouts", desc: "Stripe-powered payments processed from your dashboard." },
     { icon: <FaFileInvoiceDollar size={14} />, title: "IFTA Reporting", desc: "Auto-generate quarterly fuel tax reports by jurisdiction." },
     { icon: <FaWrench size={14} />, title: "Preventive Maintenance", desc: "Scheduled PM templates and auto-generated work orders." },
   ];
@@ -203,7 +202,7 @@ const Login: React.FC = () => {
             Everything your <span style={{ color: "#06B6D4" }}>fleet</span><br />needs, in one place.
           </h1>
           <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
-            One platform for dispatch, compliance, tracking, and payouts — built for modern fleets.
+            One platform for dispatch, compliance, tracking, and maintenance — built for modern fleets.
           </p>
         </div>
 

@@ -295,7 +295,6 @@ Feature 2 (IFTA):
 
 ## Competitive Impact
 After both features, FleetIQ directly competes with **Fleetio** ($4–10/vehicle/month) with meaningful advantages:
-- Driver payments (Stripe Connect) — Fleetio doesn't have this
 - Integrated timesheets — Fleetio requires third-party
 - IFTA auto-reporting — Fleetio charges extra
 - Multi-tenant SaaS architecture — Fleetio is single-tenant

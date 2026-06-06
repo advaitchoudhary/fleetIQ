@@ -27,7 +27,6 @@ const PLATFORM_FEATURES = `
 - Driver profiles with compliance documents and training records
 - Driver applications and onboarding
 - Timesheets with approval workflow
-- Driver payments via Stripe Connect
 - Driver portal with personal dashboard
 
 **Scheduling & Billing**

@@ -15,7 +15,6 @@ import {
   FaWrench,
   FaCheckSquare,
   FaGasPump,
-  FaDollarSign,
   FaHistory,
   FaCreditCard,
   FaBox,
@@ -502,7 +501,6 @@ const Navbar: React.FC = () => {
               {renderNavItem("/dashboard",             <MdDashboard size={18} />,   "Home",               true)}
               {renderNavItem("/my-timesheet-submit", <FaFileAlt size={18} />,       "Submit Timesheet",   true)}
               {renderNavItem("/my-timesheet",        <FaClock size={18} />,         "My Timesheets",      true)}
-              {renderNavItem("/my-pay-stubs",        <FaDollarSign size={18} />,    "Pay Stubs",          true)}
               {renderNavItem("/my-info",             <FaUser size={18} />,          "My Info",            true)}
               {renderNavItem("/my-notifications",
                 <div style={{ position: "relative", display: "flex" }}>
@@ -566,10 +564,8 @@ const Navbar: React.FC = () => {
                     {renderNavItem("/scheduling",             <FaCalendarAlt size={16} />,      "Scheduling",         false, !hasVehicle)}
 
                     <li style={{ ...styles.navItem, marginTop: "14px" }}>
-                      {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Payments & Billing</span> : <div style={styles.sectionDivider} />}
+                      {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Billing</span> : <div style={styles.sectionDivider} />}
                     </li>
-                    {renderNavItem("/payments",               <FaDollarSign size={16} />,       "Driver Payments",    false, !hasDriver)}
-                    {renderNavItem("/payment-history",        <FaHistory size={16} />,          "Payment History",    false, !hasDriver)}
                     {renderNavItem("/subscription",           <FaCreditCard size={16} />,       "Subscription")}
 
                     {(user?.role === "admin" || user?.role === "company_admin") && (

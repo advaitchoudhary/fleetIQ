@@ -16,7 +16,6 @@ const PLANS = [
       "Digital timesheets & approvals",
       "Driver onboarding & applications",
       "Document management",
-      "Driver payouts via Stripe",
       "Dispatcher portal",
       "Email notifications",
       "AI assistant included",

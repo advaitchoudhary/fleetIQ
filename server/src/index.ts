@@ -42,8 +42,6 @@ import fuelLogRoutes from "../routes/fuelLogRoute.js";
 // @ts-ignore
 import costTrackingRoutes from "../routes/costTrackingRoute.js";
 // @ts-ignore
-import paymentRoutes from "../routes/paymentRoute.js";
-// @ts-ignore
 import subscriptionRoutes from "../routes/subscriptionRoute.js";
 // @ts-ignore
 import schedulingRoutes from "../routes/schedulingRoute.js";
@@ -134,11 +132,10 @@ app.use(cors({
   }));
 app.use(cookieParser());
 
-// Stripe webhook routes MUST be mounted before bodyParser.json() so that
-// their per-route express.raw() middleware receives the raw body buffer.
+// Stripe webhook route MUST be mounted before bodyParser.json() so that
+// its per-route express.raw() middleware receives the raw body buffer.
 // bodyParser.json() would otherwise consume and discard the raw body first,
 // causing stripe.webhooks.constructEvent() to throw a signature error.
-app.use("/api/payments", paymentRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 
 app.use(bodyParser.json({ limit: "10mb" }));
@@ -243,5 +240,5 @@ app.use("/api/tracking", trackingRoutes);
 app.use("/api/telematics", telematicsRoutes);
 app.use("/api/ifta", iftaRoutes);
 app.use("/api/chat", chatRoutes);
-// Phase 3 — Driver Payments (Stripe Connect) and Phase 4 — Subscriptions are
-// mounted before bodyParser.json() above so Stripe webhooks receive raw body.
+// Subscriptions are mounted before bodyParser.json() above so the Stripe
+// Billing webhook receives the raw body needed for signature verification.

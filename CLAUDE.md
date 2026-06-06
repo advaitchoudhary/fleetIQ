@@ -112,9 +112,9 @@ Pages are self-contained — each page component owns its fetch logic, state, an
 
 ### Stripe Integration
 
-- **Stripe Connect** (`paymentRoute`, `paymentController`) — driver payouts
 - **Stripe Billing** (`subscriptionRoute`, `subscriptionController`) — org subscriptions (Driver / Vehicle / Bundle plans, monthly + annual)
-- Stripe webhooks require raw body; webhook routes use `express.raw()` per-route, registered **before** `bodyParser.json()`
+- The Stripe Billing webhook requires raw body; its route uses `express.raw()` per-route, registered **before** `bodyParser.json()`.
+- Driver payouts (Stripe Connect) were removed — drivers are paid externally (Venmo / Zelle / ACH). Invoices are still generated from approved timesheets via the invoice flow.
 
 ### File Uploads
 
@@ -124,7 +124,7 @@ Multer saves files to `uploads/` (served statically). Driver application documen
 
 Copy `server/.env.example` → `server/.env` and `client/.env.example` → `client/.env`.
 
-Key server vars: `MONGO_URL`, `JWT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_CONNECT_WEBHOOK_SECRET`, `CLIENT_URL`, `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` (optional — email skipped if unset).
+Key server vars: `MONGO_URL`, `JWT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `CLIENT_URL`, `SMTP_HOST`/`SMTP_USER`/`SMTP_PASS` (optional — email skipped if unset).
 
 Key client var: `VITE_API_BASE_URL=http://localhost:8000/api`
 

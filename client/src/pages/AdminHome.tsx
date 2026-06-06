@@ -6,7 +6,7 @@ import { API_BASE_URL } from "../utils/env";
 import { useTour } from "../hooks/useTour";
 import { ADMIN_HOME_TOUR_KEY, adminHomeSteps } from "../tours/adminHomeTour";
 import {
-  FaUsers, FaFileAlt, FaCreditCard, FaHistory,
+  FaUsers, FaFileAlt, FaHistory,
   FaEnvelope, FaTruck, FaWrench, FaCheckSquare, FaGasPump,
   FaBox, FaShieldAlt, FaChartBar, FaCalendarAlt, FaTools,
   FaLock, FaCheckCircle, FaExternalLinkAlt,
@@ -27,8 +27,6 @@ const DRIVER_FEATURES = [
   { icon: FaClipboardList,    title: "Driver Notes",  desc: "Fleet-wide log of notes, warnings, incidents and compliments.",          path: "/driver-notes",        accent: "var(--t-indigo)", badge: null         },
 
   { icon: FaFileAlt,       title: "Timesheets",        desc: "Approve hours worked and manage shift rotations for the fleet.",        path: "/applications",        accent: "var(--t-warning)", badge: "pending"    },
-  { icon: FaCreditCard,    title: "Payments",          desc: "Execute payroll, review expenses and track operator bonuses.",          path: "/payments",            accent: "var(--t-indigo)", badge: null         },
-  { icon: FaHistory,       title: "Payment History",   desc: "Full audit trail of all driver payouts and transactions.",             path: "/payment-history",     accent: "var(--t-indigo)", badge: null         },
   { icon: FaFileAlt,       title: "Invoices",          desc: "Generate and export driver invoices as PDF documents.",               path: "/invoice",             accent: "var(--t-indigo)", badge: null         },
   { icon: FaEnvelope,      title: "Inquiries",         desc: "Read and respond to contact form submissions from drivers.",           path: "/inquiries",           accent: "var(--t-indigo)", badge: null         },
 ];

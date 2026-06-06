@@ -59,7 +59,7 @@ const TermsOfService: React.FC = () => {
               <li style={{ marginBottom: "6px" }}>Driver management, onboarding, and compliance tracking</li>
               <li style={{ marginBottom: "6px" }}>Vehicle registry, maintenance scheduling, and inspection management</li>
               <li style={{ marginBottom: "6px" }}>Digital timesheet submission and approval workflows</li>
-              <li style={{ marginBottom: "6px" }}>Stripe-powered driver payouts and payment history</li>
+              <li style={{ marginBottom: "6px" }}>Invoice generation from approved timesheets</li>
               <li style={{ marginBottom: "6px" }}>Multi-company and multi-tenant organizational management</li>
             </ul>
             <p style={{ margin: 0 }}>FleetIQ reserves the right to modify, suspend, or discontinue any feature of the Platform at any time with reasonable notice.</p>
@@ -86,13 +86,7 @@ const TermsOfService: React.FC = () => {
             <p style={{ margin: 0 }}>You may cancel your subscription at any time. Cancellations take effect at the end of the current billing period. No refunds are provided for partial billing periods.</p>
           </Section>
 
-          <Section title="5. Driver Payments & Stripe Connect">
-            <p style={{ margin: "0 0 12px" }}>FleetIQ integrates with Stripe to facilitate driver payouts. By using the payment features, you agree to Stripe's Terms of Service in addition to these Terms.</p>
-            <p style={{ margin: "0 0 12px" }}>FleetIQ acts solely as a platform connecting fleet operators with their drivers. FleetIQ is not responsible for errors, delays, or failures in payment processing caused by Stripe or third-party banking systems.</p>
-            <p style={{ margin: 0 }}>You are solely responsible for ensuring that driver pay rates, timesheet approvals, and payout amounts are accurate before initiating any transfer.</p>
-          </Section>
-
-          <Section title="6. Acceptable Use">
+          <Section title="5. Acceptable Use">
             <p style={{ margin: "0 0 12px" }}>You agree not to use the Platform to:</p>
             <ul style={{ margin: "0 0 12px", paddingLeft: "20px" }}>
               <li style={{ marginBottom: "6px" }}>Upload false, misleading, or fraudulent information about drivers or vehicles</li>
@@ -103,33 +97,33 @@ const TermsOfService: React.FC = () => {
             </ul>
           </Section>
 
-          <Section title="7. Data & Privacy">
+          <Section title="6. Data & Privacy">
             <p style={{ margin: "0 0 12px" }}>Your use of the Platform is also governed by our <strong>Privacy Policy</strong>, which is incorporated into these Terms by reference. By using FleetIQ, you consent to the collection and use of data as described in the Privacy Policy.</p>
             <p style={{ margin: 0 }}>You retain ownership of all data you upload to the Platform. You grant FleetIQ a limited licence to process and store that data solely for the purpose of providing the service.</p>
           </Section>
 
-          <Section title="8. Intellectual Property">
+          <Section title="7. Intellectual Property">
             <p style={{ margin: 0 }}>All intellectual property rights in the Platform, including software, design, trademarks, and content created by FleetIQ, are owned by FleetIQ. You are granted a limited, non-exclusive, non-transferable licence to use the Platform solely for your internal business operations.</p>
           </Section>
 
-          <Section title="9. Limitation of Liability">
+          <Section title="8. Limitation of Liability">
             <p style={{ margin: "0 0 12px" }}>To the maximum extent permitted by applicable law, FleetIQ shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the Platform.</p>
             <p style={{ margin: 0 }}>FleetIQ's total liability to you for any claims arising under these Terms shall not exceed the amount you paid to FleetIQ in the three (3) months preceding the claim.</p>
           </Section>
 
-          <Section title="10. Termination">
+          <Section title="9. Termination">
             <p style={{ margin: 0 }}>FleetIQ reserves the right to suspend or terminate your account at any time if you violate these Terms. Upon termination, your right to access the Platform will cease immediately. You may export your data within 30 days of termination notice.</p>
           </Section>
 
-          <Section title="11. Governing Law">
+          <Section title="10. Governing Law">
             <p style={{ margin: 0 }}>These Terms are governed by the laws of the Province of Ontario and the federal laws of Canada applicable therein, without regard to conflict of law principles. Any disputes shall be resolved exclusively in the courts of Ontario, Canada.</p>
           </Section>
 
-          <Section title="12. Changes to Terms">
+          <Section title="11. Changes to Terms">
             <p style={{ margin: 0 }}>FleetIQ may update these Terms at any time. We will notify you of material changes via email or a notice within the Platform at least 14 days before changes take effect. Continued use of the Platform after changes take effect constitutes acceptance of the updated Terms.</p>
           </Section>
 
-          <Section title="13. Contact">
+          <Section title="12. Contact">
             <p style={{ margin: 0 }}>
               If you have questions about these Terms, please contact us at:{" "}
               <span style={{ color: "#4F46E5", fontWeight: 600 }}>legal@fleetiqlogistics.com</span>

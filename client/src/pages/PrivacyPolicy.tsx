@@ -85,8 +85,7 @@ const PrivacyPolicy: React.FC = () => {
             <p style={{ margin: "0 0 12px" }}>We use the data we collect to:</p>
             <ul style={{ margin: "0", paddingLeft: "20px" }}>
               <li style={{ marginBottom: "6px" }}>Provide, operate, and improve the FleetIQ platform</li>
-              <li style={{ marginBottom: "6px" }}>Process driver payouts via Stripe Connect</li>
-              <li style={{ marginBottom: "6px" }}>Send transactional emails (invoice delivery, payout confirmations, compliance alerts)</li>
+              <li style={{ marginBottom: "6px" }}>Send transactional emails (invoice delivery, compliance alerts, account notifications)</li>
               <li style={{ marginBottom: "6px" }}>Generate invoices and maintain audit trails</li>
               <li style={{ marginBottom: "6px" }}>Comply with applicable legal obligations</li>
               <li style={{ marginBottom: "6px" }}>Detect and prevent fraudulent activity</li>
@@ -96,7 +95,7 @@ const PrivacyPolicy: React.FC = () => {
           <Section title="4. Data Sharing & Disclosure">
             <p style={{ margin: "0 0 12px" }}>We do not sell your personal data. We may share data with:</p>
             <ul style={{ margin: "0 0 12px", paddingLeft: "20px" }}>
-              <li style={{ marginBottom: "6px" }}><strong>Stripe</strong> — for payment processing and driver payout facilitation</li>
+              <li style={{ marginBottom: "6px" }}><strong>Stripe</strong> — for subscription billing and payment processing</li>
               <li style={{ marginBottom: "6px" }}><strong>MongoDB Atlas</strong> — for secure cloud data storage</li>
               <li style={{ marginBottom: "6px" }}><strong>Email providers</strong> — for sending transactional notifications</li>
               <li style={{ marginBottom: "6px" }}><strong>Law enforcement or regulators</strong> — when required by applicable law</li>

@@ -106,7 +106,6 @@ RESEND_API_KEY=<your resend key>
 EMAIL_FROM=FleetIQ <noreply@fleetiqlogistics.com>
 STRIPE_SECRET_KEY=<your stripe key>
 STRIPE_WEBHOOK_SECRET=<your webhook secret>
-STRIPE_CONNECT_WEBHOOK_SECRET=<your connect webhook secret>
 STRIPE_PRICE_DRIVER_MONTHLY=<price id>
 STRIPE_PRICE_DRIVER_ANNUAL=<price id>
 STRIPE_PRICE_VEHICLE_MONTHLY=<price id>
@@ -290,8 +289,7 @@ ufw status
 
 - [ ] Change `admin@gmail.com` password
 - [ ] Switch Stripe test keys to live keys in `.env`
-- [ ] Add `STRIPE_CONNECT_WEBHOOK_SECRET` to `.env`
-- [ ] Update Stripe webhook URLs to `https://fleetiqlogistics.com/api/subscriptions/webhook`
+- [ ] Update Stripe webhook URL to `https://fleetiqlogistics.com/api/subscriptions/webhook`
 - [ ] Verify `fleetiqlogistics.com` domain on [resend.com/domains](https://resend.com/domains) for email delivery
 - [ ] Update `EMAIL_FROM` to `FleetIQ <noreply@fleetiqlogistics.com>`
 - [ ] Upgrade server to CPX21

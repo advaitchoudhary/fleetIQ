@@ -66,9 +66,6 @@ const driverSchema = new mongoose.Schema(
             phone:        { type: String, default: "" },
             relationship: { type: String, default: "" },
         },
-        // Stripe Connect fields for direct payouts
-        stripeAccountId: { type: String, default: null },
-        stripeOnboardingComplete: { type: Boolean, default: false },
     },
     { timestamps: true } // Adds createdAt and updatedAt timestamps
 );

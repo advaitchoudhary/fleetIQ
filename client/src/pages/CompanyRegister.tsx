@@ -258,7 +258,7 @@ const CompanyRegister: React.FC = () => {
             The smartest way to<br />run your <span style={{ color: "#06B6D4" }}>fleet.</span>
           </h1>
           <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,0.4)", lineHeight: 1.7 }}>
-            Replace spreadsheets and disconnected tools with one purpose-built platform for drivers, vehicles, timesheets, and payouts.
+            Replace spreadsheets and disconnected tools with one purpose-built platform for drivers, vehicles, timesheets, and invoicing.
           </p>
         </div>
 

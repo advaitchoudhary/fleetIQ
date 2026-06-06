@@ -8,7 +8,6 @@ import ResetPassword from "./pages/ResetPassword";
 import SubmitTimesheet from "./pages/SubmitTimesheet";
 import DriverHome from "./pages/DriverHome";
 import DriverNotifications from "./pages/DriverNotifications";
-import DriverPayStubs from "./pages/DriverPayStubs";
 import Users from "./pages/Drivers";
 import AdminHome from "./pages/AdminHome";
 import Profile from "./pages/Profile";
@@ -28,14 +27,12 @@ import Vehicles from "./pages/Vehicles";
 import Maintenance from "./pages/Maintenance";
 import Inspections from "./pages/Inspections";
 import FuelLogs from "./pages/FuelLogs";
-import DriverPayments from "./pages/DriverPayments";
 import Parts from "./pages/Parts";
 import Warranties from "./pages/Warranties";
 import ServiceHistory from "./pages/ServiceHistory";
 import CostTracking from "./pages/CostTracking";
 import PreventiveMaintenance from "./pages/PreventiveMaintenance";
 import Scheduling from "./pages/Scheduling";
-import PaymentHistory from "./pages/PaymentHistory";
 import Subscription from "./pages/Subscription";
 import Pricing from "./pages/Pricing";
 import CompanyRegister from "./pages/CompanyRegister";
@@ -96,15 +93,6 @@ const AnimatedRoutes: React.FC = () => {
           element={
             <ProtectedRoute requiredRole="driver">
               <DriverNotifications />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/my-pay-stubs"
-          element={
-            <ProtectedRoute requiredRole="driver">
-              <DriverPayStubs />
             </ProtectedRoute>
           }
         />
@@ -251,25 +239,7 @@ const AnimatedRoutes: React.FC = () => {
         <Route path="/ifta" element={<ProtectedRoute><IFTA /></ProtectedRoute>} />
         <Route path="/integrations" element={<ProtectedRoute requiredRole="admin"><Integrations /></ProtectedRoute>} />
 
-        {/* Phase 3 — Driver Payments */}
-        <Route
-          path="/payments"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <DriverPayments />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/payment-history"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <PaymentHistory />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Phase 4 — Subscription & Billing */}
+        {/* Subscription & Billing */}
         <Route
           path="/subscription"
           element={

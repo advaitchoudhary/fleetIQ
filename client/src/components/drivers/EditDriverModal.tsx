@@ -53,9 +53,6 @@ const EditDriverModal: React.FC<Props> = ({
   const [newNoteBody, setNewNoteBody] = useState("");
   const [noteSubmitting, setNoteSubmitting] = useState(false);
 
-  const [driverPayouts, setDriverPayouts] = useState<any[]>([]);
-  const [payoutsLoading, setPayoutsLoading] = useState(false);
-
   useEffect(() => {
     if (isOpen && driver) {
       const legacyMap: Record<string, string> = {
@@ -79,7 +76,6 @@ const EditDriverModal: React.FC<Props> = ({
       setNewNoteBody("");
       setNewNoteType("General");
       fetchDriverNotes(driver._id);
-      fetchDriverPayouts(driver._id);
     }
   }, [isOpen, driver]);
 
@@ -168,21 +164,6 @@ const EditDriverModal: React.FC<Props> = ({
       setDriverNotes((prev) => prev.filter((n) => n._id !== noteId));
     } catch {
       // silent
-    }
-  };
-
-  const fetchDriverPayouts = async (driverId: string) => {
-    setPayoutsLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get(`${API_BASE_URL}/payments?driverId=${driverId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setDriverPayouts(Array.isArray(res.data) ? res.data : []);
-    } catch {
-      setDriverPayouts([]);
-    } finally {
-      setPayoutsLoading(false);
     }
   };
 
@@ -525,59 +506,6 @@ const EditDriverModal: React.FC<Props> = ({
                   </div>
                 );
               })}
-            </div>
-          )}
-
-          {/* Section: Payout History */}
-          <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "28px 0 20px" }}>
-            <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "1px", whiteSpace: "nowrap" as const }}>PAYOUT HISTORY</span>
-            <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
-          </div>
-
-          {payoutsLoading ? (
-            <div style={{ padding: "24px", textAlign: "center" as const, color: "var(--t-text-ghost)", fontSize: "13px" }}>Loading payouts…</div>
-          ) : driverPayouts.length === 0 ? (
-            <div style={{ background: "var(--t-surface-alt)", border: "1px dashed var(--t-border)", borderRadius: "10px", padding: "28px", textAlign: "center" as const }}>
-              <p style={{ margin: 0, color: "var(--t-text-ghost)", fontSize: "13px" }}>No payouts recorded for this driver yet.</p>
-            </div>
-          ) : (
-            <div style={{ background: "var(--t-surface-alt)", border: "1px solid var(--t-border)", borderRadius: "10px", overflow: "hidden" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" as const }}>
-                <thead>
-                  <tr style={{ borderBottom: "1px solid var(--t-hover-bg)" }}>
-                    {["DATE", "PERIOD", "AMOUNT (CAD)", "TIMESHEETS", "STATUS"].map((h) => (
-                      <th key={h} style={{ padding: "11px 14px", textAlign: "left" as const, fontSize: "9px", fontWeight: 700, color: "var(--t-text-ghost)", letterSpacing: "0.8px" }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {driverPayouts.map((p: any, i: number) => {
-                    const statusCfg: Record<string, { bg: string; color: string }> = {
-                      paid:       { bg: "var(--t-success-bg)", color: "var(--t-success)" },
-                      pending:    { bg: "var(--t-warning-bg)", color: "var(--t-warning)" },
-                      processing: { bg: "var(--t-info-bg)",    color: "var(--t-info)" },
-                      failed:     { bg: "var(--t-error-bg)",   color: "var(--t-error)" },
-                    };
-                    const sc = statusCfg[p.status] || statusCfg.pending;
-                    const paidDate = p.paidAt ? format(new Date(p.paidAt), "MMM d, yyyy") : (p.createdAt ? format(new Date(p.createdAt), "MMM d, yyyy") : "—");
-                    const periodStr = p.periodFrom && p.periodTo
-                      ? `${format(new Date(p.periodFrom), "MMM d")} – ${format(new Date(p.periodTo), "MMM d, yyyy")}`
-                      : "—";
-                    const amountCad = ((p.amount || 0) / 100).toFixed(2);
-                    return (
-                      <tr key={p._id || i} style={{ borderBottom: i < driverPayouts.length - 1 ? "1px solid var(--t-stripe)" : "none", background: i % 2 === 1 ? "var(--t-stripe)" : "transparent" }}>
-                        <td style={{ padding: "12px 14px", fontSize: "13px", color: "var(--t-text-secondary)" }}>{paidDate}</td>
-                        <td style={{ padding: "12px 14px", fontSize: "13px", color: "var(--t-text-faint)" }}>{periodStr}</td>
-                        <td style={{ padding: "12px 14px", fontSize: "13px", color: "var(--t-text)", fontWeight: 600 }}>${amountCad}</td>
-                        <td style={{ padding: "12px 14px", fontSize: "12px", color: "var(--t-text-dim)" }}>{(p.timesheetIds || []).length} sheet{(p.timesheetIds || []).length !== 1 ? "s" : ""}</td>
-                        <td style={{ padding: "12px 14px" }}>
-                          <span style={{ display: "inline-flex", alignItems: "center", padding: "3px 10px", borderRadius: "20px", fontSize: "11px", fontWeight: 700, background: sc.bg, color: sc.color, textTransform: "capitalize" as const }}>{p.status}</span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
             </div>
           )}
 

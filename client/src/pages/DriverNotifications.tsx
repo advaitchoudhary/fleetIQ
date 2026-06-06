@@ -14,7 +14,6 @@ interface Notification {
 
 const FIELD_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   timesheet_status: { label: "Timesheet", color: "var(--t-accent)",  bg: "var(--t-indigo-bg)" },
-  payment:          { label: "Payment",   color: "var(--t-success)", bg: "var(--t-success-bg)" },
   default:          { label: "Update",    color: "var(--t-text-dim)", bg: "var(--t-hover-bg)" },
 };
 
@@ -145,7 +144,7 @@ const DriverNotifications: React.FC = () => {
               {filter === "unread" ? "No unread notifications" : "No notifications yet"}
             </p>
             <p style={{ margin: "6px 0 0", fontSize: "13px", color: "var(--t-text-ghost)" }}>
-              You'll be notified when your timesheets are reviewed or payments are sent.
+              You'll be notified when your timesheets are reviewed.
             </p>
           </div>
         ) : (

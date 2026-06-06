@@ -235,15 +235,6 @@ const Landing: React.FC = () => {
     { icon: <FaCalendarAlt size={16} />, text: "Scheduling calendar & job dispatch" },
   ];
 
-  const paymentFeatures = [
-    { icon: <FaCreditCard size={16} />, text: "Stripe-powered direct driver payouts" },
-    { icon: <FaFileAlt size={16} />, text: "Auto-calculated subtotals from timesheets" },
-    { icon: <FaChartBar size={16} />, text: "Full payment history & audit trail" },
-    { icon: <FaCalendarAlt size={16} />, text: "Flexible pay period selection" },
-    { icon: <FaBuilding size={16} />, text: "Multi-company billing support" },
-    { icon: <FaCheckCircle size={16} />, text: "Invoice generation & management" },
-  ];
-
   const plans = [
     {
       name: "Driver Management",
@@ -257,8 +248,7 @@ const Landing: React.FC = () => {
         "Timesheet submission & approval",
         "Driver notes, warnings & incident log",
         "Licence & document expiry dashboard",
-        "Stripe driver payouts",
-        "Payment history & invoicing",
+        "Invoice generation & PDF export",
       ],
       cta: "Get Started",
       highlight: false,
@@ -285,7 +275,7 @@ const Landing: React.FC = () => {
       name: "Fleet Bundle",
       price: "$79",
       period: "/mo",
-      desc: "The complete platform — drivers, vehicles, and payments in one place.",
+      desc: "The complete platform — drivers and vehicles in one place.",
       color: "#4F46E5",
       features: [
         "Everything in Driver Management",
@@ -305,11 +295,7 @@ const Landing: React.FC = () => {
   const faqs = [
     {
       q: "Can drivers access FleetIQ on their phones?",
-      a: "Yes. Drivers can log in from any device — phone, tablet, or desktop — to submit timesheets, view their schedule, and check their payment status.",
-    },
-    {
-      q: "How does driver payout work?",
-      a: "FleetIQ integrates with Stripe to process payments directly to drivers. Admins select a pay period, review auto-calculated totals from approved timesheets, and send payouts in one click.",
+      a: "Yes. Drivers can log in from any device — phone, tablet, or desktop — to submit timesheets, view their schedule, and check the status of their submissions.",
     },
     {
       q: "Can I manage multiple fleets or companies?",
@@ -800,7 +786,7 @@ const Landing: React.FC = () => {
                 marginBottom: "44px", fontWeight: 400, marginTop: 0,
               }}
             >
-              Unify driver management, vehicle operations, timesheets, and Stripe-powered payouts — in one purpose-built platform for modern fleet operators.
+              Unify driver management, vehicle operations, timesheets, and live GPS tracking — in one purpose-built platform for modern fleet operators.
             </p>
 
             {/* CTA Buttons */}
@@ -840,7 +826,7 @@ const Landing: React.FC = () => {
 
             {/* Trust line */}
             <p className="land-hero-trust" style={{ fontSize: "13px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.2px", margin: 0 }}>
-              No credit card required · Cancel anytime · Stripe-powered payouts
+              No credit card required · Cancel anytime · 14-day free trial
             </p>
           </div>
 
@@ -863,7 +849,7 @@ const Landing: React.FC = () => {
               {[
                 { label: "Active Drivers", value: "24", badge: "Active", bc: "#d1fae5", tc: "#059669" },
                 { label: "Pending Timesheets", value: "7", badge: "Review", bc: "#fef3c7", tc: "#d97706" },
-                { label: "Payouts This Month", value: "$18,430", badge: "Sent", bc: "#ede9fe", tc: "#7c3aed" },
+                { label: "Vehicles on Road", value: "18", badge: "Live", bc: "#ede9fe", tc: "#7c3aed" },
                 { label: "Vehicles Road-Ready", value: "31 / 34", badge: "Good", bc: "#d1fae5", tc: "#059669" },
                 { label: "Docs Expiring Soon", value: "2", badge: "Action", bc: "#fee2e2", tc: "#dc2626" },
               ].map((row, i) => (
@@ -891,8 +877,8 @@ const Landing: React.FC = () => {
                   background: "rgba(79,70,229,0.15)", borderRadius: "10px",
                   border: "1px solid rgba(79,70,229,0.25)",
                 }}>
-                  <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "4px" }}>Stripe Status</div>
-                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#A5B4FC" }}>Connected</div>
+                  <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "4px" }}>Live Tracking</div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#A5B4FC" }}>Online</div>
                 </div>
                 <div style={{
                   flex: 1, padding: "14px", textAlign: "center",
@@ -934,7 +920,7 @@ const Landing: React.FC = () => {
           {[
             { value: "34+", label: "Platform Features" },
             { value: "100%", label: "Paperless Operations" },
-            { value: "Stripe", label: "Powered Payouts" },
+            { value: "30s", label: "Live GPS Refresh" },
             { value: "3", label: "Flexible Plans" },
           ].map((stat, i) => (
             <div key={stat.label} className="land-reveal" style={{ transitionDelay: `${i * 0.1}s` }}>
@@ -983,13 +969,13 @@ const Landing: React.FC = () => {
               {
                 icon: <FaFileAlt size={20} style={{ color: "#059669" }} />,
                 title: "Digital Timesheets",
-                desc: "Drivers submit hours from any device. Admins review, approve, and auto-calculate payouts in seconds. No paper, no back-and-forth.",
+                desc: "Drivers submit hours from any device. Admins review, approve, and auto-calculate pay totals in seconds. No paper, no back-and-forth.",
                 iconBg: "#d1fae5", borderColor: "#059669", path: "/register",
               },
               {
-                icon: <FaCreditCard size={20} style={{ color: "#7c3aed" }} />,
-                title: "Driver Payouts",
-                desc: "Stripe-powered direct deposits. Select a pay period, review auto-totals, and pay drivers — all from within the platform.",
+                icon: <FaFileAlt size={20} style={{ color: "#7c3aed" }} />,
+                title: "Invoice Generation",
+                desc: "Generate driver invoices from approved timesheets. Export PDFs, share with accounting, and keep a clean paper trail of every pay period.",
                 iconBg: "#ede9fe", borderColor: "#7c3aed", path: "/register",
               },
               {
@@ -1044,10 +1030,10 @@ const Landing: React.FC = () => {
                 DRIVER MANAGEMENT
               </p>
               <h2 style={{ fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 800, color: "#111827", marginTop: 0, marginBottom: "18px", lineHeight: 1.12, letterSpacing: "-0.5px" }}>
-                From application to payroll - fully digital
+                From application to invoice — fully digital
               </h2>
               <p style={{ fontSize: "16px", color: "#6b7280", lineHeight: 1.75, marginBottom: "32px" }}>
-                FleetIQ handles every stage of the driver lifecycle. Drivers apply online, admins onboard with documents, set rates, and manage compliance — then pay out directly through Stripe at the end of each period.
+                FleetIQ handles every stage of the driver lifecycle. Drivers apply online, admins onboard with documents, set per-category rates, and manage compliance — timesheets roll up into ready-to-export invoices at the end of each pay period.
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {driverFeatures.map((f, i) => (
@@ -1081,7 +1067,7 @@ const Landing: React.FC = () => {
               {[
                 { label: "Active Drivers", value: "24", badge: "active", badgeColor: "#d1fae5", badgeText: "#059669" },
                 { label: "Pending Timesheets", value: "7", badge: "review", badgeColor: "#fef3c7", badgeText: "#d97706" },
-                { label: "Payouts This Month", value: "$18,430", badge: "sent", badgeColor: "#ede9fe", badgeText: "#7c3aed" },
+                { label: "Invoices This Month", value: "18", badge: "ready", badgeColor: "#ede9fe", badgeText: "#7c3aed" },
                 { label: "Docs Missing", value: "2", badge: "action needed", badgeColor: "#fee2e2", badgeText: "#dc2626" },
               ].map((row, i) => (
                 <div key={i} style={{
@@ -1167,92 +1153,6 @@ const Landing: React.FC = () => {
               >
                 Explore Vehicle Tools
               </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── DEEP DIVE: PAYMENTS ── */}
-      <section className="land-section" style={{ backgroundColor: "#fff", padding: "100px 48px" }}>
-        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-          <div className="land-deep-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "80px", alignItems: "center" }}>
-            <div className="land-reveal-left">
-              <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "2px", textTransform: "uppercase", color: "#7c3aed", marginBottom: "14px" }}>
-                PAYMENTS & BILLING
-              </p>
-              <h2 style={{ fontSize: "clamp(26px, 3.5vw, 40px)", fontWeight: 800, color: "#111827", marginTop: 0, marginBottom: "18px", lineHeight: 1.12, letterSpacing: "-0.5px" }}>
-                Pay drivers in one click
-              </h2>
-              <p style={{ fontSize: "16px", color: "#6b7280", lineHeight: 1.75, marginBottom: "32px" }}>
-                FleetIQ calculates driver pay automatically from approved timesheets and your per-category rates. Connect with Stripe once — then pay any driver, anytime, with a full audit trail of every transaction.
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                {paymentFeatures.map((f, i) => (
-                  <div key={i} className="land-check-item">
-                    <span style={{ color: "#7c3aed", flexShrink: 0 }}>{f.icon}</span>
-                    {f.text}
-                  </div>
-                ))}
-              </div>
-              <button
-                className="land-hero-btn-primary"
-                style={{ marginTop: "36px" }}
-                onClick={() => navigate("/login")}
-              >
-                Explore Payment Tools
-              </button>
-            </div>
-            {/* Visual panel */}
-            <div className="land-reveal-right" style={{
-              background: "linear-gradient(135deg, #0F172A, #1e1b4b)",
-              borderRadius: "20px", padding: "36px",
-              boxShadow: "0 24px 64px rgba(0,0,0,0.25)",
-              border: "1px solid rgba(255,255,255,0.07)",
-            }}>
-              <div style={{ marginBottom: "22px", display: "flex", alignItems: "center", gap: "8px" }}>
-                <div style={{ width: "9px", height: "9px", borderRadius: "50%", background: "#ef4444" }} />
-                <div style={{ width: "9px", height: "9px", borderRadius: "50%", background: "#f59e0b" }} />
-                <div style={{ width: "9px", height: "9px", borderRadius: "50%", background: "#10b981" }} />
-                <span style={{ marginLeft: "8px", fontSize: "11px", color: "rgba(255,255,255,0.3)", letterSpacing: "0.5px" }}>Payroll — Mar 1–15</span>
-              </div>
-              {[
-                { name: "J. Martinez", period: "Mar 1–15", amount: "$1,840", status: "Paid" },
-                { name: "S. Patel", period: "Mar 1–15", amount: "$2,110", status: "Paid" },
-                { name: "T. Williams", period: "Mar 1–15", amount: "$1,560", status: "Processing" },
-                { name: "R. Chen", period: "Mar 1–15", amount: "$1,980", status: "Pending" },
-              ].map((row, i) => (
-                <div key={i} style={{
-                  background: "rgba(255,255,255,0.06)", borderRadius: "10px",
-                  padding: "14px 16px", marginBottom: "10px",
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
-                  backdropFilter: "blur(8px)",
-                  border: "1px solid rgba(255,255,255,0.05)",
-                }}>
-                  <div>
-                    <div style={{ fontSize: "13px", fontWeight: 600, color: "#fff" }}>{row.name}</div>
-                    <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginTop: "2px" }}>{row.period}</div>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <span style={{ fontSize: "15px", fontWeight: 700, color: "#a78bfa" }}>{row.amount}</span>
-                    <span style={{
-                      fontSize: "10px", fontWeight: 700, padding: "3px 10px", borderRadius: "20px",
-                      background: row.status === "Paid" ? "#d1fae5" : row.status === "Processing" ? "#e0f2fe" : "#fef3c7",
-                      color: row.status === "Paid" ? "#059669" : row.status === "Processing" ? "#0891b2" : "#d97706",
-                      textTransform: "uppercase", letterSpacing: "0.4px",
-                    }}>{row.status}</span>
-                  </div>
-                </div>
-              ))}
-              <div style={{ marginTop: "16px", display: "flex", gap: "10px" }}>
-                <div style={{ flex: 1, padding: "14px", background: "rgba(167,139,250,0.1)", borderRadius: "10px", border: "1px solid rgba(167,139,250,0.2)", textAlign: "center" }}>
-                  <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "4px" }}>Total Sent</div>
-                  <div style={{ fontSize: "20px", fontWeight: 800, color: "#a78bfa" }}>$7,490</div>
-                </div>
-                <div style={{ flex: 1, padding: "14px", background: "rgba(167,139,250,0.1)", borderRadius: "10px", border: "1px solid rgba(167,139,250,0.2)", textAlign: "center" }}>
-                  <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "4px" }}>Drivers Paid</div>
-                  <div style={{ fontSize: "20px", fontWeight: 800, color: "#a78bfa" }}>2 / 4</div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -1370,7 +1270,7 @@ const Landing: React.FC = () => {
           >
             {[
               {
-                quote: "FleetIQ cut our timesheet processing from 2 days to 20 minutes. The Stripe payout integration is flawless.",
+                quote: "FleetIQ cut our timesheet processing from 2 days to 20 minutes. The invoicing flow alone has saved us hours every week.",
                 name: "Sarah M.",
                 title: "Fleet Manager, Oakville Logistics",
                 delay: "0s",
@@ -1454,8 +1354,8 @@ const Landing: React.FC = () => {
               },
               {
                 step: "04",
-                title: "Pay & grow",
-                desc: "Review approved timesheets, send Stripe payouts, generate invoices, and scale across multiple companies.",
+                title: "Invoice & grow",
+                desc: "Review approved timesheets, generate invoices, track driver compliance, and scale across multiple companies.",
                 color: "#059669",
               },
             ].map((s, i) => (
@@ -1623,7 +1523,7 @@ const Landing: React.FC = () => {
             </span>
           </h2>
           <p style={{ fontSize: "18px", color: "rgba(255,255,255,0.5)", marginBottom: "48px", lineHeight: 1.7 }}>
-            Join fleet operators who manage drivers, vehicles, and payments without the chaos. Start your free trial today.
+            Join fleet operators who manage drivers, vehicles, and operations without the chaos. Start your free trial today.
           </p>
           <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
             <button className="land-cta-btn-primary" onClick={() => navigate("/register")}>
@@ -1759,7 +1659,7 @@ const Landing: React.FC = () => {
       {/* ── FOOTER ── */}
       <footer style={{
         backgroundColor: "#0A0F1E",
-        borderTop: "1px solid rba(255,255,255,0.07)",
+        borderTop: "1px solid rgba(255,255,255,0.07)",
         padding: "28px 48px",
       }}>
         <div
