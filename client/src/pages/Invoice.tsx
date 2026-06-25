@@ -158,12 +158,19 @@ const Invoice: React.FC = () => {
       ["Wholesale", "wholesaleRate"], ["voila", "voilaRate"],
       ["TCS linehaul trenton", "tcsLinehaulTrentonRate"],
     ];
-    const legacy: Record<string, number> = {};
+    const merged: Record<string, number> = {};
     for (const [cat, field] of LEGACY) {
-      const v = sel[field] as number | undefined;
-      if (v) legacy[cat] = v;
+      const v = Number(sel[field]);
+      if (!isNaN(v) && v !== 0) merged[cat] = v;
     }
-    setCategoryRates({ ...legacy, ...(sel.categoryRates || {}) });
+    // categoryRates is stored as a free-form Object (no value schema), so its
+    // values may come back as strings. Coerce to numbers so downstream
+    // .toFixed()/arithmetic never sees a string. categoryRates wins over legacy.
+    for (const [cat, raw] of Object.entries(sel.categoryRates || {})) {
+      const v = Number(raw);
+      if (!isNaN(v)) merged[cat] = v;
+    }
+    setCategoryRates(merged);
   };
 
   const getApprovedRows = () =>

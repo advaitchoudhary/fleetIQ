@@ -1,5 +1,20 @@
 const mongoose = require("mongoose");
 
+// categoryRates is a free-form Object (to allow dotted keys like "Extra Sheet/E.W"),
+// so Mongoose does not cast its values. Driver forms send rates as strings from text
+// inputs; coerce every value to a Number and drop blanks/non-numeric junk so the stored
+// rates are always numbers. Prevents downstream `rate.toFixed is not a function` crashes.
+function coerceCategoryRates(obj) {
+    if (!obj || typeof obj !== "object") return obj;
+    const out = {};
+    for (const [key, value] of Object.entries(obj)) {
+        if (value === "" || value === null || value === undefined) continue;
+        const num = Number(value);
+        if (!isNaN(num)) out[key] = num;
+    }
+    return out;
+}
+
 // Main schema for driver information including nested rate schema
 const driverSchema = new mongoose.Schema(
     {
@@ -28,7 +43,7 @@ const driverSchema = new mongoose.Schema(
         wholesaleRate: { type: Number, required: false },
         voilaRate: { type: Number, required: false },
         tcsLinehaulTrentonRate: { type: Number, required: false },
-        categoryRates: { type: Object, default: {} }, // keyed by category name — Object avoids Mongoose Map's dot-in-key restriction
+        categoryRates: { type: Object, default: {}, set: coerceCategoryRates }, // keyed by category name — Object avoids Mongoose Map's dot-in-key restriction; setter coerces values to numbers (runs on create/save)
         licence: { type: String, required: true },
         licence_expiry_date: { type: Date, required: true },
         licenceDocument: { type: String, default: null },
@@ -69,5 +84,20 @@ const driverSchema = new mongoose.Schema(
     },
     { timestamps: true } // Adds createdAt and updatedAt timestamps
 );
+
+// Path setters don't run on findOneAndUpdate/updateOne, so coerce categoryRates
+// on update queries too (driver edits go through findOneAndUpdate).
+function coerceCategoryRatesOnUpdate() {
+    const update = this.getUpdate();
+    if (!update) return;
+    if (update.categoryRates) {
+        update.categoryRates = coerceCategoryRates(update.categoryRates);
+    }
+    if (update.$set && update.$set.categoryRates) {
+        update.$set.categoryRates = coerceCategoryRates(update.$set.categoryRates);
+    }
+}
+driverSchema.pre("findOneAndUpdate", coerceCategoryRatesOnUpdate);
+driverSchema.pre("updateOne", coerceCategoryRatesOnUpdate);
 
 module.exports = mongoose.model("Driver", driverSchema);
