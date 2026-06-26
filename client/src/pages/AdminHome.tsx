@@ -78,7 +78,7 @@ const AdminHome: React.FC = () => {
       setStats({
         vehicles:         vr.status === "fulfilled" && Array.isArray(vr.value.data) ? vr.value.data.length : 0,
         drivers:          dr.status === "fulfilled" && Array.isArray(dr.value.data) ? dr.value.data.length : 0,
-        pendingTimesheets: tr.status === "fulfilled" && Array.isArray(tr.value.data) ? tr.value.data.length : 0,
+        pendingTimesheets: tr.status === "fulfilled" ? (tr.value.data.total ?? 0) : 0,
       });
     }).catch(() => setStats(null))
       .finally(() => setStatsLoading(false));

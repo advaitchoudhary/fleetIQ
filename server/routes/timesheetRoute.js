@@ -20,7 +20,12 @@ router.post("/send-invoice-email", protect, authorizeRoles("admin", "company_adm
 // clear-invoice must also be registered BEFORE /:id so it is not matched as a timesheet ID.
 router.put("/clear-invoice", protect, authorizeRoles("admin", "company_admin", "dispatcher"), clearInvoice);
 
-router.post("/", protect, authorizeRoles("admin", "company_admin", "dispatcher", "driver"), upload.array("attachments", 4), createTimesheet);
+router.post("/", protect, authorizeRoles("admin", "company_admin", "dispatcher", "driver"), (req, res, next) => {
+  upload.array("attachments", 4)(req, res, (err) => {
+    if (err) return res.status(400).json({ message: err.message });
+    next();
+  });
+}, createTimesheet);
 router.get("/", protect, authorizeRoles("admin", "company_admin", "dispatcher", "driver"), getAllTimesheets);
 router.get("/:id", protect, authorizeRoles("admin", "company_admin", "dispatcher", "driver"), getTimesheetById);
 router.put("/:id", protect, authorizeRoles("admin", "company_admin", "dispatcher"), updateTimesheetById);

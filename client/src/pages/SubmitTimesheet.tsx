@@ -513,7 +513,9 @@ const SubmitTimesheet: React.FC = () => {
     } catch (error) {
       const err = (error as any).response?.data || (error as any).message;
       console.error("🔴 Error submitting timesheet:", err);
-      alert("Failed to submit timesheet. Please try again.");
+      const serverMessage = (error as any).response?.data?.message;
+      setErrorMessagesList([serverMessage || "Failed to submit timesheet. Please try again."]);
+      setShowErrorModal(true);
     } finally {
       setLoading(false);
       isSubmittingRef.current = false;
@@ -868,8 +870,15 @@ const SubmitTimesheet: React.FC = () => {
                 <div key={i} style={{ borderRadius: "10px", overflow: "hidden", aspectRatio: "1", position: "relative" as const }}>
                   {timesheet.attachments[i] ? (
                     <>
-                      <img src={URL.createObjectURL(timesheet.attachments[i]!)} alt={`Attachment ${i + 1}`}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" as const }} />
+                      {timesheet.attachments[i]!.type === "application/pdf" ? (
+                        <div style={{ width: "100%", height: "100%", minHeight: "100px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "10px", display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", gap: "6px", padding: "8px" }}>
+                          <span style={{ fontSize: "26px" }}>📄</span>
+                          <span style={{ fontSize: "10px", fontWeight: 700, color: "var(--t-text-dim)", textAlign: "center" as const, wordBreak: "break-all" as const, maxWidth: "100%" }}>{timesheet.attachments[i]!.name}</span>
+                        </div>
+                      ) : (
+                        <img src={URL.createObjectURL(timesheet.attachments[i]!)} alt={`Attachment ${i + 1}`}
+                          style={{ width: "100%", height: "100%", objectFit: "cover" as const }} />
+                      )}
                       <button type="button" onClick={() => { const a = [...timesheet.attachments]; a[i] = undefined; setTimesheet(p => ({ ...p, attachments: a })); }}
                         style={{ position: "absolute" as const, top: "6px", right: "6px", width: "22px", height: "22px", borderRadius: "50%", background: "var(--t-error)", border: "none", color: "#fff", fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>✕</button>
                     </>
