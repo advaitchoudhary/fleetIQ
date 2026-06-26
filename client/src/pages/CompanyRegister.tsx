@@ -249,7 +249,7 @@ const CompanyRegister: React.FC = () => {
           fontSize: "10px", fontWeight: 700, letterSpacing: "0.8px",
           textTransform: "uppercase", marginBottom: "20px", width: "fit-content",
         }}>
-          14-Day Free Trial
+          7-Day Free Trial
         </div>
 
         {/* Headline */}
@@ -352,7 +352,7 @@ const CompanyRegister: React.FC = () => {
               Create your workspace
             </h2>
             <p style={{ margin: 0, fontSize: "14px", color: "rgba(255,255,255,0.4)" }}>
-              Start your 14-day free trial — no credit card required.
+              Start your 7-day free trial — no credit card required.
             </p>
           </div>
 
@@ -574,7 +574,7 @@ const CompanyRegister: React.FC = () => {
 
           {/* Trust indicators */}
           <div className="reg-trust-row">
-            {["No credit card required", "Cancel anytime", "14-day free trial"].map((t) => (
+            {["No credit card required", "Cancel anytime", "7-day free trial"].map((t) => (
               <div key={t} style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "11px", color: "rgba(255,255,255,0.3)" }}>
                 <FaCheckCircle size={10} style={{ color: "#7B6CF6" }} />
                 {t}

@@ -30,7 +30,7 @@ Files to inspect and fix:
 
 ## Context
 - `POST /api/organizations/register` creates org + `company_admin` user, returns JWT.
-- No Stripe on sign-up; free 14-day trial starts automatically.
+- No Stripe on sign-up; free 7-day trial starts automatically.
 - `switchOrg()` saves original token as `superadmin_token`, exchanges for scoped JWT via `POST /api/auth/switch-org`.
 - `admin` role (platform) has no org scope; `company_admin` and `dispatcher` are org-scoped.
 - Frontend at port 5173, backend at port 8000.

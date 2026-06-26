@@ -98,7 +98,7 @@ AuthContext exposes:
 
 **Company self-registration** (`/register` → `CompanyRegister.tsx`):
 - Calls `POST /api/organizations/register` — creates org + `company_admin` user in one step, returns JWT
-- No Stripe checkout on sign-up; org starts on a 14-day free trial automatically
+- No Stripe checkout on sign-up; org starts on a 7-day free trial automatically
 - On success: logs user in via `loginDirect()` and navigates to `/admin-home`
 
 **Platform admin org selector** (`/select-org` → `OrgSelector.tsx`):

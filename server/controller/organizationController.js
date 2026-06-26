@@ -29,7 +29,7 @@ const registerOrganization = async (req, res) => {
     const validPlans = ["driver", "vehicle", "bundle"];
     const selectedPlan = validPlans.includes(plan) ? plan : "bundle";
 
-    // Create organization first (14-day trial starts automatically via schema default)
+    // Create organization first (7-day trial starts automatically via schema default)
     const organization = new Organization({
       name: orgName,
       email,
@@ -61,7 +61,7 @@ const registerOrganization = async (req, res) => {
     );
 
     res.status(201).json({
-      message: "Organization registered successfully. 14-day trial started.",
+      message: "Organization registered successfully. 7-day trial started.",
       token,
       user: { name: adminUser.name, email: adminUser.email, role: "company_admin", organizationId: organization._id },
       organization: {

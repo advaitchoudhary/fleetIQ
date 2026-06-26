@@ -111,7 +111,7 @@ const createCheckout = async (req, res) => {
 
     // Only grant a trial if the org has never used one before.
     // trialUsed is true when: (a) they previously trialed via Stripe, or
-    // (b) their initial 14-day server-side trial has been set (trialEndsAt exists).
+    // (b) their initial 7-day server-side trial has been set (trialEndsAt exists).
     const trialUsed = org.subscription?.trialUsed || !!org.subscription?.trialEndsAt;
 
     const subscriptionData = {
@@ -122,7 +122,7 @@ const createCheckout = async (req, res) => {
       },
     };
     if (!trialUsed) {
-      subscriptionData.trial_period_days = 14;
+      subscriptionData.trial_period_days = 7;
     }
 
     const session = await stripe.checkout.sessions.create({
@@ -180,7 +180,7 @@ const getCurrentSubscription = async (req, res) => {
       }
     }
 
-    // An org whose initial 14-day trial has been set (trialEndsAt exists) has already
+    // An org whose initial 7-day trial has been set (trialEndsAt exists) has already
     // consumed their trial entitlement regardless of whether it is still running.
     const trialUsed = sub.trialUsed || !!sub.trialEndsAt;
 

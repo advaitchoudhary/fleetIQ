@@ -33,7 +33,7 @@ const PLATFORM_FEATURES = `
 - Job scheduling and dispatch
 - Invoice generation
 - Subscription plans: Driver plan, Vehicle plan, Bundle plan (monthly/annual)
-- 14-day free trial on signup`;
+- 7-day free trial on signup`;
 
 // Super admin — sees everything across all orgs
 const SUPER_ADMIN_SYSTEM_PROMPT = `You are FleetIQ Assistant, a helpful AI built into the FleetIQ fleet management platform. You only answer questions related to FleetIQ and fleet management topics.

@@ -422,7 +422,7 @@ const sendTrialExpiredEmail = async (email, orgName) => {
     "FleetIQ — Your Free Trial Has Ended",
     `<p>Dear <strong>${orgName}</strong> team,</p>
     <div class="warning">
-      <strong>Your 14-day free trial has expired.</strong> Your team's access to FleetIQ features has been suspended.
+      <strong>Your 7-day free trial has expired.</strong> Your team's access to FleetIQ features has been suspended.
     </div>
     <p>Your data is safe — subscribe to any plan to restore full access immediately. No data is deleted during suspension.</p>
     <div style="text-align:center;margin:28px 0;">

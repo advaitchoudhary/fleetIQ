@@ -826,7 +826,7 @@ const Landing: React.FC = () => {
 
             {/* Trust line */}
             <p className="land-hero-trust" style={{ fontSize: "13px", color: "rgba(255,255,255,0.35)", letterSpacing: "0.2px", margin: 0 }}>
-              No credit card required · Cancel anytime · 14-day free trial
+              No credit card required · Cancel anytime · 7-day free trial
             </p>
           </div>
 

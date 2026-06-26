@@ -65,7 +65,7 @@ const PLANS = [
       "Live GPS tracking & real-time admin map",
       "Trip history with polyline replay",
       "AI assistant included",
-      "14-day free trial included",
+      "7-day free trial included",
     ],
   },
 ];
@@ -299,7 +299,7 @@ const Subscription: React.FC = () => {
                   )}
                 </div>
                 <ul style={{ margin: "0 0 24px", paddingLeft: "0", listStyle: "none", display: "flex", flexDirection: "column", gap: "8px" }}>
-                  {plan.features.filter((f) => !(trialAlreadyUsed && f === "14-day free trial included")).map((f) => (
+                  {plan.features.filter((f) => !(trialAlreadyUsed && f === "7-day free trial included")).map((f) => (
                     <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "13px", color: "var(--t-text-muted)" }}>
                       <FaCheckCircle style={{ color: "var(--t-indigo)", marginTop: "2px", flexShrink: 0 }} size={13} />
                       {f}
@@ -340,7 +340,7 @@ const Subscription: React.FC = () => {
         <p style={{ textAlign: "center", marginTop: "20px", fontSize: "13px", color: "var(--t-text-faint)" }}>
           {trialAlreadyUsed
             ? "Cancel anytime. Annual plans are charged once per year."
-            : "All plans include a 14-day free trial. No credit card required to start. Annual plans are charged once per year."}
+            : "All plans include a 7-day free trial. No credit card required to start. Annual plans are charged once per year."}
         </p>
       </div>
     </div>

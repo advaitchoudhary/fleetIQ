@@ -57,7 +57,7 @@ const PLANS = [
       "AI assistant included",
       "Priority support",
       "Onboarding assistance",
-      "14-day free trial",
+      "7-day free trial",
     ],
   },
 ];
@@ -103,7 +103,7 @@ const Pricing: React.FC = () => {
             Simple, transparent pricing
           </h1>
           <p style={{ margin: "0 0 28px", fontSize: "18px", color: "#6b7280", maxWidth: "500px", marginLeft: "auto", marginRight: "auto" }}>
-            Start with a 14-day free trial. No credit card required.
+            Start with a 7-day free trial. No credit card required.
           </p>
 
           {/* Billing Toggle */}
@@ -225,7 +225,7 @@ const Pricing: React.FC = () => {
         <div style={{ background: "#fff", borderRadius: "16px", border: "1px solid #e5e7eb", padding: "40px", textAlign: "center" }}>
           <h2 style={{ margin: "0 0 8px", fontSize: "22px", fontWeight: 700, color: "#111827" }}>No risk. Cancel anytime.</h2>
           <p style={{ margin: "0 0 24px", color: "#6b7280", fontSize: "15px" }}>
-            Start your 14-day free trial today. No credit card required. If you decide it's not for you, cancel with one click — no questions asked.
+            Start your 7-day free trial today. No credit card required. If you decide it's not for you, cancel with one click — no questions asked.
           </p>
           <button
             onClick={() => goToRegister("bundle")}
