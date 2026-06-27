@@ -282,8 +282,8 @@ const EditDriverModal: React.FC<Props> = ({
             <div style={{ flex: 1, height: "1px", background: "var(--t-hover-bg)" }} />
             <button
               onClick={onConfigureCategories}
-              style={{ padding: "4px 10px", background: "var(--t-hover-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "6px", color: "var(--t-text-faint)", fontSize: "10px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", whiteSpace: "nowrap" as const, flexShrink: 0 }}>
-              ⚙ Configure
+              style={{ padding: "8px 16px", background: "var(--t-accent)", border: "none", borderRadius: "8px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif", whiteSpace: "nowrap" as const, flexShrink: 0, boxShadow: "0 1px 3px rgba(79,70,229,0.35)" }}>
+              ⚙ Configure Rates
             </button>
           </div>
 

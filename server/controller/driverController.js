@@ -121,6 +121,22 @@ const updateAllDriversHours = async (req, res) => {
   }
 };
 
+// Maps a Mongo duplicate-key (E11000) error to a friendly 409 response.
+// The unique indexes on the Driver model (email, username, driverId) are global,
+// so a value can collide with a driver in another org that org-scoped pre-checks
+// don't see. Returns true if it handled the error.
+function handleDuplicateKey(err, res) {
+  if (err?.code !== 11000) return false;
+  const field = Object.keys(err.keyPattern || err.keyValue || {})[0] || "field";
+  const labels = { email: "email address", username: "username", driverId: "driver ID" };
+  const label = labels[field] || field;
+  res.status(409).json({
+    message: `A driver with this ${label} already exists.`,
+    field,
+  });
+  return true;
+}
+
 const create = async (req, res) => {
   try {
     // Strip fields that must never be set by the client on create
@@ -189,6 +205,7 @@ const create = async (req, res) => {
     if (err.name === "ValidationError") {
       return res.status(400).json({ message: err.message });
     }
+    if (handleDuplicateKey(err, res)) return;
     console.error("Driver create error:", err);
     res.status(500).json({ message: "Server error" });
   }
@@ -372,6 +389,7 @@ const updateDriverById = asyncHandler(async (req, res) => {
     if (err.name === "ValidationError") {
       return res.status(400).json({ message: err.message });
     }
+    if (handleDuplicateKey(err, res)) return;
     throw err;
   }
 });
