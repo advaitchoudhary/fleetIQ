@@ -52,6 +52,66 @@ const getSubscriptionCurrentPeriodEnd = (sub) => {
   );
 };
 
+// Maps Stripe subscription.status → our internal status enum.
+const STATUS_MAP = {
+  trialing: "trialing",
+  active: "active",
+  past_due: "past_due",
+  canceled: "cancelled",
+  unpaid: "past_due",
+};
+
+// Reverse lookup: Stripe price ID → our plan name (built from PRICE_IDS).
+const PLAN_BY_PRICE = {};
+for (const [plan, billings] of Object.entries(PRICE_IDS)) {
+  for (const id of Object.values(billings)) {
+    if (id) PLAN_BY_PRICE[id] = plan;
+  }
+}
+
+/**
+ * Self-healing sync: if the org has a Stripe customer but its local subscription
+ * state looks stale (no linked subscription, or not active/trialing), pull the
+ * live subscription from Stripe and sync plan/status. This makes the system
+ * resilient to missed/late webhooks — a paying customer can never get stranded
+ * on the wrong plan just because a webhook didn't arrive.
+ * Returns true if it updated the org.
+ */
+const reconcileFromStripe = async (org) => {
+  const sub = org.subscription || {};
+  const customerId = sub.stripeCustomerId;
+  if (!customerId) return false;
+
+  const healthy = ["active", "trialing"].includes(sub.status) && sub.stripeSubscriptionId;
+  if (healthy) return false; // looks fine — avoid an unnecessary Stripe call
+
+  let live;
+  try {
+    const list = await stripe.subscriptions.list({ customer: customerId, status: "all", limit: 10 });
+    live = list.data
+      .filter((s) => ["active", "trialing", "past_due"].includes(s.status))
+      .sort((a, b) => b.created - a.created)[0];
+  } catch (e) {
+    console.error("reconcileFromStripe: Stripe lookup failed:", e.message);
+    return false;
+  }
+  if (!live) return false;
+
+  const priceId = live.items?.data?.[0]?.price?.id;
+  const plan = live.metadata?.plan || PLAN_BY_PRICE[priceId];
+  const update = {
+    "subscription.status": STATUS_MAP[live.status] || live.status,
+    "subscription.stripeSubscriptionId": live.id,
+  };
+  if (plan) update["subscription.plan"] = plan;
+  const cpe = getSubscriptionCurrentPeriodEnd(live);
+  if (cpe) update["subscription.currentPeriodEnd"] = cpe;
+  if (live.trial_end) update["subscription.trialUsed"] = true;
+
+  await Organization.findByIdAndUpdate(org._id, update);
+  return true;
+};
+
 /**
  * POST /api/subscriptions/create-checkout
  * Authenticated: Create a Stripe Checkout session to start/change a subscription.
@@ -94,6 +154,49 @@ const createCheckout = async (req, res) => {
     if (!org) return res.status(404).json({ message: "Organization not found" });
 
     const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+
+    // ---------------------------------------------------------------------
+    // Existing subscriber → SWITCH the current subscription's price in place.
+    // Creating a new Checkout session for an org that already has a live Stripe
+    // subscription would create a SECOND subscription and double-bill the card.
+    // Instead, update the existing subscription item to the new price (Stripe
+    // prorates automatically). The customer.subscription.updated webhook then
+    // syncs plan/status, but we also update the plan locally for instant UX.
+    // ---------------------------------------------------------------------
+    const existingSubId = org.subscription?.stripeSubscriptionId;
+    if (existingSubId) {
+      const existing = await stripe.subscriptions.retrieve(existingSubId).catch(() => null);
+      if (existing && ["active", "trialing", "past_due"].includes(existing.status)) {
+        const currentItem = existing.items?.data?.[0];
+        if (!currentItem) {
+          return res.status(400).json({ message: "Existing subscription has no items to update." });
+        }
+        // Already on this exact price → nothing to do.
+        if (currentItem.price?.id === priceId) {
+          return res.json({ switched: true, plan, message: `Already on the ${plan} plan.` });
+        }
+
+        const updated = await stripe.subscriptions.update(existingSubId, {
+          items: [{ id: currentItem.id, price: priceId }],
+          proration_behavior: "create_prorations",
+          payment_behavior: "error_if_incomplete",
+          metadata: {
+            ...(existing.metadata || {}),
+            organizationId: org._id.toString(),
+            plan,
+            billing,
+          },
+        });
+
+        const currentPeriodEnd = getSubscriptionCurrentPeriodEnd(updated);
+        const localUpdate = { "subscription.plan": plan };
+        if (currentPeriodEnd) localUpdate["subscription.currentPeriodEnd"] = currentPeriodEnd;
+        await Organization.findByIdAndUpdate(org._id, localUpdate);
+
+        return res.json({ switched: true, plan, message: `Switched to the ${plan} plan.` });
+      }
+      // else: stale/cancelled subscription — fall through to a fresh Checkout.
+    }
 
     // Create or retrieve Stripe customer
     let customerId = org.subscription?.stripeCustomerId;
@@ -152,8 +255,15 @@ const getCurrentSubscription = async (req, res) => {
       return res.status(400).json({ message: "Organization context required." });
     }
 
-    const org = await Organization.findById(req.organizationId).select("subscription name email").lean();
+    let org = await Organization.findById(req.organizationId).select("subscription name email").lean();
     if (!org) return res.status(404).json({ message: "Organization not found" });
+
+    // Self-heal from Stripe if local state looks stale (e.g. a missed webhook),
+    // then re-read so the response reflects the corrected state.
+    const reconciled = await reconcileFromStripe(org);
+    if (reconciled) {
+      org = await Organization.findById(req.organizationId).select("subscription name email").lean();
+    }
 
     const sub = org.subscription || {};
 

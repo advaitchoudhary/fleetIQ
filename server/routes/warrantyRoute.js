@@ -11,11 +11,11 @@ const {
   uploadWarrantyDocs,
 } = require("../controller/warrantyController.js");
 const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
-const { requireVehicleModule } = require("../middleware/featureGate.js");
+const { requireGrowth } = require("../middleware/featureGate.js");
 
 const router = express.Router();
 
-router.use(protect, requireVehicleModule);
+router.use(protect, requireGrowth);
 
 router.get("/expiry-alerts", authorizeRoles("admin", "company_admin", "dispatcher"), getExpiryAlerts);
 router.get("/", getAllWarranties);

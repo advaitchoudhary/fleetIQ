@@ -15,6 +15,7 @@ const PLANS = [
     features: [
       "Up to 10 vehicles & drivers",
       "Driver profiles, timesheets & approvals",
+      "Invoice generation & PDF export",
       "Driver onboarding & applications",
       "Vehicle registry & maintenance logs",
       "DVIR pre/post-trip inspections",
@@ -53,7 +54,6 @@ const PLANS = [
       "Unlimited vehicles & drivers",
       "Everything in Growth",
       "Unified fleet dashboard",
-      "Invoice generation & PDF export",
       "Onboarding assistance",
       "Dedicated support",
       "7-day free trial included",
@@ -118,7 +118,15 @@ const Subscription: React.FC = () => {
         { plan, billing },
         { headers }
       );
-      window.location.href = res.data.url;
+      if (res.data.url) {
+        // New subscriber → redirect to Stripe Checkout
+        window.location.href = res.data.url;
+        return;
+      }
+      // Existing subscriber → plan was switched in place (no checkout needed)
+      await fetchSubscription();
+      setRedirecting(null);
+      alert(res.data.message || `Switched to the ${plan} plan.`);
     } catch (err: any) {
       alert(err.response?.data?.message || "Failed to start checkout");
       setRedirecting(null);
@@ -314,7 +322,9 @@ const Subscription: React.FC = () => {
                     disabled={redirecting === plan.key}
                     style={{
                       ...styles.selectBtn,
-                      background: plan.key === "pro" ? "var(--t-accent)" : "var(--t-bg)",
+                      background: plan.key === "pro" ? "var(--t-accent)" : "var(--t-surface)",
+                      color: plan.key === "pro" ? "#fff" : "var(--t-accent)",
+                      border: plan.key === "pro" ? "none" : "1.5px solid var(--t-accent)",
                     }}
                   >
                     {redirecting === plan.key ? "Redirecting..." : (

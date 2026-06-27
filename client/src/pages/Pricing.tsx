@@ -15,6 +15,7 @@ const PLANS = [
     features: [
       "Up to 10 vehicles & drivers",
       "Driver profiles, timesheets & approvals",
+      "Invoice generation & PDF export",
       "Driver onboarding & applications",
       "Vehicle registry & maintenance logs",
       "DVIR pre/post-trip inspections",
@@ -57,7 +58,6 @@ const PLANS = [
       "Unlimited vehicles & drivers",
       "Everything in Growth",
       "Unified fleet dashboard",
-      "Invoice generation & PDF export",
       "Onboarding assistance",
       "Dedicated support",
       "7-day free trial",

@@ -1,20 +1,37 @@
 const Organization = require("../model/organizationModel.js");
 
 /**
- * Checks that the caller's organization has an active subscription.
+ * Subscription tier enforcement.
  *
- * Subscription plans (all include every module):
- *   "starter" → up to ~10 vehicles/drivers
- *   "growth"  → up to ~30 vehicles/drivers
- *   "pro"     → unlimited
+ * Plan hierarchy (higher rank = more access):
+ *   "starter" (1) → drivers + vehicle basics (up to 10 vehicles/drivers)
+ *   "growth"  (2) → + tracking, IFTA, integrations, parts, warranties,
+ *                     service history, cost tracking, preventive maint., scheduling
+ *   "pro"     (3) → + invoice generation, AI assistant (unlimited)
+ *
+ * Legacy plans (driver/vehicle/bundle) predate the tier model. They are ranked
+ * high so existing customers keep the full access they had before tier
+ * enforcement existed — avoids regressions during migration.
  *
  * Subscription statuses that allow access: "trialing" | "active"
  */
-// Legacy plan names kept during migration from the old driver/vehicle/bundle model
-const VALID_PLANS = ["starter", "growth", "pro", "driver", "vehicle", "bundle"];
+const PLAN_RANK = {
+  starter: 1,
+  growth: 2,
+  pro: 3,
+  // legacy — full access until migrated to a new tier
+  driver: 99,
+  vehicle: 99,
+  bundle: 99,
+};
 
-const checkFeature = () => async (req, res, next) => {
-  // admin role bypasses all feature gates
+const prettyPlan = (p) => (p ? p.charAt(0).toUpperCase() + p.slice(1) : p);
+
+/**
+ * Returns middleware that requires the caller's org to be on `minPlan` or higher.
+ * `admin` role bypasses all gates.
+ */
+const requireTier = (minPlan) => async (req, res, next) => {
   if (req.user?.role === "admin") return next();
 
   const orgId = req.organizationId;
@@ -43,11 +60,21 @@ const checkFeature = () => async (req, res, next) => {
       });
     }
 
-    if (!VALID_PLANS.includes(plan)) {
+    const rank = PLAN_RANK[plan];
+    if (!rank) {
       return res.status(403).json({
         message: `Your current plan ("${plan}") is not recognised. Please contact support.`,
         code: "FEATURE_NOT_IN_PLAN",
         currentPlan: plan,
+      });
+    }
+
+    if (rank < PLAN_RANK[minPlan]) {
+      return res.status(403).json({
+        message: `This feature requires the ${prettyPlan(minPlan)} plan or higher. Upgrade your plan to access it.`,
+        code: "FEATURE_NOT_IN_PLAN",
+        currentPlan: plan,
+        requiredPlan: minPlan,
       });
     }
 
@@ -58,8 +85,24 @@ const checkFeature = () => async (req, res, next) => {
   }
 };
 
-const requireDriverModule = checkFeature();
-const requireVehicleModule = checkFeature();
-const requireTrackingModule = checkFeature();
+// Tier-named guards (use these in routes)
+const requireStarter = requireTier("starter");
+const requireGrowth = requireTier("growth");
+const requirePro = requireTier("pro");
 
-module.exports = { requireDriverModule, requireVehicleModule, requireTrackingModule };
+// Backwards-compatible module names.
+//   driver + vehicle basics are included in every paid plan → starter tier
+//   tracking is a Growth feature → growth tier
+const requireDriverModule = requireStarter;
+const requireVehicleModule = requireStarter;
+const requireTrackingModule = requireGrowth;
+
+module.exports = {
+  requireTier,
+  requireStarter,
+  requireGrowth,
+  requirePro,
+  requireDriverModule,
+  requireVehicleModule,
+  requireTrackingModule,
+};

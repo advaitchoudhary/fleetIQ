@@ -177,6 +177,7 @@ const Navbar: React.FC = () => {
         <li key={to} style={{ ...styles.navItem, position: "relative" as const }}>
           <div
             title={`Upgrade your plan to access ${label}`}
+            onClick={() => navigate("/subscription")}
             style={{
               display: "flex",
               alignItems: "center",
@@ -184,7 +185,7 @@ const Navbar: React.FC = () => {
               padding: isSidebarCollapsed ? "10px 0" : "9px 14px",
               margin: isSidebarCollapsed ? "2px 8px" : "2px 8px",
               borderRadius: "10px",
-              cursor: "not-allowed",
+              cursor: "pointer",
               justifyContent: isSidebarCollapsed ? "center" : "flex-start",
               color: "var(--t-text-ghost)",
               fontSize: "13px",
@@ -542,7 +543,7 @@ const Navbar: React.FC = () => {
                     {renderNavItem("/users",               <FaUsers size={16} />,         "Drivers",             false, !hasDriver)}
                     {renderNavItem("/expiry-dashboard",   <FaShieldAlt size={16} />,     "Doc Expiry",          false, !hasDriver)}
                     {renderNavItem("/driver-notes",       <FaClipboardList size={16} />, "Driver Notes",        false, !hasDriver)}
-                    {renderNavItem("/invoice",             <FaFileInvoice size={16} />,   "Invoice",             false, !hasPro)}
+                    {renderNavItem("/invoice",             <FaFileInvoice size={16} />,   "Invoice",             false, !hasDriver)}
                     {renderNavItem("/all-timesheets",      <FaClipboardList size={16} />, "All Timesheets",      false, !hasDriver)}
                     {renderNavItem("/inquiries",           <FaPhoneAlt size={16} />,      "Inquiries",           false, !hasDriver)}
 

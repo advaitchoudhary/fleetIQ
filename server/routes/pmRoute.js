@@ -12,11 +12,11 @@ const {
   generateMaintenanceFromSchedule,
 } = require("../controller/pmController.js");
 const { protect, authorizeRoles } = require("../middleware/authMiddleware.js");
-const { requireVehicleModule } = require("../middleware/featureGate.js");
+const { requireGrowth } = require("../middleware/featureGate.js");
 
 const router = express.Router();
 
-router.use(protect, requireVehicleModule);
+router.use(protect, requireGrowth);
 
 // Templates
 router.get("/templates", getAllTemplates);
