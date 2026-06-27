@@ -4,60 +4,64 @@ import { FaCheckCircle, FaTruck, FaUsers, FaStar } from "react-icons/fa";
 
 const PLANS = [
   {
-    key: "driver",
-    name: "Driver Management",
+    key: "starter",
+    name: "Starter",
     icon: <FaUsers size={24} />,
-    monthlyPrice: 49,
-    annualMonthlyEquivalent: 39,
-    annualTotal: 468,
-    description: "Perfect for fleet operators who want to streamline driver workflows.",
-    features: [
-      "Unlimited drivers",
-      "Digital timesheets & approvals",
-      "Driver onboarding & applications",
-      "Document management",
-      "Dispatcher portal",
-      "Email notifications",
-      "AI assistant included",
-    ],
-  },
-  {
-    key: "vehicle",
-    name: "Vehicle Management",
-    icon: <FaTruck size={24} />,
-    monthlyPrice: 49,
-    annualMonthlyEquivalent: 39,
-    annualTotal: 468,
-    description: "Full vehicle fleet tracking, maintenance, and compliance.",
-    features: [
-      "Vehicle registry (unlimited vehicles)",
-      "Maintenance scheduling & work orders",
-      "DVIR pre/post-trip inspections",
-      "Fuel logging & L/100km analytics",
-      "Maintenance due alerts",
-      "Cost per kilometre reporting",
-      "Document uploads",
-      "AI assistant included",
-    ],
-  },
-  {
-    key: "bundle",
-    name: "Fleet Bundle",
-    icon: <FaStar size={24} />,
     monthlyPrice: 79,
     annualMonthlyEquivalent: 63,
     annualTotal: 756,
-    badge: "Best Value",
-    description: "The complete solution for serious fleet operators.",
+    description: "Everything you need to run a small fleet — drivers and vehicles included.",
+    limit: "Up to 10 vehicles & drivers",
     features: [
-      "Everything in Driver Management",
-      "Everything in Vehicle Management",
+      "Up to 10 vehicles & drivers",
+      "Driver profiles, timesheets & approvals",
+      "Driver onboarding & applications",
+      "Vehicle registry & maintenance logs",
+      "DVIR pre/post-trip inspections",
+      "Fuel logging & L/100km analytics",
+      "Document management",
+    ],
+  },
+  {
+    key: "growth",
+    name: "Growth",
+    icon: <FaTruck size={24} />,
+    monthlyPrice: 149,
+    annualMonthlyEquivalent: 119,
+    annualTotal: 1428,
+    description: "Scale your operations with full fleet and driver management.",
+    limit: "Up to 30 vehicles & drivers",
+    features: [
+      "Up to 30 vehicles & drivers",
+      "Everything in Starter",
       "Driver ↔ Vehicle assignment",
-      "Unified fleet dashboard",
-      "AI assistant included",
+      "Web-based location sharing & admin map",
+      "Trip history with route replay",
+      "Parts inventory & warranty tracking",
+      "Fleet cost tracking & trend reports",
+      "Preventive maintenance schedules",
       "Priority support",
+    ],
+  },
+  {
+    key: "pro",
+    name: "Pro",
+    icon: <FaStar size={24} />,
+    monthlyPrice: 249,
+    annualMonthlyEquivalent: 199,
+    annualTotal: 2388,
+    badge: "Best Value",
+    description: "Unlimited scale for serious fleet operators.",
+    limit: "Unlimited vehicles & drivers",
+    features: [
+      "Unlimited vehicles & drivers",
+      "Everything in Growth",
+      "Unified fleet dashboard",
+      "Invoice generation & PDF export",
       "Onboarding assistance",
+      "Dedicated support",
       "7-day free trial",
+      "AI assistant included",
     ],
   },
 ];
@@ -127,7 +131,7 @@ const Pricing: React.FC = () => {
         {/* Plans */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px", marginBottom: "64px" }}>
           {PLANS.map((plan) => {
-            const isBundle = plan.key === "bundle";
+            const isBundle = plan.key === "pro";
             const isHovered = hoveredPlan === plan.key;
             const isSelected = selectedPlan === plan.key;
             return (
@@ -228,7 +232,7 @@ const Pricing: React.FC = () => {
             Start your 7-day free trial today. No credit card required. If you decide it's not for you, cancel with one click — no questions asked.
           </p>
           <button
-            onClick={() => goToRegister("bundle")}
+            onClick={() => goToRegister("pro")}
             style={{ padding: "14px 36px", background: "#4F46E5", color: "#fff", border: "none", borderRadius: "10px", fontSize: "16px", fontWeight: 700, cursor: "pointer" }}
           >
             Get started for free →

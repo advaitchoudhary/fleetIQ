@@ -25,9 +25,9 @@ const registerOrganization = async (req, res) => {
       return res.status(400).json({ error: "An account with this email already exists" });
     }
 
-    // Validate plan; fall back to "bundle" if not provided or invalid
-    const validPlans = ["driver", "vehicle", "bundle"];
-    const selectedPlan = validPlans.includes(plan) ? plan : "bundle";
+    // Validate plan; fall back to "pro" if not provided or invalid
+    const validPlans = ["starter", "growth", "pro"];
+    const selectedPlan = validPlans.includes(plan) ? plan : "pro";
 
     // Create organization first (7-day trial starts automatically via schema default)
     const organization = new Organization({

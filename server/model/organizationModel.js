@@ -31,8 +31,8 @@ const organizationSchema = new mongoose.Schema(
     subscription: {
       plan: {
         type: String,
-        enum: ["driver", "vehicle", "bundle"],
-        default: "driver",
+        enum: ["starter", "growth", "pro", "driver", "vehicle", "bundle"],
+        default: "pro",
       },
       status: {
         type: String,

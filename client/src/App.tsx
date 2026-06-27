@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -49,10 +49,30 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ChatWidget from "./components/ChatWidget";
 import CookieBanner from "./components/CookieBanner";
 import { useAuth } from "./contexts/AuthContext";
+import { API_BASE_URL } from "./utils/env";
+
+const PRO_PLANS = ["pro", "bundle"];
 
 const AuthenticatedChat: React.FC = () => {
   const { user } = useAuth();
-  return user ? <ChatWidget /> : null;
+  const [hasPro, setHasPro] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    const token = localStorage.getItem("token");
+    fetch(`${API_BASE_URL}/subscriptions/current`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        const active = data.status === "active" || data.status === "trialing";
+        const notExpired = !(data.status === "trialing" && data.trialEndsAt && new Date(data.trialEndsAt) < new Date());
+        setHasPro(user.role === "admin" || (active && notExpired && PRO_PLANS.includes(data.plan)));
+      })
+      .catch(() => setHasPro(false));
+  }, [user]);
+
+  return hasPro ? <ChatWidget /> : null;
 };
 
 const AnimatedRoutes: React.FC = () => {

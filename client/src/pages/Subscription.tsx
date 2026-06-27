@@ -6,71 +6,69 @@ import { API_BASE_URL } from "../utils/env";
 
 const PLANS = [
   {
-    key: "driver",
-    name: "Driver Management",
-    monthlyPrice: 49,
-    annualMonthlyEquivalent: 39,
-    annualTotal: 468,
-    description: "Everything you need to manage your driver workforce end-to-end.",
-    features: [
-      "Unlimited driver profiles & onboarding",
-      "Digital driver applications & approvals",
-      "Timesheet submission, review & approval",
-      "7 per-category payment rate management",
-      "Required document & compliance tracking",
-      "Training certificate management (12 types)",
-      "Licence expiry alerts",
-      "Invoice generation & PDF export",
-      "Contact inquiries inbox",
-      "Admin notifications",
-      "AI assistant included",
-    ],
-  },
-  {
-    key: "vehicle",
-    name: "Vehicle & Fleet Operations",
-    monthlyPrice: 49,
-    annualMonthlyEquivalent: 39,
-    annualTotal: 468,
-    description: "Full vehicle management and fleet operations — from inspections to cost tracking.",
-    features: [
-      "Full vehicle registry (VIN, plates, insurance)",
-      "Preventive & corrective maintenance logs",
-      "DVIR pre/post-trip & annual inspections",
-      "Fuel logging & L/100km analytics",
-      "Parts inventory with low-stock alerts",
-      "Warranty tracking & claim management",
-      "Service history timeline per vehicle",
-      "Fleet cost tracking & trend analysis",
-      "Preventive maintenance templates & schedules",
-      "Scheduling calendar",
-      "Maintenance due & overdue alerts",
-      "Admin notifications",
-      "AI assistant included",
-    ],
-  },
-  {
-    key: "bundle",
-    name: "Fleet Bundle",
+    key: "starter",
+    name: "Starter",
     monthlyPrice: 79,
     annualMonthlyEquivalent: 63,
     annualTotal: 756,
-    description: "The complete platform — drivers and vehicles under one roof.",
+    description: "Everything you need to run a small fleet — drivers and vehicles included.",
+    features: [
+      "Up to 10 vehicles & drivers",
+      "Driver profiles, timesheets & approvals",
+      "Driver onboarding & applications",
+      "Vehicle registry & maintenance logs",
+      "DVIR pre/post-trip inspections",
+      "Fuel logging & L/100km analytics",
+      "Document management",
+    ],
+  },
+  {
+    key: "growth",
+    name: "Growth",
+    monthlyPrice: 149,
+    annualMonthlyEquivalent: 119,
+    annualTotal: 1428,
+    description: "Scale your operations with full fleet and driver management.",
+    features: [
+      "Up to 30 vehicles & drivers",
+      "Everything in Starter",
+      "Driver ↔ Vehicle assignment",
+      "Web-based location sharing & admin map",
+      "Trip history with route replay",
+      "Parts inventory & warranty tracking",
+      "Fleet cost tracking & trend reports",
+      "Preventive maintenance schedules",
+      "Priority support",
+    ],
+  },
+  {
+    key: "pro",
+    name: "Pro",
+    monthlyPrice: 249,
+    annualMonthlyEquivalent: 199,
+    annualTotal: 2388,
+    description: "Unlimited scale for serious fleet operators.",
     badge: "Best Value",
     features: [
-      "Everything in Driver Management",
-      "Everything in Vehicle Management",
-      "Driver ↔ Vehicle assignment",
+      "Unlimited vehicles & drivers",
+      "Everything in Growth",
       "Unified fleet dashboard",
-      "Live GPS tracking & real-time admin map",
-      "Trip history with polyline replay",
-      "AI assistant included",
+      "Invoice generation & PDF export",
+      "Onboarding assistance",
+      "Dedicated support",
       "7-day free trial included",
+      "AI assistant included",
     ],
   },
 ];
 
 const formatPrice = (amount: number) => `$${amount}`;
+
+const LEGACY_PLAN_LABELS: Record<string, string> = {
+  bundle: "Bundle (Legacy)",
+  driver: "Driver (Legacy)",
+  vehicle: "Vehicle (Legacy)",
+};
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   trialing: { bg: "var(--t-indigo-bg)", color: "var(--t-indigo)" },
@@ -190,7 +188,7 @@ const Subscription: React.FC = () => {
               <div style={{ fontSize: "13px", color: "var(--t-text-dim)", marginBottom: "4px" }}>Current Plan</div>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
                 <span style={{ fontSize: "20px", fontWeight: 700, color: "var(--t-text)", textTransform: "capitalize" }}>
-                  {currentPlan ? PLANS.find((p) => p.key === currentPlan)?.name || currentPlan : "No active plan"}
+                  {currentPlan ? PLANS.find((p) => p.key === currentPlan)?.name || LEGACY_PLAN_LABELS[currentPlan] || currentPlan : "No active plan"}
                 </span>
                 <span style={{ ...styles.badge, background: sc.bg, color: sc.color, textTransform: "capitalize" }}>
                   {currentStatus}
@@ -262,7 +260,7 @@ const Subscription: React.FC = () => {
                 style={{
                   background: "var(--t-surface)",
                   borderRadius: "16px",
-                  border: isCurrent ? "2px solid var(--t-accent)" : plan.key === "bundle" ? "2px solid var(--t-indigo-bg)" : "1px solid var(--t-border)",
+                  border: isCurrent ? "2px solid var(--t-accent)" : plan.key === "pro" ? "2px solid var(--t-indigo-bg)" : "1px solid var(--t-border)",
                   padding: "24px",
                   position: "relative",
                   boxShadow: isCurrent ? "0 0 0 4px var(--t-indigo-bg)" : "none",
@@ -316,7 +314,7 @@ const Subscription: React.FC = () => {
                     disabled={redirecting === plan.key}
                     style={{
                       ...styles.selectBtn,
-                      background: plan.key === "bundle" ? "var(--t-accent)" : "var(--t-bg)",
+                      background: plan.key === "pro" ? "var(--t-accent)" : "var(--t-bg)",
                     }}
                   >
                     {redirecting === plan.key ? "Redirecting..." : (

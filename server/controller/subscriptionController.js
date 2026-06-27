@@ -4,32 +4,32 @@ const { sendTrialExpiredEmail, sendSubscriptionCancelledEmail } = require("../ut
 
 // Map plan+billing to Stripe Price IDs (set in .env)
 const PRICE_IDS = {
-  driver: {
-    monthly: process.env.STRIPE_PRICE_DRIVER_MONTHLY,
-    annual: process.env.STRIPE_PRICE_DRIVER_ANNUAL,
+  starter: {
+    monthly: process.env.STRIPE_PRICE_STARTER_MONTHLY,
+    annual: process.env.STRIPE_PRICE_STARTER_ANNUAL,
   },
-  vehicle: {
-    monthly: process.env.STRIPE_PRICE_VEHICLE_MONTHLY,
-    annual: process.env.STRIPE_PRICE_VEHICLE_ANNUAL,
+  growth: {
+    monthly: process.env.STRIPE_PRICE_GROWTH_MONTHLY,
+    annual: process.env.STRIPE_PRICE_GROWTH_ANNUAL,
   },
-  bundle: {
-    monthly: process.env.STRIPE_PRICE_BUNDLE_MONTHLY,
-    annual: process.env.STRIPE_PRICE_BUNDLE_ANNUAL,
+  pro: {
+    monthly: process.env.STRIPE_PRICE_PRO_MONTHLY,
+    annual: process.env.STRIPE_PRICE_PRO_ANNUAL,
   },
 };
 
 const EXPECTED_PRICING = {
-  driver: {
-    monthly: { interval: "month", unitAmount: 4900 },
-    annual: { interval: "year", unitAmount: 46800 },
-  },
-  vehicle: {
-    monthly: { interval: "month", unitAmount: 4900 },
-    annual: { interval: "year", unitAmount: 46800 },
-  },
-  bundle: {
+  starter: {
     monthly: { interval: "month", unitAmount: 7900 },
     annual: { interval: "year", unitAmount: 75600 },
+  },
+  growth: {
+    monthly: { interval: "month", unitAmount: 14900 },
+    annual: { interval: "year", unitAmount: 142800 },
+  },
+  pro: {
+    monthly: { interval: "month", unitAmount: 24900 },
+    annual: { interval: "year", unitAmount: 238800 },
   },
 };
 
@@ -62,7 +62,7 @@ const createCheckout = async (req, res) => {
     const { plan, billing = "monthly" } = req.body;
 
     if (!plan || !PRICE_IDS[plan]) {
-      return res.status(400).json({ message: `Invalid plan: "${plan}". Must be driver, vehicle, or bundle.` });
+      return res.status(400).json({ message: `Invalid plan: "${plan}". Must be starter, growth, or pro.` });
     }
 
     const priceId = PRICE_IDS[plan]?.[billing];

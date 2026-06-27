@@ -173,12 +173,12 @@ const Landing: React.FC = () => {
       ),
     },
     {
-      label: "Live Tracking",
+      label: "Location Sharing",
       icon: <FaMapMarkerAlt size={15} />,
       color: "#dc2626",
-      title: "Real-time GPS — no hardware",
-      desc: "Drivers share their location from any browser. The admin live map updates every 30 seconds. Full trip history with polyline replay and distance totals.",
-      highlights: ["Live admin map with all vehicles", "30-second polling — no hardware", "Trip start / stop from driver app", "Polyline trip replay & distance"],
+      title: "Web-based location sharing",
+      desc: "Drivers share their location from any browser tab. The admin map refreshes every 30 seconds. Full trip history with route replay and distance totals — no hardware needed.",
+      highlights: ["Admin map with all active vehicles", "30-second browser-based refresh", "Trip start / stop from driver app", "Route replay & distance totals"],
       mockup: (
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           <div style={{ background: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.25)", borderRadius: "9px", padding: "14px", marginBottom: "4px", position: "relative", overflow: "hidden", minHeight: "110px" }}>
@@ -237,54 +237,52 @@ const Landing: React.FC = () => {
 
   const plans = [
     {
-      name: "Driver Management",
-      price: "$49",
-      period: "/mo",
-      desc: "Everything you need to manage your driver workforce end-to-end.",
-      color: "#4F46E5",
-      features: [
-        "Unlimited driver profiles",
-        "Digital driver applications",
-        "Timesheet submission & approval",
-        "Driver notes, warnings & incident log",
-        "Licence & document expiry dashboard",
-        "Invoice generation & PDF export",
-      ],
-      cta: "Get Started",
-      highlight: false,
-    },
-    {
-      name: "Vehicle & Fleet Operations",
-      price: "$49",
-      period: "/mo",
-      desc: "Full vehicle management and fleet operations — from inspections to cost tracking.",
-      color: "#4F46E5",
-      features: [
-        "Full vehicle registry",
-        "DVIR inspection reports",
-        "Preventive maintenance scheduling",
-        "Fuel logs & L/100km stats",
-        "Parts inventory management",
-        "Warranty & service history",
-        "Scheduling calendar & job dispatch",
-      ],
-      cta: "Get Started",
-      highlight: false,
-    },
-    {
-      name: "Fleet Bundle",
+      name: "Starter",
       price: "$79",
       period: "/mo",
-      desc: "The complete platform — drivers and vehicles in one place.",
+      desc: "Everything you need to run a small fleet — drivers and vehicles included.",
       color: "#4F46E5",
       features: [
-        "Everything in Driver Management",
-        "Everything in Vehicle & Fleet Operations",
+        "Up to 10 vehicles & drivers",
+        "Driver profiles, timesheets & approvals",
+        "Vehicle registry & maintenance logs",
+        "DVIR pre/post-trip inspections",
+        "Fuel logging & L/100km analytics",
+        "Document management",
+      ],
+      cta: "Get Started",
+      highlight: false,
+    },
+    {
+      name: "Growth",
+      price: "$149",
+      period: "/mo",
+      desc: "Scale your operations with full fleet and driver management.",
+      color: "#4F46E5",
+      features: [
+        "Up to 30 vehicles & drivers",
+        "Everything in Starter",
         "Driver ↔ Vehicle assignment",
-        "Live GPS tracking & real-time admin map",
-        "Trip history with polyline replay",
-        "IFTA mileage & fuel tax reporting",
-        "Multi-company support",
+        "Web-based location sharing & admin map",
+        "Parts inventory & warranty tracking",
+        "Fleet cost tracking & trend reports",
+        "Preventive maintenance schedules",
+      ],
+      cta: "Get Started",
+      highlight: false,
+    },
+    {
+      name: "Pro",
+      price: "$249",
+      period: "/mo",
+      desc: "Unlimited scale for serious fleet operators.",
+      color: "#4F46E5",
+      features: [
+        "Unlimited vehicles & drivers",
+        "Everything in Growth",
+        "Unified fleet dashboard",
+        "Driver ↔ Vehicle assignment",
+        "Invoice generation & PDF export",
         "Priority support",
       ],
       cta: "Start Free Trial",
@@ -786,7 +784,7 @@ const Landing: React.FC = () => {
                 marginBottom: "44px", fontWeight: 400, marginTop: 0,
               }}
             >
-              Unify driver management, vehicle operations, timesheets, and live GPS tracking — in one purpose-built platform for modern fleet operators.
+              Unify driver management, vehicle operations, timesheets, and web-based location sharing — in one purpose-built platform for modern fleet operators.
             </p>
 
             {/* CTA Buttons */}
@@ -877,8 +875,8 @@ const Landing: React.FC = () => {
                   background: "rgba(79,70,229,0.15)", borderRadius: "10px",
                   border: "1px solid rgba(79,70,229,0.25)",
                 }}>
-                  <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "4px" }}>Live Tracking</div>
-                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#A5B4FC" }}>Online</div>
+                  <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "4px" }}>Location</div>
+                  <div style={{ fontSize: "14px", fontWeight: 700, color: "#A5B4FC" }}>Sharing</div>
                 </div>
                 <div style={{
                   flex: 1, padding: "14px", textAlign: "center",
@@ -920,7 +918,7 @@ const Landing: React.FC = () => {
           {[
             { value: "34+", label: "Platform Features" },
             { value: "100%", label: "Paperless Operations" },
-            { value: "30s", label: "Live GPS Refresh" },
+            { value: "30s", label: "Location Refresh" },
             { value: "3", label: "Flexible Plans" },
           ].map((stat, i) => (
             <div key={stat.label} className="land-reveal" style={{ transitionDelay: `${i * 0.1}s` }}>
@@ -986,8 +984,8 @@ const Landing: React.FC = () => {
               },
               {
                 icon: <FaMapMarkerAlt size={20} style={{ color: "#dc2626" }} />,
-                title: "Live Vehicle Tracking",
-                desc: "Real-time GPS tracking with a live admin map, trip history, and polyline replay. Drivers share location from any browser — no hardware required. Requires Fleet Bundle.",
+                title: "Vehicle Location Sharing",
+                desc: "Drivers share their location from any browser. The admin map updates every 30 seconds with trip history and route replay — no hardware required.",
                 iconBg: "#fee2e2", borderColor: "#dc2626", path: "/register",
               },
             ].map((feature, i) => (

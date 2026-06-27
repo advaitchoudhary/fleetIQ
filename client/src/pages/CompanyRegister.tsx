@@ -7,9 +7,9 @@ import { useAuth } from "../contexts/AuthContext";
 
 const getPlanLabel = (plan: string, billing: string): string => {
   const isAnnual = billing === "annual";
-  if (plan === "driver")  return isAnnual ? "Driver Management — $39/month" : "Driver Management — $49/month";
-  if (plan === "vehicle") return isAnnual ? "Vehicle & Fleet Operations — $39/month" : "Vehicle & Fleet Operations — $49/month";
-  if (plan === "bundle")  return isAnnual ? "Fleet Bundle — $63/month" : "Fleet Bundle — $79/month";
+  if (plan === "starter") return isAnnual ? "Starter — $63/month" : "Starter — $79/month";
+  if (plan === "growth")  return isAnnual ? "Growth — $119/month" : "Growth — $149/month";
+  if (plan === "pro")     return isAnnual ? "Pro — $199/month" : "Pro — $249/month";
   return plan;
 };
 
@@ -17,7 +17,7 @@ const CompanyRegister: React.FC = () => {
   const navigate = useNavigate();
   const { loginDirect } = useAuth();
   const [searchParams] = useSearchParams();
-  const planFromUrl = searchParams.get("plan") || "bundle";
+  const planFromUrl = searchParams.get("plan") || "pro";
   const billingFromUrl = searchParams.get("billing") || "monthly";
 
   const [form, setForm] = useState({
@@ -528,9 +528,9 @@ const CompanyRegister: React.FC = () => {
                       onFocus={() => setFocusedField("plan")}
                       onBlur={() => setFocusedField(null)}
                     >
-                      <option value="driver">Driver Mgmt — {form.billing === "annual" ? "$39" : "$49"}/mo</option>
-                      <option value="vehicle">Fleet Ops — {form.billing === "annual" ? "$39" : "$49"}/mo</option>
-                      <option value="bundle">Fleet Bundle — {form.billing === "annual" ? "$63" : "$79"}/mo ✦</option>
+                      <option value="starter">Starter — {form.billing === "annual" ? "$63" : "$79"}/mo</option>
+                      <option value="growth">Growth — {form.billing === "annual" ? "$119" : "$149"}/mo</option>
+                      <option value="pro">Pro — {form.billing === "annual" ? "$199" : "$249"}/mo ✦</option>
                     </select>
                   </div>
                   <div>

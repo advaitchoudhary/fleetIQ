@@ -1,17 +1,19 @@
 const Organization = require("../model/organizationModel.js");
 
 /**
- * Checks that the caller's organization has an active subscription that
- * includes the requested module.
+ * Checks that the caller's organization has an active subscription.
  *
- * Subscription plans:
- *   "driver"  → only driver management features
- *   "vehicle" → only vehicle management features
- *   "bundle"  → both driver + vehicle management
+ * Subscription plans (all include every module):
+ *   "starter" → up to ~10 vehicles/drivers
+ *   "growth"  → up to ~30 vehicles/drivers
+ *   "pro"     → unlimited
  *
  * Subscription statuses that allow access: "trialing" | "active"
  */
-const checkFeature = (requiredPlan) => async (req, res, next) => {
+// Legacy plan names kept during migration from the old driver/vehicle/bundle model
+const VALID_PLANS = ["starter", "growth", "pro", "driver", "vehicle", "bundle"];
+
+const checkFeature = () => async (req, res, next) => {
   // admin role bypasses all feature gates
   if (req.user?.role === "admin") return next();
 
@@ -41,15 +43,11 @@ const checkFeature = (requiredPlan) => async (req, res, next) => {
       });
     }
 
-    // Plan-based access control: bundle covers everything
-    const hasAccess = plan === "bundle" || plan === requiredPlan;
-
-    if (!hasAccess) {
+    if (!VALID_PLANS.includes(plan)) {
       return res.status(403).json({
-        message: `Your current plan ("${plan}") does not include the ${requiredPlan} module. Upgrade to access this feature.`,
+        message: `Your current plan ("${plan}") is not recognised. Please contact support.`,
         code: "FEATURE_NOT_IN_PLAN",
         currentPlan: plan,
-        requiredPlan,
       });
     }
 
@@ -60,8 +58,8 @@ const checkFeature = (requiredPlan) => async (req, res, next) => {
   }
 };
 
-const requireDriverModule = checkFeature("driver");
-const requireVehicleModule = checkFeature("vehicle");
-const requireTrackingModule = checkFeature("bundle");
+const requireDriverModule = checkFeature();
+const requireVehicleModule = checkFeature();
+const requireTrackingModule = checkFeature();
 
 module.exports = { requireDriverModule, requireVehicleModule, requireTrackingModule };

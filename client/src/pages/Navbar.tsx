@@ -523,9 +523,14 @@ const Navbar: React.FC = () => {
                 const isSuperAdmin = user?.role === "admin";
                 const trialExpired = subscriptionStatus === "trialing" && subscriptionTrialEndsAt && new Date(subscriptionTrialEndsAt) < new Date();
                 const isSubActive = (subscriptionStatus === "active" || subscriptionStatus === "trialing") && !trialExpired;
-                const hasDriver = isSuperAdmin || (isSubActive && (subscriptionPlan === "driver" || subscriptionPlan === "bundle"));
-                const hasVehicle = isSuperAdmin || (isSubActive && (subscriptionPlan === "vehicle" || subscriptionPlan === "bundle"));
-                const hasTracking = isSuperAdmin || (isSubActive && subscriptionPlan === "bundle");
+                // Any active plan unlocks driver + vehicle basics (all tiers include both modules)
+                const hasDriver   = isSuperAdmin || (isSubActive && subscriptionPlan != null);
+                const hasVehicle  = isSuperAdmin || (isSubActive && subscriptionPlan != null);
+                // Growth+ unlocks tracking, parts, warranties, cost tracking, preventive maint., scheduling
+                const hasGrowth   = isSuperAdmin || (isSubActive && ["growth", "pro", "bundle"].includes(subscriptionPlan ?? ""));
+                // Pro only unlocks invoice generation
+                const hasPro      = isSuperAdmin || (isSubActive && ["pro", "bundle"].includes(subscriptionPlan ?? ""));
+                const hasTracking = hasGrowth;
 
                 return (
                   <>
@@ -537,7 +542,7 @@ const Navbar: React.FC = () => {
                     {renderNavItem("/users",               <FaUsers size={16} />,         "Drivers",             false, !hasDriver)}
                     {renderNavItem("/expiry-dashboard",   <FaShieldAlt size={16} />,     "Doc Expiry",          false, !hasDriver)}
                     {renderNavItem("/driver-notes",       <FaClipboardList size={16} />, "Driver Notes",        false, !hasDriver)}
-                    {renderNavItem("/invoice",             <FaFileInvoice size={16} />,   "Invoice",             false, !hasDriver)}
+                    {renderNavItem("/invoice",             <FaFileInvoice size={16} />,   "Invoice",             false, !hasPro)}
                     {renderNavItem("/all-timesheets",      <FaClipboardList size={16} />, "All Timesheets",      false, !hasDriver)}
                     {renderNavItem("/inquiries",           <FaPhoneAlt size={16} />,      "Inquiries",           false, !hasDriver)}
 
@@ -547,8 +552,8 @@ const Navbar: React.FC = () => {
                     </li>
                     {renderNavItem("/vehicles",               <FaTruck size={16} />,            "Vehicles",           false, !hasVehicle)}
                     {renderNavItem("/tracking",               <FaMapMarkerAlt size={16} />,     "Live Tracking",      false, !hasTracking)}
-                    {renderNavItem("/ifta",                   <FaFileAlt size={16} />,          "IFTA Reports",       false, !hasVehicle)}
-                    {renderNavItem("/integrations",           <FaPlug size={16} />,             "Integrations",       false, !hasVehicle)}
+                    {renderNavItem("/ifta",                   <FaFileAlt size={16} />,          "IFTA Reports",       false, !hasGrowth)}
+                    {renderNavItem("/integrations",           <FaPlug size={16} />,             "Integrations",       false, !hasGrowth)}
                     {renderNavItem("/maintenance",            <FaWrench size={16} />,           "Maintenance",        false, !hasVehicle)}
                     {renderNavItem("/inspections",            <FaCheckSquare size={16} />,      "Inspections",        false, !hasVehicle)}
                     {renderNavItem("/fuel-logs",              <FaGasPump size={16} />,          "Fuel Logs",          false, !hasVehicle)}
@@ -556,12 +561,12 @@ const Navbar: React.FC = () => {
                     <li style={{ ...styles.navItem, marginTop: "14px" }}>
                       {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Fleet Operations</span> : <div style={styles.sectionDivider} />}
                     </li>
-                    {renderNavItem("/parts",                  <FaBox size={16} />,              "Parts Inventory",    false, !hasVehicle)}
-                    {renderNavItem("/warranties",             <FaShieldAlt size={16} />,        "Warranties",         false, !hasVehicle)}
-                    {renderNavItem("/service-history",        <FaHistory size={16} />,          "Service History",    false, !hasVehicle)}
-                    {renderNavItem("/cost-tracking",          <FaChartBar size={16} />,         "Cost Tracking",      false, !hasVehicle)}
-                    {renderNavItem("/preventive-maintenance", <FaCheckSquareIcon size={16} />,  "Preventive Maint.",  false, !hasVehicle)}
-                    {renderNavItem("/scheduling",             <FaCalendarAlt size={16} />,      "Scheduling",         false, !hasVehicle)}
+                    {renderNavItem("/parts",                  <FaBox size={16} />,              "Parts Inventory",    false, !hasGrowth)}
+                    {renderNavItem("/warranties",             <FaShieldAlt size={16} />,        "Warranties",         false, !hasGrowth)}
+                    {renderNavItem("/service-history",        <FaHistory size={16} />,          "Service History",    false, !hasGrowth)}
+                    {renderNavItem("/cost-tracking",          <FaChartBar size={16} />,         "Cost Tracking",      false, !hasGrowth)}
+                    {renderNavItem("/preventive-maintenance", <FaCheckSquareIcon size={16} />,  "Preventive Maint.",  false, !hasGrowth)}
+                    {renderNavItem("/scheduling",             <FaCalendarAlt size={16} />,      "Scheduling",         false, !hasGrowth)}
 
                     <li style={{ ...styles.navItem, marginTop: "14px" }}>
                       {!isSidebarCollapsed ? <span style={styles.sectionHeader}>Billing</span> : <div style={styles.sectionDivider} />}
