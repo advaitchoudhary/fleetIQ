@@ -40,7 +40,6 @@ const AddDriverModal: React.FC<Props> = ({
   const [showExpiryPicker, setShowExpiryPicker] = useState(false);
   const [showWorkAuthPicker, setShowWorkAuthPicker] = useState(false);
   const [error, setError] = useState("");
-  const [customRates, setCustomRates] = useState<{ cat: string; rate: string }[]>([]);
   const [usernameError, setUsernameError] = useState("");
   const [copySuccess, setCopySuccess] = useState(false);
   const usernameDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -50,7 +49,7 @@ const AddDriverModal: React.FC<Props> = ({
     setFieldErrors(INITIAL_ADD_ERRORS);
     setError("");
     setUsernameError("");
-    setCustomRates([]);
+
   };
 
   const handleClose = () => {
@@ -391,60 +390,6 @@ const AddDriverModal: React.FC<Props> = ({
             </div>
           )}
 
-          {/* Custom per-driver rates */}
-          {customRates.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "12px" }}>
-              {customRates.map((row, idx) => (
-                <div key={idx} style={{ display: "grid", gridTemplateColumns: "1fr 140px 36px", gap: "8px", alignItems: "center" }}>
-                  <input type="text" placeholder="Category name" value={row.cat}
-                    style={{ padding: "10px 12px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text)", fontSize: "13px", fontFamily: "Inter, system-ui, sans-serif", outline: "none" }}
-                    onChange={(e) => {
-                      const oldCat = row.cat;
-                      const newCat = e.target.value;
-                      setCustomRates((prev) => prev.map((r, i) => i === idx ? { ...r, cat: newCat } : r));
-                      setDriver((prev: any) => {
-                        const next = { ...prev.categoryRates };
-                        if (oldCat) delete next[oldCat];
-                        if (newCat.trim()) next[newCat] = row.rate;
-                        return { ...prev, categoryRates: next };
-                      });
-                    }} />
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 12px", background: "var(--t-input-bg)", border: "1px solid var(--t-border-strong)", borderRadius: "8px" }}>
-                    <span style={{ fontSize: "13px", color: "var(--t-text-ghost)", fontWeight: 600 }}>$</span>
-                    <input type="number" placeholder="0.00" value={row.rate}
-                      style={{ flex: 1, background: "none", border: "none", color: "var(--t-text)", fontSize: "13px", fontWeight: 700, fontFamily: "Inter, system-ui, sans-serif", outline: "none", width: "100%", padding: 0 }}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setCustomRates((prev) => prev.map((r, i) => i === idx ? { ...r, rate: val } : r));
-                        if (row.cat.trim()) {
-                          setDriver((prev: any) => ({ ...prev, categoryRates: { ...prev.categoryRates, [row.cat]: val } }));
-                        }
-                      }} />
-                  </div>
-                  <button
-                    onClick={() => {
-                      setCustomRates((prev) => prev.filter((_, i) => i !== idx));
-                      if (row.cat.trim()) {
-                        setDriver((prev: any) => {
-                          const next = { ...prev.categoryRates };
-                          delete next[row.cat];
-                          return { ...prev, categoryRates: next };
-                        });
-                      }
-                    }}
-                    style={{ width: "36px", height: "36px", background: "var(--t-error-bg)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px", color: "var(--t-error)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", flexShrink: 0 }}>
-                    ✕
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <button
-            onClick={() => setCustomRates((prev) => [...prev, { cat: "", rate: "" }])}
-            style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "9px 16px", background: "var(--t-hover-bg)", border: "1px dashed var(--t-border-strong)", borderRadius: "8px", color: "var(--t-text-faint)", fontSize: "12px", fontWeight: 600, cursor: "pointer", fontFamily: "Inter, system-ui, sans-serif" }}>
-            + Add Rate
-          </button>
 
         </div>
 

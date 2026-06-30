@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_BASE_URL } from "../../utils/env";
-import { FALLBACK_CATEGORIES } from "../../utils/driverUtils";
 
 interface Props {
   isOpen: boolean;
@@ -91,8 +90,7 @@ const CategoryModal: React.FC<Props> = ({ isOpen, initialCategories, onSaved, on
                   headers: { Authorization: `Bearer ${token}` },
                 });
                 const saved: string[] = res.data.timesheetCategories || [];
-                const effective = saved.length > 0 ? saved : FALLBACK_CATEGORIES;
-                onSaved(effective, saved.length > 0);
+                onSaved(saved, saved.length > 0);
                 onClose();
               } catch (err) {
                 console.error("Failed to save categories:", err);
