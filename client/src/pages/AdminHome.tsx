@@ -21,27 +21,48 @@ const STATUS_CFG: Record<string, { bg: string; border: string; color: string; la
   inactive:  { bg: "rgba(107,114,128,0.12)", border: "rgba(107,114,128,0.3)", color: "var(--t-text-faint)", label: "NO PLAN"   },
 };
 
-const DRIVER_FEATURES = [
-  { icon: FaUsers,         title: "Drivers",          desc: "View all drivers, filter by status and manage compliance.",             path: "/users",               accent: "var(--t-indigo)", badge: null         },
-  { icon: FaExclamationCircle, title: "Doc Expiry",   desc: "Licence and work authorization expiry across all drivers.",             path: "/expiry-dashboard",    accent: "var(--t-error)",   badge: null         },
-  { icon: FaClipboardList,    title: "Driver Notes",  desc: "Fleet-wide log of notes, warnings, incidents and compliments.",          path: "/driver-notes",        accent: "var(--t-indigo)", badge: null         },
+// Mirrors server/middleware/featureGate.js PLAN_RANK
+const PLAN_RANK: Record<string, number> = {
+  starter: 1,
+  growth:  2,
+  pro:     3,
+  // Legacy plans retain full access
+  driver:  99,
+  vehicle: 99,
+  bundle:  99,
+};
 
-  { icon: FaFileAlt,       title: "Timesheets",        desc: "Approve hours worked and manage shift rotations for the fleet.",        path: "/applications",        accent: "var(--t-warning)", badge: "pending"    },
-  { icon: FaFileAlt,       title: "Invoices",          desc: "Generate and export driver invoices as PDF documents.",               path: "/invoice",             accent: "var(--t-indigo)", badge: null         },
-  { icon: FaEnvelope,      title: "Inquiries",         desc: "Read and respond to contact form submissions from drivers.",           path: "/inquiries",           accent: "var(--t-indigo)", badge: null         },
+const PLAN_LABELS: Record<string, string> = {
+  starter: "Starter",
+  growth:  "Growth",
+  pro:     "Pro",
+  bundle:  "Fleet Bundle",
+  driver:  "Driver Management",
+  vehicle: "Vehicle & Fleet Operations",
+};
+
+// minTier: minimum PLAN_RANK value required to access the card
+// starter=1, growth=2, pro=3
+const DRIVER_FEATURES = [
+  { icon: FaUsers,             title: "Drivers",      desc: "View all drivers, filter by status and manage compliance.",             path: "/users",           accent: "var(--t-indigo)", badge: null,      minTier: 1 },
+  { icon: FaExclamationCircle, title: "Doc Expiry",   desc: "Licence and work authorization expiry across all drivers.",             path: "/expiry-dashboard",accent: "var(--t-error)",  badge: null,      minTier: 1 },
+  { icon: FaClipboardList,     title: "Driver Notes", desc: "Fleet-wide log of notes, warnings, incidents and compliments.",          path: "/driver-notes",    accent: "var(--t-indigo)", badge: null,      minTier: 1 },
+  { icon: FaFileAlt,           title: "Timesheets",   desc: "Approve hours worked and manage shift rotations for the fleet.",        path: "/applications",    accent: "var(--t-warning)",badge: "pending", minTier: 1 },
+  { icon: FaFileAlt,           title: "Invoices",     desc: "Generate and export driver invoices as PDF documents.",               path: "/invoice",          accent: "var(--t-indigo)", badge: null,      minTier: 3 },
+  { icon: FaEnvelope,          title: "Inquiries",    desc: "Read and respond to contact form submissions from drivers.",           path: "/inquiries",        accent: "var(--t-indigo)", badge: null,      minTier: 1 },
 ];
 
 const VEHICLE_FEATURES = [
-  { icon: FaTruck,       title: "Vehicles",          desc: "Full fleet registry — VIN, plates, insurance and real-time status.",  path: "/vehicles",               accent: "var(--t-info)", badge: null },
-  { icon: FaWrench,      title: "Maintenance",       desc: "Log preventive and corrective maintenance across all units.",         path: "/maintenance",            accent: "var(--t-info)", badge: null },
-  { icon: FaCheckSquare, title: "Inspections",       desc: "DVIR pre/post-trip and annual inspection management.",               path: "/inspections",            accent: "var(--t-info)", badge: null },
-  { icon: FaGasPump,     title: "Fuel Logs",         desc: "Track fuel fills and calculate L/100km per vehicle.",               path: "/fuel-logs",              accent: "var(--t-info)", badge: null },
-  { icon: FaBox,         title: "Parts Inventory",   desc: "Manage parts stock with low-stock alerts and reorder tracking.",    path: "/parts",                  accent: "var(--t-info)", badge: null },
-  { icon: FaShieldAlt,   title: "Warranties",        desc: "Track warranties, expiry dates and manage claims.",                path: "/warranties",             accent: "var(--t-info)", badge: null },
-  { icon: FaHistory,     title: "Service History",   desc: "Full service timeline and cost history per vehicle.",              path: "/service-history",        accent: "var(--t-info)", badge: null },
-  { icon: FaChartBar,    title: "Cost Tracking",     desc: "Fleet cost dashboard and 6-month expense trends.",                path: "/cost-tracking",          accent: "var(--t-info)", badge: null },
-  { icon: FaTools,       title: "Preventive Maint.", desc: "PM templates, schedules and overdue alert management.",            path: "/preventive-maintenance", accent: "var(--t-info)", badge: null },
-  { icon: FaCalendarAlt, title: "Scheduling",        desc: "Calendar view of all upcoming fleet maintenance events.",          path: "/scheduling",             accent: "var(--t-info)", badge: null },
+  { icon: FaTruck,       title: "Vehicles",          desc: "Full fleet registry — VIN, plates, insurance and real-time status.",  path: "/vehicles",               accent: "var(--t-info)", badge: null, minTier: 1 },
+  { icon: FaWrench,      title: "Maintenance",       desc: "Log preventive and corrective maintenance across all units.",         path: "/maintenance",            accent: "var(--t-info)", badge: null, minTier: 1 },
+  { icon: FaCheckSquare, title: "Inspections",       desc: "DVIR pre/post-trip and annual inspection management.",               path: "/inspections",            accent: "var(--t-info)", badge: null, minTier: 1 },
+  { icon: FaGasPump,     title: "Fuel Logs",         desc: "Track fuel fills and calculate L/100km per vehicle.",               path: "/fuel-logs",              accent: "var(--t-info)", badge: null, minTier: 1 },
+  { icon: FaBox,         title: "Parts Inventory",   desc: "Manage parts stock with low-stock alerts and reorder tracking.",    path: "/parts",                  accent: "var(--t-info)", badge: null, minTier: 2 },
+  { icon: FaShieldAlt,   title: "Warranties",        desc: "Track warranties, expiry dates and manage claims.",                path: "/warranties",             accent: "var(--t-info)", badge: null, minTier: 2 },
+  { icon: FaHistory,     title: "Service History",   desc: "Full service timeline and cost history per vehicle.",              path: "/service-history",        accent: "var(--t-info)", badge: null, minTier: 2 },
+  { icon: FaChartBar,    title: "Cost Tracking",     desc: "Fleet cost dashboard and 6-month expense trends.",                path: "/cost-tracking",          accent: "var(--t-info)", badge: null, minTier: 2 },
+  { icon: FaTools,       title: "Preventive Maint.", desc: "PM templates, schedules and overdue alert management.",            path: "/preventive-maintenance", accent: "var(--t-info)", badge: null, minTier: 2 },
+  { icon: FaCalendarAlt, title: "Scheduling",        desc: "Calendar view of all upcoming fleet maintenance events.",          path: "/scheduling",             accent: "var(--t-info)", badge: null, minTier: 2 },
 ];
 
 interface FleetStats { vehicles: number; drivers: number; pendingTimesheets: number; }
@@ -101,15 +122,16 @@ const AdminHome: React.FC = () => {
   const status = subscription?.status || "inactive";
   const sc     = STATUS_CFG[status]   || STATUS_CFG.inactive;
   // Features are only accessible when the subscription is genuinely active or trialing.
-  // An expired trial returns status="inactive" from the server, so both checks are needed:
-  // the plan must include the module AND the subscription must be in an active/trialing state.
+  // An expired trial returns status="inactive" from the server, so both checks are needed.
   const isSubscriptionActive = status === "active" || status === "trialing";
-  const showDriver  = isSubscriptionActive && ["bundle", "driver"].includes(plan);
-  const showVehicle = isSubscriptionActive && ["bundle", "vehicle"].includes(plan);
+  const planRank = PLAN_RANK[plan] || 0;
+  // All paid plans (starter rank=1 and above) include both driver and vehicle sections.
+  const showDriver  = isSubscriptionActive && planRank >= 1;
+  const showVehicle = isSubscriptionActive && planRank >= 1;
   const trialDaysLeft = subscription?.trialEndsAt
     ? Math.max(0, Math.ceil((new Date(subscription.trialEndsAt).getTime() - Date.now()) / 86400000))
     : null;
-  const planLabel = plan === "bundle" ? "Fleet Bundle" : plan === "driver" ? "Driver Management" : plan === "vehicle" ? "Vehicle & Fleet Operations" : null;
+  const planLabel = PLAN_LABELS[plan] || null;
 
   return (
     <div style={{ fontFamily: "Inter, system-ui, sans-serif", background: "var(--t-bg)", minHeight: "100vh", color: "var(--t-text)" }}>
@@ -287,6 +309,7 @@ const AdminHome: React.FC = () => {
             accentColor="var(--t-accent)"
             pendingTimesheets={stats?.pendingTimesheets ?? 0}
             upgradePlan="driver"
+            planRank={planRank}
           />
 
           {/* ── Vehicle & Fleet Operations ── */}
@@ -299,6 +322,7 @@ const AdminHome: React.FC = () => {
             accentColor="var(--t-info)"
             pendingTimesheets={0}
             upgradePlan="vehicle"
+            planRank={planRank}
           />
         </div>
 
@@ -310,17 +334,18 @@ const AdminHome: React.FC = () => {
 /* ── Feature Section Component ── */
 interface FeatureSectionProps {
   title: string;
-  features: { icon: any; title: string; desc: string; path: string; accent: string; badge: string | null }[];
+  features: { icon: any; title: string; desc: string; path: string; accent: string; badge: string | null; minTier: number }[];
   unlocked: boolean;
   loading: boolean;
   navigate: (path: string) => void;
   accentColor: string;
   pendingTimesheets: number;
   upgradePlan: string;
+  planRank: number;
 }
 
 const FeatureSection: React.FC<FeatureSectionProps> = ({
-  title, features, unlocked, loading, navigate, accentColor, pendingTimesheets, upgradePlan: _upgradePlan,
+  title, features, unlocked, loading, navigate, accentColor, pendingTimesheets, upgradePlan: _upgradePlan, planRank,
 }) => (
   <div style={{ marginBottom: "52px" }}>
     {/* Section header */}
@@ -350,31 +375,32 @@ const FeatureSection: React.FC<FeatureSectionProps> = ({
     {/* Cards grid */}
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(230px, 1fr))", gap: "14px" }}>
       {features.map((f) => {
+        const cardUnlocked = unlocked && planRank >= f.minTier;
         const showBadge = f.badge === "pending" && pendingTimesheets > 0;
         const Icon = f.icon;
         return (
           <div
             key={f.path}
-            onClick={() => unlocked && navigate(f.path)}
+            onClick={() => cardUnlocked && navigate(f.path)}
             style={{
               background: "var(--t-surface)",
-              border: `1px solid ${unlocked ? "var(--t-border)" : "var(--t-border)"}`,
+              border: "1px solid var(--t-border)",
               borderRadius: "14px",
               padding: "22px",
-              cursor: unlocked ? "pointer" : "default",
-              opacity: unlocked ? 1 : 0.38,
+              cursor: cardUnlocked ? "pointer" : "default",
+              opacity: cardUnlocked ? 1 : 0.38,
               transition: "border-color 0.2s, background 0.2s, box-shadow 0.2s",
               position: "relative",
               boxShadow: "var(--t-shadow)",
             }}
             onMouseEnter={(e) => {
-              if (!unlocked) return;
+              if (!cardUnlocked) return;
               e.currentTarget.style.borderColor = `${f.accent}66`;
               e.currentTarget.style.background = "var(--t-surface)";
               e.currentTarget.style.boxShadow = "var(--t-shadow-lg)";
             }}
             onMouseLeave={(e) => {
-              if (!unlocked) return;
+              if (!cardUnlocked) return;
               e.currentTarget.style.borderColor = "var(--t-border)";
               e.currentTarget.style.background = "var(--t-surface)";
               e.currentTarget.style.boxShadow = "var(--t-shadow)";
@@ -384,10 +410,10 @@ const FeatureSection: React.FC<FeatureSectionProps> = ({
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "18px" }}>
               <div style={{
                 width: "44px", height: "44px", borderRadius: "12px",
-                background: unlocked ? `${f.accent}22` : "rgba(107,114,128,0.15)",
-                border: unlocked ? `1px solid ${f.accent}33` : "1px solid rgba(107,114,128,0.2)",
+                background: cardUnlocked ? `${f.accent}22` : "rgba(107,114,128,0.15)",
+                border: cardUnlocked ? `1px solid ${f.accent}33` : "1px solid rgba(107,114,128,0.2)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                color: unlocked ? f.accent : "var(--t-text-dim)",
+                color: cardUnlocked ? f.accent : "var(--t-text-dim)",
                 flexShrink: 0,
               }}>
                 <Icon size={20} />
@@ -402,7 +428,7 @@ const FeatureSection: React.FC<FeatureSectionProps> = ({
                     {pendingTimesheets} ACTION ITEMS
                   </span>
                 )}
-                {!unlocked
+                {!cardUnlocked
                   ? <FaLock size={12} style={{ color: "var(--t-text-ghost)" }} />
                   : <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: "var(--t-input-bg)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--t-text-ghost)" }}>
                       <FaExternalLinkAlt size={11} />
@@ -410,7 +436,7 @@ const FeatureSection: React.FC<FeatureSectionProps> = ({
                 }
               </div>
             </div>
-            <div style={{ fontSize: "15px", fontWeight: 700, color: unlocked ? "var(--t-text)" : "var(--t-text-ghost)", marginBottom: "6px" }}>
+            <div style={{ fontSize: "15px", fontWeight: 700, color: cardUnlocked ? "var(--t-text)" : "var(--t-text-ghost)", marginBottom: "6px" }}>
               {f.title}
             </div>
             <div style={{ fontSize: "12px", color: "var(--t-text-faint)", lineHeight: 1.65 }}>

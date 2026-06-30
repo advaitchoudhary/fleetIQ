@@ -9,7 +9,7 @@ import DeleteDriverModal from "../components/drivers/DeleteDriverModal";
 import CategoryModal from "../components/drivers/CategoryModal";
 import DriversTable from "../components/drivers/DriversTable";
 import DriverStatsCards from "../components/drivers/DriverStatsCards";
-import { FALLBACK_CATEGORIES, INITIAL_DRIVER_STATE, exportDriversToExcel } from "../utils/driverUtils";
+import { INITIAL_DRIVER_STATE, exportDriversToExcel } from "../utils/driverUtils";
 import { useTour } from "../hooks/useTour";
 import { DRIVERS_TOUR_KEY, driversSteps } from "../tours/driversTour";
 
@@ -20,7 +20,7 @@ const Drivers: React.FC = () => {
 
   const [data, setData] = useState<any[]>([]);
 
-  const [orgCategories, setOrgCategories] = useState<string[]>(FALLBACK_CATEGORIES);
+  const [orgCategories, setOrgCategories] = useState<string[]>([]);
   const [orgCategoriesConfigured, setOrgCategoriesConfigured] = useState(false);
   const [showCatModal, setShowCatModal] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -65,6 +65,7 @@ const Drivers: React.FC = () => {
         setOrgCategories(cats);
         setOrgCategoriesConfigured(true);
       } else {
+        setOrgCategories([]);
         setOrgCategoriesConfigured(false);
       }
     }).catch(() => {});
